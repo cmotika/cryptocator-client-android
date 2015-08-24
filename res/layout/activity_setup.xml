@@ -1,0 +1,1051 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/settingsbackground"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <ScrollView
+        android:id="@+id/mainscrollview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" >
+
+        <LinearLayout
+            android:id="@+id/mainsettingsinnerlayout"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <LinearLayout
+                android:id="@+id/advancedsettings"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="#44ffffff"
+                android:orientation="vertical" >
+
+                <LinearLayout
+                    android:id="@+id/baseurl"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginTop="20px"
+                    android:clickable="true"
+                    android:orientation="horizontal" >
+
+                    <ImageView
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_marginBottom="10px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="10px"
+                        android:layout_marginTop="15px"
+                        android:src="@drawable/server" />
+
+                    <LinearLayout
+                        android:id="@+id/oneline"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10px"
+                        android:orientation="horizontal" >
+
+                        <org.cryptocator.AddUserEditText
+                            android:id="@+id/baseurltext"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10px"
+                            android:layout_weight="1"
+                            android:inputType="textUri"
+                            android:textSize="14sp" >
+                        </org.cryptocator.AddUserEditText>
+
+                        <Button
+                            android:id="@+id/baseurlbutton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:layout_marginBottom="10px"
+                            android:layout_marginRight="10px"
+                            android:text="Save"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/buttonclearsending"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="10px"
+                    android:layout_marginTop="10px"
+                    android:text="   Clear Sending Queue   "
+                    android:textSize="14sp" />
+
+                <Button
+                    android:id="@+id/buttondebugprint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="10px"
+                    android:layout_marginTop="10px"
+                    android:text="   Show Sending Queue   "
+                    android:textSize="14sp" />
+                
+
+                  <Button
+                    android:id="@+id/buttondeletedatabase"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="10px"
+                    android:layout_marginTop="10px"
+                    android:text="   Delete Database   "
+                    android:textSize="14sp" />
+                
+                
+                
+                
+                
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/deviceid"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="0px"
+                android:layout_marginLeft="0px"
+                android:layout_marginRight="0px"
+                android:layout_marginTop="0px"
+                android:layout_weight="0.05"
+                android:autoLink="web"
+                android:background="#44888888"
+                android:clickable="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center"
+                android:paddingBottom="12dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:paddingTop="12dp"
+                android:text="Device ID: "
+                android:textColor="#ffCCCCCC"
+                android:textColorLink="#ffCCCCCC"
+                android:textSize="16sp" >
+            </TextView>
+
+            <TextView
+                android:id="@+id/info"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="0px"
+                android:layout_marginLeft="0px"
+                android:layout_marginRight="0px"
+                android:layout_marginTop="0px"
+                android:layout_weight="0.05"
+                android:autoLink="web"
+                android:background="#440000ff"
+                android:clickable="true"
+                android:focusableInTouchMode="true"
+                android:paddingBottom="10dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:paddingTop="10dp"
+                android:text="An info has occurred."
+                android:textColor="#ffffffff"
+                android:textColorLink="#ffffffff"
+                android:textSize="16sp" >
+            </TextView>
+
+            <TextView
+                android:id="@+id/error"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="0px"
+                android:layout_marginLeft="0px"
+                android:layout_marginRight="0px"
+                android:layout_marginTop="0px"
+                android:layout_weight="0.05"
+                android:autoLink="web"
+                android:background="#44ff0000"
+                android:clickable="true"
+                android:focusableInTouchMode="true"
+                android:paddingBottom="10dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:paddingTop="10dp"
+                android:text="An error has occurred."
+                android:textColor="#ffffffff"
+                android:textColorLink="#ffffffff"
+                android:textSize="16sp" >
+            </TextView>
+
+            <LinearLayout
+                android:id="@+id/widget44"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="0.02"
+                android:orientation="vertical" >
+
+                <CheckBox
+                    android:id="@+id/newaccount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="-14px"
+                    android:layout_marginLeft="20px"
+                    android:layout_marginTop="20px"
+                    android:text="  I don&apos;t have an account yet!" >
+                </CheckBox>
+
+                <LinearLayout
+                    android:id="@+id/accountnew"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" >
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="40px"
+                        android:layout_weight="0.02"
+                        android:orientation="horizontal" >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:text=" Username: "
+                            android:textAppearance="?android:attr/textAppearanceLarge"
+                            android:textSize="16sp" >
+                        </TextView>
+
+                        <EditText
+                            android:id="@+id/usernew"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="20px"
+                            android:layout_weight="1" >
+                        </EditText>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_weight="0.02"
+                        android:orientation="horizontal" >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:text=" Email: "
+                            android:textAppearance="?android:attr/textAppearanceLarge"
+                            android:textSize="16sp" >
+                        </TextView>
+
+                        <EditText
+                            android:id="@+id/emailnew"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="20px"
+                            android:layout_weight="1"
+                            android:inputType="textEmailAddress" >
+                        </EditText>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_weight="0.02"
+                        android:orientation="horizontal" >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:text=" Password: "
+                            android:textAppearance="?android:attr/textAppearanceLarge"
+                            android:textSize="16sp" >
+                        </TextView>
+
+                        <EditText
+                            android:id="@+id/pwdnew"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="20px"
+                            android:layout_weight="1" >
+                        </EditText>
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/create"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="40px"
+                        android:text="   Create Account   " />
+
+                    <TextView
+                        android:id="@+id/textnew"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="60px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="40px"
+                        android:layout_weight="0.05"
+                        android:clickable="true"
+                        android:text="If you create a new account, check your email and follow the activation link!"
+                        android:textSize="12sp" >
+                    </TextView>
+
+                    <View
+                        android:layout_width="fill_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginBottom="20px"
+                        android:layout_marginLeft="20px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="40px"
+                        android:background="@android:color/darker_gray" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/accountexisting"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" >
+
+                    <TextView
+                        android:id="@+id/textexisting2"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="60px"
+                        android:layout_marginRight="20px"
+                        android:layout_weight="0.05"
+                        android:clickable="true"
+                        android:text="If you have an account already, fill in the UID or email and password and click on login. You can lookup the UID in any email we sent you."
+                        android:textSize="12sp" >
+                    </TextView>
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="40px"
+                        android:layout_weight="0.02"
+                        android:orientation="horizontal" >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:text=" UID: "
+                            android:textAppearance="?android:attr/textAppearanceLarge"
+                            android:textSize="16sp" >
+                        </TextView>
+
+                        <EditText
+                            android:id="@+id/uid"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="20px"
+                            android:layout_weight="1"
+                            android:ems="10"
+                            android:inputType="phone" >
+                        </EditText>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_weight="0.02"
+                        android:orientation="horizontal" >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:text=" Email: "
+                            android:textAppearance="?android:attr/textAppearanceLarge"
+                            android:textSize="16sp" >
+                        </TextView>
+
+                        <EditText
+                            android:id="@+id/email"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="20px"
+                            android:layout_weight="1"
+                            android:inputType="textEmailAddress" >
+                        </EditText>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_weight="0.02"
+                        android:orientation="horizontal" >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:text=" Password: "
+                            android:textAppearance="?android:attr/textAppearanceLarge"
+                            android:textSize="16sp" >
+                        </TextView>
+
+                        <EditText
+                            android:id="@+id/pwd"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="20px"
+                            android:layout_weight="1" >
+                        </EditText>
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/login"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="40px"
+                        android:text="   Validate Login / Save  " />
+
+                    <TextView
+                        android:id="@+id/textlogin3"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="60px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="40px"
+                        android:layout_weight="0.05"
+                        android:clickable="true"
+                        android:text="Login to modify your username, enable SMS support, change your password, or backup/restore your userlist."
+                        android:textSize="12sp" >
+                    </TextView>
+
+                    <View
+                        android:layout_width="fill_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginBottom="20px"
+                        android:layout_marginLeft="20px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="40px"
+                        android:background="@android:color/darker_gray" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/accountonline"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" >
+
+                    <TextView
+                        android:id="@+id/textexisting224"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="60px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="20px"
+                        android:layout_weight="0.05"
+                        android:clickable="true"
+                        android:text="You can freely change you username here. Note that it might take some time until your username will be updated in other uers&apos;s userlists."
+                        android:textSize="12sp" >
+                    </TextView>
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_weight="0.02"
+                        android:orientation="horizontal" >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:text=" Username: "
+                            android:textAppearance="?android:attr/textAppearanceLarge"
+                            android:textSize="16sp" >
+                        </TextView>
+
+                        <EditText
+                            android:id="@+id/user"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="20px"
+                            android:layout_weight="1" >
+                        </EditText>
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/updateuser"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginBottom="20px"
+                        android:layout_marginTop="20px"
+                        android:text="   Update Username   " />
+
+                    <View
+                        android:layout_width="fill_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginBottom="20px"
+                        android:layout_marginLeft="20px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="20px"
+                        android:background="@android:color/darker_gray" />
+
+                    <TextView
+                        android:id="@+id/textexisting22"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="60px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="20px"
+                        android:layout_weight="0.05"
+                        android:clickable="true"
+                        android:text="Delphino Cryptocator allows you to send and receive secure encrypted SMS. Therefore you need to provide your phone number. It is strictly forbidden to enter a wrong phone number here. For your privacy, SMS sending is generally only limited to the users in your userlist.\nTherefore, if you enable the secure SMS option, it is necessary to store your userlist on the server."
+                        android:textSize="12sp" >
+                    </TextView>
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:orientation="horizontal" >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:text=" Phone: "
+                            android:textAppearance="?android:attr/textAppearanceLarge"
+                            android:textSize="16sp" >
+                        </TextView>
+
+                        <EditText
+                            android:id="@+id/phone"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="40px"
+                            android:layout_weight="1"
+                            android:ems="10"
+                            android:inputType="phone" >
+                        </EditText>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginBottom="20px"
+                        android:layout_marginTop="20px"
+                        android:orientation="horizontal" >
+
+                        <Button
+                            android:id="@+id/enablesmsoption"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:text=" Enable SMS " />
+
+                        <Button
+                            android:id="@+id/disablesmsoption"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:text=" Disable SMS " />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="fill_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginBottom="20px"
+                        android:layout_marginLeft="20px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="20px"
+                        android:background="@android:color/darker_gray" />
+
+                    <TextView
+                        android:id="@+id/textexisting223"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="60px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="20px"
+                        android:layout_weight="0.05"
+                        android:clickable="true"
+                        android:text="You can change you account access password here. Note that if you request to change the password, an activation link is sent to your email address. You need to click on this activation link in order to activate the new password."
+                        android:textSize="12sp" >
+                    </TextView>
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_weight="0.02"
+                        android:orientation="horizontal" >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:text=" New Password: "
+                            android:textAppearance="?android:attr/textAppearanceLarge"
+                            android:textSize="16sp" >
+                        </TextView>
+
+                        <EditText
+                            android:id="@+id/pwdchange"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="20px"
+                            android:layout_weight="1" >
+                        </EditText>
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/updatepwd"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="20px"
+                        android:text="   Change Password   " />
+
+                    <View
+                        android:layout_width="fill_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginBottom="20px"
+                        android:layout_marginLeft="20px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="40px"
+                        android:background="@android:color/darker_gray" />
+
+                    <TextView
+                        android:id="@+id/textexisting2223"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="60px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="20px"
+                        android:layout_weight="0.05"
+                        android:clickable="true"
+                        android:text="You can backup your userlist to the Delphino Cryptocator server and restore it later. Restoring will not clear you current list but append users from your backyp to your current userlist."
+                        android:textSize="12sp" >
+                    </TextView>
+
+                    <Button
+                        android:id="@+id/backup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="20px"
+                        android:text="   Backup Userlist   " />
+
+                    <Button
+                        android:id="@+id/restore"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="20px"
+                        android:text="   Restore Userlist   " />
+
+                    <View
+                        android:layout_width="fill_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginBottom="20px"
+                        android:layout_marginLeft="20px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="40px"
+                        android:background="@android:color/darker_gray" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/settingssection"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_weight="0.02"
+                    android:orientation="vertical" >
+
+                    <TextView
+                        android:layout_marginTop="20px"
+                        android:layout_marginBottom="10px"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="  Receive &amp; Power"
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textSize="18dp"
+                        android:textColor="#888888"
+                        android:textStyle="bold" >
+                    </TextView>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" >
+
+                        <CheckBox
+                            android:id="@+id/active"
+                            android:layout_width="wrap_content"
+                            android:layout_height="-14px"
+                            android:layout_marginLeft="20px"
+                            android:text="  Receive Background Service" >
+                        </CheckBox>
+
+                        <ImageView
+                            android:id="@+id/helpactive"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="10px"
+                            android:clickable="true"
+                            android:src="@drawable/help" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" >
+
+                        <CheckBox
+                            android:id="@+id/powersave"
+                            android:layout_width="wrap_content"
+                            android:layout_height="-14px"
+                            android:layout_marginLeft="20px"
+                            android:text="  Power Save Mode" >
+                        </CheckBox>
+
+                        <ImageView
+                            android:id="@+id/helppowersave"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="10px"
+                            android:clickable="true"
+                            android:src="@drawable/help" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" >
+
+                        <CheckBox
+                            android:id="@+id/receiveallsms"
+                            android:layout_width="wrap_content"
+                            android:layout_height="-14px"
+                            android:layout_marginLeft="20px"
+                            android:text="  Default SMS Application" >
+                        </CheckBox>
+
+                        <ImageView
+                            android:id="@+id/helpreceiveallsms"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="10px"
+                            android:clickable="true"
+                            android:src="@drawable/help" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20px"
+                        android:layout_marginBottom="10px"
+                        android:text="  Notification"
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textSize="18dp"
+                        android:textColor="#888888"
+                        android:textStyle="bold" >
+                    </TextView>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" >
+
+                        <CheckBox
+                            android:id="@+id/notification"
+                            android:layout_width="wrap_content"
+                            android:layout_height="-14px"
+                            android:layout_marginLeft="20px"
+                            android:text="  New Msg Notification" >
+                        </CheckBox>
+
+                        <ImageView
+                            android:id="@+id/helpnotification"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="10px"
+                            android:clickable="true"
+                            android:src="@drawable/help" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" >
+
+                        <CheckBox
+                            android:id="@+id/tone"
+                            android:layout_width="wrap_content"
+                            android:layout_height="-14px"
+                            android:layout_marginLeft="20px"
+                            android:text="  New Msg System Alert Tone" >
+                        </CheckBox>
+
+                        <ImageView
+                            android:id="@+id/helptone"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="10px"
+                            android:clickable="true"
+                            android:src="@drawable/help" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" >
+
+                        <CheckBox
+                            android:id="@+id/vibrate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="-14px"
+                            android:layout_marginLeft="20px"
+                            android:text="  New Msg Vibrate" >
+                        </CheckBox>
+
+                        <ImageView
+                            android:id="@+id/helpvibrate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="10px"
+                            android:clickable="true"
+                            android:src="@drawable/help" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20px"
+                        android:layout_marginBottom="10px"
+                        android:text="  Security &amp; Privacy"
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textSize="18dp"
+                        android:textColor="#888888"
+                        android:textStyle="bold" >
+                    </TextView>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" >
+
+                        <CheckBox
+                            android:id="@+id/ignore"
+                            android:layout_width="wrap_content"
+                            android:layout_height="-14px"
+                            android:layout_marginLeft="20px"
+                            android:text="  Ignore Unknown Users" >
+                        </CheckBox>
+
+                        <ImageView
+                            android:id="@+id/helpignore"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="10px"
+                            android:clickable="true"
+                            android:src="@drawable/help" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" >
+
+                        <CheckBox
+                            android:id="@+id/noscreenshots"
+                            android:layout_width="wrap_content"
+                            android:layout_height="-14px"
+                            android:layout_marginLeft="20px"
+                            android:text="  Disable Screenshots" >
+                        </CheckBox>
+
+                        <ImageView
+                            android:id="@+id/helpnoscreenshots"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="10px"
+                            android:clickable="true"
+                            android:src="@drawable/help" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" >
+
+                        <CheckBox
+                            android:id="@+id/encryption"
+                            android:layout_width="wrap_content"
+                            android:layout_height="-14px"
+                            android:layout_marginLeft="20px"
+                            android:text="  Use Message Encryption" >
+                        </CheckBox>
+
+                        <ImageView
+                            android:id="@+id/helpencryption"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="10px"
+                            android:clickable="true"
+                            android:src="@drawable/help" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20px"
+                        android:layout_marginBottom="10px"
+                        android:text="  Convenience"
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textSize="18dp"
+                        android:textColor="#888888"
+                        android:textStyle="bold" >
+                    </TextView>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" >
+
+                        <CheckBox
+                            android:id="@+id/noread"
+                            android:layout_width="wrap_content"
+                            android:layout_height="-14px"
+                            android:layout_marginLeft="20px"
+                            android:text="  Refuse Read Confirmation" >
+                        </CheckBox>
+
+                        <ImageView
+                            android:id="@+id/helpnoread"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="10px"
+                            android:clickable="true"
+                            android:src="@drawable/help" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" >
+
+                        <CheckBox
+                            android:id="@+id/chatmode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="-14px"
+                            android:layout_marginLeft="20px"
+                            android:text="  Chat Mode" >
+                        </CheckBox>
+
+                        <ImageView
+                            android:id="@+id/helpchatmode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="10px"
+                            android:clickable="true"
+                            android:src="@drawable/help" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" >
+
+                        <CheckBox
+                            android:id="@+id/quicktype"
+                            android:layout_width="wrap_content"
+                            android:layout_height="-14px"
+                            android:layout_marginLeft="20px"
+                            android:text="  Quick Respond" >
+                        </CheckBox>
+
+                        <ImageView
+                            android:id="@+id/helpquicktype"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="10px"
+                            android:clickable="true"
+                            android:src="@drawable/help" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="fill_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginBottom="20px"
+                        android:layout_marginLeft="20px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="40px"
+                        android:background="@android:color/darker_gray" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- FOOTER ROWS -->
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20px"
+                android:layout_marginRight="20px"
+                android:layout_marginTop="10px"
+                android:layout_weight="0.05"
+                android:textColor="#77777777"
+                android:text="Delphino Cryptocator Version 1.2\nCopyright (c) Christian Motika, Aug 2015\nDedicated to Sara Gebhart\nThanx to Alex!"
+                android:textSize="12sp" >
+            </TextView>
+
+            <TextView
+                android:id="@+id/demo"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="40px"
+                android:layout_marginLeft="20px"
+                android:layout_marginRight="20px"
+                android:layout_marginTop="10px"
+                android:autoLink="web"
+                android:text="http://www.cryptocator.org"
+                android:textSize="12sp" >
+            </TextView>
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

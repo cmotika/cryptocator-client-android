@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/conversationRootView"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity" >
+
+    <LinearLayout
+        android:id="@+id/inputlayout2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5px"
+            android:layout_marginTop="5px"
+            android:layout_weight="1"
+            android:minHeight="45dp"
+            android:orientation="horizontal" >
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5px"
+                android:layout_marginTop="5px"
+                android:layout_weight="2"
+                android:minHeight="45dp"
+                android:orientation="horizontal" >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="1px"
+                    android:layout_marginLeft="10px"
+                    android:layout_marginRight="5px"
+                    android:layout_marginTop="0px"
+                    android:text="To: "
+                    android:textSize="16sp" >
+                </TextView>
+
+                <EditText
+                    android:id="@+id/phone"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5px"
+                    android:ems="10"
+                    android:inputType="phone"
+                    android:text="" >
+
+                    <requestFocus />
+                </EditText>
+            </LinearLayout>
+
+            <org.cryptocator.ImagePressButton
+                android:id="@+id/phonebutton"
+                android:layout_width="140px"
+                android:layout_height="fill_parent"
+                android:layout_marginLeft="10px"
+                android:layout_marginTop="5px"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:minWidth="140px"
+                android:src="@drawable/phoneneutral"
+                android:text="" >
+            </org.cryptocator.ImagePressButton>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="center_vertical|center_horizontal"
+        android:layout_weight="2000" >
+
+        <view
+            android:id="@+id/tolist"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_marginBottom="10px"
+            android:layout_marginLeft="5px"
+            android:layout_marginRight="0px"
+            android:layout_marginTop="10px"
+            android:layout_weight="2000"
+            class="org.cryptocator.FastScrollView" />
+
+        <!--
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:layout_marginBottom="20px"
+            android:layout_marginLeft="80px"
+            android:layout_marginRight="80px"
+            android:layout_marginTop="20px"
+            android:gravity="center"
+            android:text="Compose a new unencrypted SMS message here. Add a phone number at the top.\n\nInvite this user to use Cryptocator in order to exchange secure messages!"
+            android:textSize="16sp" >
+        </TextView>        -->
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/inputlayout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="60dp"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5px"
+            android:layout_marginTop="5px"
+            android:layout_weight="1"
+            android:orientation="horizontal" >
+
+            <EditText
+                android:id="@+id/messageText"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5px"
+                android:layout_marginTop="5px"
+                android:layout_weight="2"
+                android:text="" >
+
+                <requestFocus />
+            </EditText>
+
+            <Spinner
+                android:id="@+id/sendspinner"
+                android:layout_width="0pt"
+                android:layout_height="0pt"
+                android:visibility="invisible" />
+
+            <LinearLayout
+                android:id="@+id/sendbuttonparent"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_gravity="bottom"
+                android:layout_marginLeft="10px"
+                android:orientation="vertical" >
+
+                <org.cryptocator.ImagePressButton
+                    android:id="@+id/sendbutton"
+                    android:layout_width="100px"
+                    android:layout_height="70px"
+                    android:layout_marginTop="5px"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:minWidth="100px"
+                    android:src="@drawable/send"
+                    android:text="" >
+                </org.cryptocator.ImagePressButton>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

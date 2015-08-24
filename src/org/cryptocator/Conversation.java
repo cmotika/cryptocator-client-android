@@ -1,0 +1,2644 @@
+/*
+ * Copyright (c) 2015, Christian Motika.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * all contributors, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, an acknowledgement to all contributors, this list of conditions
+ * and the following disclaimer in the documentation and/or other materials
+ * provided with the distribution.
+ * 
+ * 3. Neither the name Delphino Cryptocator nor the names of its contributors
+ * may be used to endorse or promote products derived from this software
+ * without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS “AS IS” AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ */
+package org.cryptocator;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
+//import org.cryptocator.ScrollViewEx.ScrollViewExListener;
+
+import org.cryptocator.R;
+
+import android.app.ActionBar;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Parcelable;
+import android.provider.ContactsContract;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextWatcher;
+import android.text.method.NumberKeyListener;
+import android.util.Log;
+import android.view.Display;
+import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
+import android.view.View.OnLongClickListener;
+import android.view.WindowManager;
+import android.view.WindowManager.LayoutParams;
+import android.view.ViewTreeObserver;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.SearchView;
+import android.widget.SearchView.OnQueryTextListener;
+import android.widget.Spinner;
+import android.widget.TableLayout;
+import android.widget.Toast;
+//import android.support.v7.widget.PopupMenu;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.view.ViewGroup;
+import android.view.View.OnKeyListener;
+
+/**
+ * The Conversation activity is the second most important class. It holds the
+ * currently displayed conversation. Also there should always only be one
+ * instance of this activity. Hence some data is static for faster access.
+ * 
+ * @author Christian Motika
+ * @date 08/23/2015
+ * @since 2.1
+ */
+public class Conversation extends Activity {
+
+	/** The fast scroll view. */
+	// private LinearLayout conversationinnerview;
+	FastScrollView fastScrollView;
+
+	/** The conversation root view. */
+	private View conversationRootView;
+
+	/** The titleconversation. */
+	private LinearLayout titleconversation;
+
+	/** The conversation list. */
+	private List<ConversationItem> conversationList = new ArrayList<ConversationItem>();
+
+	/** The conversation list diff. */
+	private List<ConversationItem> conversationListDiff = new ArrayList<ConversationItem>(); // only
+																								// new
+	/** The sendspinner. */
+	// items!
+	Spinner sendspinner = null;
+	// FastScrollBar fastscrollbar;
+	// private ScrollViewEx scrollView;
+
+	/** The scrollnormalcolor. */
+	private static String SCROLLNORMALCOLOR = "#22000000";
+
+	/** The scrolllockedcolor. */
+	private static String SCROLLLOCKEDCOLOR = "#00000000";
+
+	/** The failedcolor. */
+	private static String FAILEDCOLOR = "#6DB0FD";
+
+	/**
+	 * The Class Mapping.
+	 */
+	private class Mapping {
+
+		/** The speech. */
+		ImageView speech;
+
+		/** The oneline. */
+		LinearLayout oneline;
+
+		/** The sent. */
+		ImageView sent;
+
+		/** The received. */
+		ImageView received;
+
+		/** The read. */
+		ImageView read;
+
+		/** The text. */
+		EditText text;
+	}
+
+	/** The mapping. */
+	private HashMap<Integer, Mapping> mapping = new HashMap<Integer, Mapping>();
+
+	// private List<View> layoutList = new ArrayList<View>();
+
+	/** The host uid. */
+	private static int hostUid = -1;
+
+	/** The has scrolled. */
+	private static boolean hasScrolled = false;
+
+	/** The scroll item. */
+	private static int scrollItem = -1;
+
+	/** The max scroll message items. */
+	private static int maxScrollMessageItems = -1;
+
+	// if scrolled down, maintain scrolled down lock even when orientation
+	/** The scrolled down. */
+	// changes, keyboard comes up or new message arrives!
+	public static boolean scrolledDown = false;
+
+	/** The scrolled up. */
+	private static boolean scrolledUp = false;
+
+	/** The conversation size. */
+	private int conversationSize = -1;
+
+	/** The message text empty height. */
+	private int messageTextEmptyHeight = -1;
+
+	/** The sendbutton. */
+	private ImagePressButton sendbutton;
+
+	/** The message text. */
+	public EditText messageText;
+
+	/** The inflater. */
+	private LayoutInflater inflater;
+
+	/**
+	 * Gets the host uid.
+	 * 
+	 * @return the host uid
+	 */
+	public static int getHostUid() {
+		return hostUid;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onStart()
+	 */
+	@Override
+	protected void onStart() {
+		super.onStart();
+		final Context context = this;
+
+		// SET SENDSPINNER
+		sendspinner = (Spinner) findViewById(R.id.sendspinner);
+
+		final String OPTION0 = "SELECT AN OPTIONS"; // / NOT DISPLAYED BY DATA
+													// ADAPTER!!!
+		final String OPTIONCHATON = "  Enable Chat Mode";
+		final String OPTIONCHATOFF = "  Disable Chat Mode";
+
+		final String OPTIONSMSON = "  Enable SMS Mode";
+		final String OPTIONSMSOFF = "  Disable SMS Mode";
+
+		final String OPTIONCOPY = "  Copy";
+		final String OPTIONPASTE = "  Paste";
+		final String OPTIONUSECMSG = "  Send Unsecure Message";
+		final String OPTIONSECMSG = "  Send Secure Message";
+		final String OPTIONUSECSMS = "  Send Unsecure SMS";
+		final String OPTIONSECSMS = "  Send Secure SMS";
+
+		String[] spinnerTitles = { OPTION0, OPTIONCHATON, OPTIONSMSON,
+				OPTIONUSECSMS, OPTIONSECSMS, OPTIONUSECMSG };
+		String[] spinnerTitlesChat = { OPTION0, OPTIONCHATOFF, OPTIONSMSON,
+				OPTIONUSECSMS, OPTIONSECSMS, OPTIONUSECMSG };
+
+		String[] spinnerTitlesSMS = { OPTION0, OPTIONCHATON, OPTIONSMSOFF,
+				OPTIONUSECMSG, OPTIONSECMSG, OPTIONUSECSMS };
+		String[] spinnerTitlesSMSChat = { OPTION0, OPTIONCHATOFF, OPTIONSMSOFF,
+				OPTIONUSECMSG, OPTIONSECMSG, OPTIONUSECSMS };
+
+		String[] spinnerTitlesNOSMS = { OPTION0, OPTIONCHATON, OPTIONSMSON,
+				OPTIONUSECMSG };
+		String[] spinnerTitlesNOSMSChat = { OPTION0, OPTIONCHATOFF,
+				OPTIONSMSON, OPTIONUSECMSG };
+
+		String[] spinnerTitlesONLYSMS = { OPTION0, OPTIONCHATON, OPTIONSECSMS };
+		String[] spinnerTitlesONLYSMSChat = { OPTION0, OPTIONCHATOFF,
+				OPTIONSECSMS };
+
+		// Populate the spinner using a customized ArrayAdapter that hides the
+		// first (dummy) entry
+		final ArrayAdapter<String> dataAdapter = getMyDataAdatpter(spinnerTitles);
+		final ArrayAdapter<String> dataAdapterChat = getMyDataAdatpter(spinnerTitlesChat);
+		final ArrayAdapter<String> dataAdapterSMS = getMyDataAdatpter(spinnerTitlesSMS);
+		final ArrayAdapter<String> dataAdapterChatSMS = getMyDataAdatpter(spinnerTitlesSMSChat);
+		final ArrayAdapter<String> dataAdapterNOSMS = getMyDataAdatpter(spinnerTitlesNOSMS);
+		final ArrayAdapter<String> dataAdapterNOSMSChat = getMyDataAdatpter(spinnerTitlesNOSMSChat);
+		final ArrayAdapter<String> dataAdapterONLYSMS = getMyDataAdatpter(spinnerTitlesONLYSMS);
+		final ArrayAdapter<String> dataAdapterONLYSMSChat = getMyDataAdatpter(spinnerTitlesONLYSMSChat);
+
+		updateSendspinner(context, dataAdapter, dataAdapterChat,
+				dataAdapterSMS, dataAdapterChatSMS, dataAdapterNOSMS,
+				dataAdapterNOSMSChat, dataAdapterONLYSMS,
+				dataAdapterONLYSMSChat);
+
+		sendspinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+			public void onItemSelected(AdapterView<?> arg0, View arg1,
+					int arg2, long arg3) {
+				Object object = sendspinner.getSelectedItem();
+				if (object instanceof String) {
+					String option = (String) object;
+					if (option.equals(OPTIONCHATON)
+							|| (option.equals(OPTIONCHATOFF))) {
+						boolean chatmodeOn = Utility.loadBooleanSetting(
+								context, Setup.OPTION_CHATMODE,
+								Setup.DEFAULT_CHATMODE);
+						chatmodeOn = !chatmodeOn;
+						Utility.saveBooleanSetting(context,
+								Setup.OPTION_CHATMODE, chatmodeOn);
+						updateSendspinner(context, dataAdapter,
+								dataAdapterChat, dataAdapterSMS,
+								dataAdapterChatSMS, dataAdapterNOSMS,
+								dataAdapterNOSMSChat, dataAdapterONLYSMS,
+								dataAdapterONLYSMSChat);
+						if (chatmodeOn) {
+							Utility.showToastAsync(context,
+									"Chat mode enabled.");
+						} else {
+							Utility.showToastAsync(context,
+									"Chat mode disabled.");
+						}
+					} else if (option.equals(OPTIONSMSON)
+							|| (option.equals(OPTIONSMSOFF))) {
+						boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
+						boolean haveTelephoneNumber = Setup.havePhone(context,
+								hostUid);
+						if (!smsmodeOn && !haveTelephoneNumber) {
+							if (Setup.isSMSOptionEnabled(context)) {
+								inviteOtherUserToSMSMode(context);
+							} else {
+								inviteUserToSMSMode(context);
+							}
+						} else {
+							// normal toggle mode
+							smsmodeOn = !smsmodeOn;
+							Utility.saveBooleanSetting(context,
+									Setup.OPTION_SMSMODE + hostUid, smsmodeOn);
+							updateSendspinner(context, dataAdapter,
+									dataAdapterChat, dataAdapterSMS,
+									dataAdapterChatSMS, dataAdapterNOSMS,
+									dataAdapterNOSMSChat, dataAdapterONLYSMS,
+									dataAdapterONLYSMSChat);
+							if (smsmodeOn) {
+								Utility.showToastAsync(
+										context,
+										"SMS mode for "
+												+ Main.UID2Name(context,
+														hostUid, false)
+												+ " enabled.");
+							} else {
+								Utility.showToastAsync(
+										context,
+										"SMS mode for "
+												+ Main.UID2Name(context,
+														hostUid, false)
+												+ " disabled.");
+							}
+						}
+					} else if (option.equals(OPTIONCOPY)) {
+						String text = messageText.getText().toString();
+						Utility.copyToClipboard(context, text);
+						messageText.selectAll();
+					} else if (option.equals(OPTIONPASTE)) {
+						String text = Utility.pasteFromClipboard(context);
+						int i = messageText.getSelectionStart();
+						if (text != null) {
+							String prevText = messageText.getText().toString();
+							if (i < 0) {
+								// default fallback is concatenation
+								messageText.setText(prevText + text);
+							} else {
+								// otherwise try to fill in the text
+								messageText.setText(prevText.substring(0, i)
+										+ text + prevText.substring(i));
+							}
+							messageText.setSelection(text.length()
+									+ prevText.length());
+						}
+					} else if (option.equals(OPTIONSECSMS)) {
+						if (hostUid >= 0) {
+							sendSecureSms(context);
+						} else {
+							promptInfo(
+									context,
+									"No Registered User",
+									"In order to send secure encrypted SMS or messages, your communication partner needs to be registered.");
+						}
+					} else if (option.equals(OPTIONSECMSG)) {
+						if (Setup.haveKey(context, hostUid)) {
+							sendSecureMsg(context);
+						} else {
+							promptInfo(
+									context,
+									"No Encryption Possible",
+									"In order to send secure encrypted messages or SMS, your communication partner needs to enable encryption.");
+
+						}
+					} else if (option.equals(OPTIONUSECMSG)) {
+						sendUnsecureMsg(context);
+					} else if (option.equals(OPTIONUSECSMS)) {
+						sendUnsecureSms(context);
+					}
+				}
+				sendspinner.setSelection(0);
+			}
+
+			public void onNothingSelected(AdapterView<?> arg0) {
+				//
+			}
+		});
+		sendspinner.setSelection(0);
+		// END SET SENDSPINNER
+
+	}
+
+	// -------------------------------
+
+	/**
+	 * Update sendspinner.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param dataAdapter
+	 *            the data adapter
+	 * @param dataAdapterChat
+	 *            the data adapter chat
+	 * @param dataAdapterSMS
+	 *            the data adapter sms
+	 * @param dataAdapterChatSMS
+	 *            the data adapter chat sms
+	 * @param dataAdapterNOSMS
+	 *            the data adapter nosms
+	 * @param dataAdapterNOSMSChat
+	 *            the data adapter nosms chat
+	 * @param dataAdapterONLYSMS
+	 *            the data adapter onlysms
+	 * @param dataAdapterONLYSMSChat
+	 *            the data adapter onlysms chat
+	 */
+	private void updateSendspinner(Context context,
+			ArrayAdapter<String> dataAdapter,
+			ArrayAdapter<String> dataAdapterChat,
+			ArrayAdapter<String> dataAdapterSMS,
+			ArrayAdapter<String> dataAdapterChatSMS,
+			ArrayAdapter<String> dataAdapterNOSMS,
+			ArrayAdapter<String> dataAdapterNOSMSChat,
+			ArrayAdapter<String> dataAdapterONLYSMS,
+			ArrayAdapter<String> dataAdapterONLYSMSChat) {
+		boolean chatmodeOn = Utility.loadBooleanSetting(context,
+				Setup.OPTION_CHATMODE, Setup.DEFAULT_CHATMODE);
+		boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
+		boolean havephonenumber = Setup.havePhone(context, hostUid);
+		boolean onlySMS = hostUid < 0;
+
+		if (onlySMS) {
+			// only SMS mode available
+			if (chatmodeOn) {
+				sendspinner.setAdapter(dataAdapterONLYSMSChat);
+			} else {
+				sendspinner.setAdapter(dataAdapterONLYSMS);
+			}
+		} else if (!havephonenumber) {
+			// no SMS mode available
+			if (chatmodeOn) {
+				sendspinner.setAdapter(dataAdapterNOSMSChat);
+			} else {
+				sendspinner.setAdapter(dataAdapterNOSMS);
+			}
+		} else {
+			// sms mode available
+			if (smsmodeOn) {
+				// sms mode on
+				if (chatmodeOn) {
+					sendspinner.setAdapter(dataAdapterChatSMS);
+				} else {
+					sendspinner.setAdapter(dataAdapterSMS);
+				}
+			} else {
+				// normal : sms mode off
+				if (chatmodeOn) {
+					sendspinner.setAdapter(dataAdapterChat);
+				} else {
+					sendspinner.setAdapter(dataAdapter);
+				}
+			}
+		}
+		updateSendButtonImage(context);
+	}
+
+	// -------------------------------
+
+	/**
+	 * Gets the my data adatpter.
+	 * 
+	 * @param titles
+	 *            the titles
+	 * @return the my data adatpter
+	 */
+	ArrayAdapter<String> getMyDataAdatpter(String[] titles) {
+		final ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
+				android.R.layout.simple_spinner_dropdown_item, titles) {
+			@Override
+			public View getDropDownView(int position, View convertView,
+					ViewGroup parent) {
+				View v = null;
+
+				// If this is the initial dummy entry, make it hidden
+				if (position == 0) {
+					TextView tv = new TextView(getContext());
+					tv.setHeight(0);
+					tv.setVisibility(View.GONE);
+					v = tv;
+				} else {
+					// Pass convertView as null to prevent reuse of special case
+					// views
+					v = super.getDropDownView(position, null, parent);
+				}
+
+				// Hide scroll bar because it appears sometimes unnecessarily,
+				// this does not prevent scrolling
+				parent.setVerticalScrollBarEnabled(false);
+				return v;
+			}
+		};
+		return dataAdapter;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Invite other user.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void inviteOtherUserToSMSMode(final Context context) {
+		// possibly read other ones telephone number
+		// at this poiint
+		Communicator.updatePhonesFromServer(context, Main.loadUIDList(context),
+				true);
+
+		final String titleMessage = "Enable SMS";
+		String partner = Main.UID2Name(context, hostUid, false);
+		final String textMessage = "Delphino Cryptocator also allows to send/receive secure encrypted SMS.\n\nTo be able to use this option both communication partners have to turn this feature on.\n\nCurrently '"
+				+ partner
+				+ "' seems not to have turned on this feature. If you know '"
+				+ partner
+				+ "' has turned it on, try to refresh your userlist manually.\n\nAlternative: You can long press on the name '"
+				+ partner
+				+ "' in the userlist and add her/his phone number manually.";
+		new MessageAlertDialog(context, titleMessage, textMessage, " Ok ",
+				null, null, new MessageAlertDialog.OnSelectionListener() {
+					public void selected(int button, boolean cancel) {
+					}
+				}).show();
+	}
+
+	/**
+	 * Invite current user to sms mode.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void inviteUserToSMSMode(final Context context) {
+		try {
+			final String titleMessage = "Enable SMS";
+			final String textMessage = "Delphino Cryptocator also allows to send/receive secure encrypted SMS.\n\nFor this, your phone number and your userlist must be stored at the server. Furthermore, to be able to use this option both communication partners have to turn this feature on.\n\nDo you want to enable the secure SMS possibility?";
+			new MessageAlertDialog(context, titleMessage, textMessage, " Yes ",
+					" Account ", " Cancel ",
+					new MessageAlertDialog.OnSelectionListener() {
+						public void selected(int button, boolean cancel) {
+							if (!cancel) {
+								if (button == 0) {
+									// turn on if possible
+									String phone = Utility
+											.getPhoneNumber(context);
+									if (phone != null && phone.length() > 0) {
+										Setup.updateSMSOption(context, true);
+										Setup.backup(context, true, false);
+										// possibly read other ones telephone
+										// number
+										// at this poiint
+										Communicator.updatePhonesFromServer(
+												context,
+												Main.loadUIDList(context), true);
+									} else {
+										Utility.showToastAsync(
+												context,
+												"Cannot automatically read required phone number. Please enable SMS option manually in account settings after login!");
+										// go to account settings
+										Main.startAccount(context);
+									}
+								} else if (button == 1) {
+									// go to account settings
+									Main.startAccount(context);
+								}
+							}
+						}
+					}).show();
+		} catch (Exception e) {
+			// ignore
+		}
+	}
+
+	// ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Send unsecure sms.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void sendUnsecureSms(Context context) {
+		String messageTextString = messageText.getText().toString();
+		if (messageTextString.trim().length() > 0) {
+			String phone = Setup.getPhone(context, hostUid);
+			if (phone != null && phone.length() > 0) {
+				if (DB.addSendMessage(context, hostUid, messageTextString,
+						false, DB.TRANSPORT_SMS, false, DB.PRIORITY_MESSAGE)) {
+					updateConversationlist(context);
+					Communicator.sendNewNextMessageAsync(context,
+							DB.TRANSPORT_SMS);
+					messageText.setText("");
+				}
+			}
+		}
+	}
+
+	/**
+	 * Send secure sms.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void sendSecureSms(Context context) {
+		String messageTextString = messageText.getText().toString();
+		if (messageTextString.trim().length() > 0) {
+			boolean encrypted = Setup.encryptedSentPossible(context, hostUid);
+			String phone = Setup.getPhone(context, hostUid);
+			if (phone != null && phone.length() > 0) {
+				if (DB.addSendMessage(context, hostUid, messageTextString,
+						encrypted, DB.TRANSPORT_SMS, false, DB.PRIORITY_MESSAGE)) {
+					updateConversationlist(context);
+					Communicator.sendNewNextMessageAsync(context,
+							DB.TRANSPORT_SMS);
+					messageText.setText("");
+				}
+			}
+		}
+	}
+
+	/**
+	 * Send secure msg.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void sendSecureMsg(Context context) {
+		if (messageText.getText().toString().trim().length() > 0) {
+			boolean encrypted = Setup.encryptedSentPossible(context, hostUid);
+			if (DB.addSendMessage(context, hostUid, messageText.getText()
+					.toString(), encrypted, DB.TRANSPORT_INTERNET, false,
+					DB.PRIORITY_MESSAGE)) {
+				updateConversationlist(context);
+				Communicator.sendNewNextMessageAsync(context,
+						DB.TRANSPORT_INTERNET);
+				messageText.setText("");
+			}
+		}
+	}
+
+	/**
+	 * Send unsecure msg.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void sendUnsecureMsg(Context context) {
+		if (messageText.getText().toString().trim().length() > 0) {
+			boolean encrypted = false;
+			if (DB.addSendMessage(context, hostUid, messageText.getText()
+					.toString(), encrypted, DB.TRANSPORT_INTERNET, false,
+					DB.PRIORITY_MESSAGE)) {
+				// Log.d("communicator",
+				// "successfully added to DB");
+				updateConversationlist(context);
+				Communicator.sendNewNextMessageAsync(context,
+						DB.TRANSPORT_INTERNET);
+			} else {
+				// Log.d("communicator", "not added to DB");
+			}
+			messageText.setText("");
+		}
+	}
+
+	// ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sets the title.
+	 * 
+	 * @param title
+	 *            the new title
+	 */
+	public void setTitle(String title) {
+		TextView titletext = (TextView) findViewById(R.id.titletext);
+		titletext.setText(title);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onCreate(android.os.Bundle)
+	 */
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		Setup.possiblyDisableScreenshot(this);
+		super.onCreate(savedInstanceState);
+		Conversation.visible = true;
+		instance = this;
+		final Activity context = this;
+
+		inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+		// Apply custom title bar (with holo :-)
+		LinearLayout main = Utility.setContentViewWithCustomTitle(this,
+				R.layout.activity_conversation, R.layout.title_conversation);
+		main.setGravity(Gravity.BOTTOM);
+		Utility.setBackground(this, main, R.drawable.dolphins2);
+		titleconversation = (LinearLayout) findViewById(R.id.titleconversation);
+		Utility.setBackground(this, titleconversation, R.drawable.dolphins3blue);
+
+		ImagePressButton btnback = (ImagePressButton) findViewById(R.id.btnback);
+		btnback.initializePressImageResource(R.drawable.btnback);
+		LinearLayout btnbackparent = (LinearLayout) findViewById(R.id.btnbackparent);
+		btnback.setAdditionalPressWhiteView(btnbackparent);
+		btnback.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				goBack(context);
+			}
+		});
+		ImagePressButton btnkey = (ImagePressButton) findViewById(R.id.btnkey);
+		btnkey.initializePressImageResource(R.drawable.btnkey);
+		LinearLayout btnkeyparent = (LinearLayout) findViewById(R.id.btnkeyparent);
+		btnkey.setAdditionalPressWhiteView(btnkeyparent);
+		btnkey.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				possiblePromptNewSession(context);
+			}
+		});
+		ImagePressButton btnsearch = (ImagePressButton) findViewById(R.id.btnsearch);
+		btnsearch.initializePressImageResource(R.drawable.btnsearch);
+		LinearLayout btnsearchparent = (LinearLayout) findViewById(R.id.btnsearchparent);
+		btnsearch.setAdditionalPressWhiteView(btnsearchparent);
+		btnsearch.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				promptSearch(context);
+			}
+		});
+		ImagePressButton btnmenu = (ImagePressButton) findViewById(R.id.btnmenu);
+		btnmenu.initializePressImageResource(R.drawable.btnmenu);
+		LinearLayout btnmenuparent = (LinearLayout) findViewById(R.id.btnmenuparent);
+		btnmenu.setAdditionalPressWhiteView(btnmenuparent);
+		btnmenu.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				openOptionsMenu();
+			}
+		});
+
+		// conversationinnerview = ((LinearLayout)
+		// findViewById(R.id.conversationinnerview));
+		fastScrollView = (FastScrollView) findViewById(R.id.fastscrollview);
+
+		fastScrollView
+				.setOnNoHangListener(new FastScrollView.OnNoHangListener() {
+					public boolean noHangNeeded() {
+						return isTypingFast();
+					}
+				});
+
+		messageText = ((EditText) findViewById(R.id.messageText));
+		// fastscrollbar = (FastScrollBar) findViewById(R.id.fastscrollbar);
+
+		TextWatcher textWatcher = new TextWatcher() {
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+				lastKeyStroke = DB.getTimestamp();
+			}
+
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+			}
+
+			public void afterTextChanged(Editable s) {
+			}
+		};
+		messageText.addTextChangedListener(textWatcher);
+
+		// ActionBar actionBar = getActionBar();
+		// actionBar.setDisplayHomeAsUpEnabled(true);
+
+		sendbutton = ((ImagePressButton) findViewById(R.id.sendbutton));
+		LinearLayout sendbuttonparent = (LinearLayout) findViewById(R.id.sendbuttonparent);
+		sendbutton.setAdditionalPressWhiteView(sendbuttonparent);
+
+		if (hostUid == 0) {
+			// system, disable
+			sendbutton.setEnabled(false);
+		}
+
+		sendbutton.setLongClickable(true);
+		sendbutton.setOnLongClickListener(new OnLongClickListener() {
+			public boolean onLongClick(View v) {
+				sendspinner.performClick();
+				return false;
+			}
+		});
+
+		updateSendButtonImage(context);
+
+		registerContextMenuForSendButton(context);
+		sendbutton.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				if (isSMSModeAvailableAndOn(context)) {
+					sendSecureSms(context);
+				} else {
+					sendSecureMsg(context);
+				}
+			}
+		});
+
+		messageText.setOnKeyListener(new OnKeyListener() {
+			public boolean onKey(View v, int keyCode, KeyEvent event) {
+				// Log.d("communicator",
+				// "@@@@ setOnKeyListener() : keyCode = " + keyCode);
+				boolean chatmodeOn = Utility.loadBooleanSetting(context,
+						Setup.OPTION_CHATMODE, Setup.DEFAULT_CHATMODE);
+				if (keyCode == 66 && chatmodeOn) {
+					if (chatmodeOn) {
+						sendbutton.performClick();
+					}
+					return true;
+				}
+				return false;
+			}
+
+		});
+
+		// possibly load draft
+		String draft = Utility.loadStringSetting(this, "cachedraft" + hostUid,
+				"");
+		if (draft != null && draft.length() > 0) {
+			messageText.setText(draft);
+			messageText.setSelection(0, draft.length());
+			Utility.saveStringSetting(this, "cachedraft" + hostUid, "");
+		}
+
+		rebuildConversationlist(context);
+
+		View inputLayout = ((View) findViewById(R.id.inputlayout));
+		conversationRootView = (View) findViewById(R.id.conversationRootView);
+		Utility.setBackground(this, conversationRootView, R.drawable.dolphins2);
+		Utility.setBackground(this, inputLayout, R.drawable.dolphins1);
+
+		// DO NOT SCROLL HERE BECAUSE onResume() WILL DO THIS.
+		// onResume() is ALWAYS called if the user starts OR returns to the APP!
+		// scrollOnCreateOrResume(context);
+
+		// snap to 100% if >90%
+		fastScrollView.setSnapDown(85);
+		fastScrollView.setSnapUp(10);
+
+		// scrollView = (ScrollViewEx)
+		// findViewById(R.id.conversationscrollview);
+		fastScrollView
+				.setOnScrollListener(new FastScrollView.OnScrollListener() {
+
+					public void onScrollRested(FastScrollView fastScrollView,
+							int x, int y, int oldx, int oldy, int percent,
+							int item) {
+
+						// Log.d("communicator",
+						// "@@@@ onScrollRested SCROLL ("+fastScrollView.hashCode()+") CHANGED =======> "
+						// + fastScrollView.heights.size() + ", " +
+						// fastScrollView.heightsSum);
+
+						if (percent >= 95) {
+							scrolledDown = true;
+							scrolledUp = false;
+							fastScrollView
+									.setScrollBackground(R.color.invisible);
+						} else if (percent <= 5) {
+							showTitlebarAsync(context);
+							scrolledUp = true;
+							scrolledDown = false;
+							fastScrollView.setScrollBackground(R.color.gray);
+						} else {
+							scrolledUp = false;
+							scrolledDown = false;
+							fastScrollView.setScrollBackground(R.color.gray);
+							// fastScrollView.setScrollBackground(Color.parseColor(SCROLLNORMALCOLOR));
+						}
+						scrollItem = item;
+
+						// Log.d("communicator",
+						// "@@@@ onScrollRested() :  y = " + y
+						// + ", percent=" + percent + ", item="
+						// + item + ", getMaxPosition="
+						// + fastScrollView.getMaxPosition());
+						Log.d("communicator",
+								"@@@@ onScrollRested() :  scrollItem = "
+										+ scrollItem + ", percent=" + percent
+										+ ", scrolledUp=" + scrolledUp
+										+ ", scrolledDown=" + scrolledDown);
+
+						// switch back to normal title
+						updateConversationTitleAsync(context);
+					}
+
+					public void onScrollChanged(FastScrollView fastScrollView,
+							int x, int y, int oldx, int oldy, int percent,
+							int item) {
+						// Log.d("communicator", "@@@@ onScrollChanged:" +
+						// percent);
+
+						int realItem = conversationSize
+								- conversationList.size() + item;
+						updateConversationTitleAsync(context, realItem + " / "
+								+ conversationSize);
+					}
+
+					public void onOversroll(boolean up) {
+						// doRefresh(context);
+						// switch back to normal title
+						updateConversationTitleAsync(context);
+					}
+
+				});
+
+		fastScrollView
+				.setOnSizeChangeListener(new FastScrollView.OnSizeChangeListener() {
+					public void onSizeChange(int w, int h, int oldw, int oldh) {
+						// Log.d("communicator", "######## SCROLL CHANGED X");
+						// if the keyboard pops up and scrolledDown == true,
+						// then scroll down manually!
+						scollDownAfterTypingFast(false);
+					}
+				});
+
+		// The following code is necessary to FORCE further scrolling down if
+		// the virtual keyboard
+		// is brought up. Otherwise the top scrolled position is remaining but
+		// this is uncomfortable!
+		conversationRootView.getViewTreeObserver().addOnGlobalLayoutListener(
+				new ViewTreeObserver.OnGlobalLayoutListener() {
+					public void onGlobalLayout() {
+
+						Rect r = new Rect();
+						conversationRootView.getWindowVisibleDisplayFrame(r);
+						// get screen height
+						int screenHeight = conversationRootView.getRootView()
+								.getHeight();
+						// calculate the height difference
+						int heightDifference = screenHeight - r.bottom - r.top;
+						if (lastHeight == heightDifference) {
+							return;
+						}
+						lastHeight = heightDifference;
+
+						Log.d("communicator",
+								"@@@@ onGlobalLayout() scoll down request "
+										+ heightDifference + ", scrolledDown="
+										+ scrolledDown);
+
+						if (messageText.length() == 0) {
+							messageTextEmptyHeight = messageText.getHeight();
+						}
+						if (isKeyboardVisible(conversationRootView)) {
+							if (!scrolledUp
+									&& messageText.getHeight() > messageTextEmptyHeight) {
+								// if scrolled up completely, we want to show it
+								// even with keyboard visible!
+								// also, if this is an empty or one-line message
+								// we want to see the titlebar! (e.g., directly
+								// after sending)
+								titleconversation.setVisibility(View.GONE);
+							}
+						} else {
+							titleconversation.setVisibility(View.VISIBLE);
+						}
+
+						boolean showKeyboard = false;
+						if (Utility
+								.loadBooleanSetting(context,
+										Setup.OPTION_QUICKTYPE,
+										Setup.DEFAULT_QUICKTYPE)
+								&& Utility.isOrientationLandscape(context)) {
+							showKeyboard = true;
+						}
+
+						// if the keyboard pops up and scrolledDown == true,
+						// then scroll down manually!
+						scollDownAfterTypingFast(showKeyboard);
+					}
+				});
+
+		// // setMessageTextFocus();
+		// resetFastScrollBar();
+
+		// Force overfloebuttons
+		Utility.forceOverflowMenuButtons(this);
+		// updateMenu(this);
+
+	}
+
+	/** The last height. */
+	int lastHeight = 0;
+
+	// -------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Checks if is SMS mode available so we and our partner have enabled SMS
+	 * mode by providing phone numbers.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return true, if is SMS mode available
+	 */
+	private boolean isSMSModeAvailable(Context context) {
+		boolean smsOptionOn = Setup.isSMSOptionEnabled(context);
+		boolean haveTelephoneNumber = Setup.havePhone(context, hostUid);
+		return (haveTelephoneNumber && smsOptionOn);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Checks if is SMS mode available (because we habe a telephone number) and
+	 * if the mode is and on.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return true, if is SMS mode available and on
+	 */
+	private boolean isSMSModeAvailableAndOn(Context context) {
+		boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
+		return (isSMSModeAvailable(context) && smsmodeOn);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update send button image.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void updateSendButtonImage(Context context) {
+		if (hostUid < 0) {
+			sendbutton.setImageResource(R.drawable.sendsms);
+			sendbutton.initializePressImageResource(R.drawable.sendsms, false);
+			// sendbutton.setImageResource(R.drawable.sendsms);
+		} else if (isSMSModeAvailableAndOn(context)) {
+			if (Setup.isEncryptionAvailable(context, hostUid)) {
+				sendbutton.setImageResource(R.drawable.sendsmslock);
+				sendbutton.initializePressImageResource(R.drawable.sendsmslock,
+						false);
+			} else {
+				sendbutton.setImageResource(R.drawable.sendsms);
+				sendbutton.initializePressImageResource(R.drawable.sendsms,
+						false);
+			}
+		} else if (Setup.isEncryptionAvailable(context, hostUid)) {
+			sendbutton.setImageResource(R.drawable.sendlock);
+			sendbutton.initializePressImageResource(R.drawable.sendlock, false);
+		} else {
+			sendbutton.setImageResource(R.drawable.send);
+			sendbutton.initializePressImageResource(R.drawable.send, false);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
+
+	// "If the process is killed then all static variables will be reinitialized to their default values."
+
+	/** The instance. */
+	// private static boolean visible;
+	private static Conversation instance = null;
+
+	/** The visible. */
+	private static boolean visible = false;
+
+	/** The last key stroke. */
+	// Only written from Conversation and ConversationCompose
+	public static long lastKeyStroke = 0;
+
+	/**
+	 * Checks if is typing.
+	 * 
+	 * @return true, if is typing
+	 */
+	// Let's see if we are allowed to process background activity
+	public static boolean isTyping() {
+		return !(lastKeyStroke == 0)
+				&& ((DB.getTimestamp() - lastKeyStroke) < Setup.TYPING_TIMEOUT_BEFORE_BACKGROUND_ACTIVITY);
+	}
+
+	// Let's see if we are allowed to process UI activity like scrolling, do not
+	/**
+	 * Checks if is typing fast.
+	 * 
+	 * @return true, if is typing fast
+	 */
+	// even do this on FAST typing!
+	public static boolean isTypingFast() {
+		return !(lastKeyStroke == 0)
+				&& ((DB.getTimestamp() - lastKeyStroke) < Setup.TYPING_TIMEOUT_BEFORE_UI_ACTIVITY);
+	}
+
+	/**
+	 * Gets the single instance of Conversation.
+	 * 
+	 * @return single instance of Conversation
+	 */
+	public static Conversation getInstance() {
+		return instance;
+	}
+
+	/**
+	 * Checks if is visible.
+	 * 
+	 * @return true, if is visible
+	 */
+	// Returns true if the activity is visible
+	public static boolean isVisible() {
+		return (visible && instance != null);
+	}
+
+	/**
+	 * Checks if is alive.
+	 * 
+	 * @return true, if is alive
+	 */
+	// Returns true if an instance is available
+	public static boolean isAlive() {
+		return (instance != null && Conversation.hostUid != -1);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onDestroy()
+	 */
+	@Override
+	public void onDestroy() {
+		Conversation.visible = false;
+		super.onDestroy();
+		/*
+		 * Note: do not count on this method being called as a place for saving
+		 * data! For example, if an activity is editing data in a content
+		 * provider, those edits should be committed in either onPause() or
+		 * onSaveInstanceState(Bundle), not here. This method is usually
+		 * implemented to free resources like threads that are associated with
+		 * an activity, so that a destroyed activity does not leave such things
+		 * around while the rest of its application is still running. There are
+		 * situations where the system will simply kill the activity's hosting
+		 * process without calling this method (or any others) in it, so it
+		 * should not be used to do things that are intended to remain around
+		 * after the process goes away.
+		 * 
+		 * You can move your code to onPause() or onStop()
+		 */
+	}
+
+	// --------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onStop()
+	 */
+	@Override
+	public void onStop() {
+		Conversation.visible = false;
+		// if chat is not empty, save it as draft
+		String msg = messageText.getText().toString();
+		if (msg != null && msg.trim().length() > 0) {
+			String draft = Utility.loadStringSetting(this, "cachedraft"
+					+ hostUid, "");
+			if (!draft.equals(msg)) {
+				// only if message changed
+				Utility.saveStringSetting(this, "cachedraft" + hostUid, msg);
+				Utility.showToastShortAsync(this, "Message saved as draft.");
+			}
+		}
+		super.onStop();
+		// Log.d("communicator", "@@@@ onStop() visible = false");
+	}
+
+	// ------------------------------------------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onPause()
+	 */
+	@Override
+	protected void onPause() {
+		Conversation.visible = false;
+		// Log.d("communicator", "@@@@ onPause() visible = false");
+		super.onPause();
+		// Necessary for the following situation:
+		// if scrolled to somewhere and changing focused activity, the
+		// scrollview would automatically try to
+		// scroll up! this prevents!
+		// Log.d("communicator", "@@@@ onPause() LOCK POSITION ");
+		fastScrollView.lockPosition();
+	}
+
+	// --------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onResume()
+	 */
+	@Override
+	public void onResume() {
+		super.onResume();
+		// updateMenu(this);
+		if (!Conversation.isAlive()) {
+			// Log.d("communicator", "#### onResume() NOT ALIVE ANY MORE ");
+			// this class instance was lost, close it
+			Conversation.visible = false;
+			this.finish();
+		} else {
+			// Log.d("communicator", "@@@@ onResume() visible = true");
+			Conversation.visible = true;
+			// Reset error claims
+			Setup.setErrorUpdateInterval(this, false);
+			Scheduler.reschedule(this, false, false, true);
+
+			conversationSize = DB.getConversationSize(this, hostUid, true);
+
+			// reset the new message counter
+			Communicator.setNotificationCount(this, hostUid, true);
+			// set all messages (internally as read)
+
+			// TODO: should we do this here or better only in create?!
+			// set all messages (internally as read)
+			DB.updateOwnMessageRead(this, hostUid);
+			if (Conversation.isVisible()) {
+				Communicator.sendReadConfirmation(this, hostUid);
+			}
+
+			// cancel possible system notifications for this hostuid
+			if (Utility.loadBooleanSetting(this, Setup.OPTION_NOTIFICATION,
+					Setup.DEFAULT_NOTIFICATION)
+					&& !Utility.isScreenLocked(this)) {
+				Communicator.cancelNotification(this, hostUid);
+			}
+
+			// if (Utility.loadBooleanSetting(this, Setup.OPTION_NOTIFICATION,
+			// Setup.DEFAULT_NOTIFICATION) && Utility.isScreenLocked(this)) {
+			// onResume of the activity will be called when ACTION_SCREEN_ON
+			// is fired. Create a handler and wait for ACTION_USER_PRESENT.
+			// When it is fired, implement what you want for your activity.
+			//
+			// WE NEED TO WAIT UNTIL THE SCREEN IS UNLOCKED BEFORE WE
+			// CANCEL THE NOTIFICATION
+			// =>>> The UserPresentReceiver listens to USER_PRESENT, it will
+			// clear the notification in this case!
+			// }
+
+			// ALWAYS (RE)SET KEYBOARD TO INVISIBLE (also when orientation
+			// changes)!!!
+			Utility.hideKeyboard(this);
+			Utility.hideKeyboardExplicit(messageText);
+
+			scrollOnCreateOrResume(this);
+		}
+	}
+
+	// --------------------------------------
+
+	/**
+	 * Scroll on create or resume.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void scrollOnCreateOrResume(Context context) {
+		// Log.d("communicator", "@@@@  scrollOnCreateOrResume(): " +
+		// scrollItem);
+		// ", scrolledDown="+ scrolledDown + ", scrolledUp="+scrolledUp +
+		// ", scrollItem="+scrollItem);
+		// only scroll for the first time, it is annying of scrolling when
+		// changing orientation
+
+		if (fastScrollView.isLocked()) {
+			Log.d("communicator", "@@@@ SCROLL RESTORE #0");
+			fastScrollView.restoreLockedPosition();
+		} else if (!hasScrolled) {
+			hasScrolled = true;
+			// Log.d("communicator",
+			// "@@@@ onCreate() 1: not scolled  down before");
+			fastScrollView.postDelayed(new Runnable() {
+				public void run() {
+					Log.d("communicator", "@@@@ SCROLL DOWN #1");
+					// measureHeights();
+					isKeyboardVisible(conversationRootView);
+					fastScrollView.scrollDown();
+					// foceScrollDown();
+					scrolledDown = true;
+					fastScrollView.setScrollBackground(R.color.gray);
+					// fastScrollView.setScrollBackground(Color.parseColor(SCROLLLOCKEDCOLOR));
+				}
+			}, 200);
+		} else if (scrolledDown) {
+			// Log.d("communicator", "@@@@ onCreate() 2: scolled down lock");
+			// scroll to restore position
+			fastScrollView.postDelayed(new Runnable() {
+				public void run() {
+					Log.d("communicator", "@@@@ SCROLL DOWN #2");
+					// measureHeights();
+					// scrollView.fullScroll(ScrollView.FOCUS_DOWN);
+					fastScrollView.scrollDown();
+				}
+			}, 200);
+		} else if (scrolledUp) {
+			// Log.d("communicator", "@@@@ onCreate() 3: scolled up lock");
+			// scroll to restore position
+			fastScrollView.postDelayed(new Runnable() {
+				public void run() {
+					Log.d("communicator", "@@@@ SCROLL UP #3");
+					// measureHeights();
+					// scrollView.scrollTo(0, 0);
+					fastScrollView.scrollUp();
+					// updateFastScrollBar(0, true);
+				}
+			}, 200);
+		} else if (scrollItem > -1) {
+			// Log.d("communicator",
+			// "@@@@ onCreate() 4: scoll to specific position");
+			// scroll to restore position
+			fastScrollView.postDelayed(new Runnable() {
+				public void run() {
+					Log.d("communicator", "@@@@ SCROLL ITEM #4:" + scrollItem);
+					fastScrollView.scrollToItem(scrollItem + 1);
+					// measureHeights();
+					// int pos = getPositionByScrollItem(scrollItem - 1); // -1
+					// prevents
+					// drift!!!
+					// scrollView.scrollTo(0, pos);
+					// updateFastScrollBar(pos, true);
+				}
+			}, 200);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Foce scroll down.
+	 * 
+	 * @param keyboardVisible
+	 *            the keyboard visible
+	 */
+	private void foceScrollDown(boolean keyboardVisible) {
+		Log.d("communicator", "@@@@ foceScrollDown(alsoSetTextFocus? "
+				+ keyboardVisible + ")");
+		fastScrollView.postDelayed(new Runnable() {
+			public void run() {
+				fastScrollView.scrollDown();
+				// fastScrollView.fullScroll(ScrollView.FOCUS_DOWN);
+			}
+		}, 100);
+
+		Log.d("communicator", "@@@@ foceScrollDown() -> keyboardVisible="
+				+ keyboardVisible);
+
+		// if keyboard is visible, then set cursor to text field!
+		if (keyboardVisible) {
+			// fake a keyboard entry for convenience
+			lastKeyStroke = DB.getTimestamp();
+			messageText.postDelayed(new Runnable() {
+				public void run() {
+					// fake a keyboard entry for convenience
+					lastKeyStroke = DB.getTimestamp();
+					messageText.requestFocus();
+					Utility.showKeyboardExplicit(messageText);
+					messageText.requestFocus();
+				}
+			}, 200);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
+
+	// Scrolls down (iff scrolldown) and when the user waits for a small number
+	// of
+	// time but this prevents interupting the user when he types fast! (e.g.
+	// deleting characters!)
+	// private boolean scrollWait = false;
+
+	// each scoller increments this counter and will not resume if he has not
+	// the highest
+	// number any more => this means another scoller has arrived which will do
+	// the job of
+	/** The active scoller. */
+	// scrolling at the end!
+	private int activeScoller = 0;
+
+	/**
+	 * Scoll down after typing fast.
+	 * 
+	 * @param showKeyboard
+	 *            the show keyboard
+	 */
+	private void scollDownAfterTypingFast(boolean showKeyboard) {
+		if (!scrolledDown && hasScrolled) {
+			Log.d("communicator",
+					"@@@@ scollDownAfterTypingFast() => return (scrolledDown="
+							+ scrolledDown + ")");
+			return;
+		}
+		// -1 means we do not have a number yet!
+		// note that this is not thread safe so potentially two threads may get
+		// the same
+		// number. this is OK for us as this only tries to reduce the number of
+		// backward threads
+		// when typing fast & long texts. The worst case szenario is only that
+		// we try to scroll
+		// more than once... but thats ok because we actually do not scroll if
+		// we already are there!
+		scrollDownAfterTypingFast(showKeyboard, -1);
+	}
+
+	/**
+	 * Scroll down after typing fast.
+	 * 
+	 * @param showKeyboard
+	 *            the show keyboard
+	 * @param scrollNumber
+	 *            the scroll number
+	 */
+	private void scrollDownAfterTypingFast(final boolean showKeyboard,
+			final int scrollNumber) {
+		Log.d("communicator", "@@@@ scollDownAfterTypingFast([" + scrollNumber
+				+ "], showKeyboard=" + showKeyboard + ") ENTRY ");
+		final Context context = this;
+		if (isTypingFast()) {
+			Log.d("communicator", "@@@@ scollDownAfterTypingFast(["
+					+ scrollNumber + "], showKeyboard=" + showKeyboard
+					+ ") 1 => isTypingFast, retry ");
+			fastScrollView.postDelayed(new Runnable() {
+				public void run() {
+					isKeyboardVisible(conversationRootView);
+					if (!isTypingFast()) {
+						// here we scroll if not already scrolled down!
+						foceScrollDown(keyboardVisible || showKeyboard);
+					} else {
+						int newOrOldScrollNumber = scrollNumber;
+						if (scrollNumber < 0) {
+							// take a new number
+							activeScoller++;
+							newOrOldScrollNumber = activeScoller;
+							Log.d("communicator",
+									"@@@@ scollDownAfterTypingFast(["
+											+ scrollNumber
+											+ "]) 1A => take new number "
+											+ newOrOldScrollNumber
+											+ " and wait...");
+						} else {
+							// test if there is someone "behind" us how will do
+							// the work, so we can
+							// stop our recursion...
+							if (activeScoller > scrollNumber) {
+								Log.d("communicator",
+										"@@@@ scollDownAfterTypingFast(["
+												+ scrollNumber
+												+ "]) 1A_1 => we have an old number = "
+												+ newOrOldScrollNumber + " < "
+												+ activeScoller + " => QUIT");
+								return; // SOMEONE ELSE WILL SCROLL FOR US...
+							}
+							Log.d("communicator",
+									"@@@@ scollDownAfterTypingFast(["
+											+ scrollNumber
+											+ "]) 1A_2 => we have the highest number "
+											+ newOrOldScrollNumber
+											+ " ... further waiting");
+						}
+						// WAIT RECUSIVELY
+						scrollDownAfterTypingFast(showKeyboard,
+								newOrOldScrollNumber);
+					}
+				}
+			}, 100 + Setup.TYPING_TIMEOUT_BEFORE_UI_ACTIVITY);
+			// Ensure that we scroll after this time at least if
+			// the user rests
+			// for some time..
+		} else if (!isTypingFast()) {
+			Log.d("communicator", "@@@@ scollDownAfterTypingFast(["
+					+ scrollNumber + "], showKeyboard=" + showKeyboard
+					+ ") 2 => !isTypingFast, !!!SCROLL!!! ");
+			// we should update the scroll view height here because it was
+			// blocked/skipped during fast typing!
+			fastScrollView.potentiallyRefreshState();
+			// Otherwise we can scroll immediately if the user already rests!
+			// and is not typing
+			fastScrollView.postDelayed(new Runnable() {
+				public void run() {
+					updateConversationTitleAsync(context);
+					isKeyboardVisible(conversationRootView);
+					foceScrollDown(keyboardVisible || showKeyboard);
+				}
+			}, 100);
+
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Rebuild conversationlist.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void rebuildConversationlist(final Context context) {
+		fastScrollView.clearChilds();
+		// layoutList.clear();
+		resetMapping();
+
+		// flag all messages internally as read
+		DB.updateOwnMessageRead(context, hostUid);
+		loadConversationList(context, hostUid, maxScrollMessageItems);
+		try {
+			for (ConversationItem conversationItem : conversationList) {
+				View newView = addConversationLine(context, conversationItem);
+				if (newView != null) {
+					fastScrollView.addChild(newView);
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (Conversation.isVisible()) {
+			Communicator.sendReadConfirmation(context, hostUid);
+		}
+
+		updateConversationTitle(context);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Show titlebar async.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public void showTitlebarAsync(final Context context) {
+		final Handler mUIHandler = new Handler(Looper.getMainLooper());
+		mUIHandler.post(new Thread() {
+			@Override
+			public void run() {
+				super.run();
+				titleconversation.setVisibility(View.VISIBLE);
+			}
+		});
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update conversationlist async.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public static void updateConversationlistAsync(final Context context) {
+		final Handler mUIHandler = new Handler(Looper.getMainLooper());
+		mUIHandler.post(new Thread() {
+			@Override
+			public void run() {
+				super.run();
+				if (Conversation.isAlive()) {
+					Conversation.getInstance().updateConversationlist(context);
+				}
+			}
+		});
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update conversationlist.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public void updateConversationlist(final Context context) {
+		loadConversationList(context, hostUid, maxScrollMessageItems);
+		try {
+			if (!Conversation.scrolledDown) {
+				fastScrollView.lockPosition();
+			}
+			if (conversationListDiff.size() > 0) {
+				for (ConversationItem conversationItem : conversationListDiff) {
+					View newView = addConversationLine(context,
+							conversationItem);
+					if (newView != null) {
+						fastScrollView.addChild(newView);
+					}
+				}
+			}
+			conversationSize += conversationListDiff.size();
+
+			// possiblySetMessageTextFocus();
+			// measureHeights();
+			if (!Conversation.scrolledDown) {
+				fastScrollView.restoreLockedPosition();
+			} else {
+				scollDownAfterTypingFast(false);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (Conversation.isVisible()) {
+			Communicator.sendReadConfirmation(this, hostUid);
+		}
+		updateConversationTitle(context);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Adds the mapping.
+	 * 
+	 * @param mid
+	 *            the mid
+	 * @param localid
+	 *            the localid
+	 * @param sent
+	 *            the sent
+	 * @param received
+	 *            the received
+	 * @param read
+	 *            the read
+	 * @param text
+	 *            the text
+	 * @param oneline
+	 *            the oneline
+	 * @param speech
+	 *            the speech
+	 */
+	private void addMapping(int mid, int localid, ImageView sent,
+			ImageView received, ImageView read, EditText text,
+			LinearLayout oneline, ImageView speech) {
+		Mapping mappingItem = new Mapping();
+		mappingItem.read = read;
+		mappingItem.received = received;
+		mappingItem.sent = sent;
+		mappingItem.text = text;
+		mappingItem.oneline = oneline;
+		mappingItem.speech = speech;
+		int insertId = mid;
+		if (insertId == -1) {
+			// convention: use local id instead as a placeholder
+			insertId = -1 * localid;
+		}
+		// Log.d("communicator",
+		// "MAPPING INSERT "
+		// + insertId);
+		mapping.put(insertId, mappingItem);
+	}
+
+	/**
+	 * Reset mapping.
+	 */
+	private void resetMapping() {
+		mapping.clear();
+	}
+
+	/**
+	 * Gets the mapping.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 * @return the mapping
+	 */
+	public Mapping getMapping(Context context, int mid) {
+		// Log.d("communicator",
+		// "MAPPING REQUEST "
+		// + mid);
+		Mapping mappingItem = mapping.get(mid);
+		if (mappingItem != null && mid > 0) {
+			// if we already found a valid mid, then return the mappingItem
+			return mappingItem;
+		} else if (mid < 0) {
+			// FOR SMS MESSAGES: mid == local id!!!
+			int negativeLocalId = mid;
+			mappingItem = mapping.get(negativeLocalId);
+			if (mappingItem != null) {
+				// if we already found a valid mid, then return the mappingItem
+				return mappingItem;
+			}
+		}
+		// otherwise lookup the localid in the DB and update it!
+		// in the not-sent-case there is no mid yet, so the localid is used in
+		// the mapping
+		// it will be available under the NEGATIVE localid to prevent conflicts
+		// with other (always positive) mids
+		int localId = DB.getHostLocalIdByMid(context, mid, hostUid);
+		if (localId >= 0) {
+			// found a localId to the (now) available mid ... so update the
+			// mapping to this mid!
+			int negativeLocalId = localId * -1;
+			mappingItem = mapping.get(negativeLocalId);
+			// ATTENTION: for SMS-messages, there will never be a mid!!! DO NOT
+			// UPDATE THE MAPPING IN THIS CASE!
+			if (mid > 0) {
+				// update in the real mapping for later usage
+				mapping.put(mid, mappingItem);
+			}
+		}
+		return mappingItem;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sets the sent.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 */
+	public static void setSent(Context context, int mid) {
+		Conversation conversation = Conversation.getInstance();
+		if (Conversation.isAlive()) {
+			Mapping mappingItem = conversation.getMapping(context, mid);
+			if (mappingItem != null) {
+				if (mappingItem.received.getVisibility() != View.VISIBLE) {
+					// if not already received...
+					mappingItem.sent.setVisibility(View.VISIBLE);
+					mappingItem.received.setVisibility(View.GONE);
+					mappingItem.read.setVisibility(View.GONE);
+				}
+			}
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sets the withdraw in conversation.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 */
+	public static void setWithdrawInConversation(Context context, int mid) {
+		Conversation conversation = Conversation.getInstance();
+		if (Conversation.isAlive()) {
+			Mapping mappingItem = conversation.getMapping(context, mid);
+			if (mappingItem != null) {
+				mappingItem.text.setText(DB.WITHDRAWNTEXT);
+			}
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sets the received.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 */
+	public static void setReceived(Context context, int mid) {
+		Conversation conversation = Conversation.getInstance();
+		if (Conversation.isAlive()) {
+			Mapping mappingItem = conversation.getMapping(context, mid);
+			if (mappingItem != null) {
+				if (mappingItem.read.getVisibility() != View.VISIBLE) {
+					// if not already read...
+					mappingItem.sent.setVisibility(View.GONE);
+					mappingItem.received.setVisibility(View.VISIBLE);
+					mappingItem.read.setVisibility(View.GONE);
+				}
+			}
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sets the failed async.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param localid
+	 *            the localid
+	 */
+	public static void setFailedAsync(final Context context, final int localid) {
+		final Handler mUIHandler = new Handler(Looper.getMainLooper());
+		mUIHandler.post(new Thread() {
+			@Override
+			public void run() {
+				super.run();
+				setFailed(context, localid);
+			}
+		});
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sets the failed.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param localid
+	 *            the localid
+	 */
+	public static void setFailed(Context context, int localid) {
+		Conversation conversation = Conversation.getInstance();
+		if (Conversation.isAlive()) {
+			Mapping mappingItem = conversation
+					.getMapping(context, -1 * localid);
+			if (mappingItem != null) {
+				mappingItem.oneline.setBackgroundColor(Color
+						.parseColor(FAILEDCOLOR));
+				mappingItem.speech.setImageResource(R.drawable.speechmefailed);
+			}
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sets the read.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 */
+	public static void setRead(Context context, int mid) {
+		if (!Utility.loadBooleanSetting(context, Setup.OPTION_NOREAD,
+				Setup.DEFAULT_NOREAD)) {
+			Conversation conversation = Conversation.getInstance();
+			if (Conversation.isAlive()) {
+				Mapping mappingItem = conversation.getMapping(context, mid);
+				if (mappingItem != null) {
+					mappingItem.sent.setVisibility(View.GONE);
+					mappingItem.received.setVisibility(View.GONE);
+					mappingItem.read.setVisibility(View.VISIBLE);
+				}
+			}
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Reset values.
+	 * 
+	 * @param hostUid
+	 *            the host uid
+	 */
+	public static void resetValues(int hostUid) {
+		Conversation.hostUid = hostUid;
+		Conversation.maxScrollMessageItems = Setup.MAX_SHOW_CONVERSATION_MESSAGES;
+		hasScrolled = false;
+		scrollItem = -1;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Adds the conversation line.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param conversationItem
+	 *            the conversation item
+	 * @return the view
+	 */
+	private View addConversationLine(final Context context,
+			final ConversationItem conversationItem) {
+
+		// do not show system messages or empty messages
+		if (conversationItem.text == null
+				|| conversationItem.text.length() == 0) {
+			return null;
+		}
+
+		View conversationlistitem = null;
+
+		String name = "Me";
+		if (!conversationItem.me(context)) {
+			conversationlistitem = inflater.inflate(R.layout.conversationitem,
+					null);
+			name = Main.UID2Name(context, hostUid, false);
+			EditText conversationText = (EditText) conversationlistitem
+					.findViewById(R.id.conversationtext);
+			// rounded corners
+			LinearLayout oneline = (LinearLayout) conversationlistitem
+					.findViewById(R.id.oneline);
+			oneline.setBackgroundResource(R.drawable.rounded_corners);
+
+			ImageView speech = (ImageView) conversationlistitem
+					.findViewById(R.id.msgspeech);
+
+			// Create a mapping for later async update
+			addMapping(conversationItem.mid, conversationItem.localid, null,
+					null, null, conversationText, oneline, speech);
+		} else {
+			conversationlistitem = inflater.inflate(
+					R.layout.conversationitemme, null);
+
+			// rounded corners
+			LinearLayout oneline = (LinearLayout) conversationlistitem
+					.findViewById(R.id.oneline);
+			oneline.setBackgroundResource(R.drawable.rounded_cornersme);
+
+			ImageView sent = (ImageView) conversationlistitem
+					.findViewById(R.id.msgsent);
+			ImageView received = (ImageView) conversationlistitem
+					.findViewById(R.id.msgreceived);
+			ImageView read = (ImageView) conversationlistitem
+					.findViewById(R.id.msgread);
+			EditText conversationText = (EditText) conversationlistitem
+					.findViewById(R.id.conversationtext);
+			ImageView speech = (ImageView) conversationlistitem
+					.findViewById(R.id.msgspeech);
+
+			// Create a mapping for later async update
+			addMapping(conversationItem.mid, conversationItem.localid, sent,
+					received, read, conversationText, oneline, speech);
+
+			if (conversationItem.read > 0
+					&& !Utility.loadBooleanSetting(context,
+							Setup.OPTION_NOREAD, Setup.DEFAULT_NOREAD)) {
+				// only display read for the people that allow this
+				sent.setVisibility(View.GONE);
+				received.setVisibility(View.GONE);
+			} else if (conversationItem.received > 0) {
+				sent.setVisibility(View.GONE);
+				read.setVisibility(View.GONE);
+			} else if (conversationItem.sent > 0) {
+				received.setVisibility(View.GONE);
+				read.setVisibility(View.GONE);
+			} else {
+				sent.setVisibility(View.GONE);
+				received.setVisibility(View.GONE);
+				read.setVisibility(View.GONE);
+			}
+
+			if (conversationItem.smsfailed) {
+				oneline.setBackgroundColor(Color.parseColor(FAILEDCOLOR));
+				speech.setImageResource(R.drawable.speechmefailed);
+			}
+		}
+
+		TextView conversationTime = (TextView) conversationlistitem
+				.findViewById(R.id.conversationtime);
+
+		EditText conversationText = (EditText) conversationlistitem
+				.findViewById(R.id.conversationtext);
+
+		ImageView locked = (ImageView) conversationlistitem
+				.findViewById(R.id.msglocked);
+		if (!conversationItem.encrypted) {
+			locked.setVisibility(View.GONE);
+		}
+
+		ImageView sms = (ImageView) conversationlistitem
+				.findViewById(R.id.msgsms);
+		if (conversationItem.transport == DB.TRANSPORT_INTERNET) {
+			sms.setVisibility(View.GONE);
+		}
+
+		OnLongClickListener longClickListener = new OnLongClickListener() {
+			public boolean onLongClick(View arg0) {
+				promptMessageDetails(context, conversationItem);
+				return true;
+			}
+		};
+		conversationlistitem.setOnLongClickListener(longClickListener);
+		conversationTime.setOnLongClickListener(longClickListener);
+
+		long time = conversationItem.sent;
+		if (time < 0) {
+			time = conversationItem.created;
+		}
+		conversationTime.setText(DB.getDateString(time, false));
+		conversationTime.setId(conversationTime.hashCode());
+
+		conversationText.setText(conversationItem.text);
+		conversationText.setId(conversationItem.hashCode());
+
+		return conversationlistitem;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Possible prompt new session.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void possiblePromptNewSession(Context context) {
+		if (hostUid < 0) {
+			// Tell the user to register
+			promptInfo(
+					this,
+					"No Registered User",
+					"In order to use encryption, your communication partner needs to be registered.");
+			return;
+		} else if (!Setup.isEncryptionAvailable(this, hostUid)) {
+			// Tell the user to activate
+			promptInfo(
+					this,
+					"Encryption Disabled",
+					"You cannot use encryption because either you or your communication partner has not turned on this feature.\n\nIn order to use encryption both communication partners need to turn this feature on in their settings.");
+			return;
+		}
+		if (!isSMSModeAvailable(context)) {
+			// No choice, because SMS is not available
+			sendNewSession(context, DB.TRANSPORT_INTERNET);
+			return;
+		}
+		// Choice between Internet and SMS
+		promptNewSession(context);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Send new session.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param transport
+	 *            the transport
+	 */
+	public void sendNewSession(Context context, int transport) {
+		// Send new key
+		// int transport = DB.TRANSPORT_INTERNET;
+		// if (isSMSModeAvailableAndOn(this)) {
+		// // use SMS transport for sendig new key!!
+		// transport = DB.TRANSPORT_SMS;
+		// }
+		Communicator.getAESKey(this, Conversation.hostUid, true, transport,
+				false, null, true);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Prompt new session.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void promptNewSession(final Context context) {
+		// try {
+
+		String title = "Send New Session Key";
+		String text = "Send the new session key via Internet or SMS?";
+
+		new MessageAlertDialog(context, title, text, null, null, " Cancel ",
+				new MessageAlertDialog.OnSelectionListener() {
+					public void selected(int button, boolean cancel) {
+						// nothing
+					}
+				}, new MessageAlertDialog.OnInnerViewProvider() {
+
+					public View provide(final MessageAlertDialog dialog) {
+						LinearLayout buttonLayout = new LinearLayout(context);
+						buttonLayout.setOrientation(LinearLayout.HORIZONTAL);
+						buttonLayout.setGravity(Gravity.CENTER_HORIZONTAL);
+
+						LinearLayout.LayoutParams lpButtons = new LinearLayout.LayoutParams(
+								180, 120);
+						lpButtons.setMargins(20, 20, 20, 20);
+
+						ImageLabelButton internetButton = new ImageLabelButton(
+								context);
+						internetButton.setTextAndImageResource("Internet",
+								R.drawable.send);
+						internetButton.setLayoutParams(lpButtons);
+						internetButton
+								.setOnClickListener(new View.OnClickListener() {
+									public void onClick(View v) {
+										sendNewSession(context,
+												DB.TRANSPORT_INTERNET);
+										dialog.dismiss();
+									}
+								});
+						ImageLabelButton smsButton = new ImageLabelButton(
+								context);
+						smsButton.setTextAndImageResource("SMS",
+								R.drawable.sendsms);
+						smsButton.setLayoutParams(lpButtons);
+						smsButton
+								.setOnClickListener(new View.OnClickListener() {
+									public void onClick(View v) {
+										sendNewSession(context,
+												DB.TRANSPORT_SMS);
+										dialog.dismiss();
+									}
+								});
+						buttonLayout.addView(internetButton);
+						buttonLayout.addView(smsButton);
+						return buttonLayout;
+					}
+				}).show();
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Prompt message details.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param conversationItem
+	 *            the conversation item
+	 */
+	private void promptMessageDetails(final Context context,
+			final ConversationItem conversationItem) {
+		try {
+			// create it
+			Intent dialogIntent = new Intent(context,
+					MessagedetailsActivity.class);
+			dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			MessagedetailsActivity.conversationItem = conversationItem;
+			MessagedetailsActivity.hostUid = hostUid;
+			// start it
+			context.startActivity(dialogIntent);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			// ignore
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Load conversation list.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param hostUid
+	 *            the host uid
+	 * @param maxScrollMessageItems
+	 *            the max scroll message items
+	 */
+	private void loadConversationList(Context context, int hostUid,
+			int maxScrollMessageItems) {
+		List<ConversationItem> conversationListNew = new ArrayList<ConversationItem>();
+		DB.loadConversation(context, hostUid, conversationListNew,
+				maxScrollMessageItems);
+		conversationListDiff.clear();
+		for (ConversationItem itemNew : conversationListNew) {
+			boolean found = false;
+			for (ConversationItem item : conversationList) {
+				if (item.localid == itemNew.localid) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				conversationListDiff.add(itemNew);
+			}
+		}
+		conversationList = conversationListNew;
+	}
+
+	// ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+
+	/** The min width diff. */
+	private static int minWidthDiff = 100;
+
+	/** The m last height differece. */
+	private static int mLastHeightDifferece;
+
+	/** The keyboard visible. */
+	private static boolean keyboardVisible = false;
+
+	// private static int maxPanned = 0; // remember the maximal panned height
+	// because when panning Anrdoid
+	// private static int maxPannedWithoutSuggestions = 0; // remember the
+	// maximal panned height because when panning Anrdoid
+	// will already pan including the height for input-suggestions even if this
+	// is not present
+
+	/**
+	 * Checks if is keyboard visible.
+	 * 
+	 * @param rootView
+	 *            the root view
+	 * @return true, if is keyboard visible
+	 */
+	private boolean isKeyboardVisible(View rootView) {
+		// get screen frame rectangle
+		Rect r = new Rect();
+		rootView.getWindowVisibleDisplayFrame(r);
+		// get screen height
+		int screenHeight = rootView.getRootView().getHeight();
+		// calculate the height difference
+		int heightDifference = screenHeight - (r.bottom - r.top);
+
+		// Log.d("communicator",
+		// "@@@@ heightDifference =" + heightDifference +
+		// ", mLastHeightDifferece = "+mLastHeightDifferece+" , screenHeight = "
+		// + screenHeight);
+
+		// if height difference is different then the last height difference and
+		// is bigger then a third of the screen we can assume the keyboard is
+		// open
+		if (heightDifference != mLastHeightDifferece) {
+			if (heightDifference > screenHeight / 4
+					&& ((heightDifference > mLastHeightDifferece + minWidthDiff) || (heightDifference < mLastHeightDifferece
+							- minWidthDiff))) {
+				// keyboard visiblevisible
+				// Log.d("communicator", "@@@@@@ CHANGE TO VISIBLE=TRUE");
+				mLastHeightDifferece = heightDifference;
+				keyboardVisible = true;
+			} else if (heightDifference < screenHeight / 4) {
+				// Log.d("communicator", "@@@@@@ CHANGE TO VISIBLE=FALSE");
+				// keyboard hidden
+				mLastHeightDifferece = heightDifference;
+				keyboardVisible = false;
+			}
+		}
+		return keyboardVisible;
+	}
+
+	// ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// This is necessary to enable a context menu
+		getMenuInflater().inflate(R.menu.activity_main, menu);
+		return true;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onKeyDown(int, android.view.KeyEvent)
+	 */
+	// SEARCH KEY OVERRIDE
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		// Log.d("communicator", "@@@@@@ KEYCODE" + keyCode);
+		if (keyCode == KeyEvent.KEYCODE_SEARCH) {
+			promptSearch(this);
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+	 */
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			goBack(this);
+			return true;
+		case R.id.item2:
+			maxScrollMessageItems = Setup.SHOW_ALL;
+			updateConversationlist(this);
+			rebuildConversationlist(this);
+			onRestart();
+			onStart();
+			onResume();
+			// resetFastScrollBar();
+			// updateFastScrollBar(0, true);
+			return true;
+		case R.id.item3:
+			clearConversation(this);
+			return true;
+		case R.id.item4:
+			backup(this);
+			return true;
+		case R.id.itemsearch:
+			promptSearch(this);
+			return true;
+		case R.id.item6:
+			possiblePromptNewSession(this);
+			return true;
+		case R.id.menu_settings:
+			// refresh
+			doRefresh(this);
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Go back.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public void goBack(Context context) {
+		// GET TO THE MAIN SCREEN IF THIS ICON IS CLICKED !
+		Intent intent = new Intent(this, Main.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		startActivity(intent);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Do refresh.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public void doRefresh(final Context context) {
+		Communicator.sendNextMessage(this);
+		Communicator.haveNewMessagesAndReceive(this);
+		// Communicator.updateReceiveInfo(this);
+		// Communicator.updateReadInfo(this);
+		Utility.showToastShortAsync(this, "Refreshing...");
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Prompt search.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public void promptSearch(final Context context) {
+
+		String lastSearch = Utility.loadStringSetting(context,
+				"lastconversationsearch", "");
+		final int lastFound = Utility.loadIntSetting(context,
+				"lastconversationsearchfound", -1);
+
+		// String title = "Search Conversation";
+		String title = "Enter some text to search for:";
+		new MessageInputDialog(context, title, null, " Up ", "Down", "Clear",
+				lastSearch, new MessageInputDialog.OnSelectionListener() {
+					public void selected(MessageInputDialog dialog, int button,
+							boolean cancel, String searchString) {
+						if (button == MessageInputDialog.BUTTONCANCEL) {
+							// Cancel search (remove search text)
+							Utility.saveStringSetting(context,
+									"lastconversationsearch", "");
+							dialog.setText("", true);
+						} else if ((button == MessageInputDialog.BUTTONOK0)
+								|| (button == MessageInputDialog.BUTTONOK1)) {
+							dialog.dismiss();
+							Utility.saveStringSetting(context,
+									"lastconversationsearch", searchString);
+							// Log.d("communicator", "@@@@@@ SEARCH FROM "
+							// + scrollItem);
+
+							// try to unmark
+							{
+								if (lastFound != -1) {
+									Mapping mappingItem = mapping
+											.get(lastFound);
+									if (mappingItem != null) {
+										EditText editText = mappingItem.text;
+										if (editText != null) {
+											editText.setSelection(0, 0);
+										}
+									}
+								}
+							}
+
+							boolean reverse = (button == MessageInputDialog.BUTTONOK0);
+							int start = scrollItem;
+							int end = conversationList.size() - 1;
+							if (start > end) {
+								start = end;
+							}
+							int incr = 1;
+							if (reverse) {
+								start = scrollItem - 2;
+								end = 0;
+								if (start < end) {
+									start = end;
+								}
+								incr = -1;
+							}
+							if (scrollItem > -1) {
+								int foundItem = -1;
+								int mid = -1;
+								for (int c = start; c != end; c = c + incr) {
+									if (conversationList.get(c).text
+											.contains(searchString)) {
+										foundItem = c;
+										// try to mark
+										ConversationItem item = conversationList
+												.get(c);
+										mid = item.mid;
+										if (mid == -1) {
+											mid = -1 * item.localid;
+										}
+										if (lastFound != mid) {
+											// otherwise search on...
+											Mapping mappingItem = mapping
+													.get(mid);
+											if (mappingItem != null) {
+												EditText editText = mappingItem.text;
+												if (editText != null) {
+													editText.selectAll();
+												}
+											}
+											Utility.saveIntSetting(
+													context,
+													"lastconversationsearchfound",
+													mid);
+											break;
+										} else {
+											foundItem = -1; // we did not find
+															// anything NEW
+															// here...!
+										}
+									}
+								}
+								if (foundItem != -1) {
+									fastScrollView.scrollToItem(foundItem);
+									// scrollView.scrollTo(0, pos);
+									// updateFastScrollBar(pos, true);
+									Utility.showToastInUIThread(context, "'"
+											+ searchString
+											+ "' found in message "
+											+ (mid + "").replace("-", "*")
+											+ ".");
+								} else {
+									String updown = "(down)";
+									if (reverse) {
+										updown = "(up)";
+									}
+									Utility.showToastInUIThread(context, "'"
+											+ searchString + "' not found "
+											+ updown + ".");
+								}
+							}
+						}
+					}
+				}).show();
+
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Prompt info.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param title
+	 *            the title
+	 * @param text
+	 *            the text
+	 */
+	public static void promptInfo(Context context, String title, String text) {
+		new MessageAlertDialog(context, title, text, " Ok ", null, null,
+				new MessageAlertDialog.OnSelectionListener() {
+					public void selected(int button, boolean cancel) {
+					}
+				}).show();
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Backup.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public void backup(Context context) {
+		// create it
+		Intent dialogIntent = new Intent(context, BackupActivity.class);
+		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		BackupActivity.hostUid = hostUid;
+		// start it
+		context.startActivity(dialogIntent);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Clear conversation.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public void clearConversation(final Context context) {
+		new MessageAlertDialog(
+				context,
+				"Clear Conversation",
+				"Clearing the conversation means deleting all messages between you and this user from your local device. Keep in mind that you might not see"
+						+ " all but only the last "
+						+ Setup.MAX_SHOW_CONVERSATION_MESSAGES
+						+ " messages of the current conversation.\n\n"
+						+ "Do you really want to clear the whole conversation with "
+						+ Main.UID2Name(context, hostUid, false) + " ?",
+				" Clear ", " Abort ", null,
+				new MessageAlertDialog.OnSelectionListener() {
+					public void selected(int button, boolean cancel) {
+						if (!cancel && button == 0) {
+							// Clear conversation
+							DB.deleteUser(context, hostUid);
+							rebuildConversationlist(context);
+							// Update the first line
+							Utility.saveStringSetting(context,
+									Setup.SETTINGS_USERLISTLASTMESSAGE
+											+ hostUid, null);
+							Utility.saveLongSetting(context,
+									Setup.SETTINGS_USERLISTLASTMESSAGETIMESTAMP
+											+ hostUid, -1);
+						}
+					}
+				}).show();
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Update conversation title async.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public void updateConversationTitleAsync(final Context context) {
+		updateConversationTitleAsync(context, null);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update conversation title async.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param titleText
+	 *            the title text
+	 */
+	public void updateConversationTitleAsync(final Context context,
+			final String titleText) {
+		final Handler mUIHandler = new Handler(Looper.getMainLooper());
+		mUIHandler.post(new Thread() {
+			@Override
+			public void run() {
+				super.run();
+				updateConversationTitle(context, titleText);
+			}
+		});
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update conversation title.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public void updateConversationTitle(Context context) {
+		updateConversationTitle(context, null);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update conversation title.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param titleText
+	 *            the title text
+	 */
+	public void updateConversationTitle(Context context, String titleText) {
+		if (titleText == null || titleText.length() == 0) {
+			Conversation.getInstance().setTitle(
+					Main.UID2Name(context, hostUid, false) + " - "
+							+ Setup.getAESKeyHash(context, hostUid));
+		} else {
+			Conversation.getInstance().setTitle(titleText);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Register context menu for send button.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void registerContextMenuForSendButton(final Context context) {
+		// sendButton.setOnLongClickListener(new OnLongClickListener() {
+		// public boolean onLongClick(View v) {
+		// PopupMenuCompat popupMenu = new PopupMenu(context, v);
+		// List<String> lstFb = new ArrayList<String>();
+		// for (int i = 0; i < lstFb.size(); i++) {
+		// popupMenu.getMenu().add(lstFb.get(i));
+		// }
+		// popupMenu
+		// .setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+		// public boolean onMenuItemClick(MenuItem item) {
+		// String Value = item.toString();
+		// return false;
+		// }
+		// });
+		//
+		// popupMenu.show();
+		// return false;
+		// }
+		// });
+	}
+}
