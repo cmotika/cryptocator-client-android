@@ -361,6 +361,7 @@ public class Main extends Activity {
 	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
 	 */
 	public boolean onOptionsItemSelected(MenuItem item) {
+		// The context menu implementation
 		switch (item.getItemId()) {
 		case android.R.id.home:
 			composeMessage(context, null, null);
