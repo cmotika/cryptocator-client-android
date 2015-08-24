@@ -1155,13 +1155,12 @@ public class Main extends Activity {
 
 	// ------------------------------------------------------------------------
 
-	/**
+	/*
 	 * Adds the user.
 	 * 
-	 * @param context
-	 *            the context
-	 * @param uid
-	 *            the uid
+	 * @param context the context
+	 * 
+	 * @param uid the uid
 	 */
 	public void addUser(final Context context, final int uid) {
 
@@ -1170,6 +1169,45 @@ public class Main extends Activity {
 			// Error resume is automatically done by getTmpLogin, not logged in
 			return;
 		}
+
+		String url = null;
+		url = Setup.getBaseURL(context) + "cmd=getuser&session=" + session
+				+ "&val=" + Setup.encUid(context, uid);
+		final String url2 = url;
+		// Log.d("communicator", "XXXX REQUEST addUser :" + url2);
+		@SuppressWarnings("unused")
+		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
+				url2, new HttpStringRequest.OnResponseListener() {
+					public void response(String response) {
+						// Log.d("communicator",
+						// "XXXX RESPONSE1 addUser :"+response);
+						if (Communicator.isResponseValid(response)) {
+							// Log.d("communicator",
+							// "XXXX RESPONSE2 addUser :"+response);
+							if (Communicator.isResponsePositive(response)) {
+								String responseContent = Communicator
+										.getResponseContent(response);
+								String responseName = Setup.decText(context,
+										responseContent);
+								if (responseContent.equals("-1")
+										|| responseName == null) {
+									Utility.showToastAsync(context, "User "
+											+ uid + " not found.");
+								} else {
+									internalAddUserAndRefreshUserlist(context,
+											uid, responseName);
+								}
+							} else {
+								Utility.showToastAsync(context,
+										"Cannot add user " + uid
+												+ ". Login failed.");
+							}
+						} else {
+							Utility.showToastAsync(context,
+									"Server error. Check internet connection.");
+						}
+					}
+				}));
 	}
 
 	// ------------------------------------------------------------------------
@@ -1455,8 +1493,66 @@ public class Main extends Activity {
 		String url = null;
 		url = Setup.getBaseURL(context) + "cmd=getuser&session=" + session
 				+ "&val=" + uidListAsStringEncoded;
+		final String url2 = url;
 		Log.d("communicator", "REQUEST USERNAMES: " + url);
+		@SuppressWarnings("unused")
+		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
+				url2, new HttpStringRequest.OnResponseListener() {
+					public void response(String response) {
+						if (Communicator.isResponseValid(response)) {
+							if (Communicator.isResponsePositive(response)) {
+								String responseContent = Communicator
+										.getResponseContent(response);
+								// response is
+								// name1#name2#name3#-1#name5...
+								if (uidList == null && uidSingleLookup != -1) {
+									// SINGLE LOOKUP
+									String newName = Setup.decText(context,
+											responseContent);
+									if (Main.isUpdateName(context,
+											uidSingleLookup) && newName != null) {
+										saveUID2Name(context, uidSingleLookup,
+												newName);
+										// it is important to NOT resolve names
+										// again,
+										// if some could not be resolved!
+										// otherwise this will
+										// get a live-lock-loop!!!
+										possiblyRebuildUserlistAsync(context,
+												false);
+									}
+									if (updateListener != null
+											&& newName != null) {
+										updateListener.onUpdate(newName);
+									}
+								} else {
+									// MULTIPLE LOOKUP
+									List<String> names = Utility
+											.getListFromString(responseContent,
+													"#");
+									for (int i = 0; i < names.size(); i++) {
+										String name = names.get(i);
+										String newName = Setup.decText(context,
+												name);
+										int uid = uidList.get(i);
+										if (Main.isUpdateName(context, uid)
+												&& newName != null) {
+											saveUID2Name(context, uid, newName);
+										}
+									}
+									// it is important to NOT resolve names
+									// again,
+									// if some could not be resolved!
+									// otherwise this will
+									// get a live-lock-loop!!!
+									possiblyRebuildUserlistAsync(context, false);
+								}
+							}
+						}
+					}
+				}));
 	}
+	
 
 	// ------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
