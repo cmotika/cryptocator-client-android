@@ -69,8 +69,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-//import org.cryptocator.ScrollViewEx.ScrollViewExListener;
-//import android.support.v7.widget.PopupMenu;
 
 /**
  * The Conversation activity is the second most important class. It holds the
@@ -80,6 +78,7 @@ import android.widget.TextView;
  * @author Christian Motika
  * @date 08/23/2015
  * @since 2.1
+ * 
  */
 @SuppressLint("InflateParams")
 public class Conversation extends Activity {

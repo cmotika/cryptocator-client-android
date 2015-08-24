@@ -73,6 +73,7 @@ import android.widget.TextView;
  * @author Christian Motika
  * @date 08/23/2015
  * @since 2.1
+ * 
  */
 @SuppressLint("InflateParams")
 public class Main extends Activity {
