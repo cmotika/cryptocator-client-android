@@ -33,7 +33,6 @@
  */
 package org.cryptocator;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.Key;
 import java.security.KeyFactory;
@@ -44,19 +43,15 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Date;
 import java.util.List;
 
 import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.cryptocator.R;
-
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -67,351 +62,658 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Telephony;
-import android.support.v4.util.Pair;
 import android.text.InputType;
-import android.text.method.KeyListener;
 import android.util.Base64;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.os.Build;
 
+/**
+ * The Setup class is the third most important activity. It allows the user to
+ * create an account or enter/login with an existing account. It allows to
+ * enable the SMS option and has a second appearance for the settings dialog.
+ */
+@SuppressLint({ "TrulyRandom", "DefaultLocale" })
 public class Setup extends Activity {
 
+	// //// BASIC APP CONSTANTS //// //
+
+	/** The server URL to be used per default. */
 	public static String BASEURLDEFAULT = "http://www.cryptocator.org";
+
+	/**
+	 * The prefix to be used for UID databases names. All conversations are
+	 * saved in separate databases.
+	 */
 	public static String DATABASEPREFIX = "dcomm";
+
+	/** The postfix to be used for UID database names. */
 	public static String DATABASEPOSTFIX = ".db";
+
+	/** The name of the sending database. */
 	public static String DATABASESENDING = "sending.db";
+
+	/** The name of the database for keeping a mapping for read confirmations. */
 	public static String DATABASESENT = "sent.db";
+
+	/** The internal id for intentextra. */
 	public static String INTENTEXTRA = "org.cryptocator.hostuid";
+
+	/**
+	 * The application package name used for making this app the default SMS
+	 * app.
+	 */
 	public static String APPLICATION_PACKAGE_NAME = "org.cryptocator";
+
+	/** The group for system notifications created by Cryptocator. */
 	public static String GROUP_CRYPTOCATOR = "org.cryptocator.notificationgroup";
 
+	/**
+	 * The locked count-down initial value for enabling editing the account
+	 * information.
+	 */
 	private int accountLocked = 3;
 
+	/**
+	 * The advanced count-down initial value for enabling advanced options that
+	 * should typically not be edited.
+	 */
 	public static final int ADVANCEDSETUPCOUNTDOWNSTART = 11;
+
+	/** The current advanced count-down. */
 	private int advanedSetupCountdown = ADVANCEDSETUPCOUNTDOWNSTART;
+
+	/** The the server URL as saved (if not the default one). */
 	public static final String SETTINGS_BASEURL = "baseurl";
+
+	/**
+	 * The cached version of the base URL for faster access because of frequent
+	 * use.
+	 */
 	private static String BASEURLCACHED = null;
 
-	public static String getBaseURL(Context context) {
-		if (BASEURLCACHED == null) {
-			BASEURLCACHED = Utility.loadStringSetting(context,
-					SETTINGS_BASEURL, BASEURLDEFAULT);
-			if (!BASEURLCACHED.endsWith("?")) {
-				if (!BASEURLCACHED.endsWith("/")) {
-					BASEURLCACHED = BASEURLCACHED + "/";
-				}
-				BASEURLCACHED = BASEURLCACHED + "?";
-			}
-		}
-		return BASEURLCACHED;
-	}
-
-	// After this time these confirmations will be discarded, maybe the person
-	// has not enabled read confirmation or has left and does not use
-	// Cryptocator any more.
+	/**
+	 * After this time these confirmations will be discarded (from the sent.db),
+	 * maybe the person has not enabled read confirmation or has left and does
+	 * not use Cryptocator any more. It is ~ 3 month.
+	 */
 	public static final int TIMEOUT_FOR_RECEIVEANDREAD_CONFIRMATIONS = 90 * 24
-			* 60 * 60 * 1000; // ~ 3 month
+			* 60 * 60 * 1000;
 
-	// FIXME: REMOVE BEFORE RELEASE
-	// TIMEOUT FOR AES KEY ... SEND KEY SHOULD TIMEOUT BEFORE (so that we can
-	// auto-send a new key)
-	public static final int AES_KEY_TIMEOUT_SENDING = 60 * 60 * 1000; // 60
-																		// Minutes
-	public static final int AES_KEY_TIMEOUT_RECEIVING = 70 * 60 * 1000; // 60
-																		// Minutes
-	// public static final int AES_KEY_TIMEOUT_SENDING = 5 * 60 * 1000; // 5
-	// Minutes
-	// public static final int AES_KEY_TIMEOUT_RECEIVING = 6 * 60 * 1000; // 6
-	// Minutes
+	/**
+	 * The timeout for renewing the session key when about to send a message.
+	 * Typically 60 minutes.
+	 */
+	public static final int AES_KEY_TIMEOUT_SENDING = 60 * 60 * 1000;
 
-	public static final int SECRETLEN = 20; // this is the predefined session
-											// length used by the server!
-	public static final int SALTLEN = 10; // this is the predefined session
+	/**
+	 * The timeout for renewing the session key when about to receive a message.
+	 * Typically 70 minutes. It should be a little longer to have an asymmetry
+	 * and reduce the risk of both clients sending new session keys at the same
+	 * time. This would considered to be a session key clash and needs to be
+	 * resolved manually by one of the client users initiating a new sesison.
+	 */
+	public static final int AES_KEY_TIMEOUT_RECEIVING = 70 * 60 * 1000;
 
-	// Number of additionally added stuffing bytes to enhance encryption
-	// for short and for same messages
+	/**
+	 * The length of the session secret. The secret should have this exact
+	 * length because the server implementation also depends on this length. The
+	 * secret lives only for one session/login. The secret should be 20 bytes
+	 * long.
+	 */
+	public static final int SECRETLEN = 20;
+
+	/**
+	 * The length of the request salt. The salt should have this exact length
+	 * because the server implementation also depends on this length. The salt
+	 * is renewed for every request. The salt should be 10 bytes long.
+	 */
+	public static final int SALTLEN = 10;
+
+	/**
+	 * Number of additionally added stuffing bytes to enhance encryption for
+	 * short and for messages of equal content. It ensures that an attacker
+	 * cannot tell that two messages are equal. The length must be the same for
+	 * both clients and should be 5.
+	 */
 	public static final int RANDOM_STUFF_BYTES = 5;
 
-	// If not manually refreshed
-	public static final int UPDATE_KEYS_MIN_INTERVAL = 60 * 1000; // 1 Minute
+	/**
+	 * Keys cannot be updated more frequent than this interval. This helps
+	 * making the app more responsive when switching back to the main activity.
+	 * This will always try to update keys but will skip if the previous update
+	 * was not at least ago this interval of time. Only the user may manually
+	 * trigger the refresh an override this interval. Its 1 min.
+	 */
+	public static final int UPDATE_KEYS_MIN_INTERVAL = 60 * 1000;
+
+	/** Save the timestamp when the last key update took place. */
 	public static final String SETTING_LASTUPDATEKEYS = "lastupdatekeys";
+
+	/**
+	 * Similar to the update keys (s.a.) this is for updating phone numbers. The
+	 * interval is a little longer: 10 min.
+	 */
 	public static final int UPDATE_PHONES_MIN_INTERVAL = 10 * 60 * 1000; // 10
-																			// Minutes
+
+	/** Save the time stamp when the last phone number update took place. */
 	public static final String SETTING_LASTUPDATEPHONES = "lastupdatephones";
-	public static final int UPDATE_NAMES_MIN_INTERVAL = 60 * 60 * 1000; // 60
-																		// Minutes
+
+	/**
+	 * Similar to the keys this is the minimal interval when automatic refresh
+	 * of user names takes place. Typically 60 min.
+	 */
+	public static final int UPDATE_NAMES_MIN_INTERVAL = 60 * 60 * 1000;
+
+	/** Save the time stamp when the last user name update took place. */
 	public static final String SETTING_LASTUPDATENAMES = "lastupdatenames";
 
-	// background
-	public static final int REGULAR_UPDATE_TIME = 20; // 60 sec
-	// if user is present
-	public static final int REGULAR_UPDATE_TIME_FAST = 5; // 60 sec if user
-	// background
-	public static final int REGULAR_POWERSAVE_UPDATE_TIME = 60; // 60 sec
-	// if user is present
-	public static final int REGULAR_POWERSAVE_UPDATE_TIME_FAST = 10; // 60 sec
-																		// if
-																		// user
-	// present
+	/**
+	 * This is the regular update time for requesting new messages when the app
+	 * is in the background and power-save is OFF. It is 20 sec.
+	 */
+	public static final int REGULAR_UPDATE_TIME = 20;
 
-	// public static final int REGULAR_UPDATE_TIME = 60; // 60 sec
-	// public static final int REGULAR_UPDATE_TIME_FAST = 10; // 60 sec if user
-	// // present
+	/**
+	 * This is the regular update time for requesting new messages when the app
+	 * is in the foreground and power-save is OFF. It is 5 sec.
+	 */
+	public static final int REGULAR_UPDATE_TIME_FAST = 5;
 
-	// "recursion" interval for sending/receiveing multiple messages
+	/**
+	 * This is the regular update time for requesting new messages when the app
+	 * is in the background and power-save is ON. It is 60 sec.
+	 */
+	public static final int REGULAR_POWERSAVE_UPDATE_TIME = 60;
+
+	/**
+	 * This is the regular update time for requesting new messages when the app
+	 * is in the foreground and power-save is ON. It is 10 sec.
+	 */
+	public static final int REGULAR_POWERSAVE_UPDATE_TIME_FAST = 10;
+
+	/**
+	 * "recursion" interval for sending/receiveing multiple messages one after
+	 * another in seconds. It is 5 sec.
+	 */
 	public static final int REGULAR_UPDATE_TIME_TRYNEXT = 5;
 
-	// do not interrupt the user while he types, only if he stops typing
-	// for at least these milliseconds, allow background activity (sending &&
-	// receiving)
-	public static final int TYPING_TIMEOUT_BEFORE_BACKGROUND_ACTIVITY = 5000; // 5
-																				// seconds
-	// do not interrupt if the user is typing fast, do not even SCROLL (ui
-	// activity)
-	// in this time but scroll if the user holds on for at least 1 seconds
-	public static final int TYPING_TIMEOUT_BEFORE_UI_ACTIVITY = 1000; // 1
-	// seconds
+	/**
+	 * do not interrupt the user while he types, only if he stops typing for at
+	 * least these milliseconds, allow background activity (sending &&
+	 * receiving). It is 5 sec.
+	 */
+	public static final int TYPING_TIMEOUT_BEFORE_BACKGROUND_ACTIVITY = 5000;
 
+	/**
+	 * do not interrupt if the user is typing fast, do not even SCROLL (UI
+	 * activity) in this time but scroll if the user holds on for at least 1
+	 * seconds.
+	 */
+	public static final int TYPING_TIMEOUT_BEFORE_UI_ACTIVITY = 1000;
+
+	/** After a connection error first try again after 10 sec. */
 	public static final int ERROR_UPDATE_INTERVAL = 10; // 10 seconds
-	public static final int ERROR_UPDATE_INCREMENT = 50; // + 50%
-	public static final int ERROR_UPDATE_MAXIMUM = 5 * 60; // 5 Minutes maximal
-															// interval
 
-	public static final int MAX_SHOW_CONVERSATION_MESSAGES = 50; // for
-																	// performance
+	/**
+	 * After multiple consecutive connection errors for each error add 50% of
+	 * interval time to save energy.
+	 */
+	public static final int ERROR_UPDATE_INCREMENT = 50;
+
+	/**
+	 * After multiple consecutive connection errors do not enlarge the retry
+	 * interval to more than this maximum, typically 5 min.
+	 */
+	public static final int ERROR_UPDATE_MAXIMUM = 5 * 60;
+
+	/**
+	 * When showing a conversation first show only this maximum number of
+	 * messages. Typically 50.
+	 */
+	public static final int MAX_SHOW_CONVERSATION_MESSAGES = 50;
+
+	/** The Constant for showing ALL messages. */
 	public static final int SHOW_ALL = -1;
 
+	/** The Constant for not applicable. */
 	public static final String NA = "N/A";
 
+	/** The Constant ERROR_TIME_TO_WAIT. */
 	public static final String ERROR_TIME_TO_WAIT = "errortimetowait";
 
+	/** The Constant OPTION_ACTIVE. */
 	public static final String OPTION_ACTIVE = "active";
+
+	/** The Constant DEFAULT_ACTIVE. */
 	public static final boolean DEFAULT_ACTIVE = true;
+
+	/** The Constant HELP_ACTIVE. */
 	public static final String HELP_ACTIVE = "Enables the background service for receiving messages. Turning this off may save battery but you will not receive messages if the app is closed.";
 
+	/** The Constant OPTION_TONE. */
 	public static final String OPTION_TONE = "System Alert Tone";
+
+	/** The Constant DEFAULT_TONE. */
 	public static final boolean DEFAULT_TONE = true;
+
+	/** The Constant HELP_TONE. */
 	public static final String HELP_TONE = "Play system alert tone when a new message is received (and the phone is not muted).";
 
+	/** The Constant OPTION_VIBRATE. */
 	public static final String OPTION_VIBRATE = "vibrate";
+
+	/** The Constant DEFAULT_VIBRATE. */
 	public static final boolean DEFAULT_VIBRATE = true;
+
+	/** The Constant HELP_VIBTRATE. */
 	public static final String HELP_VIBTRATE = "Vibrate when a new message is received (and the phone is not muted).";
 
+	/** The Constant OPTION_NOTIFICATION. */
 	public static final String OPTION_NOTIFICATION = "notification";
+
+	/** The Constant DEFAULT_NOTIFICATION. */
 	public static final boolean DEFAULT_NOTIFICATION = true;
+
+	/** The Constant HELP_NOTIFICATION. */
 	public static final String HELP_NOTIFICATION = "Prompt a system notification when a new message is received.";
 
+	/** The Constant OPTION_IGNORE. */
 	public static final String OPTION_IGNORE = "ignore";
+
+	/** The Constant DEFAULT_IGNORE. */
 	public static final boolean DEFAULT_IGNORE = false;
+
+	/** The Constant HELP_IGNORE. */
 	public static final String HELP_IGNORE = "Only message from users in your userlist will be received. Messages from other users will be silently discarded.";
 
+	/** The Constant OPTION_ENCRYPTION. */
 	public static final String OPTION_ENCRYPTION = "encryption";
+
+	/** The Constant DEFAULT_ENCRYPTION. */
 	public static final boolean DEFAULT_ENCRYPTION = false;
+
+	/** The Constant HELP_ENCRYPTION. */
 	public static final String HELP_ENCRYPTION = "Use encryption for sending messages. Will only work if your communication partner has also turned on encryption.\n\nIt is strongly advised that you always leave encryption on!";
 
+	/** The Constant OPTION_NOREAD. */
 	public static final String OPTION_NOREAD = "noread";
+
+	/** The Constant DEFAULT_NOREAD. */
 	public static final boolean DEFAULT_NOREAD = false;
+
+	/** The Constant HELP_NOREAD. */
 	public static final String HELP_NOREAD = "Refuse read confirmations for received messages (second blue checkmark).\n\nWARNING: If you refuse read confirmation you cannot see read confirmations of anybody else!";
 
+	/** The Constant OPTION_NOSCREENSHOTS. */
 	public static final String OPTION_NOSCREENSHOTS = "noscreenshots";
+
+	/** The Constant DEFAULT_NOSCREENSHOTS. */
 	public static final boolean DEFAULT_NOSCREENSHOTS = true;
+
+	/** The Constant HELP_NOSCREENSHOTS. */
 	public static final String HELP_NOSCREENSHOTS = "Disallows making automatic or manual screenshots of your messages for privacy protection.";
 
+	/** The Constant OPTION_CHATMODE. */
 	public static final String OPTION_CHATMODE = "chatmode";
+
+	/** The Constant DEFAULT_CHATMODE. */
 	public static final boolean DEFAULT_CHATMODE = false;
+
+	/** The Constant HELP_CHATMODE. */
 	public static final String HELP_CHATMODE = "Send a message by hitting <RETURN>. If chat mode is turned on, you cannot make explicit linebreaks.";
 
+	/** The Constant OPTION_QUICKTYPE. */
 	public static final String OPTION_QUICKTYPE = "Quick Type";
+
+	/** The Constant DEFAULT_QUICKTYPE. */
 	public static final boolean DEFAULT_QUICKTYPE = true;
+
+	/** The Constant HELP_QUICKTYPE. */
 	public static final String HELP_QUICKTYPE = "If you switch your phone orientation to landscape in order to type, the keyboard is shown automatically and you can just start typing without extra clicking into the message input text field.";
 
+	/** The Constant OPTION_RECEIVEALLSMS. */
 	public static final String OPTION_RECEIVEALLSMS = "receiveallsms";
+
+	/** The Constant DEFAULT_RECEIVEALLSMS. */
 	public static final boolean DEFAULT_RECEIVEALLSMS = false;
+
+	/** The Constant HELP_RECEIVEALLSMSE. */
 	public static final String HELP_RECEIVEALLSMSE = "You can use Delphino Cryptocator even as your default app for all SMS. Users that are not registered are listed by their names from your address book and you can only send them plain text SMS.";
 
+	/** The Constant OPTION_POWERSAVE. */
 	public static final String OPTION_POWERSAVE = "powersave";
+
+	/** The Constant DEFAULT_POWERSAVE. */
 	public static final boolean DEFAULT_POWERSAVE = true;
+
+	/** The Constant HELP_POWERSAVE. */
 	public static final String HELP_POWERSAVE = "Delphino Cryptocator can operate in a power save mode were sending/receiving is reduced to every 10 seconds when active or 60 seconds when passive instead of 5 seconds and 20 seconds respectively in the non-power save mode.\n\nThis mode saves your battery.";
 
+	/** The Constant OPTION_SMSMODE. */
 	public static final String OPTION_SMSMODE = "smsmode";
+
+	/** The Constant DEFAULT_SMSMODE. */
 	public static final boolean DEFAULT_SMSMODE = false;
 
+	/** The Constant PUBKEY for saving/loading the public RSA key. */
 	public static final String PUBKEY = "pk";
+
+	/** The Constant PRIVATEKEY for saving/loading the private RSA key. */
 	public static final String PRIVATEKEY = "k";
+
+	/** The Constant AESKEY for session keys. */
 	public static final String AESKEY = "aes";
+
+	/** The Constant PHONE for other users phone numbers. */
 	public static final String PHONE = "hostphone";
 
+	/** The Constant SETTINGS_USERLIST for saving/loading the userlist. */
 	public static final String SETTINGS_USERLIST = "userlist";
+
+	/**
+	 * The Constant SETTINGS_USERLISTLASTMESSAGE for saving/loading the last
+	 * message per user.
+	 */
 	public static final String SETTINGS_USERLISTLASTMESSAGE = "userlistlastmessage";
+
+	/**
+	 * The Constant SETTINGS_USERLISTLASTMESSAGETIMESTAMP for saving/loading the
+	 * timestamp of the last message per user.
+	 */
 	public static final String SETTINGS_USERLISTLASTMESSAGETIMESTAMP = "userlistlastmessagetimestamp";
+
+	/**
+	 * The Constant SETTINGS_HAVESENTRSAKEYYET for remember if we have sent the
+	 * rsa key to the server yet.
+	 */
 	public static final String SETTINGS_HAVESENTRSAKEYYET = "sentrsakeyforuser";
+
+	/** The Constant SETTINGS_PHONE for the phone number. */
 	public static final String SETTINGS_PHONE = "phone";
+
+	/** The Constant SETTINGS_UPDATENAME. */
 	public static final String SETTINGS_UPDATENAME = "updatename";
+
+	/** The Constant SETTINGS_DEFAULT_UPDATENAME. */
 	public static final boolean SETTINGS_DEFAULT_UPDATENAME = true;
+
+	/** The Constant SETTINGS_UPDATEPHONE. */
 	public static final String SETTINGS_UPDATEPHONE = "updatephone";
+
+	/** The Constant SETTINGS_DEFAULT_UPDATEPHONE. */
 	public static final boolean SETTINGS_DEFAULT_UPDATEPHONE = true;
+
+	/** The Constant SETTINGS_PHONEISMODIFIED. */
 	public static final String SETTINGS_PHONEISMODIFIED = "phoneismodified";
-	public static final String SETTINGS_DEFAULTMID = "defaultmid"; // + uid,
-																	// this is
-																	// the base
-																	// mid, we
-																	// do not
-																	// request
-																	// messages
-																	// before
-																	// this mid.
-																	// per user!
-	public static final int SETTINGS_DEFAULTMID_DEFAULT = -1; // should only be
-																// -1 if there
-																// is no msg in
-																// the DB. Then
-																// we retrieve
-																// the highest
-																// mid from
-																// server!
 
+	/**
+	 * The Constant SETTINGS_DEFAULTMID. For each user: This is the base mid, we
+	 * do not request messages before this mid.
+	 */
+	public static final String SETTINGS_DEFAULTMID = "defaultmid";
+
+	/**
+	 * The Constant SETTINGS_DEFAULTMID_DEFAULT. For each user: should only be
+	 * -1 if there is no msg in the DB. Then we retrieve the highest mid from
+	 * server!
+	 */
+	public static final int SETTINGS_DEFAULTMID_DEFAULT = -1;
+
+	/**
+	 * The Constant SETTINGS_SERVERKEY for sending, e.g., encrypted login data
+	 * to the server.
+	 */
 	public static final String SETTINGS_SERVERKEY = "serverkey";
-	public static final String SETTINGS_SESSIONSECRET = "tmpsession";
-	public static final String SETTINGS_SESSIONID = "tmpsessionseed";
+
+	/** The Constant SETTINGS_SESSIONSECRET. To remember the session. */
+	public static final String SETTINGS_SESSIONSECRET = "tmpsessionsecret";
+
+	/** The Constant SETTINGS_SESSIONID. To remember the session id */
+	public static final String SETTINGS_SESSIONID = "tmpsessionid";
+
+	/**
+	 * The Constant SETTINGS_LOGINERRORCNT. Saves the login errors that we
+	 * receive from the server on successful login. It is currently not used.
+	 */
 	public static final String SETTINGS_LOGINERRORCNT = "loginerrorcnt";
-	public static final String SETTINGS_INVALIDATIONCOUNTER = "invalidationcounter"; // if
-																						// uids
-																						// are
-																						// corrupted
-																						// more
-																						// than
-																						// MAX
-																						// (see
-																						// next)
-																						// then
-																						// invalidate
-																						// the
-																						// session
-	public static final int SETTINGS_INVALIDATIONCOUNTER_MAX = 2; // if uids are
-																	// corrupted
-																	// more than
-																	// MAX (see
-																	// next)
-																	// then
-																	// invalidate
-																	// the
-																	// session
 
-	public static final String SETTINGS_LARGEST_MID_RECEIVED = "largestmidreceived"; // for
-																						// receiving
-																						// msgs
-	public static final String SETTINGS_LARGEST_TS_RECEIVED = "largesttsreceived"; // receive
-																					// confirmation
-																					// of
-																					// sent
-	public static final String SETTINGS_LARGEST_TS_READ = "largesttsread"; // read
-																			// confirmation
-																			// of
-																			// sent
+	/**
+	 * The Constant SETTINGS_INVALIDATIONCOUNTER. If uids are corrupted more
+	 * than MAX (see next) then invalidate the session.
+	 */
+	public static final String SETTINGS_INVALIDATIONCOUNTER = "invalidationcounter";
 
+	/**
+	 * The Constant SETTINGS_INVALIDATIONCOUNTER_MAX. If uids are corrupted more
+	 * than MAX (see next) then invalidate the session
+	 */
+	public static final int SETTINGS_INVALIDATIONCOUNTER_MAX = 2;
+
+	/**
+	 * The Constant SETTINGS_LARGEST_MID_RECEIVED. This is used as a basis for
+	 * receiving (newer) messages than this mid.
+	 */
+	public static final String SETTINGS_LARGEST_MID_RECEIVED = "largestmidreceived";
+
+	/**
+	 * The Constant SETTINGS_LARGEST_TS_RECEIVED. This is used as a basis for
+	 * receiving (newer) receive confirmation than this timestamp.
+	 */
+	public static final String SETTINGS_LARGEST_TS_RECEIVED = "largesttsreceived";
+
+	/**
+	 * The Constant SETTINGS_LARGEST_TS_READ. This is used as a basis for
+	 * receiving (newer) read confirmation than this timestamp.
+	 */
+	public static final String SETTINGS_LARGEST_TS_READ = "largesttsread";
+
+	/**
+	 * The Constant SETTINGS_HAVEASKED_NOENCRYPTION. Remember if we have asked
+	 * the user to enable the encryption option. This is reset on UID change or
+	 * when turning the encryption feature off.
+	 */
 	public static final String SETTINGS_HAVEASKED_NOENCRYPTION = "haveaskednoenryption";
 
-	// try to send an SMS 5 times before claiming failed (ONLY counting unknown
-	// errors, no network errors!)
+	/**
+	 * The Constant SMS_FAIL_CNT. Try to send an SMS 5 times before claiming
+	 * failed (ONLY counting unknown errors, NO network errors!). If the network
+	 * is down the sms should wait until it is up again and NOT fail.
+	 */
 	public static final int SMS_FAIL_CNT = 3;
 
+	// ------------------------------------------------------------------------
+
+	/** The active. */
 	private CheckBox active;
+
+	/** The encryption. */
 	private CheckBox encryption;
+
+	/** The notification. */
 	private CheckBox notification;
+
+	/** The tone. */
 	private CheckBox tone;
+
+	/** The vibrate. */
 	private CheckBox vibrate;
+
+	/** The ignore. */
 	private CheckBox ignore;
+
+	/** The noread. */
 	private CheckBox noread;
+
+	/** The chatmode. */
 	private CheckBox chatmode;
+
+	/** The quicktype. */
 	private CheckBox quicktype;
+
+	/** The noscreenshots. */
 	private CheckBox noscreenshots;
+
+	/** The powersave. */
 	private CheckBox powersave;
+
+	/** The receiveallsms. */
 	private CheckBox receiveallsms;
+
+	/** The helpactive. */
 	private ImageView helpactive;
+
+	/** The helpencryption. */
 	private ImageView helpencryption;
+
+	/** The helptone. */
 	private ImageView helptone;
+
+	/** The helpvibrate. */
 	private ImageView helpvibrate;
+
+	/** The helpnotification. */
 	private ImageView helpnotification;
+
+	/** The helpignore. */
 	private ImageView helpignore;
+
+	/** The helpnoread. */
 	private ImageView helpnoread;
+
+	/** The helpquicktype. */
 	private ImageView helpquicktype;
+
+	/** The helpchatmode. */
 	private ImageView helpchatmode;
+
+	/** The helpnoscreenshots. */
 	private ImageView helpnoscreenshots;
+
+	/** The helppowersave. */
 	private ImageView helppowersave;
+
+	/** The helpreceiveallsms. */
 	private ImageView helpreceiveallsms;
 
+	/** The uid. */
 	private static EditText uid;
+
+	/** The email. */
 	private EditText email;
+
+	/** The pwd. */
 	private EditText pwd;
 
+	/** The usernew. */
 	private EditText usernew;
+
+	/** The emailnew. */
 	private EditText emailnew;
+
+	/** The pwdnew. */
 	private EditText pwdnew;
 
+	/** The user. */
 	private EditText user;
 
+	/** The pwdchange. */
 	private EditText pwdchange;
 
+	/** The error. */
 	private static TextView error;
+
+	/** The info. */
 	private static TextView info;
+
+	/** The deviceid. */
 	private static TextView deviceid;
 
+	/** The advancedsettings. */
 	private static LinearLayout advancedsettings;
-	// private static LinearLayout baseurl;
-	private static EditText baseurltext;
-	private static Button baseurlbutton;
-	private static Button buttonclearsending;
-	private static Button buttondebugprint;
-	private static Button buttondeletedatabase;
-	// private TextView textexisting;
-	// private TextView textexisting2;
 
+	/** The baseurltext. */
+	private static EditText baseurltext;
+
+	/** The baseurlbutton. */
+	private static Button baseurlbutton;
+
+	/** The buttonclearsending. */
+	private static Button buttonclearsending;
+
+	/** The buttondebugprint. */
+	private static Button buttondebugprint;
+
+	/** The buttondeletedatabase. */
+	private static Button buttondeletedatabase;
+
+	/** The create. */
 	private Button create;
+
+	/** The login. */
 	private Button login;
+
+	/** The updatepwd. */
 	private Button updatepwd;
+
+	/** The updateuser. */
 	private Button updateuser;
 
+	/** The phone. */
 	private static EditText phone;
+
+	/** The enablesmsoption. */
 	private static Button enablesmsoption;
+
+	/** The disablesmsoption. */
 	private static Button disablesmsoption;
 
+	/** The backup. */
 	private static Button backup;
+
+	/** The restore. */
 	private Button restore;
 
+	/** The accountnew. */
 	private LinearLayout accountnew;
+
+	/** The accountexisting. */
 	private LinearLayout accountexisting;
+
+	/** The accountonline. */
 	private static LinearLayout accountonline;
+
+	/** The settingspart. */
 	private LinearLayout settingspart;
+
+	/** The mainscrollview. */
 	private static ScrollView mainscrollview;
 
+	/** The online. */
 	private static boolean online = false;
 
+	/** The newaccount. */
 	private CheckBox newaccount;
 
+	/** The account type. */
 	private boolean accountType = false;
 
-	public void setTitle(String title) {
-		TextView titletext = (TextView) findViewById(R.id.titletext);
-		titletext.setText(title);
-	}
+	// ------------------------------------------------------------------------
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onCreate(android.os.Bundle)
+	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -420,10 +722,9 @@ public class Setup extends Activity {
 		final Activity context = this;
 
 		// Apply custom title bar (with holo :-)
+		// See Main for more details.
 		LinearLayout main = Utility.setContentViewWithCustomTitle(this,
 				R.layout.activity_setup, R.layout.title_general);
-		// main.setGravity(Gravity.BOTTOM);
-		Utility.setBackground(this, main, R.drawable.dolphins1);
 
 		LinearLayout titlegeneral = (LinearLayout) findViewById(R.id.titlegeneral);
 		Utility.setBackground(this, titlegeneral, R.drawable.dolphins3blue);
@@ -785,7 +1086,7 @@ public class Setup extends Activity {
 				}
 			});
 
-			// / help
+			// help icon clicks
 			helpactive = (ImageView) findViewById(R.id.helpactive);
 			helpencryption = (ImageView) findViewById(R.id.helpencryption);
 			helptone = (ImageView) findViewById(R.id.helptone);
@@ -948,6 +1249,8 @@ public class Setup extends Activity {
 				}
 			});
 
+			// Setting backgrounds
+			Utility.setBackground(this, main, R.drawable.dolphins1);
 			LinearLayout settingsBackground = ((LinearLayout) findViewById(R.id.settingsbackground));
 			Utility.setBackground(this, settingsBackground,
 					R.drawable.dolphins1);
@@ -964,8 +1267,56 @@ public class Setup extends Activity {
 		Utility.hideKeyboard(context);
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the base url of the server. Typically this is cryptocator.org if not
+	 * another server is configured.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the base url
+	 */
+	public static String getBaseURL(Context context) {
+		if (BASEURLCACHED == null) {
+			BASEURLCACHED = Utility.loadStringSetting(context,
+					SETTINGS_BASEURL, BASEURLDEFAULT);
+			if (!BASEURLCACHED.endsWith("?")) {
+				if (!BASEURLCACHED.endsWith("/")) {
+					BASEURLCACHED = BASEURLCACHED + "/";
+				}
+				BASEURLCACHED = BASEURLCACHED + "?";
+			}
+		}
+		return BASEURLCACHED;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sets the title of the custom title bar of the setup activity.
+	 * 
+	 * @param title
+	 *            the new title
+	 */
+	public void setTitle(String title) {
+		TextView titletext = (TextView) findViewById(R.id.titletext);
+		titletext.setText(title);
+	}
+
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Update account locked. Count down the number of times the user cliks on
+	 * the account login information. If it was more than the initial
+	 * accountLocked valued (we count down to 0), then unlock the user
+	 * information text input fields but prompt a warning.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param silent
+	 *            the silent
+	 */
 	private void updateAccountLocked(Context context, boolean silent) {
 		if (accountLocked > 0) {
 			login.setText("   Validate Login   ");
@@ -976,8 +1327,6 @@ public class Setup extends Activity {
 			uid.setClickable(true);
 			email.setClickable(true);
 			pwd.setClickable(true);
-			// uid.setKeyListener((KeyListener) uid.getTag());
-			// uid.setBackgroundColor(Color.parseColor("#22000000"));
 			uid.setTextColor(Color.parseColor("#FF666666"));
 			email.setTextColor(Color.parseColor("#FF666666"));
 			pwd.setTextColor(Color.parseColor("#FF666666"));
@@ -1011,13 +1360,18 @@ public class Setup extends Activity {
 			pwd.setFocusable(true);
 			pwd.setFocusableInTouchMode(true);
 			pwd.setEnabled(true);
-			// uid.setBackgroundColor(Color.parseColor("#00000000"));
-			// uid.setKeyListener(null); // make it non editable
 		}
 	}
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Update title id info. The title info field always displayes the DeviceID
+	 * and the current RSA account key to the user.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public static void updateTitleIDInfo(Context context) {
 		deviceid.setText("DeviceID: " + getDeviceId(context)
 				+ "   --   Account Key: " + Setup.getPublicKeyHash(context));
@@ -1025,8 +1379,13 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Prompt to change server base url. This is basically a WARNING.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public void promptChangeBaseURL(final Context context) {
-		final Activity activity = this;
 		String titleMessage = "Changing Message Server";
 		String textMessage = "ATTENTION: You are about to change the message server from http://www.cryptocator.org to something else. "
 				+ "This is only desirable if you operate an own private message server at this location. Be warned that your userlist will "
@@ -1070,6 +1429,12 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Update phone number and button states.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	private static void updatePhoneNumberAndButtonStates(Context context) {
 		if (phone == null || enablesmsoption == null
 				|| disablesmsoption == null) {
@@ -1095,6 +1460,15 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Checks if is SMS mode on.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param hostUid
+	 *            the host uid
+	 * @return true, if is SMS mode on
+	 */
 	public static boolean isSMSModeOn(Context context, int hostUid) {
 		return (hostUid < 0 || Utility.loadBooleanSetting(context,
 				Setup.OPTION_SMSMODE + hostUid, Setup.DEFAULT_SMSMODE));
@@ -1102,22 +1476,54 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Sets the error info.
+	 * 
+	 * @param errorMessage
+	 *            the new error info
+	 */
 	void setErrorInfo(String errorMessage) {
 		setErrorInfo(this, errorMessage, true);
 	}
 
+	/**
+	 * Sets the error info.
+	 * 
+	 * @param message
+	 *            the message
+	 * @param isError
+	 *            the is error
+	 */
 	void setErrorInfo(String message, boolean isError) {
 		setErrorInfo(this, message, isError);
 	}
 
+	/**
+	 * Sets the error info.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param errorMessage
+	 *            the error message
+	 */
 	static void setErrorInfo(Context context, String errorMessage) {
 		setErrorInfo(context, errorMessage, true);
 	}
 
+	/**
+	 * Sets the error info.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param message
+	 *            the message
+	 * @param isError
+	 *            the is error
+	 */
 	static void setErrorInfo(Context context, String message, boolean isError) {
 		if (error == null || info == null || uid == null
 				|| mainscrollview == null) {
-			// not visible only send this as toast
+			// Not visible only send this as toast
 			if (message != null && message.length() > 0) {
 				Utility.showToastAsync(context, message);
 			}
@@ -1141,17 +1547,16 @@ public class Setup extends Activity {
 			uid.requestFocus();
 			Utility.hideKeyboardExplicit(uid);
 			mainscrollview.scrollTo(0, 0);
-			// Utility.hideKeyboard(this);
-			// final Activity context = this;
-			// error.postDelayed(new Runnable() {
-			// public void run() {
-			// mainscrollview.scrollTo(0, 0);
-			// Utility.hideKeyboard(context);
-			// }
-			// }, 200);
 		}
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Updateonline if the login/validation was successful or hide account
+	 * modifications (change pw, change username, enable/disable sms option) in
+	 * case online is false.
+	 */
 	static void updateonline() {
 		if (accountonline == null) {
 			// not visible, nothing to do
@@ -1166,6 +1571,14 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Validate the login. This will also set online:=true in the success case.
+	 * If the account login information was change we here detect an UID change
+	 * and remove the key from server and shutdown the app.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	void validate(final Context context) {
 		Setup.updateServerkey(context);
 
@@ -1250,6 +1663,7 @@ public class Setup extends Activity {
 		final String url2 = url;
 		final String reseturl2 = reseturl;
 		final String reactivateurl2 = reactivateurl;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -1338,33 +1752,17 @@ public class Setup extends Activity {
 										setErrorInfo(
 												"Login successfull.\n\nYou can now edit your username, enable sms support, change your password, or backup or restore your user list below.",
 												false);
-										// // if encryption is on, generate a
-										// new
-										// // key and send it to the server!
-										// if
-										// (Utility.loadBooleanSetting(context,
-										// Setup.OPTION_ENCRYPTION,
-										// Setup.DEFAULT_ENCRYPTION)) {
-										// if (!Utility
-										// .loadBooleanSetting(
-										// context,
-										// Setup.SETTINGS_HAVESENTRSAKEYYET
-										// + uid2,
-										// false)) {
-										// enableEncryption(context);
-										// }
-										// }
 									} else {
 										if (response2.equals("-4")) {
-											// email already registered
+											// Email already registered
 											setErrorInfo("You account has not been activated yet. Go to your email inbox and follow the activation link! Be sure to also look in the spam email folder.\n\nIf you cannot find the activation email, click the following link to resend it to you:\n"
 													+ reactivateurl2);
 										} else if (response2.equals("-11")) {
-											// email already registered
+											// Email already registered
 											setErrorInfo("You new password has not been activated yet. Go to your email inbox and follow the activation link! Be sure to also look in the spam email folder.\n\nIf you cannot find the activation email, you can reset your password once more here:\n"
 													+ reseturl2);
 										} else {
-											// / Clear server key to enforce a
+											// Clear server key to enforce a
 											// soon reload!
 											Utility.saveStringSetting(context,
 													Setup.SETTINGS_SERVERKEY,
@@ -1379,7 +1777,7 @@ public class Setup extends Activity {
 								}
 							});
 						} else {
-							// / Clear server key to enforce a soon reload!
+							// Clear server key to enforce a soon reload!
 							Utility.saveStringSetting(context,
 									Setup.SETTINGS_SERVERKEY, null);
 
@@ -1403,6 +1801,12 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Update the username if the user has logged in / validate before.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	void updateUsername(final Context context) {
 		updateuser.setEnabled(false);
 		setErrorInfo(null);
@@ -1432,6 +1836,7 @@ public class Setup extends Activity {
 				+ "&user=" + usernameStringEnc;
 		Log.d("communicator", "UPDATE USERNAME: " + url);
 		final String url2 = url;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -1490,6 +1895,17 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Update pwd if the user has logged in/validate before. On success this
+	 * will update the saved password. The new password must be activated
+	 * afterwards by clicking on the link in the email. Otherwise the old
+	 * password will not change. But due to the fact that the new password is
+	 * already saved the user is forced to 1. click on the link in the email to
+	 * activate the new password or alternatively 2. reenter the old password.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	void updatePwd(final Context context) {
 		updatepwd.setEnabled(false);
 		setErrorInfo(null);
@@ -1521,6 +1937,7 @@ public class Setup extends Activity {
 		Log.d("communicator", "UPDATE PWD: " + url);
 
 		final String url2 = url;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -1589,6 +2006,16 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Creates a new account. It disables encryption (so the user is prompted on
+	 * next restart of the app to enable encryption). After creating the account
+	 * it needs to be activated which can only be done by clicking on the link
+	 * in the email. If the account is not activated it is useless and the
+	 * server is allowed to clear un-activated accounts after a while.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	void createNewAccount(final Context context) {
 		Setup.updateServerkey(context);
 
@@ -1598,7 +2025,6 @@ public class Setup extends Activity {
 		String emailString = emailnew.getText().toString().trim();
 		String usernameString = usernew.getText().toString().trim();
 		String pwdString = pwdnew.getText().toString();
-
 
 		// RSA encode
 		PublicKey serverKey = getServerkey(context);
@@ -1640,6 +2066,7 @@ public class Setup extends Activity {
 
 		final String url2 = url;
 		final String reseturl2 = reseturl;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -1668,18 +2095,27 @@ public class Setup extends Activity {
 										email.setText(emailnew.getText()
 												.toString());
 										pwd.setText(pwdnew.getText().toString());
-										
-										// Utility.saveStringSetting(context, "uid", uidString);
-										String emailString = emailnew.getText().toString().trim();
-										String usernameString = usernew.getText().toString().trim();
-										String pwdString = pwdnew.getText().toString();
-										Utility.saveStringSetting(context, "username", usernameString);
-										Utility.saveStringSetting(context, "email", emailString);
-										Utility.saveStringSetting(context, "pwd", pwdString);
-										
-										Utility.saveBooleanSetting(context, Setup.OPTION_ENCRYPTION, false);
-										saveHaveAskedForEncryption(context, false);
-										
+
+										// Utility.saveStringSetting(context,
+										// "uid", uidString);
+										String emailString = emailnew.getText()
+												.toString().trim();
+										String usernameString = usernew
+												.getText().toString().trim();
+										String pwdString = pwdnew.getText()
+												.toString();
+										Utility.saveStringSetting(context,
+												"username", usernameString);
+										Utility.saveStringSetting(context,
+												"email", emailString);
+										Utility.saveStringSetting(context,
+												"pwd", pwdString);
+
+										Utility.saveBooleanSetting(context,
+												Setup.OPTION_ENCRYPTION, false);
+										saveHaveAskedForEncryption(context,
+												false);
+
 										newaccount.setChecked(false);
 										updateCurrentMid(context);
 										setErrorInfo(
@@ -1689,9 +2125,11 @@ public class Setup extends Activity {
 												false);
 										Utility.showToastAsync(
 												context,
-												"Your new UID is "+newUID+". Cryptocator must be re-started in order to operate properly...");
+												"Your new UID is "
+														+ newUID
+														+ ". Cryptocator must be re-started in order to operate properly...");
 										Main.exitApplication(context);
-										
+
 									} else {
 										if (response2.equals("-2")) {
 											setErrorInfo("Email address already taken.\n\nHave you activated your account already? If not go to your email account and follow the activation link we sent you.\n\nIf this is your address and you cannot find the activation email then reset the password, otherwise use a different address.\n\nTo reset the password click here:\n"
@@ -1729,10 +2167,20 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Update current highest mid. This is necessary to receive (request) the
+	 * correct next newest messages from the server. After an UID change or
+	 * after creating a new account the current highest mid is fetched from the
+	 * server.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public static void updateCurrentMid(final Context context) {
 		String url = null;
 		url = Setup.getBaseURL(context) + "cmd=mid";
 		final String url2 = url;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -1746,10 +2194,6 @@ public class Setup extends Activity {
 										"XXXX SAVED LARGEST MID '" + content
 												+ "'");
 							}
-						} else {
-							// Log.d("communicator",
-							// "XXXX FAILED TO UPDATE SERVER KEY '"
-							// + response + "'");
 						}
 					}
 				}));
@@ -1758,6 +2202,18 @@ public class Setup extends Activity {
 	// ------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Backup the userlist to the server. There is a manual and an automatic
+	 * backup. The automatic is used if SMS option is turned on in order do
+	 * validate if someone else is allowed to download/see our phone number.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param silent
+	 *            the silent
+	 * @param manual
+	 *            the manual
+	 */
 	public static void backup(final Context context, final boolean silent,
 			boolean manual) {
 		if (backup != null) {
@@ -1811,6 +2267,7 @@ public class Setup extends Activity {
 		Log.d("communicator", "BACKUP: " + url);
 
 		final String url2 = url;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -1871,6 +2328,14 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Restore the userlist. Again, there is a manual and an automatic version.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param manual
+	 *            the manual
+	 */
 	void restore(final Context context, boolean manual) {
 		restore.setEnabled(false);
 		setErrorInfo(null);
@@ -1891,6 +2356,7 @@ public class Setup extends Activity {
 					+ session;
 		}
 		final String url2 = url;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -1958,6 +2424,17 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Update SMS option. If turning SMS option on then also backup the current
+	 * userlist to the server (automatic). Send the phone number to the server.
+	 * If disabling turn off automatic backup and clear the phone number from
+	 * the server.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param enable
+	 *            the enable
+	 */
 	public static void updateSMSOption(final Context context,
 			final boolean enable) {
 		if (enablesmsoption != null) {
@@ -2018,6 +2495,7 @@ public class Setup extends Activity {
 		url = Setup.getBaseURL(context) + "cmd=updatephone&session=" + session
 				+ "&val=" + phoneStringEnc;
 		final String url2 = url;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -2087,6 +2565,14 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Sets the active flag for the background send/receive service.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param active
+	 *            the active
+	 */
 	public static void setActive(Context context, boolean active) {
 		Utility.saveBooleanSetting(context, Setup.OPTION_ACTIVE, active);
 		if (active) {
@@ -2096,6 +2582,13 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Checks if the background send/receive service is active.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return true, if is active
+	 */
 	public static boolean isActive(Context context) {
 		return Utility.loadBooleanSetting(context, Setup.OPTION_ACTIVE,
 				Setup.DEFAULT_ACTIVE);
@@ -2103,6 +2596,14 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Gets the error update interval that is calculated based on the
+	 * consecutive errors that might have occurred.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the error update interval
+	 */
 	public static int getErrorUpdateInterval(Context context) {
 		return Utility.loadIntSetting(context, ERROR_TIME_TO_WAIT,
 				Setup.ERROR_UPDATE_INTERVAL);
@@ -2110,6 +2611,16 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Sets or recalculates the error update interval which might increase after
+	 * many consecutive errors up to a maximum. If error is false, then the
+	 * interval is reset to its default minimal interval.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param error
+	 *            the error
+	 */
 	public static void setErrorUpdateInterval(Context context, boolean error) {
 		if (!error) {
 			// in the non-error case, reset the counter
@@ -2135,6 +2646,11 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Checks if is user active.
+	 * 
+	 * @return true, if is user active
+	 */
 	// Returns true if the user is supposed to be actively using the program
 	public static boolean isUserActive() {
 		return (Conversation.isVisible() || Main.isVisible());
@@ -2142,6 +2658,13 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Enable encryption.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	@SuppressLint({ "DefaultLocale", "TrulyRandom" })
 	public static void enableEncryption(Context context) {
 		Utility.saveBooleanSetting(context, Setup.OPTION_ENCRYPTION, true);
 
@@ -2179,6 +2702,12 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Disable encryption.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public static void disableEncryption(Context context) {
 		Utility.saveBooleanSetting(context, Setup.OPTION_ENCRYPTION, false);
 		saveHaveAskedForEncryption(context, false);
@@ -2192,6 +2721,17 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 	// THE AES PART
 
+	/**
+	 * Checks if is AES key outdated.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param forSending
+	 *            the for sending
+	 * @return true, if is AES key outdated
+	 */
 	public static boolean isAESKeyOutdated(Context context, int uid,
 			boolean forSending) {
 		long nowTime = DB.getTimestamp();
@@ -2219,6 +2759,17 @@ public class Setup extends Activity {
 		return false;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the AES key date.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the AES key date
+	 */
 	public static long getAESKeyDate(Context context, int uid) {
 		String keycreated = Utility.loadStringSetting(context, Setup.AESKEY
 				+ "created" + uid, "");
@@ -2229,6 +2780,18 @@ public class Setup extends Activity {
 		return returnKey;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sets the AES key date.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param keycreated
+	 *            the keycreated
+	 */
 	public static void setAESKeyDate(Context context, int uid, String keycreated) {
 		Utility.saveStringSetting(context, Setup.AESKEY + "created" + uid,
 				keycreated);
@@ -2236,12 +2799,31 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Save aes key.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param key
+	 *            the key
+	 */
 	public static void saveAESKey(Context context, int uid, String key) {
 		Utility.saveStringSetting(context, Setup.AESKEY + uid, key);
 	}
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Have aes key.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return true, if successful
+	 */
 	public static boolean haveAESKey(Context context, int uid) {
 		String key = Utility.loadStringSetting(context, Setup.AESKEY + uid, "");
 		boolean returnValue = false;
@@ -2253,12 +2835,26 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Serialize aes key.
+	 * 
+	 * @param key
+	 *            the key
+	 * @return the string
+	 */
 	public static String serializeAESKey(Key key) {
 		return Base64.encodeToString(key.getEncoded(), Base64.DEFAULT);
 	}
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Generate aes key.
+	 * 
+	 * @param randomSeed
+	 *            the random seed
+	 * @return the key
+	 */
 	public static Key generateAESKey(String randomSeed) {
 		// Set up secret key spec for 128-bit AES encryption and decryption
 		SecretKeySpec sks = null;
@@ -2276,12 +2872,30 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Gets the AES key as string.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the AES key as string
+	 */
 	public static String getAESKeyAsString(Context context, int uid) {
 		String encodedKey = Utility.loadStringSetting(context, Setup.AESKEY
 				+ uid, "");
 		return encodedKey;
 	}
 
+	/**
+	 * Gets the AES key hash.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the AES key hash
+	 */
 	public static String getAESKeyHash(Context context, int uid) {
 		String key = getAESKeyAsString(context, uid);
 		if (key == null || key.length() < 1) {
@@ -2295,6 +2909,15 @@ public class Setup extends Activity {
 		return hash;
 	}
 
+	/**
+	 * Gets the AES key.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the AES key
+	 */
 	public static Key getAESKey(Context context, int uid) {
 		String encodedKey = getAESKeyAsString(context, uid);
 		try {
@@ -2317,6 +2940,15 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 	// THE RSA PART
 
+	/**
+	 * Gets the key date.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the key date
+	 */
 	public static String getKeyDate(Context context, int uid) {
 		String keycreated = Utility.loadStringSetting(context, Setup.PUBKEY
 				+ "created" + uid, "");
@@ -2326,6 +2958,18 @@ public class Setup extends Activity {
 		return keycreated;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sets the key date.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param keycreated
+	 *            the keycreated
+	 */
 	public static void setKeyDate(Context context, int uid, String keycreated) {
 		Utility.saveStringSetting(context, Setup.PUBKEY + "created" + uid,
 				keycreated);
@@ -2333,12 +2977,31 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Save key.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param key
+	 *            the key
+	 */
 	public static void saveKey(Context context, int uid, String key) {
 		Utility.saveStringSetting(context, Setup.PUBKEY + uid, key);
 	}
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Have key.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return true, if successful
+	 */
 	public static boolean haveKey(Context context, int uid) {
 		String key = Utility.loadStringSetting(context, Setup.PUBKEY + uid, "");
 		boolean returnValue = false;
@@ -2350,12 +3013,30 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Gets the key as string.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the key as string
+	 */
 	public static String getKeyAsString(Context context, int uid) {
 		String encodedKey = Utility.loadStringSetting(context, Setup.PUBKEY
 				+ uid, "");
 		return encodedKey;
 	}
 
+	/**
+	 * Gets the key hash.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the key hash
+	 */
 	public static String getKeyHash(Context context, int uid) {
 		String key = getKeyAsString(context, uid);
 		if (key == null || key.length() < 1) {
@@ -2370,6 +3051,15 @@ public class Setup extends Activity {
 		return hash;
 	}
 
+	/**
+	 * Gets the key.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param encodedKeyAsString
+	 *            the encoded key as string
+	 * @return the key
+	 */
 	public static PublicKey getKey(Context context, String encodedKeyAsString) {
 		if ((encodedKeyAsString != null && encodedKeyAsString.length() != 0)) {
 			Log.d("communicator", "XXXX LOAD SOME RSA KEY1 '"
@@ -2397,6 +3087,15 @@ public class Setup extends Activity {
 		return null;
 	}
 
+	/**
+	 * Gets the key.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the key
+	 */
 	public static PublicKey getKey(Context context, int uid) {
 		String encodedKeyAsString = getKeyAsString(context, uid);
 		return (getKey(context, encodedKeyAsString));
@@ -2404,34 +3103,26 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Gets the public key as string.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the public key as string
+	 */
 	public static String getPublicKeyAsString(Context context) {
 		String encodedKey = Utility
 				.loadStringSetting(context, Setup.PUBKEY, "");
 		return encodedKey;
 	}
 
-	// private static String keyHash(String keyAsString) {
-	// return keyAsString.length() + "";
-	// return keyAsString;
-	// return Utility.md5(keyAsString);
-	// if (keyAsString == null) {
-	// return null;
-	// }
-	// int width = 10;
-	// int maxlen = keyAsString.length() - 1;
-	// int i = maxlen;
-	// StringBuilder sb = new StringBuilder();
-	// Log.d("communicator",
-	// "XXXX keyHash("+keyAsString+") " + maxlen);
-	// while (i >= 0) {
-	// Log.d("communicator",
-	// "XXXX keyHash("+i+") " + sb.toString());
-	// sb.append(keyAsString.substring(i,i+1));
-	// i -= width;
-	// }
-	// return sb.toString();
-	// }
-
+	/**
+	 * Gets the public key hash.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the public key hash
+	 */
 	public static String getPublicKeyHash(Context context) {
 		String key = getPublicKeyAsString(context);
 		if (key == null || key.length() < 1) {
@@ -2447,6 +3138,13 @@ public class Setup extends Activity {
 		return hash;
 	}
 
+	/**
+	 * Gets the public key.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the public key
+	 */
 	public static PublicKey getPublicKey(Context context) {
 		String encodedKey = getPublicKeyAsString(context);
 		if ((encodedKey != null && encodedKey.length() != 0)) {
@@ -2469,6 +3167,13 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Gets the private key.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the private key
+	 */
 	public static PrivateKey getPrivateKey(Context context) {
 		String encodedKey = Utility.loadStringSetting(context,
 				Setup.PRIVATEKEY, "");
@@ -2494,6 +3199,15 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Encrypted sent possible.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return true, if successful
+	 */
 	public static boolean encryptedSentPossible(Context context, int uid) {
 		boolean encryption = Utility.loadBooleanSetting(context,
 				Setup.OPTION_ENCRYPTION, Setup.DEFAULT_ENCRYPTION);
@@ -2507,12 +3221,30 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Checks if is encryption enabled.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return true, if is encryption enabled
+	 */
 	public static boolean isEncryptionEnabled(Context context) {
 		boolean encryption = Utility.loadBooleanSetting(context,
 				Setup.OPTION_ENCRYPTION, Setup.DEFAULT_ENCRYPTION);
 		return encryption;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Checks if is encryption available.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param hostUid
+	 *            the host uid
+	 * @return true, if is encryption available
+	 */
 	public static boolean isEncryptionAvailable(Context context, int hostUid) {
 		boolean encryption = isEncryptionEnabled(context);
 		boolean haveKey = Setup.haveKey(context, hostUid);
@@ -2522,12 +3254,31 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Save phone is modified.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param isModified
+	 *            the is modified
+	 */
 	public static void savePhoneIsModified(Context context, int uid,
 			boolean isModified) {
 		Utility.saveBooleanSetting(context, Setup.SETTINGS_PHONEISMODIFIED
 				+ uid, isModified);
 	}
 
+	/**
+	 * Checks if is phone modified.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return true, if is phone modified
+	 */
 	public static boolean isPhoneModified(Context context, int uid) {
 		// for NOT registered users this is always true!
 		if (uid < 0) {
@@ -2537,6 +3288,20 @@ public class Setup extends Activity {
 				Setup.SETTINGS_PHONEISMODIFIED + uid, false);
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Save phone for a user.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param phone
+	 *            the phone
+	 * @param manual
+	 *            the manual
+	 */
 	public static void savePhone(Context context, int uid, String phone,
 			boolean manual) {
 		if (!manual) {
@@ -2549,15 +3314,50 @@ public class Setup extends Activity {
 		Utility.saveStringSetting(context, Setup.PHONE + uid, phone);
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the phone for a user.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the phone
+	 */
 	public static String getPhone(Context context, int uid) {
 		return Utility.loadStringSetting(context, Setup.PHONE + uid, null);
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Have phone for a user.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return true, if successful
+	 */
 	public static boolean havePhone(Context context, int uid) {
 		String phone = getPhone(context, uid);
 		return (phone != null && phone.length() > 0);
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the UID by phone. This is necessary to sort incoming SMS.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param phone
+	 *            the phone
+	 * @param allInternalAndExternalUsers
+	 *            the all internal and external users
+	 * @return the UID by phone
+	 */
 	public static int getUIDByPhone(Context context, String phone,
 			boolean allInternalAndExternalUsers) {
 		// Prefer registered users if we have the sme phone number for a
@@ -2587,12 +3387,35 @@ public class Setup extends Activity {
 		return smsuserAsFallback;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Checks if is SMS option enabled.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return true, if is SMS option enabled
+	 */
 	public static boolean isSMSOptionEnabled(Context context) {
 		String personalphone = Utility.loadStringSetting(context,
 				SETTINGS_PHONE, "");
 		return (personalphone.trim().length() != 0);
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Ask merge user. If a user is already in the userlist and a separate user
+	 * existed with this telephone number we ask to merge both accounts
+	 * together.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param smsuserAsFallback
+	 *            the smsuser as fallback
+	 * @param registeredDefault
+	 *            the registered default
+	 */
 	private static void askMergeUser(final Context context,
 			final int smsuserAsFallback, final int registeredDefault) {
 		try {
@@ -2613,8 +3436,8 @@ public class Setup extends Activity {
 											registeredDefault)) {
 										// remove merged user
 										if (Main.isAlive()) {
-											Main.getInstance().deleteUser(
-													context, smsuserAsFallback);
+											Main.deleteUser(context,
+													smsuserAsFallback);
 										}
 									}
 								}
@@ -2629,6 +3452,12 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Ask on disable encryption.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	private void askOnDisableEncryption(final Context context) {
 		try {
 			final String titleMessage = "Disable Encryption";
@@ -2656,6 +3485,12 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Ask on refuse read confirmation.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	private void askOnRefuseReadConfirmation(final Context context) {
 		try {
 			final String titleMessage = "Refuse Read Confirmation";
@@ -2681,6 +3516,13 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * No account yet.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return true, if successful
+	 */
 	public static boolean noAccountYet(Context context) {
 		String uidString = Utility.loadStringSetting(context, "uid", "");
 		return (uidString == null || uidString.length() == 0);
@@ -2688,30 +3530,43 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Normalize phone.
+	 * 
+	 * @param phone
+	 *            the phone
+	 * @return the string
+	 */
 	public static String normalizePhone(String phone) {
 		return phone.replace("(", "").replace(")", "").replace(" ", "")
 				.replace("-", "").replace("/", "");
 	}
 
 	// ------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
 
 	/**
-	 * Calculate a hopefully unique UID from a phone numer
+	 * Calculate a hopefully unique UID from a phone numer.
 	 * 
-	 * @param phoneOrUid
-	 *            the phone
 	 * @return the fake uid from phone
 	 */
 	private static int FAKEUIDLEN = 4;
 
+	/**
+	 * Gets the fake uid from phone.
+	 * 
+	 * @param phone
+	 *            the phone
+	 * @return the fake uid from phone
+	 */
 	public static int getFakeUIDFromPhone(String phone) {
-		Log.d("communicator", "XXX FAKEUID input phone=" + phone);
+		// Log.d("communicator", "XXX FAKEUID input phone=" + phone);
 		phone = Setup.normalizePhone(phone);
 		phone = phone.replace("+49", "");
 		phone = phone.replace("+1", "");
 		phone = phone.replace("+", "");
 		phone = phone.replaceAll("[^0-9]", "");
-		Log.d("communicator", "XXX FAKEUID normalized phone=" + phone);
+		// Log.d("communicator", "XXX FAKEUID normalized phone=" + phone);
 		int parts = phone.length() / FAKEUIDLEN;
 		if (phone.length() % FAKEUIDLEN != 0) {
 			parts++;
@@ -2724,15 +3579,16 @@ public class Setup extends Activity {
 			if (end >= phoneLen) {
 				end = phoneLen - 1;
 			}
-			Log.d("communicator", "XXX FAKEUID start=" + start + ", end=" + end);
+			// Log.d("communicator", "XXX FAKEUID start=" + start + ", end=" +
+			// end);
 			String phonePart = phone.substring(start, end);
 			int phonePartInt = Utility.parseInt(phonePart, 0);
-			Log.d("communicator", "XXX FAKEUID part[" + part + "] returnUID="
-					+ returnUID + " + phonePartInt=" + phonePartInt);
+			// Log.d("communicator", "XXX FAKEUID part[" + part + "] returnUID="
+			// + returnUID + " + phonePartInt=" + phonePartInt);
 			returnUID = returnUID + phonePartInt;
 		}
-		Log.d("communicator", "XXX FAKEUID " + phone + " --> "
-				+ (-1 * returnUID));
+		// Log.d("communicator", "XXX FAKEUID " + phone + " --> "
+		// + (-1 * returnUID));
 
 		if (returnUID == 0) {
 			int i = 0;
@@ -2752,13 +3608,20 @@ public class Setup extends Activity {
 			}
 			returnUID = Utility.parseInt(tmp2, 0);
 		}
-		Log.d("communicator", "XXX FAKEUID RETURNED " + phone + " --> "
-				+ (-1 * returnUID));
+		// Log.d("communicator", "XXX FAKEUID RETURNED " + phone + " --> "
+		// + (-1 * returnUID));
 		return (-1 * returnUID);
 	}
 
+	// -------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Prompt disable receive all sms.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	private void promptDisableReceiveAllSms(final Context context) {
 		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 			try {
@@ -2793,6 +3656,15 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Checks if is SMS default app.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param strictOnlyLocalSettings
+	 *            the strict only local settings
+	 * @return true, if is SMS default app
+	 */
 	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public static boolean isSMSDefaultApp(Context context,
 			boolean strictOnlyLocalSettings) {
@@ -2817,6 +3689,16 @@ public class Setup extends Activity {
 		// return androidDefaultSMSApp || receiveAllSMS;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sets the SMS default app.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param enable
+	 *            the enable
+	 */
 	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public void setSMSDefaultApp(Context context, boolean enable) {
 		if (enable) {
@@ -2842,20 +3724,46 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Gets the session secret.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the session secret
+	 */
 	public static String getSessionSecret(final Context context) {
 		return Utility.loadStringSetting(context, Setup.SETTINGS_SESSIONSECRET,
 				"");
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the session id.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the session id
+	 */
 	public static String getSessionID(final Context context) {
 		return Utility.loadStringSetting(context, Setup.SETTINGS_SESSIONID, "");
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Invalidate tmp login.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	// if a tmplogin failed, do a new login!
 	public static void invalidateTmpLogin(Context context) {
 		Utility.saveStringSetting(context, Setup.SETTINGS_SESSIONSECRET, "");
 		Utility.saveStringSetting(context, Setup.SETTINGS_SESSIONID, "");
 	}
+
+	// -------------------------------------------------------------------------
 
 	/**
 	 * Ensure logged in.
@@ -2896,9 +3804,16 @@ public class Setup extends Activity {
 		return true;
 	}
 
-	// returns the session value that is used
-	// expect session=
-	// md5(sessionid#timestampinseconds#secret#salt)#sessionid#salt
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the tmp login. returns the session value that is used expect
+	 * session=md5(sessionid#timestampinseconds#secret#salt)#sessionid#salt
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the tmp login
+	 */
 	public static String getTmpLogin(Context context) {
 		String secret = getSessionSecret(context);
 		String sessionid = getSessionID(context);
@@ -2912,6 +3827,8 @@ public class Setup extends Activity {
 				+ "#" + sessionid + "#" + salt;
 		return Utility.encode(session);
 	}
+
+	// -------------------------------------------------------------------------
 
 	/**
 	 * Calculate login val based on a uid or email in combination with a
@@ -2996,6 +3913,18 @@ public class Setup extends Activity {
 		return loginData;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update successfull login.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param sessionID
+	 *            the session id
+	 * @param loginErrCnt
+	 *            the login err cnt
+	 */
 	public static void updateSuccessfullLogin(Context context,
 			String sessionID, String loginErrCnt) {
 		Utility.saveStringSetting(context, Setup.SETTINGS_SESSIONID, sessionID);
@@ -3007,6 +3936,14 @@ public class Setup extends Activity {
 				+ "', errcnt=" + loginerrorcnt);
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Login.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	// update if not present, will be deleted on login failure
 	public static void login(final Context context) {
 		Communicator.accountNotActivated = false;
@@ -3031,6 +3968,7 @@ public class Setup extends Activity {
 					+ loginData.val;
 			Log.d("communicator", "XXXX LOGGING IN: URL = '" + url);
 			final String url2 = url;
+			@SuppressWarnings("unused")
 			HttpStringRequest httpStringRequest = (new HttpStringRequest(
 					context, url2, new HttpStringRequest.OnResponseListener() {
 						public void response(String response) {
@@ -3069,11 +4007,29 @@ public class Setup extends Activity {
 					}));
 		}
 	}
+	
+	// -------------------------------------------------------------------------
 
+	/**
+	 * Gets the serverkey as string.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the serverkey as string
+	 */
 	public static String getServerkeyAsString(final Context context) {
 		return Utility.loadStringSetting(context, Setup.SETTINGS_SERVERKEY, "");
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the serverkey.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the serverkey
+	 */
 	public static PublicKey getServerkey(final Context context) {
 
 		try {
@@ -3111,71 +4067,17 @@ public class Setup extends Activity {
 			e.printStackTrace();
 			return null;
 		}
-
-		/*
-		 * 
-		 * PublicKey publicKey = null; try { RSAPublicKeySpec pubKeySpec = new
-		 * RSAPublicKeySpec(new BigInteger(1, modulus), new BigInteger(1,
-		 * exponent)); KeyFactory keyFactory = null; if(provider != null &&
-		 * !provider.isEmpty()) { keyFactory = KeyFactory.getInstance("RSA",
-		 * provider); } else { keyFactory = KeyFactory.getInstance("RSA"); }
-		 * 
-		 * publicKey = keyFactory.generatePublic(pubKeySpec); } catch(Exception
-		 * ex) { logger.error(ex.getMessage()); return null; }
-		 */
-
-		/*
-		 * http://phpanswerz.com/content-28797482-convert-crypt-rsa-public-format
-		 * -pkcs1-from-php-to-rsa-public-key-in-java.html
-		 * 
-		 * The documentation is a little confusing, but by looking at the source
-		 * code for method _convertPublicKey($n, $e) starting at line 950 it
-		 * appears that if $publicKeyFormat == PUBLIC_FORMAT_PKCS8 then the
-		 * output format should be one that is compatible with Java's
-		 * X509EncodedKeySpec class.
-		 */
-
-		// String encodedKeyAsString = null;
-		// try {
-		// encodedKeyAsString = new String(getServerkeyAsString(context));
-		// encodedKeyAsString = new
-		// String(encodedKeyAsString.getBytes("UTF-8"));
-		// encodedKeyAsString = new String(Base64.decode(encodedKeyAsString,
-		// Base64.DEFAULT));
-		// encodedKeyAsString = encodedKeyAsString.substring(0,
-		// encodedKeyAsString.length()-1);
-		// } catch (Exception e1) {
-		// e1.printStackTrace();
-		// }
-		// if ((encodedKeyAsString != null && encodedKeyAsString.length() != 0))
-		// {
-		// Log.d("communicator", "XXXX LOAD KEY 1 '"
-		// + (new String(encodedKeyAsString)) + "'");
-		//
-		// byte[] decodedKey = Base64.decode(encodedKeyAsString,
-		// Base64.DEFAULT);
-		// Log.d("communicator", "XXXX LOAD KEY 2 '"
-		// + (new String(decodedKey)) + "'");
-		// // rebuild key using SecretKeySpec
-		// // Key originalKey = new SecretKeySpec(decodedKey, 0,
-		// // decodedKey.length, "AES");
-		// try {
-		// //X509EncodedKeySpec keySpec = new X509EncodedKeySpec(
-		// // decodedKey);
-		// KeyFactory kf = KeyFactory.getInstance("RSA");
-		// PublicKey originalKey = kf.generatePublic(new
-		// X509EncodedKeySpec(decodedKey));
-		// //PublicKey originalKey = kf.generatePublic(keySpec);
-		// return originalKey;
-		// } catch (InvalidKeySpecException e) {
-		// e.printStackTrace();
-		// } catch (NoSuchAlgorithmException e) {
-		// e.printStackTrace();
-		// }
-		// }
 		return null;
 	}
 
+	// -------------------------------------------------------------------------
+	
+	/**
+	 * Update serverkey.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	// update if not present, will be deleted on login failure
 	public static void updateServerkey(final Context context) {
 		if (getServerkeyAsString(context).equals("")) {
@@ -3184,6 +4086,7 @@ public class Setup extends Activity {
 			String url = null;
 			url = Setup.getBaseURL(context) + "cmd=serverkey";
 			final String url2 = url;
+			@SuppressWarnings("unused")
 			HttpStringRequest httpStringRequest = (new HttpStringRequest(
 					context, url2, new HttpStringRequest.OnResponseListener() {
 						public void response(String response) {
@@ -3216,24 +4119,18 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Prepare key.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the byte[]
+	 */
 	private static byte[] prepareKey(Context context) {
 		try {
 			String secret = Utility.md5(getSessionSecret(context).substring(5)); // the
-			// first
-			// 5
-			// characters
-			// remain
-			// a
-			// secret!
+			// first 5 characters remain a secret!
 			String timeStampInSeconds = "" + ((DB.getTimestamp() / 1000) / 100);
-
-			// Log.d("communicator",
-			// "XXXXX prepare key secret='"
-			// + secret + "'");
-			//
-			// Log.d("communicator",
-			// "XXXXX prepare key timeStampInSeconds='"
-			// + timeStampInSeconds + "'");
 
 			timeStampInSeconds = Utility.md5(timeStampInSeconds);
 
@@ -3251,6 +4148,16 @@ public class Setup extends Activity {
 	}
 
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Dec text.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param textEncrypted
+	 *            the text encrypted
+	 * @return the string
+	 */
 	public static String decText(Context context, String textEncrypted) {
 		try {
 			byte[] encrypted = Base64.decode(textEncrypted, Base64.DEFAULT);
@@ -3272,12 +4179,6 @@ public class Setup extends Activity {
 			int i2 = decryptedString.lastIndexOf("#");
 			if (i1 >= 0 && i2 > -0) {
 				String result = decryptedString.substring(i1 + 1, i2);
-				// int result = Utility.parseInt(uid, -1);
-
-				// Log.d("communicator",
-				// "XXXXX dec uid result '"
-				// + result + "'");
-
 				return result;
 			}
 			return null;
@@ -3288,6 +4189,15 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Enc text.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param text
+	 *            the text
+	 * @return the string
+	 */
 	public static String encText(Context context, String text) {
 		byte[] keyArray = prepareKey(context);
 		if (keyArray == null) {
@@ -3309,17 +4219,19 @@ public class Setup extends Activity {
 
 		String encryptedString = Base64.encodeToString(entrcypted,
 				Base64.DEFAULT);
-
-		// Log.d("communicator",
-		// "XXXXX enc encrypted '"
-		// + encryptedString + "'");
-
 		return encryptedString;
 	}
 
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Prepare simple key.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the byte[]
+	 */
 	private static byte[] prepareSimpleKey(Context context) {
 		String secret = getSessionSecret(context);
 		if (secret == null || secret.length() < 20) {
@@ -3361,6 +4273,17 @@ public class Setup extends Activity {
 		return encrypted;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Enc uid.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the string
+	 */
 	public static String encUid(Context context, int uid) {
 		String text = uid + "";
 		byte[] simpleKey = prepareSimpleKey(context);
@@ -3373,7 +4296,18 @@ public class Setup extends Activity {
 				* simpleKey[5] + 1000 * simpleKey[6] + 1000 * simpleKey[7];
 		return checkSum + uidEncrypted;
 	}
+	
+	// -------------------------------------------------------------------------
 
+	/**
+	 * Dec uid.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uidEncrypted
+	 *            the uid encrypted
+	 * @return the int
+	 */
 	public static int decUid(Context context, String uidEncrypted) {
 		byte[] simpleKey = prepareSimpleKey(context);
 		if (simpleKey == null) {
@@ -3399,6 +4333,14 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Possibly invalidate session.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param reset
+	 *            the reset
+	 */
 	public static void possiblyInvalidateSession(Context context, boolean reset) {
 		Log.d("communicator", "possiblyInvalidateSession() reset? " + reset);
 		if (!reset) {
@@ -3430,6 +4372,15 @@ public class Setup extends Activity {
 		}
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the device id.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the device id
+	 */
 	public static String getDeviceId(Context context) {
 		String deviceID = Utility.getDeviceId(context);
 		if (deviceID == null) {
@@ -3445,6 +4396,12 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Go back.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public void goBack(Context context) {
 		// GET TO THE MAIN SCREEN IF THIS ICON IS CLICKED !
 		Intent intent = new Intent(this, Main.class);
@@ -3452,21 +4409,14 @@ public class Setup extends Activity {
 		startActivity(intent);
 	}
 
-	// @Override
-	// public boolean onOptionsItemSelected(MenuItem item) {
-	// switch (item.getItemId()) {
-	// case android.R.id.home:
-	// // GET TO THE MAIN SCREEN IF THIS ICON IS CLICKED !
-	// Intent intent = new Intent(this, Main.class);
-	// intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-	// startActivity(intent);
-	// return true;
-	// }
-	// return false;
-	// }
-
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Possibly disable screenshot.
+	 * 
+	 * @param activity
+	 *            the activity
+	 */
 	static void possiblyDisableScreenshot(Activity activity) {
 		if (Utility.loadBooleanSetting(activity, Setup.OPTION_NOSCREENSHOTS,
 				Setup.DEFAULT_NOSCREENSHOTS)) {
@@ -3476,6 +4426,12 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Possibly prompt no encryption.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	static void possiblyPromptNoEncryption(final Context context) {
 		if (Setup.isEncryptionEnabled(context)) {
 			return; // encryption is already enabled, everything is ok
@@ -3511,6 +4467,14 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Save have asked for encryption.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param haveAsked
+	 *            the have asked
+	 */
 	public static void saveHaveAskedForEncryption(Context context,
 			boolean haveAsked) {
 		Utility.saveBooleanSetting(context,
@@ -3519,6 +4483,13 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Checks if is UID defined.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return true, if is UID defined
+	 */
 	public static boolean isUIDDefined(Context context) {
 		return (Utility.loadStringSetting(context, "uid", "").trim().length() != 0);
 	}
