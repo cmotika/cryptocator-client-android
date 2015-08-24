@@ -34,28 +34,17 @@
 package org.cryptocator;
 
 import java.security.Key;
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
-import org.cryptocator.R;
-
-import android.R.integer;
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ClipData.Item;
 import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
@@ -63,40 +52,96 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
-import android.text.style.LineHeightSpan.WithDensity;
 import android.util.Base64;
 import android.util.Log;
-import android.view.FocusFinder;
-import android.widget.Toast;
 
+/**
+ * The Communicator class handles most of the communication including
+ * sending/receiving messages and receive/read confirmations or the update of
+ * account and session keys.
+ * 
+ * @author Christian Motika
+ * @since 2.1
+ * @date 08/23/2015
+ */
 public class Communicator {
 
+	/**
+	 * The message sent indicates that one message was sent and potentially more
+	 * need to be send.
+	 */
 	public static boolean messageSent = false;
+
+	/**
+	 * The message received indicates that one message was received and
+	 * potentially more need to be received.
+	 */
 	public static boolean messageReceived = false;
 
+	/**
+	 * The have new messages flag is set to true if the have-request revealed
+	 * that there are messages to receive.
+	 */
 	public static boolean haveNewMessages = false;
-	public static boolean messagesToSend = false;
-	public static boolean SMSToSend = false;
-	public static boolean messagesToSendIsUpToDate = false; // if the class is
-	// // killed, this is
-	// // false again
-	// it will be set by the scheduler that evaluates and uses messagesToSend as
-	// a cache!
 
+	/** The Internet messages queued to be sent. */
+	public static boolean messagesToSend = false;
+
+	/** The SMS queued to be sent. */
+	public static boolean SMSToSend = false;
+
+	/**
+	 * If the class is killed, this flag will be false again it will be set by
+	 * the scheduler that evaluates and uses messagesToSend as a cache!
+	 */
+	public static boolean messagesToSendIsUpToDate = false;
+
+	/**
+	 * The connection flag tells if Internet was ok. It is evaluated in Main for
+	 * the info message.
+	 */
 	public static boolean internetOk = true;
+
+	/**
+	 * The connection flag tells if Login was ok. It is evaluated in Main for
+	 * the info message.
+	 */
 	public static boolean loginOk = true;
+
+	/**
+	 * The connection flag tells if the account is not activated. It is
+	 * evaluated in Main for the info message
+	 */
 	public static boolean accountNotActivated = false;
 
-	public static boolean lastSendInternet = false; // used to toggle
+	/**
+	 * This flag is a tie-braker and gives alternating priority to Internet and
+	 * SMS messages if BOTH have to be sent! This way one of both cannot block
+	 * the other.
+	 */
+	public static boolean lastSendInternet = false;
 
+	/** The key ok separator indicator. */
 	public static String KEY_OK_SEPARATOR = "@";
+
+	/**
+	 * The key error separator indicator. If the key is separated by this
+	 * separator then the key was sent because a messsage could not be
+	 * decrypted. We inform the user and ask him or her to re-send the last
+	 * message.
+	 */
 	public static String KEY_ERROR_SEPARATOR = "@@";
 
 	// ----------------------------------------------------------------------------------
 
-	// This method should help to save communication, it quickly checks for new
-	// messages and only if there are messages waiting
-	// it triggeres the receive next message
+	/**
+	 * This method should help to save communication, it quickly checks for new
+	 * messages and only if there are messages waiting it triggeres the receive
+	 * next message.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public static void haveNewMessagesAndReceive(final Context context) {
 		if (haveNewMessages) {
 			// If we already know we have new messages, we not need to run the
@@ -105,7 +150,7 @@ public class Communicator {
 			return;
 		}
 
-		// largest timestamp received
+		// Largest timestamp received
 		final int largestMid = DB.getLargestMid(context);
 
 		String sessionid = Setup.getSessionID(context);
@@ -121,6 +166,7 @@ public class Communicator {
 
 		Log.d("communicator", "REQUEST HAVE: " + url);
 		final String url2 = url;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -179,6 +225,14 @@ public class Communicator {
 
 	// ----------------------------------------------------------------------------------
 
+	/**
+	 * Handle read and received.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param response
+	 *            the response
+	 */
 	private static void handleReadAndReceived(final Context context,
 			String response) {
 
@@ -226,136 +280,25 @@ public class Communicator {
 	}
 
 	// ----------------------------------------------------------------------------------
-	// ----------------------------------------------------------------------------------
 
-	// public static void updateReceiveInfo(final Context context) {
-	// // largest timestamp received
-	// String timestamp = DB.getLargestTimestampReceived(context);
-	// if (timestamp.equals("")) {
-	// timestamp = DB.MAXTIMESTAMP + "";
-	// }
-	//
-	// String session = Setup.getTmpLogin(context);
-	// if (session == null) {
-	// // error resume is automatically done by getTmpLogin, not logged in
-	// return;
-	// }
-	//
-	// String url = null;
-	// url = Setup.getBaseURL(context) + "cmd=inforeceived&session=" + session +
-	// "&val="
-	// + timestamp;
-	// Log.d("communicator", "REQUEST RECEIVE INFO: " + url);
-	// final String url2 = url;
-	// HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
-	// url2, new HttpStringRequest.OnResponseListener() {
-	// public void response(String response) {
-	// if (isResponseValid(response)) {
-	// if (isResponsePositive(response)) {
-	// // Log.d("communicator",
-	// // "RECEIVED INFO RECEIVEDX OK!!! "
-	// // + response2);
-	// if (response.startsWith("1##")) {
-	// // Log.d("communicator", "RECEIVEDX #1 ");
-	// updateReceivedInfoHandleResponse(context,
-	// response);
-	// }
-	// }
-	// }
-	// }
-	// }));
-	// }
-
-	// private static void updateReceivedInfoHandleResponse(Context context,
-	// String response) {
-	// String[] values = response.substring(3).split("##");
-	// if (values != null && values.length > 0) {
-	// for (String pair : values) {
-	// String pairValues[] = pair.split("#");
-	// if (pairValues != null && pairValues.length == 2) {
-	// int mid = Utility.parseInt(pairValues[0], -1);
-	// String timestamp = pairValues[1];
-	// // Log.d("communicator", "RECEIVEDX #2 " + mid + ", "
-	// // + timestamp);
-	// if (mid > -1) {
-	// // READ NOTIFICATION
-	// // now we have correct values and should update the
-	// // database
-	// DB.updateMessageReceived(context, mid, timestamp);
-	// int hostUid = DB.getHostUidByMid(context, mid);
-	// updateSentReceivedReadAsync(context, mid, hostUid,
-	// false, true, false, false);
-	// }
-	// }
-	// }
-	// }
-	// }
-
-	// ----------------------------------------------------------------------------------
-
-	// public static void updateWithdrawInfo(final Context context) {
-	// // largest timestamp received
-	// String timestamp = DB.getLargestTimestampWithdraw(context);
-	// if (timestamp.equals("")) {
-	// timestamp = DB.MAXTIMESTAMP + "";
-	// }
-	//
-	// String session = Setup.getTmpLogin(context);
-	// if (session == null) {
-	// // error resume is automatically done by getTmpLogin, not logged in
-	// return;
-	// }
-	//
-	// String url = null;
-	// url = Setup.getBaseURL(context) + "cmd=infowithdraw&session=" + session +
-	// "&val=" +
-	// timestamp;
-	// Log.d("communicator", "REQUEST WITHDRAW INFO: " + url);
-	// final String url2 = url;
-	// HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
-	// url2, new HttpStringRequest.OnResponseListener() {
-	// public void response(String response) {
-	// if (isResponseValid(response)) {
-	// if (isResponsePositive(response)) {
-	// // Log.d("communicator",
-	// // "WITHDRAW INFO RECEIVED OK!!! "
-	// // + response2);
-	// if (response.startsWith("1##")) {
-	// updateWithdrawInfoHandleResponse(context,
-	// response);
-	// }
-	// }
-	// }
-	// }
-	// }));
-	// }
-
-	// private static void updateWithdrawInfoHandleResponse(Context context,
-	// String response) {
-	// String[] values = response.substring(3).split("##");
-	// if (values != null && values.length > 0) {
-	// for (String pair : values) {
-	// String pairValues[] = pair.split("#");
-	// if (pairValues != null && pairValues.length == 2) {
-	// int mid = Utility.parseInt(pairValues[0], -1);
-	// String timestamp = pairValues[1];
-	// if (mid > -1) {
-	// // WITHDRAWN NOTIFICATION!
-	// // now we have correct values and should update the
-	// // database
-	// DB.updateMessageWithdrawn(context, mid, timestamp);
-	// int senderUid = DB.getSenderUidByMid(context, mid);
-	// updateSentReceivedReadAsync(context, mid, senderUid,
-	// false, false, false, true);
-	// }
-	// }
-	// }
-	// }
-	//
-	// }
-
-	// ----------------------------------------------------------------------------------
-
+	/**
+	 * Update sent received read async.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 * @param hostUid
+	 *            the host uid
+	 * @param sent
+	 *            the sent
+	 * @param received
+	 *            the received
+	 * @param read
+	 *            the read
+	 * @param withdraw
+	 *            the withdraw
+	 */
 	public static void updateSentReceivedReadAsync(final Context context,
 			final int mid, final int hostUid, final boolean sent,
 			final boolean received, final boolean read, final boolean withdraw) {
@@ -418,112 +361,24 @@ public class Communicator {
 		});
 	}
 
-	// -----
-
-	// public static void updateReadInfo(final Context context) {
-	// // if we do not refuse to send these confirmations...
-	// if (!Utility.loadBooleanSetting(context, Setup.OPTION_NOREAD,
-	// Setup.DEFAULT_NOREAD)) {
-	// // ...then go ahead and also receive them
-	//
-	// // largest timestamp read
-	// String timestamp = DB.getLargestTimestampRead(context);
-	// String timestamp2 = Utility.loadStringSetting(context,
-	// "timestampread", "0");
-	// long ts = Utility.parseLong(timestamp, 0);
-	// long ts2 = Utility.parseLong(timestamp2, 0);
-	// if (ts2 > ts) {
-	// // this prevents enabling read confirmation just for a shot
-	// // instance of time
-	// // you never are able to receive read confirmations for the
-	// // duration you
-	// // not allowed them!
-	// timestamp = timestamp2;
-	// }
-	// if (timestamp.equals("")) {
-	// timestamp = DB.MAXTIMESTAMP + "";
-	// }
-	//
-	// String session = Setup.getTmpLogin(context);
-	// if (session == null) {
-	// // error resume is automatically done by getTmpLogin, not logged in
-	// return;
-	// }
-	//
-	// String uidString = Utility.loadStringSetting(context, "uid", "");
-	// String pwdString = Utility.loadStringSetting(context, "pwd", "");
-	//
-	// String url = null;
-	// url = Setup.getBaseURL(context) + "cmd=inforead&session=" + session +
-	// "&val=" +
-	// timestamp;
-	// Log.d("communicator", "REQUEST READ INFO: " + url);
-	// final String url2 = url;
-	// HttpStringRequest httpStringRequest = (new HttpStringRequest(
-	// context, url2, new HttpStringRequest.OnResponseListener() {
-	// public void response(String response) {
-	// if (isResponseValid(response)) {
-	// if (isResponsePositive(response)) {
-	// // Log.d("communicator",
-	// // "READ INFO RECEIVED OK!!! "
-	// // + response2);
-	// if (response.startsWith("1##")) {
-	// updateReadInfoHandleResponse(context,
-	// response);
-	// }
-	// }
-	// }
-	// }
-	// }));
-	// }
-	// }
-
-	// private static void updateReadInfoHandleResponse(Context context,
-	// String response) {
-	// String[] values = response.substring(3).split("##");
-	// if (values != null && values.length > 0) {
-	// for (String pair : values) {
-	// String pairValues[] = pair.split("#");
-	// if (pairValues != null && pairValues.length == 2) {
-	// int mid = Utility.parseInt(pairValues[0], -1);
-	// String timestamp = pairValues[1];
-	// if (mid > -1) {
-	// // now we have correct values and should update the
-	// // database
-	// DB.updateMessageRead(context, mid, timestamp);
-	// int hostUid = DB.getHostUidByMid(context, mid);
-	// updateSentReceivedReadAsync(context, mid, hostUid,
-	// false, false, true, false);
-	// }
-	// }
-	// }
-	// }
-	// }
-
-	// Idee: Mapping item -> View um die view incrementell zu aktualisieren!
-	// (ImageView.setVisible(View.Gone)...)
-
-	// ----------------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------------
 
+	/**
+	 * Receive next message.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public static void receiveNextMessage(final Context context) {
 		messageReceived = false;
 
 		final int largestMid = DB.getLargestMid(context);
-		final boolean discardMessageAndSaveLargestMid = (largestMid == -1); // this
-																			// should
-																			// be
-																			// the
-																			// case
-																			// for
-																			// an
-																			// empty
-																			// database
-																			// only!
+		// This should be the case for an empty database only!
+		final boolean discardMessageAndSaveLargestMid = (largestMid == -1);
 
 		String session = Setup.getTmpLogin(context);
 		if (session == null) {
-			// error resume is automatically done by getTmpLogin, not logged in
+			// Error resume is automatically done by getTmpLogin, not logged in
 			return;
 		}
 
@@ -532,6 +387,7 @@ public class Communicator {
 				+ "&val=" + largestMid;
 		Log.d("communicator", "RECEIVE NEXT MESSAGE: " + url);
 		final String url2 = url;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -541,12 +397,11 @@ public class Communicator {
 						boolean resposeError = true;
 						final ConversationItem newItem = new ConversationItem();
 						if (isResponseValid(response)) {
-							// final String response2 = response;
 							if (response.equals("0")) {
 								haveNewMessages = false;
 								resposeError = false;
 								loginOk = true;
-								// we currently do not need to look for new
+								// We currently do not need to look for new
 								// messages
 							} else if (isResponsePositive(response)) {
 								resposeError = false;
@@ -555,13 +410,13 @@ public class Communicator {
 								// "RECEIVE NEXT MESSAGE OK!!! "
 								// + response);
 
-								// response should have the form
+								// Response should have the form
 								// senttimestamp#mid
 
-								// update database
+								// Update database
 								String[] responseArray = response.split("#");
 								if (responseArray.length == 6) {
-									// a message was received
+									// A message was received
 									String mid = responseArray[1];
 									String from = Setup.decUid(context,
 											responseArray[2]) + "";
@@ -571,7 +426,7 @@ public class Communicator {
 													+ from + " -> me " + " : "
 													+ responseArray[2]);
 									if (from.equals("-2")) {
-										// enforce new session if this happens
+										// Enforce new session if this happens
 										// twice
 										wronglyDencoded = true; // we want fast
 																// retry
@@ -580,7 +435,7 @@ public class Communicator {
 									}
 
 									if (!from.equals("-2")) {
-										// only not update in case or wrong
+										// Only not update in case or wrong
 										// decoding because we want to later try
 										// again!
 										DB.updateLargestMid(context,
@@ -588,7 +443,7 @@ public class Communicator {
 									}
 
 									if (from.equals("-1")) {
-										// invalid users
+										// Invalid users
 										// update cache
 										DB.lastReceivedMid = newItem.mid;
 										Utility.saveIntSetting(context,
@@ -596,13 +451,13 @@ public class Communicator {
 												newItem.mid);
 									}
 
-									// discard unknown or invalid users
+									// Discard unknown or invalid users
 									if (!from.equals("-2")
 											&& !from.equals("-1")) {
 										Setup.possiblyInvalidateSession(
 												context, true); // reset
 										success1 = true;
-										// uids could be recovered/decrypted
+										// Uids could be recovered/decrypted
 										String created = responseArray[3];
 										String sent = responseArray[4];
 										String text = responseArray[5];
@@ -617,7 +472,7 @@ public class Communicator {
 										newItem.received = DB.getTimestamp();
 										newItem.transport = DB.TRANSPORT_INTERNET;
 
-										// update cache
+										// Update cache
 										DB.lastReceivedMid = newItem.mid;
 										Utility.saveIntSetting(context,
 												Setup.SETTINGS_DEFAULTMID,
@@ -629,7 +484,7 @@ public class Communicator {
 											;
 										}
 
-										// skip if not in our list && ignore is
+										// Skip if not in our list && ignore is
 										// turned on
 										if (!discardMessageAndSaveLargestMid) {
 											newItem.text = handleReceivedText(
@@ -639,7 +494,7 @@ public class Communicator {
 
 											if (newItem.text == null
 													|| newItem.text.equals("")) {
-												// no toast or scrolling on
+												// No toast or scrolling on
 												// system messages
 												// no notification
 												success2 = false;
@@ -649,7 +504,7 @@ public class Communicator {
 													.contains("[ invalid session key ")
 													|| newItem.text
 															.contains("[ decryption failed ]")) {
-												// we should try to update the
+												// We should try to update the
 												// public rsa key of this user
 												Communicator.updateKeysFromServer(
 														context,
@@ -657,14 +512,14 @@ public class Communicator {
 														true, null);
 											}
 										} else {
-											// discard means no live update
+											// Discard means no live update
 											// please...
 											success2 = false;
 										}
-									} // end uids decrypted sucessfully
+									} // End uids decrypted sucessfully
 								}
 							} else {
-								// invalidate right away
+								// Invalidate right away
 								Setup.invalidateTmpLogin(context);
 								loginOk = false;
 								Log.d("communicator",
@@ -693,13 +548,22 @@ public class Communicator {
 
 	// ---------------------
 
+	/**
+	 * Update ui for received message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param newItem
+	 *            the new item
+	 * @return true, if successful
+	 */
 	public static boolean updateUIForReceivedMessage(Context context,
 			ConversationItem newItem) {
 		List<Integer> uidList = Main.loadUIDList(context);
 		boolean skip = false;
 		boolean success2 = false;
 		if (!Main.alreadyInList(newItem.from, uidList)) {
-			// the user who sent us a message is not
+			// The user who sent us a message is not
 			// in our list! What now?
 			boolean ignore = Utility.loadBooleanSetting(context,
 					Setup.OPTION_IGNORE, Setup.DEFAULT_IGNORE);
@@ -721,7 +585,7 @@ public class Communicator {
 			// "RECEIVED MESSAGE SKIPPED!!! "
 			// + response2);
 		} else if (DB.isAlreadyInDB(context, newItem.mid, newItem.from)) {
-			// not insert again!
+			// Not insert again!
 		} else if (DB.updateMessage(context, newItem, newItem.from)) {
 			messageReceived = true;
 			Log.d("communicator", "RECEIVED MESSAGE IN DB NOW!!! from:"
@@ -737,44 +601,19 @@ public class Communicator {
 
 	// ---------------------
 
+	/**
+	 * Handle received text.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param text
+	 *            the text
+	 * @param newItem
+	 *            the new item
+	 * @return the string
+	 */
 	public static String handleReceivedText(final Context context, String text,
 			final ConversationItem newItem) {
-		// if (text.startsWith("D")) {
-		// // D == downloaded (a messages from us was received by the sender of
-		// // this message at its creation time)
-		// // READ NOTIFICATION
-		// // now we have correct values and should update the
-		// // database
-		// int mid = Utility.parseInt(text.substring(1), -1);
-		// Log.d("communicator", "UPDATE RECEIVED MESSAGE mid=" + mid);
-		// if (mid > -1) {
-		// int senderUid = newItem.from;
-		// DB.updateMessageReceived(context, mid, newItem.created + "",
-		// senderUid);
-		// DB.updateMessageSystem(context, newItem.mid, true, newItem.from);
-		// // int hostUid = DB.getHostUidByMid(context, mid);
-		// updateSentReceivedReadAsync(context, mid, senderUid, false,
-		// true, false, false);
-		// }
-		// // invalidate text (so that no new message is inserted!)
-		// text = "";
-		// } else if (text.startsWith("R")) {
-		// // R == read
-		// // we got a read confirmation
-		// // now we have correct values and should update the
-		// // database
-		// int mid = Utility.parseInt(text.substring(1), -1);
-		// if (mid > -1) {
-		// int senderUid = newItem.from;
-		// DB.updateMessageRead(context, mid, newItem.created + "",
-		// senderUid);
-		// DB.updateMessageSystem(context, newItem.mid, true, newItem.from);
-		// // int hostUid = DB.getHostUidByMid(context, mid);
-		// updateSentReceivedReadAsync(context, mid, senderUid, false,
-		// false, true, false);
-		// }
-		// text = "";
-		// } else
 		if (text.startsWith("W")) {
 			// W == withdraw
 			// this is a withdraw message followed my the mid to withdraw
@@ -810,7 +649,7 @@ public class Communicator {
 			}
 			text = "";
 		} else if (text.startsWith("K")) {
-			// this is an RSA encrypted key message!
+			// This is an RSA encrypted key message!
 			text = text.substring(1);
 			String possiblyInvalid = "";
 			String keyhash = "";
@@ -821,17 +660,17 @@ public class Communicator {
 				separator = KEY_ERROR_SEPARATOR;
 				notificationMessageAddition = "\n\nNew key was sent automatically because last message could not be decrypted.\n\nPLEASE RESEND YOUR LAST MESSAGE!";
 			}
-			// divide key and signature
+			// Divide key and signature
 			String[] values = text.split(separator);
 			if (values != null && values.length == 2) {
 				String encryptedKey = values[0];
 				String signature = values[1];
-				// get encryptedhash from signature
+				// Get encryptedhash from signature
 				PublicKey senderPubKey = Setup.getKey(context, newItem.from);
 				String decryptedKeyHashMustBe = decryptMessage(context,
 						signature, senderPubKey);
 
-				// decrypt here
+				// Decrypt here
 				PrivateKey myPrivateKey = Setup.getPrivateKey(context);
 				text = decryptMessage(context, encryptedKey, myPrivateKey);
 
@@ -844,9 +683,8 @@ public class Communicator {
 				// + decryptedKeyHashMustBe);
 
 				if (decryptedKeyHashIs.equals(decryptedKeyHashMustBe)) {
-					// save as AES key for later
-					// decryptying
-					// and encrypting usage
+					// Save as AES key for later decryptying and encrypting
+					// usage
 					Setup.saveAESKey(context, newItem.from, text);
 					Setup.setAESKeyDate(context, newItem.from,
 							DB.getTimestampString());
@@ -875,7 +713,7 @@ public class Communicator {
 					+ " received ]" + notificationMessageAddition;
 			Main.updateLastMessage(context, newItem.from, text, newItem.created);
 		} else if (text.startsWith("U")) {
-			// this is an unencrypted message
+			// This is an unencrypted message
 			newItem.encrypted = false;
 			text = text.substring(1);
 			text = text.replace("@@@NEWLINE@@@",
@@ -885,10 +723,10 @@ public class Communicator {
 					+ ", text=" + text);
 			Main.updateLastMessage(context, newItem.from, text, newItem.created);
 		} else if (text.startsWith("E")) {
-			// this is an AES encrypted message
+			// This is an AES encrypted message
 			newItem.encrypted = true;
 			text = text.substring(1);
-			// decrypt here
+			// Decrypt here
 			Key secretKey = Setup.getAESKey(context, newItem.from);
 			text = decryptAESMessage(context, text, secretKey);
 
@@ -925,7 +763,7 @@ public class Communicator {
 								+ newItem.created + ", text=" + text);
 				Main.updateLastMessage(context, newItem.from, text,
 						newItem.created);
-				// reset because no error!
+				// Reset because no error!
 				Utility.saveIntSetting(context, "invalidkeycounter"
 						+ newItem.from, 0);
 			}
@@ -940,6 +778,14 @@ public class Communicator {
 
 	// ---------------------
 
+	/**
+	 * Live update or notify.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param newItem
+	 *            the new item
+	 */
 	public static void liveUpdateOrNotify(final Context context,
 			final ConversationItem newItem) {
 		Log.d("communicator",
@@ -954,16 +800,15 @@ public class Communicator {
 				final Handler handler = new Handler();
 				handler.postDelayed(new Runnable() {
 					public void run() {
-						// live - update if possible,
-						// otherwise
-						// create notification!
+						// Live - update if possible,
+						// otherwise create notification!
 						if (Conversation.isVisible()
 								&& Conversation.getHostUid() == newItem.from) {
-							// the conversation is currently
+							// The conversation is currently
 							// open, try to update this
-							// right
-							// away!
-							// ATTENTION: if not scrolled down then send an
+							// right away!
+							//
+							// ATTENTION: If not scrolled down then send an
 							// additional toast!
 							if (!Conversation.scrolledDown && !newItem.isKey) {
 								Utility.showToastShortAsync(context,
@@ -973,7 +818,7 @@ public class Communicator {
 							Conversation.getInstance().updateConversationlist(
 									context);
 						} else {
-							// the conversation is NOT
+							// The conversation is NOT
 							// currently
 							// open, we need a new
 							// notification
@@ -987,7 +832,7 @@ public class Communicator {
 								createNotification(context, newItem);
 							}
 							if (Conversation.isAlive()) {
-								// still update because conversation is in
+								// Still update because conversation is in
 								// memory!
 								Conversation.getInstance()
 										.updateConversationlist(context);
@@ -1006,14 +851,31 @@ public class Communicator {
 	// ------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
 
-	// Returns null to indicate to abort current sending because a new key was
-	// generated and
-	// issued.
+	/**
+	 * Gets the AES key. Returns null to indicate to abort current sending
+	 * because a new key was generated and issued.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param forceSendingNewKey
+	 *            the force sending new key
+	 * @param transport
+	 *            the transport
+	 * @param flagErrorMessageNotification
+	 *            the flag error message notification
+	 * @param item
+	 *            the item
+	 * @param forSending
+	 *            the for sending
+	 * @return the AES key
+	 */
 	public static Key getAESKey(Context context, int uid,
 			boolean forceSendingNewKey, int transport,
 			boolean flagErrorMessageNotification, ConversationItem item,
 			boolean forSending) {
-		// 1. search for AES key, if no key (or outdated), then
+		// 1. Search for AES key, if no key (or outdated), then
 		// a. generate one
 		// b. save it for later use
 		// c. sent it first in a K ey message
@@ -1023,14 +885,14 @@ public class Communicator {
 		Log.d("communicator", "#### KEY FOR " + uid + " TIMEOUT? " + outDated);
 
 		if (!outDated && !forceSendingNewKey) {
-			// Key is uptodate (hopefully the other part has it as well!)
+			// Key is up-to-date (hopefully the other part has it as well!)
 			Key secretKey = Setup.getAESKey(context, uid);
 			Log.d("communicator",
 					"#### KEY RETURNING " + uid + " : "
 							+ Setup.getAESKeyHash(context, uid));
 			return secretKey;
 		} else {
-			// use the last received message as a random seed
+			// Use the last received message as a random seed
 			String lastMsg = Main.getLastMessage(context, uid);
 			// Log.d("communicator", "###### RANDOM SEED lastMsg " + lastMsg);
 			String randomSeed = lastMsg + "-" + DB.getTimestamp() + "";
@@ -1046,7 +908,7 @@ public class Communicator {
 					+ Setup.getAESKeyHash(context, uid));
 
 			// Encrypt the key
-			boolean haveKey = Setup.haveKey(context, uid);
+			// boolean haveKey = Setup.haveKey(context, uid);
 
 			Log.d("communicator", "#### KEY NEW KEY #1");
 
@@ -1069,7 +931,7 @@ public class Communicator {
 
 			String separator = KEY_OK_SEPARATOR;
 			if (flagErrorMessageNotification) {
-				// this indicates the error!!!
+				// This indicates the error!!!
 				separator = KEY_ERROR_SEPARATOR;
 			}
 
@@ -1094,7 +956,7 @@ public class Communicator {
 
 			Log.d("communicator", "#### KEY NEW KEY NOW ADDED! RETURNING NULL");
 
-			// sendMessage(context, uid, msgText, DB.getTimestamp() - 1000,
+			// SendMessage(context, uid, msgText, DB.getTimestamp() - 1000,
 			// null,
 			// transport);
 			if (transport == DB.TRANSPORT_INTERNET) {
@@ -1106,23 +968,35 @@ public class Communicator {
 			}
 
 			// ATTENTION:
-			// sending the RSA encrypted KEY-Message before sending the normally
+			// Sending the RSA encrypted KEY-Message before sending the normally
 			// created message ensures that
 			// the symmetric key is received BEFORE the other side tries to
 			// decrypt (possibly with an old key).
 			// If a new key is received, any old one is discarded.
 
 			// return null to indicate to cancel sending, we sent the key
-			// instead and want to
-			// ensure that it arrives earlier
+			// instead and want to ensure that it arrives earlier than the
+			// message.
+			// The message is left in the send queue.
 			return null;
-			// return newKey;
 		}
 	}
 
 	// ------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Send new next message. This JUST sets the flag that something is in the
+	 * sending queue now. This is a hint for the Scheduler that will process the
+	 * messages in the sending queue. The Scheduler is responsible for calling
+	 * sendNext(). We only need to enqeue it and set the according flag. The
+	 * latter is done using this method.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param transport
+	 *            the transport
+	 */
 	public static void sendNewNextMessageAsync(final Context context,
 			int transport) {
 		if (transport == DB.TRANSPORT_INTERNET) {
@@ -1130,19 +1004,24 @@ public class Communicator {
 		} else {
 			Communicator.SMSToSend = true;
 		}
-		// (new Thread() {
-		// public void run() {
-		// sendNextMessage(context);
-		// }
-		// }).start();
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Send next message. This is NOT called directly but only from the
+	 * Scheduler (or if the user selects REFRESH manually). This method will use
+	 * the tie-braker if both types of messages are about to send.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public static void sendNextMessage(final Context context) {
 		if ((Conversation.isVisible() && Conversation.isTyping())) {
 			Log.d("communicator",
 					"#### sendNextMessage() SKIPPED DUE TO TYPING "
 							+ messagesToSend);
-			// if currently typing, do nothing!
+			// If currently typing, do nothing!
 			return;
 		} else {
 			Log.d("communicator", "#### sendNextMessage() PROCESSING "
@@ -1151,7 +1030,7 @@ public class Communicator {
 
 		messageSent = false;
 
-		// this is a cached value. If a message is entered, then this flag is
+		// This is a cached value. If a message is entered, then this flag is
 		// changed!
 		if (!messagesToSend && !SMSToSend) {
 			Log.d("communicator",
@@ -1160,9 +1039,9 @@ public class Communicator {
 			return;
 		}
 
-		// randomly choose next transport type to send! (sometimes one
-		// connection is stuck, then we dont want to get stuck at all!)
-		// TOGGLE FOR THE CASE THAT WE HAVE TO SEND BOTH TYPES
+		// Toggle next transport type to send if both types need to be send!
+		// Sometimes one
+		// connection is stuck, then we dont want to get stuck at all!
 		int transport = DB.TRANSPORT_INTERNET;
 		if (messagesToSend && SMSToSend) {
 			if (!lastSendInternet) {
@@ -1176,15 +1055,12 @@ public class Communicator {
 			transport = DB.TRANSPORT_SMS;
 		}
 
-		// debugging
+		// Debugging
 		if (transport == DB.TRANSPORT_INTERNET) {
 			Log.d("communicator", "#### SEND NEXT : TRY INTERNET MESSAGE ");
 		} else {
 			Log.d("communicator", "#### SEND NEXT : TRY SMS MESSAGE ");
 		}
-
-		// fake hasSignal == true in 1 of 10 unsuccessful tries
-		// return true;
 
 		// Lookup only if we expect something to send
 		final ConversationItem itemToSend = DB.getNextMessage(context,
@@ -1209,12 +1085,6 @@ public class Communicator {
 			}
 		}
 
-		// if (itemToSend != null) {
-		// Log.d("communicator",
-		// "SEND NEXT itemToSend["+itemToSend.localid+"] : to=" + itemToSend.to+
-		// " message=" + itemToSend.text);
-		// }
-
 		if (itemToSend != null && itemToSend.created > 0 && itemToSend.to != -1) {
 			if (!itemToSend.system) {
 				Main.updateLastMessage(context, itemToSend.to, itemToSend.text,
@@ -1224,7 +1094,7 @@ public class Communicator {
 			Log.d("communicator",
 					"#### sendNextMessage() NOW ABOUT TO SEND ... #1");
 
-			// if the item wants to be sent unencrypted... well.. do it :(
+			// If the item wants to be sent unencrypted... well.. do it :(
 			boolean forceUnencrypted = !itemToSend.encrypted;
 
 			boolean encryption = !forceUnencrypted
@@ -1237,17 +1107,17 @@ public class Communicator {
 
 			String msgText = itemToSend.text;
 			if (itemToSend.system) {
-				// for system messages do not modify the text!
+				// For system messages do not modify the text!
 			} else if (!encryption || !haveKey) {
 				msgText = "U" + msgText;
 			} else {
-				// this fully automatically gets a not-outdated old AES key or
+				// This fully automatically gets a not-outdated old AES key or
 				// generates a fresh new AES key (also sent)
 
 				// Use the same transport for the key as the message wants to be
 				// send!
 				// TODO: check if we additionally ALWAYS want to send a key via
-				// internet??
+				// Internet? This is still an open question. 8/23/15
 				Key secretKey = Communicator.getAESKey(context, itemToSend.to,
 						false, itemToSend.transport, false, itemToSend, true);
 				if (secretKey == null) {
@@ -1277,7 +1147,11 @@ public class Communicator {
 			sendMessage(context, itemToSend.to, msgText, itemToSend.created,
 					itemToSend, itemToSend.transport);
 		} else if (itemToSend != null) {
-			// consume message due to error!
+			// Consume message due to error! We MUST consume it - otherwise
+			// following enqueued messages might not get processed. And the
+			// clear protocol is to process them in the order they were
+			// created because order IS important since session keys are also
+			// part of the messages.
 			DB.printDBSending(context);
 			String toastText = "Error sending Message " + itemToSend.sendingid
 					+ ". Invalid receipient or creation date.";
@@ -1289,7 +1163,9 @@ public class Communicator {
 			DB.removeSentMessage(context, itemToSend.sendingid);
 
 			Utility.showToastAsync(context, toastText);
-			// no more messages to send for now, this flag is modified by
+
+			// No more further messages to send for now, this flag is modified
+			// by
 			// Conversation.sendButtonClick!
 			messagesToSend = false;
 		}
@@ -1299,7 +1175,23 @@ public class Communicator {
 	// ------------------
 	// ------------------
 
-	public static void sendMessage(final Context context, final int to,
+	/**
+	 * Send message. Internal dispatch to Internet or SMS sending.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param to
+	 *            the to
+	 * @param msgText
+	 *            the msg text
+	 * @param created
+	 *            the created
+	 * @param itemToSend
+	 *            the item to send
+	 * @param transport
+	 *            the transport
+	 */
+	private static void sendMessage(final Context context, final int to,
 			final String msgText, final long created,
 			final ConversationItem itemToSend, final int transport) {
 		// Dispatching for Internet and SMS Message sending
@@ -1313,7 +1205,23 @@ public class Communicator {
 		}
 	}
 
-	// itemToSend can be null, in this case nothing will be updated
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Send message SMS. itemToSend can be null, in this case nothing will be
+	 * updated.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param to
+	 *            the to
+	 * @param msgText
+	 *            the msg text
+	 * @param created
+	 *            the created
+	 * @param itemToSend
+	 *            the item to send
+	 */
 	private static void sendMessageSMS(final Context context, final int to,
 			final String msgText, final long created,
 			final ConversationItem itemToSend) {
@@ -1354,7 +1262,23 @@ public class Communicator {
 
 	}
 
-	// itemToSend can be null, in this case nothing will be updated
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Send message Internet. itemToSend can be null, in this case nothing will
+	 * be updated.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param to
+	 *            the to
+	 * @param msgText
+	 *            the msg text
+	 * @param created
+	 *            the created
+	 * @param itemToSend
+	 *            the item to send
+	 */
 	private static void sendMessageInternet(final Context context,
 			final int to, final String msgText, final long created,
 			final ConversationItem itemToSend) {
@@ -1362,31 +1286,23 @@ public class Communicator {
 
 		String session = Setup.getTmpLogin(context);
 		if (session == null) {
-			// error resume is automatically done by getTmpLogin, not logged in
+			// Error resume is automatically done by getTmpLogin, not logged in
 			return;
 		}
 
 		String url = null;
 		String encUid = Setup.encUid(context, to);
 		if (encUid == null) {
-			// secret may be not set yet, try again later!
+			// Secret may be not set yet, try again later!
 			return;
 		}
 		url = Setup.getBaseURL(context) + "cmd=send&session=" + session
 				+ "&host=" + Utility.encode(encUid) + "&val="
 				+ Utility.encode(created + "#" + msgText);
 
-		// String uidString = Utility.loadStringSetting(context, "uid", "");
-		// String pwdString = Utility.loadStringSetting(context, "pwd", "");
-		// String url = null;
-		// url = Setup.getBaseURL(context) + "cmd=send&uid=" + uidString +
-		// "&pwd=" +
-		// pwdString
-		// + "&host=" + to + "&val="
-		// + Utility.encode(created + "#" + msgText);
-
 		Log.d("communicator", "SEND NEXT MESSAGE: " + url);
 		final String url2 = url;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -1400,17 +1316,17 @@ public class Communicator {
 								Log.d("communicator",
 										"SEND NEXT MESSAGE OK!!! " + response);
 
-								// response should have the form
+								// Response should have the form
 								// senttimestamp#mid
 
-								// update database
+								// Update database
 								String[] responseArray = ResponseContent
 										.split("#");
 								if (responseArray.length == 2) {
 									String sent = responseArray[0];
 									String mid = responseArray[1];
 									if (itemToSend != null) {
-										// it should not be null even for system
+										// It should not be null even for system
 										// messages!
 										itemToSend.sent = DB
 												.parseTimestamp(sent);
@@ -1491,11 +1407,15 @@ public class Communicator {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Creates the notification.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param item
+	 *            the item
+	 */
 	public static void createNotification(Context context, ConversationItem item) {
-		Log.d("communicator",
-				"@@@@ createNotification() POSSIBLY CREATE NOTIFICATION #4 "
-						+ item.from);
-
 		boolean vibrate = Utility.loadBooleanSetting(context,
 				Setup.OPTION_VIBRATE, Setup.DEFAULT_VIBRATE);
 		if (vibrate) {
@@ -1525,11 +1445,8 @@ public class Communicator {
 			return;
 		}
 
-		Log.d("communicator", "@@@@ createNotification() CREATE NOTIFICATION "
-				+ item.from);
-
 		NotificationManager notificationManager = (NotificationManager) context
-				.getSystemService(context.NOTIFICATION_SERVICE);
+				.getSystemService(Context.NOTIFICATION_SERVICE);
 		Intent notificationIntent = new Intent(context, TransitActivity.class);
 		notificationIntent = notificationIntent.putExtra(Setup.INTENTEXTRA,
 				item.from);
@@ -1550,28 +1467,15 @@ public class Communicator {
 		int maxWidth = Utility.getScreenWidth(context) - 80;
 		text = Utility.cutTextIntoOneLine(text, maxWidth, 25);
 
-		// // Set scrolling text
-		// NotificationCompat.BigTextStyle bigxtstyle =
-		// new NotificationCompat.BigTextStyle();
-		// bigxtstyle.bigText(completeMessage);
-		// bigxtstyle.setBigContentTitle(title);
-
-		// Notification n = new Notification(R.drawable.music, "Lyrics for ...",
-		// System.currentTimeMillis());
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-				context)
-				// .setStyle(bigxtstyle)
-				.setSmallIcon(R.drawable.msgsmall24x24)
+				context).setSmallIcon(R.drawable.msgsmall24x24)
 				.setPriority(NotificationCompat.PRIORITY_MAX)
 				.setCategory(NotificationCompat.CATEGORY_ALARM)
 				.setTicker(title + ": " + completeMessage).setWhen(0)
 				.setContentTitle(title).setContentText(text)
-				// .setOngoing(true)
 				.setContentIntent(pendingIntent)
 				.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
 
-		// .addAction(R.drawable.music, "Google", pendingIntent)
-		// .addAction(R.drawable.music, "AZ", pendingIntent);
 		mBuilder.setGroup(Setup.GROUP_CRYPTOCATOR);
 		mBuilder.setAutoCancel(true);
 		Notification n = mBuilder.build();
@@ -1583,12 +1487,17 @@ public class Communicator {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Cancel notification.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 */
 	public static void cancelNotification(Context context, int uid) {
-		Log.d("communicator", "@@@@ cancelNotification() CANCEL NOTIFICATION "
-				+ uid);
-
 		NotificationManager notificationManager = (NotificationManager) context
-				.getSystemService(context.NOTIFICATION_SERVICE);
+				.getSystemService(Context.NOTIFICATION_SERVICE);
 
 		int notificationId = 8888888 + uid;
 		notificationManager.cancel(notificationId);
@@ -1596,11 +1505,32 @@ public class Communicator {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Gets the notification count.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the notification count
+	 */
 	public static int getNotificationCount(Context context, int uid) {
 		return Utility.loadIntSetting(context, "notification" + uid, 0);
 	}
 
-	// reset = true: delete, reset = false: increment
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sets the notification count. reset = true: delete, reset = false:
+	 * increment.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param reset
+	 *            the reset
+	 */
 	public static void setNotificationCount(Context context, int uid,
 			boolean reset) {
 		if (!reset) {
@@ -1613,16 +1543,26 @@ public class Communicator {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Send key to server.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param key
+	 *            the key
+	 * @param keyhash
+	 *            the keyhash
+	 */
 	public static void sendKeyToServer(final Context context, final String key,
 			final String keyhash) {
 		final String uidString = Utility.loadStringSetting(context, "uid", "");
 
 		String session = Setup.getTmpLogin(context);
 		if (session == null) {
-			// error resume is automatically done by getTmpLogin, not logged in
+			// Error resume is automatically done by getTmpLogin, not logged in
 			Utility.showToastAsync(context, "Error sending account key "
 					+ keyhash + " to server! (1)");
-			// disable in settings
+			// Disable in settings
 			Utility.saveStringSetting(context, Setup.PUBKEY, null);
 			Utility.saveStringSetting(context, Setup.PRIVATEKEY, null);
 			Utility.saveBooleanSetting(context, Setup.OPTION_ENCRYPTION, false);
@@ -1635,6 +1575,7 @@ public class Communicator {
 
 		Log.d("communicator", "###### SEND KEY TO SERVER " + url);
 		final String url2 = url;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -1669,11 +1610,19 @@ public class Communicator {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Clear key from server.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param keyhash
+	 *            the keyhash
+	 */
 	public static void clearKeyFromServer(final Context context,
 			final String keyhash) {
 		String session = Setup.getTmpLogin(context);
 		if (session == null) {
-			// error resume is automatically done by getTmpLogin, not logged in
+			// Error resume is automatically done by getTmpLogin, not logged in
 			Utility.showToastAsync(context, "Error clearing account " + keyhash
 					+ " key from server! (1)");
 			return;
@@ -1684,6 +1633,7 @@ public class Communicator {
 
 		// Log.d("communicator", "###### CLEAR KEY FROM SERVER " + url);
 		final String url2 = url;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -1710,6 +1660,18 @@ public class Communicator {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Update keys from server.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uidList
+	 *            the uid list
+	 * @param forceUpdate
+	 *            the force update
+	 * @param updateListener
+	 *            the update listener
+	 */
 	public static void updateKeysFromServer(final Context context,
 			final List<Integer> uidList, final boolean forceUpdate,
 			final Main.UpdateListener updateListener) {
@@ -1750,6 +1712,7 @@ public class Communicator {
 
 		Log.d("communicator", "###### REQUEST HAS KEY " + url);
 		final String url2 = url;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -1828,6 +1791,16 @@ public class Communicator {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Update phones from server.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uidList
+	 *            the uid list
+	 * @param forceUpdate
+	 *            the force update
+	 */
 	public static void updatePhonesFromServer(final Context context,
 			final List<Integer> uidList, final boolean forceUpdate) {
 
@@ -1875,19 +1848,8 @@ public class Communicator {
 		Log.d("communicator", "###### REQUEST HAS PHONE (" + uidliststring
 				+ ") " + url);
 
-		// String blaa = "Sara";
-		// String blaaEnc = Setup.encText(context, blaa);
-		// Log.d("communicator", "###### REQUEST HAS PHONE ENC " + blaaEnc +
-		// " ");
-		// Log.d("communicator",
-		// "###### REQUEST HAS PHONE DEC "
-		// + Setup.decText(context, blaaEnc) + " ");
-		//
-		// Log.d("communicator",
-		// "###### REQUEST HAS PHONE DEC UIDLIST("
-		// + Setup.decText(context, uidlistStringEnc) + ") ");
-
 		final String url2 = url;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -1947,8 +1909,17 @@ public class Communicator {
 
 	// -------------------------------------------------------------------------
 
-	// -------------------------------------------------------------------------
-
+	/**
+	 * Gets the key from server.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param updateListener
+	 *            the update listener
+	 * @return the key from server
+	 */
 	public static void getKeyFromServer(final Context context, final int uid,
 			final Main.UpdateListener updateListener) {
 
@@ -1970,6 +1941,7 @@ public class Communicator {
 		Log.d("communicator", "###### REQUEST KEY FOR UID " + uid
 				+ " FROM SERVER " + url);
 		final String url2 = url;
+		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
@@ -2003,6 +1975,17 @@ public class Communicator {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Decrypt message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param text
+	 *            the text
+	 * @param key
+	 *            the key
+	 * @return the string
+	 */
 	public static String decryptMessage(Context context, String text, Key key) {
 		// Decode the encoded data with RSA public key
 		byte[] decodedBytes = null;
@@ -2022,6 +2005,18 @@ public class Communicator {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Encrypt server message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param text
+	 *            the text
+	 * @param key
+	 *            the key
+	 * @return the string
+	 */
+	@SuppressLint("TrulyRandom")
 	public static String encryptServerMessage(Context context, String text,
 			Key key) {
 		// Encode the original data with RSA private key
@@ -2044,6 +2039,17 @@ public class Communicator {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Encrypt message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param text
+	 *            the text
+	 * @param key
+	 *            the key
+	 * @return the string
+	 */
 	public static String encryptMessage(Context context, String text, Key key) {
 		// Encode the original data with RSA private key
 		byte[] encodedBytes = null;
@@ -2062,6 +2068,17 @@ public class Communicator {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Decrypt aes message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param text
+	 *            the text
+	 * @param secretKey
+	 *            the secret key
+	 * @return the string
+	 */
 	public static String decryptAESMessage(Context context, String text,
 			Key secretKey) {
 		byte[] decodedBytes = null;
@@ -2083,15 +2100,21 @@ public class Communicator {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Encrypt aes message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param text
+	 *            the text
+	 * @param secretKey
+	 *            the secret key
+	 * @return the string
+	 */
 	public static String encryptAESMessage(Context context, String text,
 			Key secretKey) {
-		text = Utility.getRandomString(Setup.RANDOM_STUFF_BYTES) + text; // add
-																			// 5
-																			// random
-																			// characters
-																			// just
-																			// for
-																			// security
+		// Add 5 random characters just for security
+		text = Utility.getRandomString(Setup.RANDOM_STUFF_BYTES) + text;
 		byte[] encodedBytes = null;
 		String returnText = null;
 		try {
@@ -2108,6 +2131,14 @@ public class Communicator {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Send read confirmation.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 */
 	public static void sendReadConfirmation(final Context context, final int uid) {
 		// only send readConfirmation for registered users!
 		if (uid <= 0) {
@@ -2135,50 +2166,29 @@ public class Communicator {
 							+ lastMidSent + " =?= " + +mid + "=mid");
 
 			if (lastMidSent != mid) {
-
 				sendSystemMessageRead(context, uid, mid);
 				Utility.saveIntSetting(context, "lastreadconfirmationmid", mid);
-
-				// String uidString = Utility
-				// .loadStringSetting(context, "uid", "");
-				// String pwdString = Utility
-				// .loadStringSetting(context, "pwd", "");
-				//
-				// String url = null;
-				// url = Setup.getBaseURL(context) + "cmd=confirm&uid=" +
-				// uidString +
-				// "&pwd="
-				// + pwdString + "&host=" + uid + "&val=" + mid;
-				// Log.d("communicator", "SEND READ CONFIRMATION: " + url);
-				// final String url2 = url;
-				// HttpStringRequest httpStringRequest = (new HttpStringRequest(
-				// context, url2,
-				// new HttpStringRequest.OnResponseListener() {
-				// public void response(String response) {
-				// if (isResponseValid(response)) {
-				// if (isResponsePositive(response)) {
-				// Utility.saveIntSetting(context,
-				// "lastreadconfirmationmid", mid);
-				// // Log.d("communicator",
-				// // "SEND READ CONFIRMATION OK!!! "
-				// // + response2);
-				// }
-				// }
-				// }
-				// }));
 			}
 		}
 	}
 
 	// -------------------------------------------------------------------------
 
-	// System messages are sent over normal sending interface, this way they
-	// will be sent automatically in order and iff temporary login is okay.
-	// Both system messages will go to the server.
-	// System messages can only go over internet (if available)
-	// modes:
-	// R == read (these are processed directly by the server)
-	// A == withdraw (these are processed and come also back as W-messages)
+	/**
+	 * Send system message read. System messages are sent over normal sending
+	 * interface, this way they will be sent automatically in order and iff
+	 * temporary login is okay. Both system messages will go to the server.
+	 * System messages can only go over internet (if available) modes: R == read
+	 * (these are processed directly by the server) A == withdraw (these are
+	 * processed and come also back as W-messages)
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param mid
+	 *            the mid
+	 */
 	public static void sendSystemMessageRead(final Context context,
 			final int uid, final int mid) {
 		// uid = user from which we have read messages
@@ -2189,78 +2199,42 @@ public class Communicator {
 			Communicator
 					.sendNewNextMessageAsync(context, DB.TRANSPORT_INTERNET);
 		}
-		// sendMessage(context, uid, "R" + mid, DB.getTimestamp(), null,
-		// DB.TRANSPORT_INTERNET);
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Send system message widthdraw. System messages are sent over normal
+	 * sending interface, this way they will be sent automatically in order and
+	 * iff temporary login is okay. Both system messages will go to the server.
+	 * System messages can only go over internet (if available) modes: R == read
+	 * (these are processed directly by the server) A == withdraw (these are
+	 * processed and come also back as W-messages)
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param mid
+	 *            the mid
+	 */
 	public static void sendSystemMessageWidthdraw(final Context context,
 			final int uid, final int mid) {
+		sendSystemMessageWidthdraw(context, uid, mid);
+
+		Utility.showToastAsync(context, "Withdraw request for message " + mid
+				+ "...");		
+		
 		if (uid >= 0 && mid != -1) {
 			DB.addSendMessage(context, uid, "A" + mid, false,
 					DB.TRANSPORT_INTERNET, true, DB.PRIORITY_KEY);
 			Communicator
 					.sendNewNextMessageAsync(context, DB.TRANSPORT_INTERNET);
 		}
-		// sendMessage(context, uid, "A" + mid, DB.getTimestamp(), null,
-		// DB.TRANSPORT_INTERNET);
 	}
 
 	// -------------------------------------------------------------------------
-
-	public static void sendWithdraw(final Context context, final int uid,
-			final int mid) {
-		sendSystemMessageWidthdraw(context, uid, mid);
-
-		Utility.showToastAsync(context, "Withdraw request for message " + mid
-				+ "...");
-
-		// // String uidString = Utility.loadStringSetting(context, "uid", "");
-		// // String pwdString = Utility.loadStringSetting(context, "pwd", "");
-		//
-		// String session = Setup.getTmpLogin(context);
-		// if (session == null) {
-		// Utility.showToastAsync(context,
-		// "Failed sending withdraw request for message "
-		// + mid + " sent.");
-		// // error resume is automatically done by getTmpLogin, not logged in
-		// return;
-		// }
-		//
-		// String url = null;
-		// url = Setup.getBaseURL(context) + "cmd=withdraw&session=" + session +
-		// "&val=" +
-		// mid;
-		// Log.d("communicator", "SEND WITHDRAW REQUEST: " + url);
-		// final String url2 = url;
-		// HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
-		// url2, new HttpStringRequest.OnResponseListener() {
-		// public void response(String response) {
-		// boolean success = false;
-		// if (isResponseValid(response)) {
-		// if (isResponsePositive(response)) {
-		// success = true;
-		// Utility.showToastAsync(context,
-		// "Withdraw request for message " + mid
-		// + " sent.");
-		// // Withdraw locally
-		// DB.updateMessageWithdrawn(context, mid,
-		// DB.getTimestampString());
-		// updateSentReceivedReadAsync(context, mid, -1,
-		// false, false, false, true);
-		// }
-		// }
-		// if (!success) {
-		// Utility.showToastAsync(context,
-		// "Failed sending withdraw request for message "
-		// + mid + " sent.");
-		// }
-		// }
-		// }));
-	}
-
-	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
-
+	
 	/**
 	 * Checks if is response is a number or starts with a number followed by a
 	 * #.
@@ -2294,15 +2268,13 @@ public class Communicator {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Checks if the response does not start with a negative number!
+	 * Checks if the response does not start with a negative number!.
 	 * 
 	 * @param response
 	 *            the response
 	 * @return true, if successful
 	 */
 	public static boolean isResponsePositive(String response) {
-		// Log.d("communicator", "@@@@ isResponsePositive: " + response +
-		// " ==> " + response.startsWith("-"));
 		return !response.startsWith("-");
 	}
 
@@ -2325,7 +2297,6 @@ public class Communicator {
 		return response.substring(i + 1);
 	}
 
-	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
 }

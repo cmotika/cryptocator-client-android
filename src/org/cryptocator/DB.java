@@ -1410,7 +1410,7 @@ public class DB {
 			// Send a withdraw request just to make sure, even if we could
 			// possibly remove it
 			// from the sending queue it may just have been sent!
-			Communicator.sendWithdraw(context, hostUid, mid);
+			Communicator.sendSystemMessageWidthdraw(context, hostUid, mid);
 		}
 	}
 

@@ -288,7 +288,6 @@ public class Conversation extends Activity {
 
 		updateSendButtonImage(context);
 
-		registerContextMenuForSendButton(context);
 		sendbutton.setOnClickListener(new OnClickListener() {
 			public void onClick(View arg0) {
 				if (isSMSModeAvailableAndOn(context)) {
@@ -2597,31 +2596,4 @@ public class Conversation extends Activity {
 
 	// -------------------------------------------------------------------------
 
-	/**
-	 * Register context menu for send button.
-	 * 
-	 * @param context
-	 *            the context
-	 */
-	private void registerContextMenuForSendButton(final Context context) {
-		// sendButton.setOnLongClickListener(new OnLongClickListener() {
-		// public boolean onLongClick(View v) {
-		// PopupMenuCompat popupMenu = new PopupMenu(context, v);
-		// List<String> lstFb = new ArrayList<String>();
-		// for (int i = 0; i < lstFb.size(); i++) {
-		// popupMenu.getMenu().add(lstFb.get(i));
-		// }
-		// popupMenu
-		// .setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-		// public boolean onMenuItemClick(MenuItem item) {
-		// String Value = item.toString();
-		// return false;
-		// }
-		// });
-		//
-		// popupMenu.show();
-		// return false;
-		// }
-		// });
-	}
 }
