@@ -47,7 +47,6 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,39 +54,30 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
-import java.util.UUID;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.KeyguardManager;
-import android.content.ClipData;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Shader.TileMode;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -95,29 +85,50 @@ import android.os.Vibrator;
 import android.provider.Settings.Secure;
 import android.telephony.TelephonyManager;
 import android.util.Base64;
-import android.util.Log;
 import android.view.Display;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.WindowManager.LayoutParams;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+/**
+ * The Utility class has convenience methods for enabling the access of often
+ * used or system functionality across projects.
+ * 
+ * @author Christian Motika
+ * @since 2.1
+ * @date 08/23/2015
+ */
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class Utility {
 
+	/** The shared settings for one program instance. */
 	private static SharedPreferences settings;
+
+	/**
+	 * The constant PREFERENCESURI should be updated when used in another
+	 * project. It should contain a unique URI for the project, e.g., the
+	 * package name.
+	 */
 	public static final String PREFERENCESURI = "org.cryptocator";
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Hide soft keys in full screen. This only applies to HONECOMB+ Android
+	 * versions. Older versions rely on hardware keys and do not have soft keys
+	 * that might get annoying in a full screen application.
+	 * 
+	 * @param activity
+	 *            the activity
+	 */
+	@SuppressLint("InlinedApi")
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public static void hideSoftkeys(Activity activity) {
 		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -130,6 +141,13 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Hide the soft keyboard. Consider also using hideKeyboardExplicit() if
+	 * there is a text input field.
+	 * 
+	 * @param activity
+	 *            the activity
+	 */
 	public static void hideKeyboard(Activity activity) {
 		// This can be used to suppress the keyboard until the user actually
 		// touches the edittext view.
@@ -137,6 +155,15 @@ public class Utility {
 				WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Hide the keyboard explicitly for a text input field known to be able to
+	 * get the focus.
+	 * 
+	 * @param textInput
+	 *            the text input
+	 */
 	public static void hideKeyboardExplicit(EditText textInput) {
 		// hide keyboard explicitly
 		InputMethodManager imm = (InputMethodManager) textInput.getContext()
@@ -145,6 +172,15 @@ public class Utility {
 		imm.hideSoftInputFromWindow(textInput.getWindowToken(), 0);
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Show keyboard explicitly for a text input field known to be able to get
+	 * the focus.
+	 * 
+	 * @param textInput
+	 *            the text input
+	 */
 	public static void showKeyboardExplicit(EditText textInput) {
 		InputMethodManager keyboard = (InputMethodManager) textInput
 				.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -154,19 +190,31 @@ public class Utility {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
-	// Get or update the settings for this application.
+	/**
+	 * Get or update the settings for this application.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the settings
+	 */
 	public static SharedPreferences getSettings(Context context) {
 		if (Utility.settings != null) {
 			return Utility.settings;
 		}
 		Utility.settings = context.getSharedPreferences(Utility.PREFERENCESURI,
-				Activity.MODE_WORLD_WRITEABLE);
+				Activity.MODE_PRIVATE);
 		return Utility.settings;
 	}
 
 	// -------------------------------------------------------------------------
 
-	// Delimited with @@@, key:value
+	/**
+	 * Build the settings map. Delimited with @@@, key:value.
+	 * 
+	 * @param settingsString
+	 *            the settings string
+	 * @return the hash map
+	 */
 	public static HashMap<String, String> buildSettingsMap(String settingsString) {
 		HashMap<String, String> returnMap = new HashMap<String, String>();
 		String[] settings = settingsString.split("@@@");
@@ -183,13 +231,37 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
-	// Get an String setting.
+	/**
+	 * Load a String setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param defaultValue
+	 *            the default value
+	 * @return the string
+	 */
 	public static String loadStringSetting(Context context, String id,
 			String defaultValue) {
 		return loadStringSetting(context, id, defaultValue, null);
 	}
 
-	// Get an String setting.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Load a string setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param defaultValue
+	 *            the default value
+	 * @param settingsMap
+	 *            the settings map
+	 * @return the string
+	 */
 	public static String loadStringSetting(Context context, String id,
 			String defaultValue, HashMap<String, String> settingsMap) {
 		if (settingsMap == null) {
@@ -212,13 +284,37 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
-	// Get an integer setting.
+	/**
+	 * Load an int setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param defaultValue
+	 *            the default value
+	 * @return the int
+	 */
 	public static int loadIntSetting(Context context, String id,
 			int defaultValue) {
 		return loadIntSetting(context, id, defaultValue, null);
 	}
 
-	// Get an integer setting.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Load an int setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param defaultValue
+	 *            the default value
+	 * @param settingsMap
+	 *            the settings map
+	 * @return the int
+	 */
 	public static int loadIntSetting(Context context, String id,
 			int defaultValue, HashMap<String, String> settingsMap) {
 		if (settingsMap == null) {
@@ -245,7 +341,17 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
-	// Get a long setting.
+	/**
+	 * Load a long setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param defaultValue
+	 *            the default value
+	 * @return the long
+	 */
 	public static long loadLongSetting(Context context, String id,
 			long defaultValue) {
 		// Update the settings variable
@@ -260,7 +366,17 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
-	// Get a double setting.
+	/**
+	 * Load a double setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param defaultValue
+	 *            the default value
+	 * @return the double
+	 */
 	public static double loadDoubleSetting(Context context, String id,
 			double defaultValue) {
 		String doubleString = loadStringSetting(context, id, defaultValue + "");
@@ -270,13 +386,38 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
-	// Get a boolean setting.
+	/**
+	 * Load boolean setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param defaultValue
+	 *            the default value
+	 * @return true, if successful
+	 */
 	public static boolean loadBooleanSetting(Context context, String id,
 			boolean defaultValue) {
 		return loadBooleanSetting(context, id, defaultValue, null);
 	}
 
-	// Get a boolean setting.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Load a boolean setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param defaultValue
+	 *            the default value
+	 * @param settingsMap
+	 *            the settings map
+	 * @return true, if successful
+	 */
+	@SuppressLint("DefaultLocale")
 	public static boolean loadBooleanSetting(Context context, String id,
 			boolean defaultValue, HashMap<String, String> settingsMap) {
 		if (settingsMap == null) {
@@ -302,13 +443,35 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
-	// Saves a boolean setting.
+	/**
+	 * Save a boolean setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param value
+	 *            the value
+	 */
 	public static void saveBooleanSetting(Context context, String id,
 			boolean value) {
 		saveBooleanSetting(context, id, value, null);
 	}
 
-	// Saves a boolean setting.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Save a boolean setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param value
+	 *            the value
+	 * @param settingsString
+	 *            the settings string
+	 */
 	public static void saveBooleanSetting(Context context, String id,
 			boolean value, List<String> settingsString) {
 		if (settingsString == null) {
@@ -325,12 +488,34 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
-	// Saves an integer setting
+	/**
+	 * Save an int setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param value
+	 *            the value
+	 */
 	public static void saveIntSetting(Context context, String id, int value) {
 		saveIntSetting(context, id, value, null);
 	}
 
-	// Saves an integer setting
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Save an int setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param value
+	 *            the value
+	 * @param settingsString
+	 *            the settings string
+	 */
 	public static void saveIntSetting(Context context, String id, int value,
 			List<String> settingsString) {
 		if (settingsString == null) {
@@ -346,7 +531,16 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
-	// Saves a long setting
+	/**
+	 * Save a long setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param value
+	 *            the value
+	 */
 	public static void saveLongSetting(Context context, String id, long value) {
 		// Update the settings variable
 		getSettings(context);
@@ -357,7 +551,16 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
-	// Saves a double setting
+	/**
+	 * Save a double setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param value
+	 *            the value
+	 */
 	public static void saveDoubleSetting(Context context, String id,
 			double value) {
 		saveStringSetting(context, id, value + "");
@@ -365,12 +568,35 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
-	// Saves an integer setting
+	/**
+	 * Save a string setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param value
+	 *            the value
+	 */
 	public static void saveStringSetting(Context context, String id,
 			String value) {
 		saveStringSetting(context, id, value, null);
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Save a string setting.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param id
+	 *            the id
+	 * @param value
+	 *            the value
+	 * @param settingsString
+	 *            the settings string
+	 */
 	// Saves an integer setting
 	public static void saveStringSetting(Context context, String id,
 			String value, List<String> settingsString) {
@@ -392,6 +618,18 @@ public class Utility {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Sets the background tiled for a view element according to a given
+	 * resourceID.
+	 * 
+	 * @param activity
+	 *            the activity
+	 * @param view
+	 *            the view
+	 * @param resourceID
+	 *            the resource id
+	 */
+	@SuppressWarnings("deprecation")
 	public static void setBackground(Context activity, View view, int resourceID) {
 		// set dolphin background
 		Bitmap bm2 = BitmapFactory.decodeResource(activity.getResources(),
@@ -404,6 +642,15 @@ public class Utility {
 	// ---------------------------------------------------------------------------
 	// ---------------------------------------------------------------------------
 
+	/**
+	 * Parses the int.
+	 * 
+	 * @param integerString
+	 *            the integer string
+	 * @param defaultValue
+	 *            the default value
+	 * @return the int
+	 */
 	public static int parseInt(String integerString, int defaultValue) {
 		int returnInteger = -1;
 		try {
@@ -414,6 +661,17 @@ public class Utility {
 		}
 	}
 
+	// ---------------------------------------------------------------------------
+
+	/**
+	 * Parses the long.
+	 * 
+	 * @param longString
+	 *            the long string
+	 * @param defaultValue
+	 *            the default value
+	 * @return the long
+	 */
 	public static long parseLong(String longString, long defaultValue) {
 		long returnInteger = -1;
 		try {
@@ -424,6 +682,17 @@ public class Utility {
 		}
 	}
 
+	// ---------------------------------------------------------------------------
+
+	/**
+	 * Parses the double.
+	 * 
+	 * @param doubleString
+	 *            the double string
+	 * @param defaultValue
+	 *            the default value
+	 * @return the double
+	 */
 	public static double parseDouble(String doubleString, double defaultValue) {
 		double returnDouble = -1;
 		try {
@@ -437,6 +706,13 @@ public class Utility {
 	// ---------------------------------------------------------------------------
 	// ---------------------------------------------------------------------------
 
+	/**
+	 * Encode.
+	 * 
+	 * @param text
+	 *            the text
+	 * @return the string
+	 */
 	public static String encode(String text) {
 		try {
 			return URLEncoder.encode(text, "utf-8");
@@ -448,6 +724,19 @@ public class Utility {
 
 	// ---------------------------------------------------------------------------
 
+	/**
+	 * Gets the data.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param url
+	 *            the url
+	 * @return the data
+	 * @throws ClientProtocolException
+	 *             the client protocol exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	public static String getData(Context context, String url)
 			throws ClientProtocolException, IOException {
 		// Create a new HttpClient
@@ -468,6 +757,15 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Get the content as string.
+	 * 
+	 * @param response
+	 *            the response
+	 * @return the content as string
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	public static String getContentAsString(HttpResponse response)
 			throws IOException {
 		String returnString = "";
@@ -500,7 +798,14 @@ public class Utility {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
-	// convert from internal Java String format to internal Java String format
+	/**
+	 * Re-encode iso. Convert from internal Java String format to internal Java
+	 * String format.
+	 * 
+	 * @param s
+	 *            the s
+	 * @return the string
+	 */
 	public static String reencodeISO(String s) {
 		String out = null;
 		try {
@@ -513,7 +818,13 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
-	// convert from internal Java String format -> UTF-8
+	/**
+	 * Convert to UTF8. Convert from internal Java String format to UTF-8.
+	 * 
+	 * @param s
+	 *            the s
+	 * @return the string
+	 */
 	public static String convertToUTF8(String s) {
 		String out = null;
 		try {
@@ -526,7 +837,13 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
-	// convert from UTF-8 -> internal Java String format
+	/**
+	 * Convert from UTF8. Convert from UTF-8 to internal Java String format.
+	 * 
+	 * @param s
+	 *            the s
+	 * @return the string
+	 */
 	public static String convertFromUTF8(String s) {
 		String out = null;
 		try {
@@ -540,6 +857,17 @@ public class Utility {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Gets the tile number for OpenStreetMap.
+	 * 
+	 * @param lat
+	 *            the lat
+	 * @param lon
+	 *            the lon
+	 * @param zoom
+	 *            the zoom
+	 * @return the tile number
+	 */
 	public static String getTileNumber(double lat, double lon, final int zoom) {
 
 		// if (zoom == 17) { //250
@@ -573,6 +901,20 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Update tile for OpenStreetMap.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param image
+	 *            the image
+	 * @param zoom
+	 *            the zoom
+	 * @param latitude
+	 *            the latitude
+	 * @param longitude
+	 *            the longitude
+	 */
 	public static void updateTile(Context context, final ImageView image,
 			int zoom, double latitude, double longitude) {
 		final String url = "http://tile.openstreetmap.org/"
@@ -584,9 +926,7 @@ public class Utility {
 					final InputStream is = (InputStream) new URL(url)
 							.getContent();
 					final Bitmap bm = BitmapFactory.decodeStream(is);
-					// Drawable d = new BitmapDrawable(bm);
 					if (image != null) {
-
 						final Handler mUIHandler = new Handler(
 								Looper.getMainLooper());
 						mUIHandler.post(new Thread() {
@@ -611,6 +951,14 @@ public class Utility {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Get the date.
+	 * 
+	 * @param millis
+	 *            the millis
+	 * @return the date
+	 */
+	@SuppressLint("SimpleDateFormat")
 	public static String getDate(long millis) {
 		// Create a DateFormatter object for displaying date in specified
 		// format.
@@ -622,11 +970,31 @@ public class Utility {
 		return formatter.format(calendar.getTime());
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Get the time title in form DATE @ HOURS:MINUTES, e.g., Mon, 3. Oct 10 @
+	 * 10:20.
+	 * 
+	 * @param millis
+	 *            the millis
+	 * @return the time title
+	 */
 	public static String getTimeTitle(long millis) {
 		return getDate(millis) + " @ " + getHours(millis) + ":"
 				+ getMinutes(millis);
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Get the hours.
+	 * 
+	 * @param millis
+	 *            the millis
+	 * @return the hours
+	 */
+	@SuppressLint("SimpleDateFormat")
 	public static String getHours(long millis) {
 		// Create a DateFormatter object for displaying date in specified
 		// format.
@@ -638,6 +1006,16 @@ public class Utility {
 		return formatter.format(calendar.getTime());
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Get the year.
+	 * 
+	 * @param millis
+	 *            the millis
+	 * @return the year
+	 */
+	@SuppressLint("SimpleDateFormat")
 	public static String getYear(long millis) {
 		// Create a DateFormatter object for displaying date in specified
 		// format.
@@ -649,6 +1027,16 @@ public class Utility {
 		return formatter.format(calendar.getTime());
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Get the minutes.
+	 * 
+	 * @param millis
+	 *            the millis
+	 * @return the minutes
+	 */
+	@SuppressLint("SimpleDateFormat")
 	public static String getMinutes(long millis) {
 		// Create a DateFormatter object for displaying date in specified
 		// format.
@@ -660,6 +1048,16 @@ public class Utility {
 		return formatter.format(calendar.getTime());
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Get the seconds.
+	 * 
+	 * @param millis
+	 *            the millis
+	 * @return the seconds
+	 */
+	@SuppressLint("SimpleDateFormat")
 	public static String getSeconds(long millis) {
 		// Create a DateFormatter object for displaying date in specified
 		// format.
@@ -671,6 +1069,16 @@ public class Utility {
 		return formatter.format(calendar.getTime());
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Get the milli seconds.
+	 * 
+	 * @param millis
+	 *            the millis
+	 * @return the milli seconds
+	 */
+	@SuppressLint("SimpleDateFormat")
 	public static String getMilliSeconds(long millis) {
 		// Create a DateFormatter object for displaying date in specified
 		// format.
@@ -684,36 +1092,31 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
-	// needs: <uses-permission
-	// android:name="android.permission.READ_PHONE_STATE" />
+	/**
+	 * Gets the device id. This method needs: <uses-permission
+	 * android:name="android.permission.READ_PHONE_STATE" />
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the device id
+	 */
+	@SuppressLint("DefaultLocale")
 	public static String getDeviceId(Context context) {
-		// final TelephonyManager tm = (TelephonyManager)
-		// context.getSystemService(Context.TELEPHONY_SERVICE);
-
-		// if (tm.getDeviceId() != null){
-		// return tm.getDeviceId(); //*** use for mobiles
-		// }
-		// else{
 		return Secure
 				.getString(context.getContentResolver(), Secure.ANDROID_ID)
-				.toUpperCase(); // *** use for tablets
-		// }
-
-		// final String tmDevice, tmSerial, androidId;
-		// tmDevice = "" + tm.getDeviceId();
-		// //tmSerial = "" + tm.getSimSerialNumber();
-		// //androidId = "" +
-		// android.provider.Settings.Secure.getString(context.getContentResolver(),
-		// android.provider.Settings.Secure.ANDROID_ID);
-		//
-		// // UUID deviceUuid = new UUID(androidId.hashCode(),
-		// ((long)tmDevice.hashCode() << 32) | tmSerial.hashCode());
-		// // String deviceId = deviceUuid.toString();
-		// return tmDevice;
+				.toUpperCase();
 	}
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Show toast short async from non-UI thread.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param toastText
+	 *            the toast text
+	 */
 	public static void showToastShortAsync(final Context context,
 			final String toastText) {
 		final Handler mUIHandler = new Handler(Looper.getMainLooper());
@@ -730,6 +1133,14 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Show toast in ui thread.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param toastText
+	 *            the toast text
+	 */
 	public static void showToastInUIThread(final Context context,
 			final String toastText) {
 		int duration = Toast.LENGTH_SHORT;
@@ -737,6 +1148,16 @@ public class Utility {
 		toast.show();
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Show toast async from non-UI thread.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param toastText
+	 *            the toast text
+	 */
 	public static void showToastAsync(final Context context,
 			final String toastText) {
 		final Handler mUIHandler = new Handler(Looper.getMainLooper());
@@ -754,7 +1175,7 @@ public class Utility {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Copy to clipboard. This method checks for honeycomp changes to the
+	 * Copy text to clipboard. This method checks for honeycomp changes to the
 	 * clipboard.
 	 * 
 	 * @param context
@@ -762,6 +1183,7 @@ public class Utility {
 	 * @param text
 	 *            the text
 	 */
+	@SuppressWarnings("deprecation")
 	public static void copyToClipboard(Context context, String text) {
 		if (text != null) {
 			int sdk = android.os.Build.VERSION.SDK_INT;
@@ -782,13 +1204,14 @@ public class Utility {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Paste from clipboard. This method checks for honeycomp changes to the
-	 * clipboard.
+	 * Paste text from clipboard. This method checks for honeycomp changes to
+	 * the clipboard.
 	 * 
 	 * @param context
 	 *            the context
 	 * @return the string
 	 */
+	@SuppressWarnings("deprecation")
 	public static String pasteFromClipboard(final Context context) {
 		int sdk = android.os.Build.VERSION.SDK_INT;
 		if (sdk < android.os.Build.VERSION_CODES.HONEYCOMB) {
@@ -798,11 +1221,7 @@ public class Utility {
 		} else {
 			android.content.ClipboardManager clipboard = (android.content.ClipboardManager) context
 					.getSystemService(Context.CLIPBOARD_SERVICE);
-			ClipData clip = clipboard.getPrimaryClip();
 			return clipboard.getText().toString();
-			// if (clip != null && clip.getItemCount() > 0) {
-			// return clip.getItemAt(0).coerceToText(context).toString();
-			// }
 		}
 	}
 
@@ -835,7 +1254,7 @@ public class Utility {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Creates an MD5 from a string.
+	 * Create an MD5 from a string.
 	 * 
 	 * @param s
 	 *            the s
@@ -869,7 +1288,7 @@ public class Utility {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Checks if is phone completely muted (even no vibration).
+	 * Check if is phone completely muted (even no vibration).
 	 * 
 	 * @param context
 	 *            the context
@@ -892,7 +1311,7 @@ public class Utility {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Checks if is phone muted but vibration may still be on.
+	 * Check if is phone muted but vibration may still be on.
 	 * 
 	 * @param context
 	 *            the context
@@ -915,11 +1334,11 @@ public class Utility {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Gets the list as string where the values are separated by separation.
+	 * Get the list as string where the values are separated by separation.
 	 * 
 	 * @param list
 	 *            the list
-	 * @param sepraration
+	 * @param separation
 	 *            the separation
 	 * @return the list as string
 	 */
@@ -940,7 +1359,7 @@ public class Utility {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Creates string list from string. Dual to getListAsString().
+	 * Create string list from string. Dual to getListAsString().
 	 * 
 	 * @param separatedString
 	 *            the separated string
@@ -959,7 +1378,7 @@ public class Utility {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Creates an integer list from string. Dual to getListAsString().
+	 * Create an integer list from string. Dual to getListAsString().
 	 * 
 	 * @param separatedString
 	 *            the separated string
@@ -984,6 +1403,17 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Cut text into one line.
+	 * 
+	 * @param text
+	 *            the text
+	 * @param maxWidth
+	 *            the max width
+	 * @param textSize
+	 *            the text size
+	 * @return the string
+	 */
 	public static String cutTextIntoOneLine(String text, int maxWidth,
 			int textSize) {
 		try {
@@ -1039,6 +1469,14 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Get the screen width.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the screen width
+	 */
+	@SuppressWarnings("deprecation")
 	public static int getScreenWidth(Context context) {
 		WindowManager wm = (WindowManager) context
 				.getSystemService(Context.WINDOW_SERVICE);
@@ -1052,11 +1490,22 @@ public class Utility {
 		// return width;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Get the screen height.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the screen height
+	 */
+	@SuppressWarnings("deprecation")
 	public static int getScreenHeight(Context context) {
 		WindowManager wm = (WindowManager) context
 				.getSystemService(Context.WINDOW_SERVICE);
 		Display display = wm.getDefaultDisplay();
-		return display.getHeight(); // API LEVEL 11
+		return display.getHeight();
+		// API LEVEL 11
 		// API LEVEL 13
 		// Point size = new Point();
 		// display.getSize(size);
@@ -1068,6 +1517,13 @@ public class Utility {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Gets the phone number.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the phone number
+	 */
 	public static String getPhoneNumber(Context context) {
 		TelephonyManager tMgr = (TelephonyManager) context
 				.getSystemService(Context.TELEPHONY_SERVICE);
@@ -1075,6 +1531,15 @@ public class Utility {
 		return mPhoneNumber;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Checks if is valid phone number.
+	 * 
+	 * @param number
+	 *            the number
+	 * @return true, if is valid phone number
+	 */
 	public static boolean isValidPhoneNumber(String number) {
 		if (number == null) {
 			return false;
@@ -1093,6 +1558,12 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Error vibrate.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public static void errorVibrate(Context context) {
 		Vibrator vibrator = (Vibrator) context
 				.getSystemService(Context.VIBRATOR_SERVICE);
@@ -1109,17 +1580,41 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Convert BASE64 to string.
+	 * 
+	 * @param encodedString
+	 *            the encoded string
+	 * @return the string
+	 */
 	public static String convertBASE64ToString(String encodedString) {
 		return new String(Base64.decode(encodedString.getBytes(),
 				Base64.DEFAULT));
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Convert string to BASE64
+	 * 
+	 * @param originalString
+	 *            the original string
+	 * @return the string
+	 */
 	public static String convertStringToBASE64(String originalString) {
 		return Base64.encodeToString(originalString.getBytes(), Base64.DEFAULT);
 	}
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Gets random string of specified length.
+	 * 
+	 * @param len
+	 *            the len
+	 * @return the random string
+	 */
+	@SuppressLint("DefaultLocale")
 	public static String getRandomString(int len) {
 		Random r = new Random();
 		String returnString = "";
@@ -1138,6 +1633,13 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Checks if is screen locked.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return true, if is screen locked
+	 */
 	public static boolean isScreenLocked(Context context) {
 		KeyguardManager myKM = (KeyguardManager) context
 				.getSystemService(Context.KEYGUARD_SERVICE);
@@ -1152,6 +1654,18 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Sets the content view with custom title. This is necessary for a holo
+	 * layout where a custom title bar is normally not permitted.
+	 * 
+	 * @param activity
+	 *            the activity
+	 * @param resIdMainLayout
+	 *            the res id main layout
+	 * @param resIdTitle
+	 *            the res id title
+	 * @return the linear layout
+	 */
 	public static LinearLayout setContentViewWithCustomTitle(Activity activity,
 			int resIdMainLayout, int resIdTitle) {
 		Context context = activity.getApplicationContext();
@@ -1223,10 +1737,27 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Kill own process.<BR>
+	 * <BR>
+	 * ATTENTION: Use with care! Typically we need to let the OS handle process
+	 * elimination. Only in very rare situations we need to kill ourselves!
+	 */
 	public static void killOwnProcess() {
 		android.os.Process.killProcess(android.os.Process.myPid());
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Kill own process delayed by some milliseconds.<BR>
+	 * <BR>
+	 * ATTENTION: Use with care! Typically we need to let the OS handle process
+	 * elimination. Only in very rare situations we need to kill ourselves!
+	 * 
+	 * @param milliseconds
+	 *            the milliseconds
+	 */
 	public static void killOwnProcessDelayed(final int milliseconds) {
 		new Thread(new Runnable() {
 			public void run() {
@@ -1265,6 +1796,14 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Checks if is orientation landscape.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return true, if is orientation landscape
+	 */
+	@SuppressWarnings("deprecation")
 	public static boolean isOrientationLandscape(Context context) {
 		Display display = ((WindowManager) context
 				.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
@@ -1275,31 +1814,25 @@ public class Utility {
 
 	// -------------------------------------------------------------------------
 
-	// alarmType ==
-	// RingtoneManager.TYPE_ALARM
-	// RingtoneManager.TYPE_NOTIFICATION
-	// RingtoneManager.TYPE_RINGTONE
-	//
+	/**
+	 * Notfiy alarm. alarmType == RingtoneManager.TYPE_ALARM |
+	 * RingtoneManager.TYPE_NOTIFICATION | RingtoneManager.TYPE_RINGTONE
+	 * 
+	 * @param context
+	 *            the context
+	 * @param alarmType
+	 *            the alarm type
+	 */
 	public static void notfiyAlarm(Context context, final int alarmType) {
-		// final MediaPlayer player = MediaPlayer.create(context,
-		// RingtoneManager.getDefaultUri(alarmType));
 		final Ringtone ringtone = RingtoneManager.getRingtone(context,
 				RingtoneManager.getDefaultUri(alarmType));
 		new Thread(new Runnable() {
 			public void run() {
 				ringtone.play();
-				// player.start();
-				// while (player.isPlaying()) {
-				// try {
-				// Thread.sleep(1000);
-				// } catch (InterruptedException e) {
-				// }
-				// }
-
 			}
 		}).start();
 	}
 
 	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
+	
 }

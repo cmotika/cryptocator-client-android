@@ -39,44 +39,89 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.v4.util.Pair;
 import android.util.Log;
 
+/**
+ * The DB class handles the local data base accesses and is responsible for
+ * loading conversations or adding new messages to a conversation.
+ * 
+ * @author Christian Motika
+ * @since 2.1
+ * @date 08/23/2015
+ */
+@SuppressLint("SimpleDateFormat")
 public class DB {
 
+	/**
+	 * The database/table TABLE_MESSAGES contains all messages for a specific
+	 * user (UID)
+	 */
 	public static final String TABLE_MESSAGES = "messages";
-	public static final String TABLE_SENDING = "sending";
-	public static final String TABLE_SENT = "sent"; // mapping between mid and
-													// uid! for fast processing
-													// received and read
-													// confirmations!
 
+	/**
+	 * The database/table TABLE_SENDING contains all messages enqueued to be
+	 * sent. There is only one such database/table.
+	 */
+	public static final String TABLE_SENDING = "sending";
+
+	/**
+	 * database/table TABLE_SENT contains a mapping between all sent messages
+	 * (mid) and the hostuid were we did not receive a read confirmation yet but
+	 * are awaiting such a confirmation.
+	 */
+	public static final String TABLE_SENT = "sent";
+
+	/** The last received mid. */
 	public static int lastReceivedMid = -1;
 
+	/** The SMS dimmy mid. */
 	public static int SMS_MID = -1;
 
+	/** The transport Internet. */
 	public static int TRANSPORT_INTERNET = 0;
+
+	/** The transport SMS. */
 	public static int TRANSPORT_SMS = 1;
 
+	/** The priority for readconfirmation. */
 	public static int PRIORITY_READCONFIRMATION = 0;
+
+	/** The priority for message. */
 	public static int PRIORITY_MESSAGE = 1;
+
+	/** The priority for key. */
 	public static int PRIORITY_KEY = 2;
 
+	/** The maximal timestamp. */
 	public static long MAXTIMESTAMP = Long.MAX_VALUE;
 
+	/** The withdrawntext. */
 	public static String WITHDRAWNTEXT = "[ message withdrawn ]";
+
+	/** The SMS failed. */
 	public static String SMS_FAILED = "FAILED";
 
 	// -----------------------------------------------------------------
 
-	static int myUid = -1;
+	/** The active user uid. */
+	private static int myUid = -1;
 
+	// -----------------------------------------------------------------
+
+	/**
+	 * Returns the active user's uid.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the int
+	 */
 	public static int myUid(Context context) {
 		if (myUid < 0) {
 			String uidString = Utility.loadStringSetting(context, "uid", "");
@@ -90,19 +135,49 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Gets the timestamp as string.
+	 * 
+	 * @return the timestamp string
+	 */
 	public static String getTimestampString() {
 		return getTimestamp() + "";
 	}
 
+	// -----------------------------------------------------------------
+
+	/**
+	 * Gets the timestamp.
+	 * 
+	 * @return the timestamp
+	 */
 	public static long getTimestamp() {
 		long timeStamp = System.currentTimeMillis(); // calendar.getTimeInMillis();
 		return timeStamp;
 	}
 
+	// -----------------------------------------------------------------
+
+	/**
+	 * Parses the timestamp. If this fails the current time is returned.
+	 * 
+	 * @param timestampString
+	 *            the timestamp string
+	 * @return the long
+	 */
 	public static long parseTimestamp(String timestampString) {
 		return parseTimestamp(timestampString, getTimestamp());
 	}
 
+	/**
+	 * Parses the timestamp with a default value.
+	 * 
+	 * @param timestampString
+	 *            the timestamp string
+	 * @param defaultValue
+	 *            the default value
+	 * @return the long
+	 */
 	public static long parseTimestamp(String timestampString, long defaultValue) {
 		try {
 			long returnValue = Long.parseLong(timestampString);
@@ -114,6 +189,15 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Gets the date string.
+	 * 
+	 * @param timestamp
+	 *            the timestamp
+	 * @param details
+	 *            the details
+	 * @return the date string
+	 */
 	public static String getDateString(long timestamp, boolean details) {
 
 		if (timestamp < 10) {
@@ -124,7 +208,7 @@ public class DB {
 		String thisYear = Utility.getYear(getTimestamp());
 		String otherYear = Utility.getYear(getTimestamp());
 		if (thisYear.equals(otherYear)) {
-			// if the same year, then do not print it
+			// If the same year, then do not print it
 			format = "HH:mm, MMM dd";
 		}
 		if (details) {
@@ -147,6 +231,15 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Open a user specific database for the messages.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the SQ lite database
+	 */
 	public static SQLiteDatabase openDB(Context context, int uid) {
 		SQLiteDatabase db;
 		db = context.openOrCreateDatabase(Setup.DATABASEPREFIX + uid
@@ -160,6 +253,13 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Open the unique database for enqueued messages about to be sent.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the SQ lite database
+	 */
 	public static SQLiteDatabase openDBSending(Context context) {
 		SQLiteDatabase db;
 		db = context.openOrCreateDatabase(Setup.DATABASESENDING,
@@ -172,6 +272,14 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Open unique database for already sent messages where waiting for read
+	 * confirmations.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the SQ lite database
+	 */
 	public static SQLiteDatabase openDBSent(Context context) {
 		SQLiteDatabase db;
 		db = context.openOrCreateDatabase(Setup.DATABASESENT,
@@ -184,6 +292,14 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Drop a user message db.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 */
 	public static void dropDB(Context context, int uid) {
 		SQLiteDatabase db = openDB(context, uid);
 		if (isTableExists(db, TABLE_MESSAGES)) {
@@ -196,6 +312,12 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Drop the unique db sending.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public static void dropDBSending(Context context) {
 		SQLiteDatabase db = openDBSending(context);
 		if (isTableExists(db, TABLE_SENDING)) {
@@ -208,6 +330,12 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Drop the unique db sent.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public static void dropDBSent(Context context) {
 		SQLiteDatabase db = openDBSending(context);
 		if (isTableExists(db, TABLE_SENT)) {
@@ -219,10 +347,17 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Initialize the message table in the user specific uid db.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param db
+	 *            the db
+	 */
 	public static void initializeDB(Context context, SQLiteDatabase db) {
 		db.setVersion(1);
 		db.setLocale(Locale.getDefault());
-		db.setLockingEnabled(true);
 
 		final String CREATE_TABLE_MSGS = "CREATE TABLE IF NOT EXISTS  `"
 				+ TABLE_MESSAGES
@@ -234,10 +369,19 @@ public class DB {
 		db.execSQL(CREATE_TABLE_MSGS);
 	}
 
+	// -----------------------------------------------------------------
+
+	/**
+	 * Initialize the sending table in the unique db sending.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param db
+	 *            the db
+	 */
 	public static void initializeDBSending(Context context, SQLiteDatabase db) {
 		db.setVersion(1);
 		db.setLocale(Locale.getDefault());
-		db.setLockingEnabled(true);
 
 		final String CREATE_TABLE_MSGS = "CREATE TABLE IF NOT EXISTS  `"
 				+ TABLE_SENDING
@@ -249,10 +393,19 @@ public class DB {
 		db.execSQL(CREATE_TABLE_MSGS);
 	}
 
+	// -----------------------------------------------------------------
+
+	/**
+	 * Initialize the unique sent table in the unique db sent.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param db
+	 *            the db
+	 */
 	public static void initializeDBSent(Context context, SQLiteDatabase db) {
 		db.setVersion(1);
 		db.setLocale(Locale.getDefault());
-		db.setLockingEnabled(true);
 
 		final String CREATE_TABLE_MSGS = "CREATE TABLE IF NOT EXISTS  `"
 				+ TABLE_SENT
@@ -263,6 +416,14 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Ask to rebuild db for a specific user.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 */
 	private static void askToRebuildDB(final Context context, final int uid) {
 		try {
 			final Handler mUIHandler = new Handler(Looper.getMainLooper());
@@ -288,7 +449,7 @@ public class DB {
 												boolean cancel) {
 											if (!cancel) {
 												if (button == 0) {
-													// delete
+													// Delete
 													dropDB(context, uid);
 													SQLiteDatabase db = openDB(
 															context, uid);
@@ -310,17 +471,31 @@ public class DB {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Rebuild db sending.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public static void rebuildDBSending(final Context context) {
-		// delete
+		// Delete
 		dropDBSending(context);
 		SQLiteDatabase db = openDBSending(context);
 		initializeDBSending(context, db);
 		db.close();
 	}
 
+	// -----------------------------------------------------------------
+
+	/**
+	 * Rebuild db sent.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	// ------------------------------------------------------------------------
 	private static void rebuildDBSent(final Context context) {
-		// delete
+		// Delete
 		dropDBSent(context);
 		SQLiteDatabase db = openDBSent(context);
 		initializeDBSent(context, db);
@@ -329,12 +504,19 @@ public class DB {
 
 	// ------------------------------------------------------------------------
 
-	// This is called once on startup and after adding new users (before
-	// inserting new messages)
+	/**
+	 * Ensure db initialized. This is called once on startup and after adding
+	 * new users (before inserting new messages)
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uidList
+	 *            the uid list
+	 */
 	public static void ensureDBInitialized(Context context,
 			List<Integer> uidList) {
 		try {
-			// the following will not harm existing tables!
+			// The following will not harm existing tables!
 			for (int uid : uidList) {
 				SQLiteDatabase db = openDB(context, uid);
 				initializeDB(context, db);
@@ -343,17 +525,24 @@ public class DB {
 			SQLiteDatabase db = openDBSending(context);
 			initializeDBSending(context, db);
 			db.close();
-		} catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	// ------------------------------------------------------------------------
-	// ------------------------------------------------------------------------
 
-	// If a message is possibly not yet sent, we can try to withdraw it BEFORE
-	// it got sent!
+	/**
+	 * Withdraw from sending. If a message is possibly not yet sent, we can try
+	 * to withdraw it BEFORE it got sent!
+	 * 
+	 * @param context
+	 *            the context
+	 * @param localId
+	 *            the local id
+	 * @return true, if successful
+	 */
 	public static boolean withdrawFromSending(Context context, int localId) {
 		SQLiteDatabase db = null;
 		boolean success = false;
@@ -371,6 +560,12 @@ public class DB {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Removes the old mappings.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public static void removeOldMappings(Context context) {
 		String barrierTS = (DB.getTimestamp() - Setup.TIMEOUT_FOR_RECEIVEANDREAD_CONFIRMATIONS)
 				+ "";
@@ -389,12 +584,32 @@ public class DB {
 
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Removes the mapping by mid.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 */
 	public static void removeMappingByMid(Context context, int mid) {
 		SQLiteDatabase db = openDBSent(context);
 		db.delete(TABLE_SENT, "`mid` = " + mid, null);
 		db.close();
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Removes the mapping by host uid.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param hostUid
+	 *            the host uid
+	 */
 	public static void removeMappingByHostUid(Context context, int hostUid) {
 		SQLiteDatabase db = openDBSent(context);
 		db.delete(TABLE_SENT, "`hostuid` = " + hostUid, null);
@@ -403,6 +618,15 @@ public class DB {
 
 	// --------------------------------------------
 
+	/**
+	 * Gets the number of messages to send.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param transport
+	 *            the transport
+	 * @return the number of messages to send
+	 */
 	public static int getNumberOfMessagesToSend(Context context, int transport) {
 		cleanupDBSending(context);
 		SQLiteDatabase db = null;
@@ -437,6 +661,15 @@ public class DB {
 
 	// --------------------------------------------
 
+	/**
+	 * Gets the host uid for mid.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 * @return the host uid for mid
+	 */
 	public static int getHostUidForMid(Context context, int mid) {
 		if (mid == -1) {
 			return -1;
@@ -457,7 +690,20 @@ public class DB {
 		return returnUid;
 	}
 
-	// priority 0 == read confirmation, 1 == normal messages, 2 == keys
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Adds the mapping. priority 0 == read confirmation, 1 == normal messages,
+	 * 2 == keys.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 * @param hostUid
+	 *            the host uid
+	 * @return true, if successful
+	 */
 	public static boolean addMapping(Context context, int mid, int hostUid) {
 		boolean success = false;
 		ContentValues values = new ContentValues();
@@ -483,8 +729,16 @@ public class DB {
 	}
 
 	// ------------------------------------------------------------------------
-	// ------------------------------------------------------------------------
 
+	/**
+	 * Removes the sent message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param sendingId
+	 *            the sending id
+	 * @return true, if successful
+	 */
 	public static boolean removeSentMessage(Context context, int sendingId) {
 		SQLiteDatabase db = openDBSending(context);
 		int i = db.delete(TABLE_SENDING, "`sendingid` = " + sendingId, null);
@@ -494,6 +748,25 @@ public class DB {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Adds the send message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param hostUid
+	 *            the host uid
+	 * @param text
+	 *            the text
+	 * @param encrypted
+	 *            the encrypted
+	 * @param transport
+	 *            the transport
+	 * @param system
+	 *            the system
+	 * @param priority
+	 *            the priority
+	 * @return true, if successful
+	 */
 	public static boolean addSendMessage(final Context context, int hostUid,
 			String text, boolean encrypted, int transport, boolean system,
 			int priority) {
@@ -501,7 +774,30 @@ public class DB {
 				system, priority, null);
 	}
 
-	// priority 0 == read confirmation, 1 == normal messages, 2 == keys
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Adds the send message. priority 0 == read confirmation, 1 == normal
+	 * messages, 2 == keys.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param hostUid
+	 *            the host uid
+	 * @param text
+	 *            the text
+	 * @param encrypted
+	 *            the encrypted
+	 * @param transport
+	 *            the transport
+	 * @param system
+	 *            the system
+	 * @param priority
+	 *            the priority
+	 * @param item
+	 *            the item
+	 * @return true, if successful
+	 */
 	public static boolean addSendMessage(final Context context, int hostUid,
 			String text, boolean encrypted, int transport, boolean system,
 			int priority, ConversationItem item) {
@@ -537,7 +833,7 @@ public class DB {
 
 		Log.d("communicator", "#### KEY NEW KEY #6.6");
 
-		// add the message or real key here
+		// Add the message or real key here
 		int localId = addMessage(context, DB.myUid(context), hostUid,
 				messageTextToShow, created, null, null, null, null, encrypted,
 				transport, systemToShow);
@@ -594,7 +890,7 @@ public class DB {
 				db = openDBSending(context);
 				long rowId = db.insertOrThrow(DB.TABLE_SENDING, null, values);
 				if (rowId > -1) {
-					// valid insert
+					// Valid insert
 					insertInSending = true;
 				}
 				db.close();
@@ -613,7 +909,36 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
-	// Returns the localId of the inserted message on success or -1 if failed.
+	/**
+	 * Adds the message. Returns the localId of the inserted message on success
+	 * or -1 if failed.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param from
+	 *            the from
+	 * @param to
+	 *            the to
+	 * @param text
+	 *            the text
+	 * @param created
+	 *            the created
+	 * @param sent
+	 *            the sent
+	 * @param received
+	 *            the received
+	 * @param read
+	 *            the read
+	 * @param withdraw
+	 *            the withdraw
+	 * @param encrypted
+	 *            the encrypted
+	 * @param transport
+	 *            the transport
+	 * @param system
+	 *            the system
+	 * @return the int
+	 */
 	public static int addMessage(Context context, int from, int to,
 			String text, String created, String sent, String received,
 			String read, String withdraw, boolean encrypted, int transport,
@@ -667,7 +992,7 @@ public class DB {
 			SQLiteDatabase db = openDB(context, uid);
 			long rowId = db.insert(DB.TABLE_MESSAGES, null, values);
 			if (rowId > -1) {
-				// valid insert
+				// Valid insert
 				String QUERY = "SELECT `localid`  FROM `" + TABLE_MESSAGES
 						+ "` WHERE ROWID = " + rowId;
 				// Log.d("communicator", "QUERY = " + QUERY);
@@ -686,6 +1011,12 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Cleanup db sending.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public static void cleanupDBSending(Context context) {
 		SQLiteDatabase db = openDBSending(context);
 		db.delete(
@@ -695,6 +1026,16 @@ public class DB {
 		db.close();
 	}
 
+	// -----------------------------------------------------------------
+
+	/**
+	 * Cleanup db.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 */
 	public static void cleanupDB(Context context, int uid) {
 		SQLiteDatabase db = openDB(context, uid);
 		db.delete(
@@ -706,8 +1047,15 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Prints the db.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 */
 	public static void printDB(Context context, int uid) {
-		// cleanupDB(context);
 		SQLiteDatabase db = openDB(context, uid);
 
 		String QUERY = "SELECT *  FROM `" + TABLE_MESSAGES
@@ -733,10 +1081,16 @@ public class DB {
 		db.close();
 	}
 
+	// -----------------------------------------------------------------
+
+	/**
+	 * Prints the db sending.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the string
+	 */
 	public static String printDBSending(Context context) {
-		// public static void printDB(Context context, int uid) {
-		// cleanupDB(context);
-		// SQLiteDatabase db = openDB(context, uid);
 		SQLiteDatabase db = openDBSending(context);
 		String returnString = "DBSENDING:\n";
 
@@ -754,7 +1108,7 @@ public class DB {
 					String val = cursor.getString(cc);
 					entry += name + "=" + val + ", ";
 				}
-				String returnStringLine ="DBTABLE [SENDING]" + entry; 
+				String returnStringLine = "DBTABLE [SENDING]" + entry;
 				returnString = returnString + returnStringLine + "\n\n\n";
 				Log.d("communicator", returnStringLine);
 				cursor.moveToNext();
@@ -767,13 +1121,25 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/** The cached conversation size. */
 	private static int cachedConversationSize = -1;
-	
-	// gets the COMPLETE size of all messages in DB
-	public static int getConversationSize(Context context, int hostUid, boolean forceRefresh) {
+
+	/**
+	 * Gets the conversation size. Gets the COMPLETE size of all messages in DB.
+	 * This value is cached.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param hostUid
+	 *            the host uid
+	 * @param forceRefresh
+	 *            the force refresh
+	 * @return the conversation size
+	 */
+	public static int getConversationSize(Context context, int hostUid,
+			boolean forceRefresh) {
 		if ((cachedConversationSize == -1) || forceRefresh) {
 			SQLiteDatabase db = openDB(context, hostUid);
-
 
 			try {
 				String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `withdraw`, `encrypted`, `transport`, `system` FROM `"
@@ -789,24 +1155,37 @@ public class DB {
 						+ ")) AND `system` != '1' ORDER BY `created` DESC, `sent` DESC "; // AND
 																							// `system`
 																							// !=
-																							// '1'			;
+																							// '1'
+																							// ;
 				Cursor cursor = db.rawQuery(QUERY, null);
 				if (cursor != null && cursor.moveToFirst()) {
 					cachedConversationSize = cursor.getCount();
 					cursor.close();
 				}
 			} catch (Exception e) {
-				// if anything goes wrong loading the conversation, clear the table
+				// If anything goes wrong loading the conversation, clear the
+				// table
 				askToRebuildDB(context, hostUid);
 			}
 			db.close();
 		}
 		return cachedConversationSize;
 	}
-	
-	//-------------------------------------------------------------------------
 
-	// Attention: system messages will NOT be loaded
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Load conversation. Attention: system messages will NOT be loaded.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param hostUid
+	 *            the host uid
+	 * @param conversationList
+	 *            the conversation list
+	 * @param maxScrollMessageItems
+	 *            the max scroll message items
+	 */
 	public static void loadConversation(Context context, int hostUid,
 			List<ConversationItem> conversationList, int maxScrollMessageItems) {
 		conversationList.clear();
@@ -897,7 +1276,7 @@ public class DB {
 				cursor.close();
 			}
 		} catch (Exception e) {
-			// if anything goes wrong loading the conversation, clear the table
+			// If anything goes wrong loading the conversation, clear the table
 			askToRebuildDB(context, hostUid);
 		}
 		db.close();
@@ -906,6 +1285,15 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Checks if is table exists.
+	 * 
+	 * @param db
+	 *            the db
+	 * @param tableName
+	 *            the table name
+	 * @return true, if is table exists
+	 */
 	static boolean isTableExists(SQLiteDatabase db, String tableName) {
 		if (tableName == null || db == null || !db.isOpen()) {
 			return false;
@@ -924,29 +1312,16 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
-	// static String getLargestTimestampWithdraw(Context context) {
-	// String returnTimestamp = "";
-	// SQLiteDatabase db = openDB(context);
-	//
-	// String QUERY = "SELECT `withdraw` FROM `" + TABLE_MESSAGES
-	// + "` WHERE `touid` = " + DB.myUid(context)
-	// + " ORDER BY `withdraw` DESC";
-	//
-	// Cursor cursor = db.rawQuery(QUERY, null);
-	// if (cursor != null && cursor.moveToFirst()) {
-	// if (cursor.getCount() > 0) {
-	// returnTimestamp = cursor.getString(0);
-	// }
-	// cursor.close();
-	// }
-	// db.close();
-	// return returnTimestamp;
-	// }
-
-	// -----------------------------------------------------------------
-
+	/** The largest timestamp received. */
 	static long largestTimestampReceived = -1;
 
+	/**
+	 * Gets the largest timestamp received. This value is cached.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the largest timestamp received
+	 */
 	static long getLargestTimestampReceived(Context context) {
 		if (largestTimestampReceived == -1) {
 			largestTimestampReceived = Utility.loadLongSetting(context,
@@ -955,6 +1330,16 @@ public class DB {
 		return largestTimestampReceived;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update largest timestamp received.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param newTS
+	 *            the new ts
+	 */
 	static void updateLargestTimestampReceived(Context context, String newTS) {
 		Log.d("communicator", " UPDATE LARGEST TIMESTAMP RECEIVED: " + newTS);
 		long newTSLong = Utility.parseLong(newTS, 0);
@@ -967,8 +1352,16 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/** The largest timestamp read. */
 	static long largestTimestampRead = -1;
 
+	/**
+	 * Gets the largest timestamp read. This value is cached.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the largest timestamp read
+	 */
 	static long getLargestTimestampRead(Context context) {
 		if (largestTimestampRead == -1) {
 			largestTimestampRead = Utility.loadLongSetting(context,
@@ -977,6 +1370,16 @@ public class DB {
 		return largestTimestampRead;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update largest timestamp read.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param newTS
+	 *            the new ts
+	 */
 	static void updateLargestTimestampRead(Context context, String newTS) {
 		Log.d("communicator", " UPDATE LARGEST TIMESTAMP READ: " + newTS);
 		long newTSLong = Utility.parseLong(newTS, 0);
@@ -989,53 +1392,15 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
-	// static String getLargestTimestampReceived(Context context) {
-	// String returnTimestamp = "";
-	// SQLiteDatabase db = openDB(context);
-	//
-	// String QUERY = "SELECT `received` FROM `" + TABLE_MESSAGES
-	// + "` WHERE `fromuid` = " + DB.myUid(context)
-	// + " AND `transport` = 0" + " ORDER BY `received` DESC";
-	// // Log.d("communicator", "LARGEST TIMESTAMP RECEIVED QUERY = " + QUERY);
-	//
-	// Cursor cursor = db.rawQuery(QUERY, null);
-	// if (cursor != null && cursor.moveToFirst()) {
-	// if (cursor.getCount() > 0) {
-	// returnTimestamp = cursor.getString(0);
-	// // Log.d("communicator",
-	// // "LARGEST TIMESTAMP RECEIVED returnTimestamp = "
-	// // + returnTimestamp);
-	// }
-	// cursor.close();
-	// }
-	// db.close();
-	// return returnTimestamp;
-	// }
-
-	// -----------------------------------------------------------------
-
-	// static String getLargestTimestampRead(Context context) {
-	// String returnTimestamp = "";
-	// SQLiteDatabase db = openDB(context);
-	//
-	// String QUERY = "SELECT `read` FROM `" + TABLE_MESSAGES
-	// + "` WHERE `fromuid` = " + DB.myUid(context)
-	// + " AND `transport` = 0" + " ORDER BY `read` DESC";
-	// // Log.d("communicator", "LARGEST TIMESTAMP READ QUERY = " + QUERY);
-	//
-	// Cursor cursor = db.rawQuery(QUERY, null);
-	// if (cursor != null && cursor.moveToFirst()) {
-	// if (cursor.getCount() > 0) {
-	// returnTimestamp = cursor.getString(0);
-	// }
-	// cursor.close();
-	// }
-	// db.close();
-	// return returnTimestamp;
-	// }
-
-	// -----------------------------------------------------------------
-
+	/**
+	 * Gets the largest mid for uid except system messages.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the largest mid for uid except system messages
+	 */
 	static int getLargestMidForUIDExceptSystemMessages(Context context, int uid) {
 		// To filter system messages, just skip blank messages, as a convention
 		// system messages are cleared
@@ -1079,6 +1444,14 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Reset largest mid.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 */
 	static void resetLargestMid(Context context, int mid) {
 		// Log.d("communicator",
 		// "@@@@@@@ RESET LARGEST MID: " + mid);
@@ -1087,6 +1460,17 @@ public class DB {
 				mid);
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update largest mid.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 * @return true, if successful
+	 */
 	static boolean updateLargestMid(Context context, int mid) {
 		// Log.d("communicator",
 		// "@@@@@@@ UPDATE LARGEST MID: " + mid);
@@ -1099,6 +1483,15 @@ public class DB {
 		return false;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the largest mid.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the largest mid
+	 */
 	static int getLargestMid(Context context) {
 		// Cache to make it more efficient, be sure to invalidate if receiving
 		// new messages -- this is also used for clearing conversation!!!
@@ -1113,9 +1506,15 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
-	// static boolean nextMessageSent(Context context, ConversationItem)
-
-	// Gets the next message to send from DB
+	/**
+	 * Gets the next message. Gets the next message to send from DB.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param transport
+	 *            the transport
+	 * @return the next message
+	 */
 	static ConversationItem getNextMessage(Context context, int transport) {
 		ConversationItem returnItem = null;
 
@@ -1126,13 +1525,7 @@ public class DB {
 
 		SQLiteDatabase db = openDBSending(context);
 
-		// + "`localid` INTEGER PRIMARY KEY, `fromuid` INTEGER , "
-		// + "`touid` INTEGER , `text` VARCHAR( 2000 ) , "
-		// + "`created` VARCHAR( 50 ), "
-		// +
-		// "`sent` VARCHAR( 50 ), `encrypted` VARCHAR( 1 ), `transport` VARCHAR( 1 ), `system` VARCHAR( 1 )  );";
-
-		// for sending
+		// For sending
 		String QUERY = "SELECT `sendingid`, `localid`, `fromuid`, `touid`, `text`, `created`, `encrypted`, `transport`, `system`, `smsfailcnt`  FROM `"
 				+ TABLE_SENDING
 				+ "` WHERE `touid` != -1 AND `localid` != -1 AND `smsfailcnt` <= "
@@ -1140,6 +1533,7 @@ public class DB {
 				+ " "
 				+ transportQueryPart
 				+ " ORDER BY `prio` DESC, `created` ASC";
+
 		// The priority ensures that first KEYs are sent, THEN messages and only
 		// THEN read confirmations
 
@@ -1197,9 +1591,19 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
-	// Gets the message with local id. If localid != -1 then transport does not
-	// matter! If
-	// transport == -1 then transport does not matter!
+	/**
+	 * Gets the message. Gets the message with local id. If localid != -1 then
+	 * transport does not matter! If transport == -1 then transport does not
+	 * matter!
+	 * 
+	 * @param context
+	 *            the context
+	 * @param localid
+	 *            the localid
+	 * @param uid
+	 *            the uid
+	 * @return the message
+	 */
 	static ConversationItem getMessage(Context context, int localid, int uid) {
 		ConversationItem returnItem = null;
 
@@ -1271,6 +1675,17 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Gets the sender uid by mid.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 * @param hostUid
+	 *            the host uid
+	 * @return the sender uid by mid
+	 */
 	static int getSenderUidByMid(Context context, int mid, int hostUid) {
 		int toUid = -1;
 		SQLiteDatabase db = openDB(context, hostUid);
@@ -1290,27 +1705,18 @@ public class DB {
 	}
 
 	// -----------------------------------------------------------------
-	//
-	// static int getHostUidByMid(Context context, int mid) {
-	// int toUid = -1;
-	// SQLiteDatabase db = openDB(context);
-	//
-	// String QUERY = "SELECT `touid` FROM `" + TABLE_MESSAGES
-	// + "` WHERE `mid` = " + mid;
-	// // Log.d("communicator", "LARGEST MID QUERY = " + QUERY);
-	// Cursor cursor = db.rawQuery(QUERY, null);
-	// if (cursor != null && cursor.moveToFirst()) {
-	// if (cursor.getCount() > 0) {
-	// toUid = Utility.parseInt(cursor.getString(0), -1);
-	// }
-	// cursor.close();
-	// }
-	// db.close();
-	// return toUid;
-	// }
 
-	// -----------------------------------------------------------------
-
+	/**
+	 * Gets the host local id by mid.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 * @param hostUid
+	 *            the host uid
+	 * @return the host local id by mid
+	 */
 	public static int getHostLocalIdByMid(Context context, int mid, int hostUid) {
 		int localId = -1;
 		SQLiteDatabase db = openDB(context, hostUid);
@@ -1331,11 +1737,20 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Update own message read.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param hostUid
+	 *            the host uid
+	 * @return true, if successful
+	 */
 	public static boolean updateOwnMessageRead(Context context, int hostUid) {
 		boolean success = false;
 		ContentValues values = new ContentValues();
 		values.put("read", DB.getTimestampString());
-		// update
+		// Update
 		try {
 			SQLiteDatabase db = openDB(context, hostUid);
 			// all messages that I have received, I flag in my own DB as read
@@ -1351,8 +1766,20 @@ public class DB {
 	}
 
 	// -----------------------------------------------------------------
-	// -----------------------------------------------------------------
 
+	/**
+	 * Update message read.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 * @param timestamp
+	 *            the timestamp
+	 * @param hostUid
+	 *            the host uid
+	 * @return true, if successful
+	 */
 	public static boolean updateMessageRead(Context context, int mid,
 			String timestamp, int hostUid) {
 		boolean success = false;
@@ -1374,14 +1801,26 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
-	// This message will try to withdraw unsent messages, if this succeeds, it
-	// will
-	// withdraw right away. Otherwise we send a withdraw request to the server
-	// and
-	// wait for the server response message!
+	/**
+	 * Try to withdraw message. This message will try to withdraw unsent
+	 * messages, if this succeeds, it will withdraw right away. Otherwise we
+	 * send a withdraw request to the server and wait for the server response
+	 * message!
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 * @param localid
+	 *            the localid
+	 * @param timestamp
+	 *            the timestamp
+	 * @param hostUid
+	 *            the host uid
+	 */
 	public static void tryToWithdrawMessage(Context context, int mid,
 			int localid, String timestamp, int hostUid) {
-		// if mid < 0 it is still a localid, but this does not mean it is not
+		// If mid < 0 it is still a localid, but this does not mean it is not
 		// sent yet!
 		boolean withdrawBeforeSending = withdrawFromSending(context, localid);
 		if (withdrawBeforeSending) {
@@ -1392,11 +1831,10 @@ public class DB {
 			// update
 			try {
 				SQLiteDatabase db = openDB(context, hostUid);
-				int rows1 = db.update("messages", values, "mid = " + mid
-						+ " AND sent", null);
-				int rows2 = db.update("messages", values, "localid = "
-						+ localid, null);
-				// try both
+				db.update("messages", values, "mid = " + mid + " AND sent",
+						null);
+				db.update("messages", values, "localid = " + localid, null);
+				// Try both
 				Conversation.setWithdrawInConversation(context, mid);
 				Conversation.setWithdrawInConversation(context, -1 * localid);
 				db.close();
@@ -1416,16 +1854,29 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Update message withdrawn.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 * @param timestamp
+	 *            the timestamp
+	 * @param hostUid
+	 *            the host uid
+	 * @return true, if successful
+	 */
 	public static boolean updateMessageWithdrawn(Context context, int mid,
 			String timestamp, int hostUid) {
 		boolean success = false;
 		ContentValues values = new ContentValues();
 		values.put("text", DB.WITHDRAWNTEXT);
 		values.put("withdraw", timestamp);
-		// update
+		// Update
 		try {
 			SQLiteDatabase db = openDB(context, hostUid);
-			int rows = db.update("messages", values, "mid = " + mid, null);
+			db.update("messages", values, "mid = " + mid, null);
 			// Log.d("communicator", "UPDATE WITHDRAW OF MID " + mid + "= " +
 			// timestamp +": " + rows);
 			db.close();
@@ -1438,6 +1889,19 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Update message system.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 * @param isSystemMessage
+	 *            the is system message
+	 * @param hostUid
+	 *            the host uid
+	 * @return true, if successful
+	 */
 	public static boolean updateMessageSystem(Context context, int mid,
 			boolean isSystemMessage, int hostUid) {
 		boolean success = false;
@@ -1447,7 +1911,7 @@ public class DB {
 		} else {
 			values.put("system", "0");
 		}
-		// update
+		// Update
 		try {
 			SQLiteDatabase db = openDB(context, hostUid);
 			int rows = db.update("messages", values, "mid = " + mid, null);
@@ -1462,20 +1926,39 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Checks if is message failed.
+	 * 
+	 * @param sentTimestamp
+	 *            the sent timestamp
+	 * @return true, if is message failed
+	 */
 	public static boolean isMessageFailed(String sentTimestamp) {
 		return (sentTimestamp.equals(SMS_FAILED));
 	}
 
+	// -----------------------------------------------------------------
+
+	/**
+	 * Update message failed.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param localid
+	 *            the localid
+	 * @param hostUid
+	 *            the host uid
+	 * @return true, if successful
+	 */
 	public static boolean updateMessageFailed(Context context, int localid,
 			int hostUid) {
 		boolean success = false;
 		ContentValues values = new ContentValues();
 		values.put("sent", SMS_FAILED);
-		// update
+		// Update
 		try {
 			SQLiteDatabase db = openDB(context, hostUid);
-			int rows = db.update(TABLE_MESSAGES, values,
-					"localid = " + localid, null);
+			db.update(TABLE_MESSAGES, values, "localid = " + localid, null);
 			Log.d("communicator", "SET PERMENANT FAILED OF localid " + localid
 					+ " of user " + hostUid);
 			db.close();
@@ -1486,6 +1969,17 @@ public class DB {
 		return success;
 	}
 
+	// -----------------------------------------------------------------
+
+	/**
+	 * Gets the failed.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param localid
+	 *            the localid
+	 * @return the failed
+	 */
 	public static int getfailed(Context context, int localid) {
 		if (localid == -1) {
 			return -1;
@@ -1506,6 +2000,19 @@ public class DB {
 		return returnFailCnt;
 	}
 
+	// -----------------------------------------------------------------
+
+	/**
+	 * Increment failed.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param localid
+	 *            the localid
+	 * @param hostUid
+	 *            the host uid
+	 * @return true, if successful
+	 */
 	public static boolean incrementFailed(Context context, int localid,
 			int hostUid) {
 		int failcnt = getfailed(context, localid);
@@ -1513,18 +2020,17 @@ public class DB {
 		boolean permamentFailed = false;
 		ContentValues values = new ContentValues();
 		values.put("smsfailcnt", failcnt);
-		// update
+		// Update
 		try {
 			SQLiteDatabase db = openDBSending(context);
-			int rows = db.update(TABLE_SENDING, values, "localid = " + localid,
-					null);
+			db.update(TABLE_SENDING, values, "localid = " + localid, null);
 			Log.d("communicator", "INCREMENTD FAILED OF localid " + localid
 					+ " to " + failcnt);
 			db.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		// if failed too often, then flag as failed in DB_MESSAGES
+		// If failed too often, then flag as failed in DB_MESSAGES
 		if (failcnt > Setup.SMS_FAIL_CNT) {
 			permamentFailed = updateMessageFailed(context, localid, hostUid);
 		}
@@ -1533,12 +2039,25 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Update message received.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 * @param timestamp
+	 *            the timestamp
+	 * @param hostUid
+	 *            the host uid
+	 * @return true, if successful
+	 */
 	public static boolean updateMessageReceived(Context context, int mid,
 			String timestamp, int hostUid) {
 		boolean success = false;
 		ContentValues values = new ContentValues();
 		values.put("received", timestamp);
-		// update
+		// Update
 		try {
 			SQLiteDatabase db = openDB(context, hostUid);
 			int rows = db.update(TABLE_MESSAGES, values, "mid = " + mid, null);
@@ -1553,9 +2072,20 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Checks if is already in db.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 * @param hostUid
+	 *            the host uid
+	 * @return true, if is already in db
+	 */
 	public static boolean isAlreadyInDB(Context context, int mid, int hostUid) {
 		if (mid == SMS_MID) {
-			// incoming SMS have this mid -1
+			// Incoming SMS have this mid -1
 			return false;
 		}
 		boolean foundInDB = false;
@@ -1577,11 +2107,37 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
+	/**
+	 * Update message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param itemToUpdate
+	 *            the item to update
+	 * @param hostUid
+	 *            the host uid
+	 * @return true, if successful
+	 */
 	public static boolean updateMessage(Context context,
 			ConversationItem itemToUpdate, int hostUid) {
 		return updateMessage(context, itemToUpdate, hostUid, false);
 	}
 
+	// -----------------------------------------------------------------
+
+	/**
+	 * Update message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param itemToUpdate
+	 *            the item to update
+	 * @param hostUid
+	 *            the host uid
+	 * @param isSentKeyMessage
+	 *            the is sent key message
+	 * @return true, if successful
+	 */
 	public static boolean updateMessage(Context context,
 			ConversationItem itemToUpdate, int hostUid, boolean isSentKeyMessage) {
 		boolean success = false;
@@ -1610,7 +2166,7 @@ public class DB {
 		}
 		int localid = itemToUpdate.localid;
 		if (localid >= 0) {
-			// update
+			// Update
 			try {
 				SQLiteDatabase db = openDB(context, hostUid);
 				db.update(DB.TABLE_MESSAGES, values, "localid = " + localid,
@@ -1621,7 +2177,7 @@ public class DB {
 				e.printStackTrace();
 			}
 		} else {
-			// create new item
+			// Create new item
 			try {
 				SQLiteDatabase db = openDB(context, hostUid);
 				db.insert("messages", null, values);
@@ -1636,117 +2192,18 @@ public class DB {
 
 	// -----------------------------------------------------------------
 
-	// public static Pair<String, String> getLastMessage(Context context, int
-	// uid) {
-	// SQLiteDatabase db = openDB(context, uid);
-	//
-	// String returnText = "";
-	// String returnDate = "";
-	// Cursor cursor = null;
-	//
-	// try {
-	// // String QUERY = "SELECT `mid`, `text`, `sent` FROM `"
-	// // + TABLE_MESSAGES + "` WHERE ((`fromuid` = " + uid
-	// // + " AND `touid` = " + DB.myUid(context)
-	// // + ")  OR  (`fromuid` = " + DB.myUid(context)
-	// // + " AND `touid` = " + uid + ")) ORDER BY `sent` DESC";
-	//
-	// String QUERY = "SELECT `mid`, `text`, `sent` FROM `"
-	// + TABLE_MESSAGES + "` ORDER BY `sent` DESC";
-	//
-	// // Log.d("communicator", "GET LAST MESSAGE QUERY = " + QUERY);
-	//
-	// cursor = db.rawQuery(QUERY, null);
-	// if (cursor != null && cursor.moveToFirst()) {
-	// // Log.d("communicator", "getCount = " + cursor.getCount());
-	// if (cursor.getCount() > 0) {
-	// String text = null;
-	// boolean haveNextEntry = true;
-	// do {
-	// text = cursor.getString(1);
-	// Log.d("communicator", "GET LAST MESSAGE RESULT TEXT: '" + text + "'");
-	// long sent = parseTimestamp(cursor.getString(2), -1);
-	// returnDate = DB.getDateString(sent, false);
-	// returnText = text;
-	// if ((text == null || text.length() < 1)) {
-	// haveNextEntry = cursor.moveToNext();
-	// }
-	// } while ((text == null || text.length() < 1) && haveNextEntry);
-	// Log.d("communicator", "GET LAST MESSAGE RESULT TEXT: ==> '" + text +
-	// "'");
-	// }
-	// cursor.close();
-	// }
-	// } catch (Exception e) {
-	// if (cursor != null) {
-	// cursor.close();
-	// }
-	// }
-	// db.close();
-	// return new Pair(returnText, returnDate);
-	// }
-
-	// ------------------------------------------------------------------------
-
+	/**
+	 * Delete user.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 */
 	public static void deleteUser(Context context, int uid) {
 		context.deleteDatabase(Setup.DATABASEPREFIX + uid
 				+ Setup.DATABASEPOSTFIX);
-		// SQLiteDatabase db = openDB(context, uid);
-		// db.delete(TABLE_MESSAGES,
-		// "(`fromuid` = " + uid + " AND `touid` = " + DB.myUid(context)
-		// + ")  OR  (`fromuid` = " + DB.myUid(context)
-		// + " AND `touid` = " + uid + ")", null);
-		// db.close();
-		// printDB(context);
 	}
-
-	// ------------------------------------------------------------------------
-
-	// -----------------------------------------------------------------
-
-	// public static List<Integer> sortUIDsByDB(Context context, List<Integer>
-	// inputList) {
-	//
-	//
-	// SQLiteDatabase db = openDB(context);
-	// List<Integer> returnList = new ArrayList<Integer>();
-	//
-	// int myUid = DB.myUid(context);
-	//
-	// try {
-	// String QUERY = "SELECT `fromuid`, `touid`, `sent` FROM `"
-	// + TABLE_MESSAGES + "` ORDER BY `sent` DESC";
-	// Cursor cursor = db.rawQuery(QUERY, null);
-	// if (cursor != null && cursor.moveToFirst()) {
-	// // Log.d("communicator", "getCount = " + cursor.getCount());
-	//
-	// for (int c = 0; c < cursor.getCount(); c++) {
-	// int from = Utility.parseInt(cursor.getString(0), -1);
-	// int to = Utility.parseInt(cursor.getString(1), -1);
-	// if (from != -1) {
-	// if (!returnList.contains(from) && from != myUid) {
-	// returnList.add(from);
-	// }
-	// if (!returnList.contains(to) && to != myUid) {
-	// returnList.add(to);
-	// }
-	// if (to == from && to == myUid) {
-	// // exception if we sent us messages
-	// returnList.add(to);
-	// }
-	// }
-	// cursor.moveToNext();
-	// }
-	// cursor.close();
-	// }
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// // if anything goes wrong loading the conversation, clear the table
-	// askToRebuildDB(context);
-	// }
-	// db.close();
-	// return returnList;
-	// }
 
 	// -----------------------------------------------------------------
 
@@ -1759,14 +2216,15 @@ public class DB {
 	 *            the merge from uid
 	 * @param mergeToUid
 	 *            the merge to uid
+	 * @return true, if successful
 	 */
 	public static boolean mergeUser(Context context, int mergeFromUid,
 			int mergeToUid) {
 		boolean success = false;
-		// update
+		// Update
 		try {
 			List<ConversationItem> conversationToMergeList = new ArrayList<ConversationItem>();
-			// now move all (except system messages, these will not be loaded
+			// Now move all (except system messages, these will not be loaded
 			// and hence not be copied!)
 			loadConversation(context, mergeFromUid, conversationToMergeList, -1);
 			for (ConversationItem item : conversationToMergeList) {
@@ -1789,5 +2247,5 @@ public class DB {
 	}
 
 	// -----------------------------------------------------------------
-
+	
 }
