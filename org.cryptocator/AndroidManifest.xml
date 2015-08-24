@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.cryptocator"
+    android:versionCode="1"
+    android:versionName="1.2" >
+
+    <uses-sdk
+        android:minSdkVersion="8"
+        android:targetSdkVersion="13" />
+
+    <uses-permission android:name="android.permission.VIBRATE" >
+    </uses-permission>
+    <!--
+    	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+	    <uses-permission android:name="android.permission.MANAGE_DOCUMENTS" />
+         <uses-permission android:name="android.permission.READ_PHONE_STATE" > 
+    </uses-permission>
+    -->
+
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" /> <!-- reading telephone number -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" /> <!-- reading telephone number -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" /> <!-- initiate calls -->
+    <uses-permission android:name="android.permission.INTERNET" >
+    </uses-permission>
+    <uses-permission android:name="android.permission.WAKE_LOCK" >
+    </uses-permission>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/msg"
+        android:label="Delphino Cryptocator"
+        android:theme="@style/NoTitlebar" >
+        <activity
+            android:name="org.cryptocator.Main"
+            android:icon="@drawable/msg"
+            android:label="Delphino Cryptocator" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="org.cryptocator.Setup"
+            android:label="Settings" >
+        </activity>
+        <activity
+            android:name="org.cryptocator.SetupAccount"
+            android:label="Account" >
+        </activity>
+        <activity
+            android:name="org.cryptocator.UserdetailsActivity"
+            android:icon="@drawable/person"
+            android:theme="@style/Theme.Transparent" >
+        </activity>
+        <activity
+            android:name="org.cryptocator.MessagedetailsActivity"
+            android:icon="@drawable/msg"
+            android:theme="@style/Theme.Transparent" >
+        </activity>
+        <activity
+            android:name="org.cryptocator.BackupActivity"
+            android:icon="@drawable/backup"
+            android:theme="@style/Theme.Transparent" >
+        </activity>
+        <activity
+            android:name="org.cryptocator.Conversation"
+            android:icon="@drawable/msg"
+            android:label="Conversation"
+            android:windowSoftInputMode="stateVisible|adjustResize" >
+        </activity>
+        <activity
+            android:name="org.cryptocator.ConversationCompose"
+            android:icon="@drawable/msg"
+            android:label="Cryptocator Message"
+            android:windowSoftInputMode="stateVisible|adjustResize" >
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/*" />
+            </intent-filter>
+        </activity>
+        <activity android:name="org.cryptocator.TransitActivity" >
+        </activity>
+        <!-- Boot -->
+        <receiver android:name="org.cryptocator.BootReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        <!-- Scheduler -->
+        <receiver android:name="org.cryptocator.Scheduler" >
+            <intent-filter>
+                <action android:name="android.intent.action.USER_PRESENT" />
+            </intent-filter>
+        </receiver>
+        <!-- UserPresentReceiver -->
+        <receiver android:name="org.cryptocator.UserPresentReceiver" >
+            <intent-filter
+                android:enabled="true"
+                android:exported="false" >
+                <action android:name="android.intent.action.USER_PRESENT" />
+            </intent-filter>
+        </receiver>
+        <!-- SMS Receiver -->
+        <receiver
+            android:name="org.cryptocator.ReceiveSMS"
+            android:permission="android.permission.BROADCAST_SMS" >
+            <intent-filter android:priority="19999" >
+                <action android:name="android.provider.Telephony.SMS_DELIVER" />
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name="org.cryptocator.SendSMSSent" >
+            <intent-filter android:priority="19999" >
+                <action android:name="SECURESMSSENT" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name="org.cryptocator.SendSMSDelivered" >
+            <intent-filter android:priority="19999" >
+                <action android:name="SECURESMSDELIVERED" />
+            </intent-filter>
+        </receiver>
+        <!-- BroadcastReceiver that listens for incoming MMS messages -->
+        <receiver
+            android:name="org.cryptocator.MmsReceiver"
+            android:permission="android.permission.BROADCAST_WAP_PUSH" >
+            <intent-filter>
+                <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
+
+                <data android:mimeType="application/vnd.wap.mms-message" />
+            </intent-filter>
+        </receiver>
+        <!-- Service that delivers messages from the phone "quick response" -->
+        <service
+            android:name="org.cryptocator.HeadlessSmsSendService"
+            android:exported="true"
+            android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE" >
+            <intent-filter>
+                <action android:name="android.intent.action.RESPOND_VIA_MESSAGE" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="sms" />
+                <data android:scheme="smsto" />
+                <data android:scheme="mms" />
+                <data android:scheme="mmsto" />
+            </intent-filter>
+        </service>
+        <!-- Activity that allows the user to send new SMS/MMS messages -->
+        <activity android:name="org.cryptocator.ComposeActivity" >
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SENDTO" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="sms" />
+                <data android:scheme="smsto" />
+                <data android:scheme="mms" />
+                <data android:scheme="mmsto" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

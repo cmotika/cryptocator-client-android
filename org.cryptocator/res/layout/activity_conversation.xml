@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/conversationRootView"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#FF0000AA"
+    android:orientation="vertical"
+    tools:context=".MainActivity" >
+
+    <view
+        android:id="@+id/fastscrollview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="2000"
+        class="org.cryptocator.FastScrollView" />
+
+    <LinearLayout
+        android:id="@+id/inputlayout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:minHeight="60dp"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5px"
+            android:layout_marginTop="5px"
+            android:minHeight="60dp"
+            android:orientation="horizontal" >
+
+            <EditText
+                android:id="@+id/messageText"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5px"
+                android:layout_marginTop="5px"
+                android:layout_weight="2"
+                android:text="" >
+
+                <requestFocus />
+            </EditText>
+
+            <Spinner
+                android:id="@+id/sendspinner"
+                android:layout_width="0pt"
+                android:layout_height="0pt"
+                android:visibility="invisible" />
+
+            <LinearLayout
+                android:id="@+id/sendbuttonparent"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_gravity="bottom"
+                android:layout_marginLeft="10px"
+                android:orientation="vertical" >
+
+                <org.cryptocator.ImagePressButton
+                    android:id="@+id/sendbutton"
+                    android:layout_width="100px"
+                    android:layout_height="70px"
+                    android:layout_gravity="bottom"
+                    android:layout_marginBottom="7px"
+                    android:layout_marginTop="3px"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:minWidth="100px"
+                    android:src="@drawable/send"
+                    android:text="" >
+                </org.cryptocator.ImagePressButton>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
