@@ -111,7 +111,6 @@ import android.view.View.OnKeyListener;
 public class Conversation extends Activity {
 
 	/** The fast scroll view. */
-	// private LinearLayout conversationinnerview;
 	FastScrollView fastScrollView;
 
 	/** The conversation root view. */
@@ -127,22 +126,59 @@ public class Conversation extends Activity {
 	private List<ConversationItem> conversationListDiff = new ArrayList<ConversationItem>(); // only
 																								// new
 	/** The sendspinner. */
-	// items!
 	Spinner sendspinner = null;
-	// FastScrollBar fastscrollbar;
-	// private ScrollViewEx scrollView;
 
-	/** The scrollnormalcolor. */
-	private static String SCROLLNORMALCOLOR = "#22000000";
+	/** The failed color as background for failed SMS. */
+	private static int FAILEDCOLOR = Color.parseColor("#6DB0FD");
 
-	/** The scrolllockedcolor. */
-	private static String SCROLLLOCKEDCOLOR = "#00000000";
+	/** The mapping. */
+	private HashMap<Integer, Mapping> mapping = new HashMap<Integer, Mapping>();
 
-	/** The failedcolor. */
-	private static String FAILEDCOLOR = "#6DB0FD";
+	/** The host uid. */
+	private static int hostUid = -1;
+
+	/** The has scrolled. */
+	private static boolean hasScrolled = false;
+
+	/** The scroll item. */
+	private static int scrollItem = -1;
+
+	/** The max scroll message items. */
+	private static int maxScrollMessageItems = -1;
 
 	/**
-	 * The Class Mapping.
+	 * The scrolled down. If scrolled down, maintain scrolled down lock even
+	 * when orientation changes, keyboard comes up or new message arrives.
+	 */
+	public static boolean scrolledDown = false;
+
+	/** The scrolled up. Keep being scrolled up if this was set to true earlier. */
+	private static boolean scrolledUp = false;
+
+	/** The conversation size. */
+	private int conversationSize = -1;
+
+	/** The central send button. */
+	private ImagePressButton sendbutton;
+
+	/** The message text. */
+	public EditText messageText;
+
+	/** The inflater. */
+	private LayoutInflater inflater;
+
+	/**
+	 * The last height is necessary to detect if the height changes. If it NOT
+	 * changes we can skip a lot of processing which makes the UI feel much
+	 * faster.
+	 */
+	int lastHeight = 0;
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * The internal class Mapping for mapping message ids to elements in the
+	 * conversation in order to update, e.g., e state icons.
 	 */
 	private class Mapping {
 
@@ -165,532 +201,7 @@ public class Conversation extends Activity {
 		EditText text;
 	}
 
-	/** The mapping. */
-	private HashMap<Integer, Mapping> mapping = new HashMap<Integer, Mapping>();
-
-	// private List<View> layoutList = new ArrayList<View>();
-
-	/** The host uid. */
-	private static int hostUid = -1;
-
-	/** The has scrolled. */
-	private static boolean hasScrolled = false;
-
-	/** The scroll item. */
-	private static int scrollItem = -1;
-
-	/** The max scroll message items. */
-	private static int maxScrollMessageItems = -1;
-
-	// if scrolled down, maintain scrolled down lock even when orientation
-	/** The scrolled down. */
-	// changes, keyboard comes up or new message arrives!
-	public static boolean scrolledDown = false;
-
-	/** The scrolled up. */
-	private static boolean scrolledUp = false;
-
-	/** The conversation size. */
-	private int conversationSize = -1;
-
-	/** The message text empty height. */
-	private int messageTextEmptyHeight = -1;
-
-	/** The sendbutton. */
-	private ImagePressButton sendbutton;
-
-	/** The message text. */
-	public EditText messageText;
-
-	/** The inflater. */
-	private LayoutInflater inflater;
-
-	/**
-	 * Gets the host uid.
-	 * 
-	 * @return the host uid
-	 */
-	public static int getHostUid() {
-		return hostUid;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see android.app.Activity#onStart()
-	 */
-	@Override
-	protected void onStart() {
-		super.onStart();
-		final Context context = this;
-
-		// SET SENDSPINNER
-		sendspinner = (Spinner) findViewById(R.id.sendspinner);
-
-		final String OPTION0 = "SELECT AN OPTIONS"; // / NOT DISPLAYED BY DATA
-													// ADAPTER!!!
-		final String OPTIONCHATON = "  Enable Chat Mode";
-		final String OPTIONCHATOFF = "  Disable Chat Mode";
-
-		final String OPTIONSMSON = "  Enable SMS Mode";
-		final String OPTIONSMSOFF = "  Disable SMS Mode";
-
-		final String OPTIONCOPY = "  Copy";
-		final String OPTIONPASTE = "  Paste";
-		final String OPTIONUSECMSG = "  Send Unsecure Message";
-		final String OPTIONSECMSG = "  Send Secure Message";
-		final String OPTIONUSECSMS = "  Send Unsecure SMS";
-		final String OPTIONSECSMS = "  Send Secure SMS";
-
-		String[] spinnerTitles = { OPTION0, OPTIONCHATON, OPTIONSMSON,
-				OPTIONUSECSMS, OPTIONSECSMS, OPTIONUSECMSG };
-		String[] spinnerTitlesChat = { OPTION0, OPTIONCHATOFF, OPTIONSMSON,
-				OPTIONUSECSMS, OPTIONSECSMS, OPTIONUSECMSG };
-
-		String[] spinnerTitlesSMS = { OPTION0, OPTIONCHATON, OPTIONSMSOFF,
-				OPTIONUSECMSG, OPTIONSECMSG, OPTIONUSECSMS };
-		String[] spinnerTitlesSMSChat = { OPTION0, OPTIONCHATOFF, OPTIONSMSOFF,
-				OPTIONUSECMSG, OPTIONSECMSG, OPTIONUSECSMS };
-
-		String[] spinnerTitlesNOSMS = { OPTION0, OPTIONCHATON, OPTIONSMSON,
-				OPTIONUSECMSG };
-		String[] spinnerTitlesNOSMSChat = { OPTION0, OPTIONCHATOFF,
-				OPTIONSMSON, OPTIONUSECMSG };
-
-		String[] spinnerTitlesONLYSMS = { OPTION0, OPTIONCHATON, OPTIONSECSMS };
-		String[] spinnerTitlesONLYSMSChat = { OPTION0, OPTIONCHATOFF,
-				OPTIONSECSMS };
-
-		// Populate the spinner using a customized ArrayAdapter that hides the
-		// first (dummy) entry
-		final ArrayAdapter<String> dataAdapter = getMyDataAdatpter(spinnerTitles);
-		final ArrayAdapter<String> dataAdapterChat = getMyDataAdatpter(spinnerTitlesChat);
-		final ArrayAdapter<String> dataAdapterSMS = getMyDataAdatpter(spinnerTitlesSMS);
-		final ArrayAdapter<String> dataAdapterChatSMS = getMyDataAdatpter(spinnerTitlesSMSChat);
-		final ArrayAdapter<String> dataAdapterNOSMS = getMyDataAdatpter(spinnerTitlesNOSMS);
-		final ArrayAdapter<String> dataAdapterNOSMSChat = getMyDataAdatpter(spinnerTitlesNOSMSChat);
-		final ArrayAdapter<String> dataAdapterONLYSMS = getMyDataAdatpter(spinnerTitlesONLYSMS);
-		final ArrayAdapter<String> dataAdapterONLYSMSChat = getMyDataAdatpter(spinnerTitlesONLYSMSChat);
-
-		updateSendspinner(context, dataAdapter, dataAdapterChat,
-				dataAdapterSMS, dataAdapterChatSMS, dataAdapterNOSMS,
-				dataAdapterNOSMSChat, dataAdapterONLYSMS,
-				dataAdapterONLYSMSChat);
-
-		sendspinner.setOnItemSelectedListener(new OnItemSelectedListener() {
-			public void onItemSelected(AdapterView<?> arg0, View arg1,
-					int arg2, long arg3) {
-				Object object = sendspinner.getSelectedItem();
-				if (object instanceof String) {
-					String option = (String) object;
-					if (option.equals(OPTIONCHATON)
-							|| (option.equals(OPTIONCHATOFF))) {
-						boolean chatmodeOn = Utility.loadBooleanSetting(
-								context, Setup.OPTION_CHATMODE,
-								Setup.DEFAULT_CHATMODE);
-						chatmodeOn = !chatmodeOn;
-						Utility.saveBooleanSetting(context,
-								Setup.OPTION_CHATMODE, chatmodeOn);
-						updateSendspinner(context, dataAdapter,
-								dataAdapterChat, dataAdapterSMS,
-								dataAdapterChatSMS, dataAdapterNOSMS,
-								dataAdapterNOSMSChat, dataAdapterONLYSMS,
-								dataAdapterONLYSMSChat);
-						if (chatmodeOn) {
-							Utility.showToastAsync(context,
-									"Chat mode enabled.");
-						} else {
-							Utility.showToastAsync(context,
-									"Chat mode disabled.");
-						}
-					} else if (option.equals(OPTIONSMSON)
-							|| (option.equals(OPTIONSMSOFF))) {
-						boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
-						boolean haveTelephoneNumber = Setup.havePhone(context,
-								hostUid);
-						if (!smsmodeOn && !haveTelephoneNumber) {
-							if (Setup.isSMSOptionEnabled(context)) {
-								inviteOtherUserToSMSMode(context);
-							} else {
-								inviteUserToSMSMode(context);
-							}
-						} else {
-							// normal toggle mode
-							smsmodeOn = !smsmodeOn;
-							Utility.saveBooleanSetting(context,
-									Setup.OPTION_SMSMODE + hostUid, smsmodeOn);
-							updateSendspinner(context, dataAdapter,
-									dataAdapterChat, dataAdapterSMS,
-									dataAdapterChatSMS, dataAdapterNOSMS,
-									dataAdapterNOSMSChat, dataAdapterONLYSMS,
-									dataAdapterONLYSMSChat);
-							if (smsmodeOn) {
-								Utility.showToastAsync(
-										context,
-										"SMS mode for "
-												+ Main.UID2Name(context,
-														hostUid, false)
-												+ " enabled.");
-							} else {
-								Utility.showToastAsync(
-										context,
-										"SMS mode for "
-												+ Main.UID2Name(context,
-														hostUid, false)
-												+ " disabled.");
-							}
-						}
-					} else if (option.equals(OPTIONCOPY)) {
-						String text = messageText.getText().toString();
-						Utility.copyToClipboard(context, text);
-						messageText.selectAll();
-					} else if (option.equals(OPTIONPASTE)) {
-						String text = Utility.pasteFromClipboard(context);
-						int i = messageText.getSelectionStart();
-						if (text != null) {
-							String prevText = messageText.getText().toString();
-							if (i < 0) {
-								// default fallback is concatenation
-								messageText.setText(prevText + text);
-							} else {
-								// otherwise try to fill in the text
-								messageText.setText(prevText.substring(0, i)
-										+ text + prevText.substring(i));
-							}
-							messageText.setSelection(text.length()
-									+ prevText.length());
-						}
-					} else if (option.equals(OPTIONSECSMS)) {
-						if (hostUid >= 0) {
-							sendSecureSms(context);
-						} else {
-							promptInfo(
-									context,
-									"No Registered User",
-									"In order to send secure encrypted SMS or messages, your communication partner needs to be registered.");
-						}
-					} else if (option.equals(OPTIONSECMSG)) {
-						if (Setup.haveKey(context, hostUid)) {
-							sendSecureMsg(context);
-						} else {
-							promptInfo(
-									context,
-									"No Encryption Possible",
-									"In order to send secure encrypted messages or SMS, your communication partner needs to enable encryption.");
-
-						}
-					} else if (option.equals(OPTIONUSECMSG)) {
-						sendUnsecureMsg(context);
-					} else if (option.equals(OPTIONUSECSMS)) {
-						sendUnsecureSms(context);
-					}
-				}
-				sendspinner.setSelection(0);
-			}
-
-			public void onNothingSelected(AdapterView<?> arg0) {
-				//
-			}
-		});
-		sendspinner.setSelection(0);
-		// END SET SENDSPINNER
-
-	}
-
-	// -------------------------------
-
-	/**
-	 * Update sendspinner.
-	 * 
-	 * @param context
-	 *            the context
-	 * @param dataAdapter
-	 *            the data adapter
-	 * @param dataAdapterChat
-	 *            the data adapter chat
-	 * @param dataAdapterSMS
-	 *            the data adapter sms
-	 * @param dataAdapterChatSMS
-	 *            the data adapter chat sms
-	 * @param dataAdapterNOSMS
-	 *            the data adapter nosms
-	 * @param dataAdapterNOSMSChat
-	 *            the data adapter nosms chat
-	 * @param dataAdapterONLYSMS
-	 *            the data adapter onlysms
-	 * @param dataAdapterONLYSMSChat
-	 *            the data adapter onlysms chat
-	 */
-	private void updateSendspinner(Context context,
-			ArrayAdapter<String> dataAdapter,
-			ArrayAdapter<String> dataAdapterChat,
-			ArrayAdapter<String> dataAdapterSMS,
-			ArrayAdapter<String> dataAdapterChatSMS,
-			ArrayAdapter<String> dataAdapterNOSMS,
-			ArrayAdapter<String> dataAdapterNOSMSChat,
-			ArrayAdapter<String> dataAdapterONLYSMS,
-			ArrayAdapter<String> dataAdapterONLYSMSChat) {
-		boolean chatmodeOn = Utility.loadBooleanSetting(context,
-				Setup.OPTION_CHATMODE, Setup.DEFAULT_CHATMODE);
-		boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
-		boolean havephonenumber = Setup.havePhone(context, hostUid);
-		boolean onlySMS = hostUid < 0;
-
-		if (onlySMS) {
-			// only SMS mode available
-			if (chatmodeOn) {
-				sendspinner.setAdapter(dataAdapterONLYSMSChat);
-			} else {
-				sendspinner.setAdapter(dataAdapterONLYSMS);
-			}
-		} else if (!havephonenumber) {
-			// no SMS mode available
-			if (chatmodeOn) {
-				sendspinner.setAdapter(dataAdapterNOSMSChat);
-			} else {
-				sendspinner.setAdapter(dataAdapterNOSMS);
-			}
-		} else {
-			// sms mode available
-			if (smsmodeOn) {
-				// sms mode on
-				if (chatmodeOn) {
-					sendspinner.setAdapter(dataAdapterChatSMS);
-				} else {
-					sendspinner.setAdapter(dataAdapterSMS);
-				}
-			} else {
-				// normal : sms mode off
-				if (chatmodeOn) {
-					sendspinner.setAdapter(dataAdapterChat);
-				} else {
-					sendspinner.setAdapter(dataAdapter);
-				}
-			}
-		}
-		updateSendButtonImage(context);
-	}
-
-	// -------------------------------
-
-	/**
-	 * Gets the my data adatpter.
-	 * 
-	 * @param titles
-	 *            the titles
-	 * @return the my data adatpter
-	 */
-	ArrayAdapter<String> getMyDataAdatpter(String[] titles) {
-		final ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
-				android.R.layout.simple_spinner_dropdown_item, titles) {
-			@Override
-			public View getDropDownView(int position, View convertView,
-					ViewGroup parent) {
-				View v = null;
-
-				// If this is the initial dummy entry, make it hidden
-				if (position == 0) {
-					TextView tv = new TextView(getContext());
-					tv.setHeight(0);
-					tv.setVisibility(View.GONE);
-					v = tv;
-				} else {
-					// Pass convertView as null to prevent reuse of special case
-					// views
-					v = super.getDropDownView(position, null, parent);
-				}
-
-				// Hide scroll bar because it appears sometimes unnecessarily,
-				// this does not prevent scrolling
-				parent.setVerticalScrollBarEnabled(false);
-				return v;
-			}
-		};
-		return dataAdapter;
-	}
-
 	// ------------------------------------------------------------------------
-
-	/**
-	 * Invite other user.
-	 * 
-	 * @param context
-	 *            the context
-	 */
-	private void inviteOtherUserToSMSMode(final Context context) {
-		// possibly read other ones telephone number
-		// at this poiint
-		Communicator.updatePhonesFromServer(context, Main.loadUIDList(context),
-				true);
-
-		final String titleMessage = "Enable SMS";
-		String partner = Main.UID2Name(context, hostUid, false);
-		final String textMessage = "Delphino Cryptocator also allows to send/receive secure encrypted SMS.\n\nTo be able to use this option both communication partners have to turn this feature on.\n\nCurrently '"
-				+ partner
-				+ "' seems not to have turned on this feature. If you know '"
-				+ partner
-				+ "' has turned it on, try to refresh your userlist manually.\n\nAlternative: You can long press on the name '"
-				+ partner
-				+ "' in the userlist and add her/his phone number manually.";
-		new MessageAlertDialog(context, titleMessage, textMessage, " Ok ",
-				null, null, new MessageAlertDialog.OnSelectionListener() {
-					public void selected(int button, boolean cancel) {
-					}
-				}).show();
-	}
-
-	/**
-	 * Invite current user to sms mode.
-	 * 
-	 * @param context
-	 *            the context
-	 */
-	private void inviteUserToSMSMode(final Context context) {
-		try {
-			final String titleMessage = "Enable SMS";
-			final String textMessage = "Delphino Cryptocator also allows to send/receive secure encrypted SMS.\n\nFor this, your phone number and your userlist must be stored at the server. Furthermore, to be able to use this option both communication partners have to turn this feature on.\n\nDo you want to enable the secure SMS possibility?";
-			new MessageAlertDialog(context, titleMessage, textMessage, " Yes ",
-					" Account ", " Cancel ",
-					new MessageAlertDialog.OnSelectionListener() {
-						public void selected(int button, boolean cancel) {
-							if (!cancel) {
-								if (button == 0) {
-									// turn on if possible
-									String phone = Utility
-											.getPhoneNumber(context);
-									if (phone != null && phone.length() > 0) {
-										Setup.updateSMSOption(context, true);
-										Setup.backup(context, true, false);
-										// possibly read other ones telephone
-										// number
-										// at this poiint
-										Communicator.updatePhonesFromServer(
-												context,
-												Main.loadUIDList(context), true);
-									} else {
-										Utility.showToastAsync(
-												context,
-												"Cannot automatically read required phone number. Please enable SMS option manually in account settings after login!");
-										// go to account settings
-										Main.startAccount(context);
-									}
-								} else if (button == 1) {
-									// go to account settings
-									Main.startAccount(context);
-								}
-							}
-						}
-					}).show();
-		} catch (Exception e) {
-			// ignore
-		}
-	}
-
-	// ------------------------------------------------------------------------
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Send unsecure sms.
-	 * 
-	 * @param context
-	 *            the context
-	 */
-	private void sendUnsecureSms(Context context) {
-		String messageTextString = messageText.getText().toString();
-		if (messageTextString.trim().length() > 0) {
-			String phone = Setup.getPhone(context, hostUid);
-			if (phone != null && phone.length() > 0) {
-				if (DB.addSendMessage(context, hostUid, messageTextString,
-						false, DB.TRANSPORT_SMS, false, DB.PRIORITY_MESSAGE)) {
-					updateConversationlist(context);
-					Communicator.sendNewNextMessageAsync(context,
-							DB.TRANSPORT_SMS);
-					messageText.setText("");
-				}
-			}
-		}
-	}
-
-	/**
-	 * Send secure sms.
-	 * 
-	 * @param context
-	 *            the context
-	 */
-	private void sendSecureSms(Context context) {
-		String messageTextString = messageText.getText().toString();
-		if (messageTextString.trim().length() > 0) {
-			boolean encrypted = Setup.encryptedSentPossible(context, hostUid);
-			String phone = Setup.getPhone(context, hostUid);
-			if (phone != null && phone.length() > 0) {
-				if (DB.addSendMessage(context, hostUid, messageTextString,
-						encrypted, DB.TRANSPORT_SMS, false, DB.PRIORITY_MESSAGE)) {
-					updateConversationlist(context);
-					Communicator.sendNewNextMessageAsync(context,
-							DB.TRANSPORT_SMS);
-					messageText.setText("");
-				}
-			}
-		}
-	}
-
-	/**
-	 * Send secure msg.
-	 * 
-	 * @param context
-	 *            the context
-	 */
-	private void sendSecureMsg(Context context) {
-		if (messageText.getText().toString().trim().length() > 0) {
-			boolean encrypted = Setup.encryptedSentPossible(context, hostUid);
-			if (DB.addSendMessage(context, hostUid, messageText.getText()
-					.toString(), encrypted, DB.TRANSPORT_INTERNET, false,
-					DB.PRIORITY_MESSAGE)) {
-				updateConversationlist(context);
-				Communicator.sendNewNextMessageAsync(context,
-						DB.TRANSPORT_INTERNET);
-				messageText.setText("");
-			}
-		}
-	}
-
-	/**
-	 * Send unsecure msg.
-	 * 
-	 * @param context
-	 *            the context
-	 */
-	private void sendUnsecureMsg(Context context) {
-		if (messageText.getText().toString().trim().length() > 0) {
-			boolean encrypted = false;
-			if (DB.addSendMessage(context, hostUid, messageText.getText()
-					.toString(), encrypted, DB.TRANSPORT_INTERNET, false,
-					DB.PRIORITY_MESSAGE)) {
-				// Log.d("communicator",
-				// "successfully added to DB");
-				updateConversationlist(context);
-				Communicator.sendNewNextMessageAsync(context,
-						DB.TRANSPORT_INTERNET);
-			} else {
-				// Log.d("communicator", "not added to DB");
-			}
-			messageText.setText("");
-		}
-	}
-
-	// ------------------------------------------------------------------------
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Sets the title.
-	 * 
-	 * @param title
-	 *            the new title
-	 */
-	public void setTitle(String title) {
-		TextView titletext = (TextView) findViewById(R.id.titletext);
-		titletext.setText(title);
-	}
 
 	/*
 	 * (non-Javadoc)
@@ -708,13 +219,13 @@ public class Conversation extends Activity {
 		inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
 		// Apply custom title bar (with holo :-)
+		// See comment in Main.java
 		LinearLayout main = Utility.setContentViewWithCustomTitle(this,
 				R.layout.activity_conversation, R.layout.title_conversation);
 		main.setGravity(Gravity.BOTTOM);
-		Utility.setBackground(this, main, R.drawable.dolphins2);
 		titleconversation = (LinearLayout) findViewById(R.id.titleconversation);
-		Utility.setBackground(this, titleconversation, R.drawable.dolphins3blue);
 
+		// Add title bar buttons
 		ImagePressButton btnback = (ImagePressButton) findViewById(R.id.btnback);
 		btnback.initializePressImageResource(R.drawable.btnback);
 		LinearLayout btnbackparent = (LinearLayout) findViewById(R.id.btnbackparent);
@@ -831,7 +342,7 @@ public class Conversation extends Activity {
 
 		});
 
-		// possibly load draft
+		// Possibly load draft
 		String draft = Utility.loadStringSetting(this, "cachedraft" + hostUid,
 				"");
 		if (draft != null && draft.length() > 0) {
@@ -840,8 +351,13 @@ public class Conversation extends Activity {
 			Utility.saveStringSetting(this, "cachedraft" + hostUid, "");
 		}
 
+		// Here we initialize / rebuild the complete (visible) conversation
+		// list.
 		rebuildConversationlist(context);
 
+		// Setting backgrounds
+		Utility.setBackground(this, main, R.drawable.dolphins2);
+		Utility.setBackground(this, titleconversation, R.drawable.dolphins3blue);
 		View inputLayout = ((View) findViewById(R.id.inputlayout));
 		conversationRootView = (View) findViewById(R.id.conversationRootView);
 		Utility.setBackground(this, conversationRootView, R.drawable.dolphins2);
@@ -849,14 +365,12 @@ public class Conversation extends Activity {
 
 		// DO NOT SCROLL HERE BECAUSE onResume() WILL DO THIS.
 		// onResume() is ALWAYS called if the user starts OR returns to the APP!
-		// scrollOnCreateOrResume(context);
+		// DO NOT -> scrollOnCreateOrResume(context);
 
-		// snap to 100% if >90%
+		// Snap to 100% if >90%
 		fastScrollView.setSnapDown(85);
 		fastScrollView.setSnapUp(10);
 
-		// scrollView = (ScrollViewEx)
-		// findViewById(R.id.conversationscrollview);
 		fastScrollView
 				.setOnScrollListener(new FastScrollView.OnScrollListener() {
 
@@ -883,7 +397,6 @@ public class Conversation extends Activity {
 							scrolledUp = false;
 							scrolledDown = false;
 							fastScrollView.setScrollBackground(R.color.gray);
-							// fastScrollView.setScrollBackground(Color.parseColor(SCROLLNORMALCOLOR));
 						}
 						scrollItem = item;
 
@@ -892,11 +405,12 @@ public class Conversation extends Activity {
 						// + ", percent=" + percent + ", item="
 						// + item + ", getMaxPosition="
 						// + fastScrollView.getMaxPosition());
-						Log.d("communicator",
-								"@@@@ onScrollRested() :  scrollItem = "
-										+ scrollItem + ", percent=" + percent
-										+ ", scrolledUp=" + scrolledUp
-										+ ", scrolledDown=" + scrolledDown);
+
+						// Log.d("communicator",
+						// "@@@@ onScrollRested() :  scrollItem = "
+						// + scrollItem + ", percent=" + percent
+						// + ", scrolledUp=" + scrolledUp
+						// + ", scrolledDown=" + scrolledDown);
 
 						// switch back to normal title
 						updateConversationTitleAsync(context);
@@ -957,22 +471,32 @@ public class Conversation extends Activity {
 										+ heightDifference + ", scrolledDown="
 										+ scrolledDown);
 
-						if (messageText.length() == 0) {
-							messageTextEmptyHeight = messageText.getHeight();
-						}
-						if (isKeyboardVisible(conversationRootView)) {
-							if (!scrolledUp
-									&& messageText.getHeight() > messageTextEmptyHeight) {
-								// if scrolled up completely, we want to show it
-								// even with keyboard visible!
-								// also, if this is an empty or one-line message
-								// we want to see the titlebar! (e.g., directly
-								// after sending)
-								titleconversation.setVisibility(View.GONE);
-							}
-						} else {
-							titleconversation.setVisibility(View.VISIBLE);
-						}
+						// THE FOLLOWING IS A FEATURE TO HIDE THE TITLE IF THE
+						// MESSAGE TEXT GETS LONGER
+						//
+						// IT IS DEACTIVATED RIGHT NOW BECAUSE IT FEELS
+						// UNCOMFORTABLE IF THE BACK BUTTON
+						// AND TITLE BAR IS MISSING ESP. FOR SHORT MESSAGES. MAY
+						// BE REACTIVATE THIS FEATURE
+						// AT A LATER TIME BUT MAKE SURE TO BE PERFORMANT!
+						//
+						// if (messageText.length() == 0) {
+						// messageTextEmptyHeight = messageText.getHeight();
+						// }
+						// if (isKeyboardVisible(conversationRootView)) {
+						// if (!scrolledUp
+						// && messageText.getHeight() > messageTextEmptyHeight)
+						// {
+						// // if scrolled up completely, we want to show it
+						// // even with keyboard visible!
+						// // also, if this is an empty or one-line message
+						// // we want to see the titlebar! (e.g., directly
+						// // after sending)
+						// titleconversation.setVisibility(View.GONE);
+						// }
+						// } else {
+						// titleconversation.setVisibility(View.VISIBLE);
+						// }
 
 						boolean showKeyboard = false;
 						if (Utility
@@ -998,8 +522,499 @@ public class Conversation extends Activity {
 
 	}
 
-	/** The last height. */
-	int lastHeight = 0;
+	// ------------------------------------------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onStart()
+	 */
+	@Override
+	protected void onStart() {
+		super.onStart();
+		final Context context = this;
+
+		// SET SENDSPINNER
+		sendspinner = (Spinner) findViewById(R.id.sendspinner);
+
+		// NOT DISPLAYED BY DATA ADAPTER!!!
+		final String OPTION0 = "SELECT AN OPTIONS";
+
+		final String OPTIONCHATON = "  Enable Chat Mode";
+		final String OPTIONCHATOFF = "  Disable Chat Mode";
+		final String OPTIONSMSON = "  Enable SMS Mode";
+		final String OPTIONSMSOFF = "  Disable SMS Mode";
+		final String OPTIONUSECMSG = "  Send Unsecure Message";
+		final String OPTIONSECMSG = "  Send Secure Message";
+		final String OPTIONUSECSMS = "  Send Unsecure SMS";
+		final String OPTIONSECSMS = "  Send Secure SMS";
+
+		String[] spinnerTitles = { OPTION0, OPTIONCHATON, OPTIONSMSON,
+				OPTIONUSECSMS, OPTIONSECSMS, OPTIONUSECMSG };
+		String[] spinnerTitlesChat = { OPTION0, OPTIONCHATOFF, OPTIONSMSON,
+				OPTIONUSECSMS, OPTIONSECSMS, OPTIONUSECMSG };
+
+		String[] spinnerTitlesSMS = { OPTION0, OPTIONCHATON, OPTIONSMSOFF,
+				OPTIONUSECMSG, OPTIONSECMSG, OPTIONUSECSMS };
+		String[] spinnerTitlesSMSChat = { OPTION0, OPTIONCHATOFF, OPTIONSMSOFF,
+				OPTIONUSECMSG, OPTIONSECMSG, OPTIONUSECSMS };
+
+		String[] spinnerTitlesNOSMS = { OPTION0, OPTIONCHATON, OPTIONSMSON,
+				OPTIONUSECMSG };
+		String[] spinnerTitlesNOSMSChat = { OPTION0, OPTIONCHATOFF,
+				OPTIONSMSON, OPTIONUSECMSG };
+
+		String[] spinnerTitlesONLYSMS = { OPTION0, OPTIONCHATON, OPTIONSECSMS };
+		String[] spinnerTitlesONLYSMSChat = { OPTION0, OPTIONCHATOFF,
+				OPTIONSECSMS };
+
+		// Populate the spinner using a customized ArrayAdapter that hides the
+		// first (dummy) entry
+		final ArrayAdapter<String> dataAdapter = getMyDataAdapter(spinnerTitles);
+		final ArrayAdapter<String> dataAdapterChat = getMyDataAdapter(spinnerTitlesChat);
+		final ArrayAdapter<String> dataAdapterSMS = getMyDataAdapter(spinnerTitlesSMS);
+		final ArrayAdapter<String> dataAdapterChatSMS = getMyDataAdapter(spinnerTitlesSMSChat);
+		final ArrayAdapter<String> dataAdapterNOSMS = getMyDataAdapter(spinnerTitlesNOSMS);
+		final ArrayAdapter<String> dataAdapterNOSMSChat = getMyDataAdapter(spinnerTitlesNOSMSChat);
+		final ArrayAdapter<String> dataAdapterONLYSMS = getMyDataAdapter(spinnerTitlesONLYSMS);
+		final ArrayAdapter<String> dataAdapterONLYSMSChat = getMyDataAdapter(spinnerTitlesONLYSMSChat);
+
+		updateSendspinner(context, dataAdapter, dataAdapterChat,
+				dataAdapterSMS, dataAdapterChatSMS, dataAdapterNOSMS,
+				dataAdapterNOSMSChat, dataAdapterONLYSMS,
+				dataAdapterONLYSMSChat);
+
+		sendspinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+			public void onItemSelected(AdapterView<?> arg0, View arg1,
+					int arg2, long arg3) {
+				Object object = sendspinner.getSelectedItem();
+				if (object instanceof String) {
+					String option = (String) object;
+					if (option.equals(OPTIONCHATON)
+							|| (option.equals(OPTIONCHATOFF))) {
+						boolean chatmodeOn = Utility.loadBooleanSetting(
+								context, Setup.OPTION_CHATMODE,
+								Setup.DEFAULT_CHATMODE);
+						chatmodeOn = !chatmodeOn;
+						Utility.saveBooleanSetting(context,
+								Setup.OPTION_CHATMODE, chatmodeOn);
+						updateSendspinner(context, dataAdapter,
+								dataAdapterChat, dataAdapterSMS,
+								dataAdapterChatSMS, dataAdapterNOSMS,
+								dataAdapterNOSMSChat, dataAdapterONLYSMS,
+								dataAdapterONLYSMSChat);
+						if (chatmodeOn) {
+							Utility.showToastAsync(context,
+									"Chat mode enabled.");
+						} else {
+							Utility.showToastAsync(context,
+									"Chat mode disabled.");
+						}
+					} else if (option.equals(OPTIONSMSON)
+							|| (option.equals(OPTIONSMSOFF))) {
+						boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
+						boolean haveTelephoneNumber = Setup.havePhone(context,
+								hostUid);
+						if (!smsmodeOn && !haveTelephoneNumber) {
+							if (Setup.isSMSOptionEnabled(context)) {
+								inviteOtherUserToSMSMode(context);
+							} else {
+								inviteUserToSMSMode(context);
+							}
+						} else {
+							// normal toggle mode
+							smsmodeOn = !smsmodeOn;
+							Utility.saveBooleanSetting(context,
+									Setup.OPTION_SMSMODE + hostUid, smsmodeOn);
+							updateSendspinner(context, dataAdapter,
+									dataAdapterChat, dataAdapterSMS,
+									dataAdapterChatSMS, dataAdapterNOSMS,
+									dataAdapterNOSMSChat, dataAdapterONLYSMS,
+									dataAdapterONLYSMSChat);
+							if (smsmodeOn) {
+								Utility.showToastAsync(
+										context,
+										"SMS mode for "
+												+ Main.UID2Name(context,
+														hostUid, false)
+												+ " enabled.");
+							} else {
+								Utility.showToastAsync(
+										context,
+										"SMS mode for "
+												+ Main.UID2Name(context,
+														hostUid, false)
+												+ " disabled.");
+							}
+						}
+						// COPY AND PASTE FEATURES ARE CURRENTLY DISABLED FOR A
+						// CLEANER UI
+						//
+						// } else if (option.equals(OPTIONCOPY)) {
+						// String text = messageText.getText().toString();
+						// Utility.copyToClipboard(context, text);
+						// messageText.selectAll();
+						// } else if (option.equals(OPTIONPASTE)) {
+						// String text = Utility.pasteFromClipboard(context);
+						// int i = messageText.getSelectionStart();
+						// if (text != null) {
+						// String prevText = messageText.getText().toString();
+						// if (i < 0) {
+						// // default fallback is concatenation
+						// messageText.setText(prevText + text);
+						// } else {
+						// // otherwise try to fill in the text
+						// messageText.setText(prevText.substring(0, i)
+						// + text + prevText.substring(i));
+						// }
+						// messageText.setSelection(text.length()
+						// + prevText.length());
+						// }
+					} else if (option.equals(OPTIONSECSMS)) {
+						if (hostUid >= 0) {
+							sendSecureSms(context);
+						} else {
+							promptInfo(
+									context,
+									"No Registered User",
+									"In order to send secure encrypted SMS or messages, your communication partner needs to be registered.");
+						}
+					} else if (option.equals(OPTIONSECMSG)) {
+						if (Setup.haveKey(context, hostUid)) {
+							sendSecureMsg(context);
+						} else {
+							promptInfo(
+									context,
+									"No Encryption Possible",
+									"In order to send secure encrypted messages or SMS, your communication partner needs to enable encryption.");
+
+						}
+					} else if (option.equals(OPTIONUSECMSG)) {
+						sendUnsecureMsg(context);
+					} else if (option.equals(OPTIONUSECSMS)) {
+						sendUnsecureSms(context);
+					}
+				}
+				sendspinner.setSelection(0);
+			}
+
+			public void onNothingSelected(AdapterView<?> arg0) {
+				//
+			}
+		});
+		sendspinner.setSelection(0);
+		// END SET SENDSPINNER
+
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the host uid of the current conversation.
+	 * 
+	 * @return the host uid
+	 */
+	public static int getHostUid() {
+		return hostUid;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Update send spinner (context menu for the send button).
+	 * 
+	 * @param context
+	 *            the context
+	 * @param dataAdapter
+	 *            the data adapter
+	 * @param dataAdapterChat
+	 *            the data adapter chat
+	 * @param dataAdapterSMS
+	 *            the data adapter sms
+	 * @param dataAdapterChatSMS
+	 *            the data adapter chat sms
+	 * @param dataAdapterNOSMS
+	 *            the data adapter nosms
+	 * @param dataAdapterNOSMSChat
+	 *            the data adapter nosms chat
+	 * @param dataAdapterONLYSMS
+	 *            the data adapter onlysms
+	 * @param dataAdapterONLYSMSChat
+	 *            the data adapter onlysms chat
+	 */
+	private void updateSendspinner(Context context,
+			ArrayAdapter<String> dataAdapter,
+			ArrayAdapter<String> dataAdapterChat,
+			ArrayAdapter<String> dataAdapterSMS,
+			ArrayAdapter<String> dataAdapterChatSMS,
+			ArrayAdapter<String> dataAdapterNOSMS,
+			ArrayAdapter<String> dataAdapterNOSMSChat,
+			ArrayAdapter<String> dataAdapterONLYSMS,
+			ArrayAdapter<String> dataAdapterONLYSMSChat) {
+		boolean chatmodeOn = Utility.loadBooleanSetting(context,
+				Setup.OPTION_CHATMODE, Setup.DEFAULT_CHATMODE);
+		boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
+		boolean havephonenumber = Setup.havePhone(context, hostUid);
+		boolean onlySMS = hostUid < 0;
+
+		if (onlySMS) {
+			// only SMS mode available
+			if (chatmodeOn) {
+				sendspinner.setAdapter(dataAdapterONLYSMSChat);
+			} else {
+				sendspinner.setAdapter(dataAdapterONLYSMS);
+			}
+		} else if (!havephonenumber) {
+			// no SMS mode available
+			if (chatmodeOn) {
+				sendspinner.setAdapter(dataAdapterNOSMSChat);
+			} else {
+				sendspinner.setAdapter(dataAdapterNOSMS);
+			}
+		} else {
+			// sms mode available
+			if (smsmodeOn) {
+				// sms mode on
+				if (chatmodeOn) {
+					sendspinner.setAdapter(dataAdapterChatSMS);
+				} else {
+					sendspinner.setAdapter(dataAdapterSMS);
+				}
+			} else {
+				// normal : sms mode off
+				if (chatmodeOn) {
+					sendspinner.setAdapter(dataAdapterChat);
+				} else {
+					sendspinner.setAdapter(dataAdapter);
+				}
+			}
+		}
+		updateSendButtonImage(context);
+	}
+
+	// -------------------------------
+
+	/**
+	 * Gets the my data adapter for the send spinner.
+	 * 
+	 * @param titles
+	 *            the titles
+	 * @return the my data adapter
+	 */
+	ArrayAdapter<String> getMyDataAdapter(String[] titles) {
+		final ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
+				android.R.layout.simple_spinner_dropdown_item, titles) {
+			@Override
+			public View getDropDownView(int position, View convertView,
+					ViewGroup parent) {
+				View v = null;
+
+				// If this is the initial dummy entry, make it hidden
+				if (position == 0) {
+					TextView tv = new TextView(getContext());
+					tv.setHeight(0);
+					tv.setVisibility(View.GONE);
+					v = tv;
+				} else {
+					// Pass convertView as null to prevent reuse of special case
+					// views
+					v = super.getDropDownView(position, null, parent);
+				}
+
+				// Hide scroll bar because it appears sometimes unnecessarily,
+				// this does not prevent scrolling
+				parent.setVerticalScrollBarEnabled(false);
+				return v;
+			}
+		};
+		return dataAdapter;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Invite other user to enable his SMS mode.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void inviteOtherUserToSMSMode(final Context context) {
+		// Possibly read other ones telephone number
+		// at this point
+		Communicator.updatePhonesFromServer(context, Main.loadUIDList(context),
+				true);
+
+		final String titleMessage = "Enable SMS";
+		String partner = Main.UID2Name(context, hostUid, false);
+		final String textMessage = "Delphino Cryptocator also allows to send/receive secure encrypted SMS.\n\nTo be able to use this option both communication partners have to turn this feature on.\n\nCurrently '"
+				+ partner
+				+ "' seems not to have turned on this feature. If you know '"
+				+ partner
+				+ "' has turned it on, try to refresh your userlist manually.\n\nAlternative: You can long press on the name '"
+				+ partner
+				+ "' in the userlist and add her/his phone number manually. This will just enable you to send him SMS.";
+		new MessageAlertDialog(context, titleMessage, textMessage, " Ok ",
+				null, null, new MessageAlertDialog.OnSelectionListener() {
+					public void selected(int button, boolean cancel) {
+					}
+				}).show();
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Invite current user to sms mode.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void inviteUserToSMSMode(final Context context) {
+		try {
+			final String titleMessage = "Enable SMS";
+			final String textMessage = "Delphino Cryptocator also allows to send/receive secure encrypted SMS.\n\nFor this, your phone number and your userlist must be stored at the server. Furthermore, to be able to use this option both communication partners have to turn this feature on.\n\nDo you want to enable the secure SMS possibility?";
+			new MessageAlertDialog(context, titleMessage, textMessage, " Yes ",
+					" Account ", " Cancel ",
+					new MessageAlertDialog.OnSelectionListener() {
+						public void selected(int button, boolean cancel) {
+							if (!cancel) {
+								if (button == 0) {
+									// Turn on if possible
+									String phone = Utility
+											.getPhoneNumber(context);
+									if (phone != null && phone.length() > 0) {
+										Setup.updateSMSOption(context, true);
+										Setup.backup(context, true, false);
+										// Possibly read other ones telephone
+										// number at this poiint
+										Communicator.updatePhonesFromServer(
+												context,
+												Main.loadUIDList(context), true);
+									} else {
+										Utility.showToastAsync(
+												context,
+												"Cannot automatically read required phone number. Please enable SMS option manually in account settings after login/validate!");
+										// Go to account settings
+										Main.startAccount(context);
+									}
+								} else if (button == 1) {
+									// Go to account settings
+									Main.startAccount(context);
+								}
+							}
+						}
+					}).show();
+		} catch (Exception e) {
+			// ignore
+		}
+	}
+
+	// ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Send unsecure sms.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void sendUnsecureSms(Context context) {
+		String messageTextString = messageText.getText().toString();
+		if (messageTextString.trim().length() > 0) {
+			String phone = Setup.getPhone(context, hostUid);
+			if (phone != null && phone.length() > 0) {
+				if (DB.addSendMessage(context, hostUid, messageTextString,
+						false, DB.TRANSPORT_SMS, false, DB.PRIORITY_MESSAGE)) {
+					updateConversationlist(context);
+					Communicator.sendNewNextMessageAsync(context,
+							DB.TRANSPORT_SMS);
+					messageText.setText("");
+				}
+			}
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Send secure sms.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void sendSecureSms(Context context) {
+		String messageTextString = messageText.getText().toString();
+		if (messageTextString.trim().length() > 0) {
+			boolean encrypted = Setup.encryptedSentPossible(context, hostUid);
+			String phone = Setup.getPhone(context, hostUid);
+			if (phone != null && phone.length() > 0) {
+				if (DB.addSendMessage(context, hostUid, messageTextString,
+						encrypted, DB.TRANSPORT_SMS, false, DB.PRIORITY_MESSAGE)) {
+					updateConversationlist(context);
+					Communicator.sendNewNextMessageAsync(context,
+							DB.TRANSPORT_SMS);
+					messageText.setText("");
+				}
+			}
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Send secure msg.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void sendSecureMsg(Context context) {
+		if (messageText.getText().toString().trim().length() > 0) {
+			boolean encrypted = Setup.encryptedSentPossible(context, hostUid);
+			if (DB.addSendMessage(context, hostUid, messageText.getText()
+					.toString(), encrypted, DB.TRANSPORT_INTERNET, false,
+					DB.PRIORITY_MESSAGE)) {
+				updateConversationlist(context);
+				Communicator.sendNewNextMessageAsync(context,
+						DB.TRANSPORT_INTERNET);
+				messageText.setText("");
+			}
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Send unsecure msg.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void sendUnsecureMsg(Context context) {
+		if (messageText.getText().toString().trim().length() > 0) {
+			boolean encrypted = false;
+			if (DB.addSendMessage(context, hostUid, messageText.getText()
+					.toString(), encrypted, DB.TRANSPORT_INTERNET, false,
+					DB.PRIORITY_MESSAGE)) {
+				updateConversationlist(context);
+				Communicator.sendNewNextMessageAsync(context,
+						DB.TRANSPORT_INTERNET);
+			}
+			messageText.setText("");
+		}
+	}
+
+	// ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sets the title of the conversation custom title bar.
+	 * 
+	 * @param title
+	 *            the new title
+	 */
+	public void setTitle(String title) {
+		TextView titletext = (TextView) findViewById(R.id.titletext);
+		titletext.setText(title);
+	}
 
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
@@ -1021,7 +1036,7 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Checks if is SMS mode available (because we habe a telephone number) and
+	 * Checks if is SMS mode available (because we have a telephone number) and
 	 * if the mode is and on.
 	 * 
 	 * @param context
@@ -1036,7 +1051,9 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Update send button image.
+	 * Update send button image according to the possible enabled SMS mode and
+	 * according to the communication partner. For an unregistered user there
+	 * will only be SMS sending available.
 	 * 
 	 * @param context
 	 *            the context
@@ -1071,34 +1088,36 @@ public class Conversation extends Activity {
 	// "If the process is killed then all static variables will be reinitialized to their default values."
 
 	/** The instance. */
-	// private static boolean visible;
 	private static Conversation instance = null;
 
 	/** The visible. */
 	private static boolean visible = false;
 
-	/** The last key stroke. */
-	// Only written from Conversation and ConversationCompose
+	/**
+	 * The last key stroke. Only written from Conversation and
+	 * ConversationCompose. This allows basically to detect the type or fasttype
+	 * mode where NoHang² skips any heavier computation to make the UI feel
+	 * fast.
+	 */
 	public static long lastKeyStroke = 0;
 
 	/**
-	 * Checks if is typing.
+	 * Checks if is typing. We want to skip background activity if the user is
+	 * typing
 	 * 
 	 * @return true, if is typing
 	 */
-	// Let's see if we are allowed to process background activity
 	public static boolean isTyping() {
 		return !(lastKeyStroke == 0)
 				&& ((DB.getTimestamp() - lastKeyStroke) < Setup.TYPING_TIMEOUT_BEFORE_BACKGROUND_ACTIVITY);
 	}
 
-	// Let's see if we are allowed to process UI activity like scrolling, do not
 	/**
-	 * Checks if is typing fast.
+	 * Checks if is typing fast. We want to defer any heavier (also UI)
+	 * computation like scrolling.
 	 * 
 	 * @return true, if is typing fast
 	 */
-	// even do this on FAST typing!
 	public static boolean isTypingFast() {
 		return !(lastKeyStroke == 0)
 				&& ((DB.getTimestamp() - lastKeyStroke) < Setup.TYPING_TIMEOUT_BEFORE_UI_ACTIVITY);
@@ -1114,21 +1133,20 @@ public class Conversation extends Activity {
 	}
 
 	/**
-	 * Checks if is visible.
+	 * Returns true if the activity is visible.
 	 * 
 	 * @return true, if is visible
 	 */
-	// Returns true if the activity is visible
 	public static boolean isVisible() {
 		return (visible && instance != null);
 	}
 
 	/**
-	 * Checks if is alive.
+	 * Checks if this activity is alive and UI elements like status icons should
+	 * be updated, e.g., when incoming messages arrive.
 	 * 
 	 * @return true, if is alive
 	 */
-	// Returns true if an instance is available
 	public static boolean isAlive() {
 		return (instance != null && Conversation.hostUid != -1);
 	}
@@ -1169,7 +1187,7 @@ public class Conversation extends Activity {
 	@Override
 	public void onStop() {
 		Conversation.visible = false;
-		// if chat is not empty, save it as draft
+		// If chat is not empty, save it as draft
 		String msg = messageText.getText().toString();
 		if (msg != null && msg.trim().length() > 0) {
 			String draft = Utility.loadStringSetting(this, "cachedraft"
@@ -1181,7 +1199,6 @@ public class Conversation extends Activity {
 			}
 		}
 		super.onStop();
-		// Log.d("communicator", "@@@@ onStop() visible = false");
 	}
 
 	// ------------------------------------------------------------------------
@@ -1194,7 +1211,6 @@ public class Conversation extends Activity {
 	@Override
 	protected void onPause() {
 		Conversation.visible = false;
-		// Log.d("communicator", "@@@@ onPause() visible = false");
 		super.onPause();
 		// Necessary for the following situation:
 		// if scrolled to somewhere and changing focused activity, the
@@ -1214,14 +1230,11 @@ public class Conversation extends Activity {
 	@Override
 	public void onResume() {
 		super.onResume();
-		// updateMenu(this);
 		if (!Conversation.isAlive()) {
-			// Log.d("communicator", "#### onResume() NOT ALIVE ANY MORE ");
 			// this class instance was lost, close it
 			Conversation.visible = false;
 			this.finish();
 		} else {
-			// Log.d("communicator", "@@@@ onResume() visible = true");
 			Conversation.visible = true;
 			// Reset error claims
 			Setup.setErrorUpdateInterval(this, false);
@@ -1229,25 +1242,27 @@ public class Conversation extends Activity {
 
 			conversationSize = DB.getConversationSize(this, hostUid, true);
 
-			// reset the new message counter
+			// Reset the new message counter
 			Communicator.setNotificationCount(this, hostUid, true);
 			// set all messages (internally as read)
 
-			// TODO: should we do this here or better only in create?!
-			// set all messages (internally as read)
+			// Flag all messages (internally as read)
 			DB.updateOwnMessageRead(this, hostUid);
 			if (Conversation.isVisible()) {
 				Communicator.sendReadConfirmation(this, hostUid);
 			}
 
-			// cancel possible system notifications for this hostuid
+			// Cancel possible system notifications for this hostuid. Do this
+			// only if the screen is also UNLOCKED otherwise the user might be
+			// interested in further seeing the notification of an arrived
+			// message!
 			if (Utility.loadBooleanSetting(this, Setup.OPTION_NOTIFICATION,
 					Setup.DEFAULT_NOTIFICATION)
 					&& !Utility.isScreenLocked(this)) {
 				Communicator.cancelNotification(this, hostUid);
 			}
 
-			// if (Utility.loadBooleanSetting(this, Setup.OPTION_NOTIFICATION,
+			// If (Utility.loadBooleanSetting(this, Setup.OPTION_NOTIFICATION,
 			// Setup.DEFAULT_NOTIFICATION) && Utility.isScreenLocked(this)) {
 			// onResume of the activity will be called when ACTION_SCREEN_ON
 			// is fired. Create a handler and wait for ACTION_USER_PRESENT.
@@ -1277,69 +1292,52 @@ public class Conversation extends Activity {
 	 *            the context
 	 */
 	private void scrollOnCreateOrResume(Context context) {
-		// Log.d("communicator", "@@@@  scrollOnCreateOrResume(): " +
-		// scrollItem);
-		// ", scrolledDown="+ scrolledDown + ", scrolledUp="+scrolledUp +
-		// ", scrollItem="+scrollItem);
-		// only scroll for the first time, it is annying of scrolling when
-		// changing orientation
+		// Only scroll for the first time, it is annoying to scroll when
+		// changing orientation, we want to prevent this!
 
 		if (fastScrollView.isLocked()) {
-			Log.d("communicator", "@@@@ SCROLL RESTORE #0");
+			// Log.d("communicator", "@@@@ SCROLL RESTORE #0");
 			fastScrollView.restoreLockedPosition();
 		} else if (!hasScrolled) {
 			hasScrolled = true;
 			// Log.d("communicator",
-			// "@@@@ onCreate() 1: not scolled  down before");
+			// "@@@@ onCreate() 1: not scrolled  down before");
 			fastScrollView.postDelayed(new Runnable() {
 				public void run() {
 					Log.d("communicator", "@@@@ SCROLL DOWN #1");
-					// measureHeights();
 					isKeyboardVisible(conversationRootView);
 					fastScrollView.scrollDown();
 					// foceScrollDown();
 					scrolledDown = true;
 					fastScrollView.setScrollBackground(R.color.gray);
-					// fastScrollView.setScrollBackground(Color.parseColor(SCROLLLOCKEDCOLOR));
 				}
 			}, 200);
 		} else if (scrolledDown) {
-			// Log.d("communicator", "@@@@ onCreate() 2: scolled down lock");
+			// Log.d("communicator", "@@@@ onCreate() 2: scrolled down lock");
 			// scroll to restore position
 			fastScrollView.postDelayed(new Runnable() {
 				public void run() {
-					Log.d("communicator", "@@@@ SCROLL DOWN #2");
-					// measureHeights();
-					// scrollView.fullScroll(ScrollView.FOCUS_DOWN);
+					// Log.d("communicator", "@@@@ SCROLL DOWN #2");
 					fastScrollView.scrollDown();
 				}
 			}, 200);
 		} else if (scrolledUp) {
-			// Log.d("communicator", "@@@@ onCreate() 3: scolled up lock");
-			// scroll to restore position
+			// Log.d("communicator", "@@@@ onCreate() 3: scrolled up lock");
+			// Scroll to restore position
 			fastScrollView.postDelayed(new Runnable() {
 				public void run() {
 					Log.d("communicator", "@@@@ SCROLL UP #3");
-					// measureHeights();
-					// scrollView.scrollTo(0, 0);
 					fastScrollView.scrollUp();
-					// updateFastScrollBar(0, true);
 				}
 			}, 200);
 		} else if (scrollItem > -1) {
 			// Log.d("communicator",
-			// "@@@@ onCreate() 4: scoll to specific position");
-			// scroll to restore position
+			// "@@@@ onCreate() 4: scroll to specific position");
+			// Scroll to restore position
 			fastScrollView.postDelayed(new Runnable() {
 				public void run() {
 					Log.d("communicator", "@@@@ SCROLL ITEM #4:" + scrollItem);
 					fastScrollView.scrollToItem(scrollItem + 1);
-					// measureHeights();
-					// int pos = getPositionByScrollItem(scrollItem - 1); // -1
-					// prevents
-					// drift!!!
-					// scrollView.scrollTo(0, pos);
-					// updateFastScrollBar(pos, true);
 				}
 			}, 200);
 		}
@@ -1349,7 +1347,7 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Foce scroll down.
+	 * Force scroll down.
 	 * 
 	 * @param keyboardVisible
 	 *            the keyboard visible
@@ -1360,20 +1358,21 @@ public class Conversation extends Activity {
 		fastScrollView.postDelayed(new Runnable() {
 			public void run() {
 				fastScrollView.scrollDown();
-				// fastScrollView.fullScroll(ScrollView.FOCUS_DOWN);
 			}
 		}, 100);
 
 		Log.d("communicator", "@@@@ foceScrollDown() -> keyboardVisible="
 				+ keyboardVisible);
 
-		// if keyboard is visible, then set cursor to text field!
+		// If keyboard is visible, then set cursor to text field!
 		if (keyboardVisible) {
-			// fake a keyboard entry for convenience
+			// Fake a keyboard entry for convenience: If the user immediately
+			// wants to start typing - he just can and will not be interrupted!
+			// :-)
 			lastKeyStroke = DB.getTimestamp();
 			messageText.postDelayed(new Runnable() {
 				public void run() {
-					// fake a keyboard entry for convenience
+					// Fake a keyboard entry for convenience
 					lastKeyStroke = DB.getTimestamp();
 					messageText.requestFocus();
 					Utility.showKeyboardExplicit(messageText);
@@ -1388,20 +1387,19 @@ public class Conversation extends Activity {
 
 	// Scrolls down (iff scrolldown) and when the user waits for a small number
 	// of
-	// time but this prevents interupting the user when he types fast! (e.g.
+	// time but this prevents interrupting the user when he types fast! (e.g.
 	// deleting characters!)
 	// private boolean scrollWait = false;
 
-	// each scoller increments this counter and will not resume if he has not
-	// the highest
-	// number any more => this means another scoller has arrived which will do
-	// the job of
-	/** The active scoller. */
-	// scrolling at the end!
+	/**
+	 * The active scoller. Each scroller increments this counter and will not
+	 * resume if he has not the highest number any more => this means another
+	 * scroller has arrived which will do the job of us.
+	 */
 	private int activeScoller = 0;
 
 	/**
-	 * Scoll down after typing fast.
+	 * Scroll down after typing fast.
 	 * 
 	 * @param showKeyboard
 	 *            the show keyboard
@@ -1418,9 +1416,9 @@ public class Conversation extends Activity {
 		// the same
 		// number. this is OK for us as this only tries to reduce the number of
 		// backward threads
-		// when typing fast & long texts. The worst case szenario is only that
+		// when typing fast & long texts. The worst case scenario is only that
 		// we try to scroll
-		// more than once... but thats ok because we actually do not scroll if
+		// more than once... but thats OK because we actually do not scroll if
 		// we already are there!
 		scrollDownAfterTypingFast(showKeyboard, -1);
 	}
@@ -1435,13 +1433,14 @@ public class Conversation extends Activity {
 	 */
 	private void scrollDownAfterTypingFast(final boolean showKeyboard,
 			final int scrollNumber) {
-		Log.d("communicator", "@@@@ scollDownAfterTypingFast([" + scrollNumber
-				+ "], showKeyboard=" + showKeyboard + ") ENTRY ");
+		// Log.d("communicator", "@@@@ scollDownAfterTypingFast([" +
+		// scrollNumber
+		// + "], showKeyboard=" + showKeyboard + ") ENTRY ");
 		final Context context = this;
 		if (isTypingFast()) {
-			Log.d("communicator", "@@@@ scollDownAfterTypingFast(["
-					+ scrollNumber + "], showKeyboard=" + showKeyboard
-					+ ") 1 => isTypingFast, retry ");
+			// Log.d("communicator", "@@@@ scollDownAfterTypingFast(["
+			// + scrollNumber + "], showKeyboard=" + showKeyboard
+			// + ") 1 => isTypingFast, retry ");
 			fastScrollView.postDelayed(new Runnable() {
 				public void run() {
 					isKeyboardVisible(conversationRootView);
@@ -1454,31 +1453,31 @@ public class Conversation extends Activity {
 							// take a new number
 							activeScoller++;
 							newOrOldScrollNumber = activeScoller;
-							Log.d("communicator",
-									"@@@@ scollDownAfterTypingFast(["
-											+ scrollNumber
-											+ "]) 1A => take new number "
-											+ newOrOldScrollNumber
-											+ " and wait...");
+							// Log.d("communicator",
+							// "@@@@ scollDownAfterTypingFast(["
+							// + scrollNumber
+							// + "]) 1A => take new number "
+							// + newOrOldScrollNumber
+							// + " and wait...");
 						} else {
 							// test if there is someone "behind" us how will do
 							// the work, so we can
 							// stop our recursion...
 							if (activeScoller > scrollNumber) {
-								Log.d("communicator",
-										"@@@@ scollDownAfterTypingFast(["
-												+ scrollNumber
-												+ "]) 1A_1 => we have an old number = "
-												+ newOrOldScrollNumber + " < "
-												+ activeScoller + " => QUIT");
+								// Log.d("communicator",
+								// "@@@@ scollDownAfterTypingFast(["
+								// + scrollNumber
+								// + "]) 1A_1 => we have an old number = "
+								// + newOrOldScrollNumber + " < "
+								// + activeScoller + " => QUIT");
 								return; // SOMEONE ELSE WILL SCROLL FOR US...
 							}
-							Log.d("communicator",
-									"@@@@ scollDownAfterTypingFast(["
-											+ scrollNumber
-											+ "]) 1A_2 => we have the highest number "
-											+ newOrOldScrollNumber
-											+ " ... further waiting");
+							// Log.d("communicator",
+							// "@@@@ scollDownAfterTypingFast(["
+							// + scrollNumber
+							// + "]) 1A_2 => we have the highest number "
+							// + newOrOldScrollNumber
+							// + " ... further waiting");
 						}
 						// WAIT RECUSIVELY
 						scrollDownAfterTypingFast(showKeyboard,
@@ -1490,9 +1489,9 @@ public class Conversation extends Activity {
 			// the user rests
 			// for some time..
 		} else if (!isTypingFast()) {
-			Log.d("communicator", "@@@@ scollDownAfterTypingFast(["
-					+ scrollNumber + "], showKeyboard=" + showKeyboard
-					+ ") 2 => !isTypingFast, !!!SCROLL!!! ");
+			// Log.d("communicator", "@@@@ scollDownAfterTypingFast(["
+			// + scrollNumber + "], showKeyboard=" + showKeyboard
+			// + ") 2 => !isTypingFast, !!!SCROLL!!! ");
 			// we should update the scroll view height here because it was
 			// blocked/skipped during fast typing!
 			fastScrollView.potentiallyRefreshState();
@@ -1519,13 +1518,12 @@ public class Conversation extends Activity {
 	 */
 	private void rebuildConversationlist(final Context context) {
 		fastScrollView.clearChilds();
-		// layoutList.clear();
 		resetMapping();
 
-		// flag all messages internally as read
-		DB.updateOwnMessageRead(context, hostUid);
 		loadConversationList(context, hostUid, maxScrollMessageItems);
 		try {
+			// For every item in the conversation list we build a balloon
+			// which is also filling the mapping (that we just cleaned)
 			for (ConversationItem conversationItem : conversationList) {
 				View newView = addConversationLine(context, conversationItem);
 				if (newView != null) {
@@ -1546,7 +1544,7 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Show titlebar async.
+	 * Show titlebar async from non UI thread.
 	 * 
 	 * @param context
 	 *            the context
@@ -1565,7 +1563,7 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Update conversationlist async.
+	 * Update conversationlist async from non UI thread.
 	 * 
 	 * @param context
 	 *            the context
@@ -1794,7 +1792,7 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Sets the failed async.
+	 * Sets the failed async from non UI thread.
 	 * 
 	 * @param context
 	 *            the context
@@ -1828,8 +1826,7 @@ public class Conversation extends Activity {
 			Mapping mappingItem = conversation
 					.getMapping(context, -1 * localid);
 			if (mappingItem != null) {
-				mappingItem.oneline.setBackgroundColor(Color
-						.parseColor(FAILEDCOLOR));
+				mappingItem.oneline.setBackgroundColor(FAILEDCOLOR);
 				mappingItem.speech.setImageResource(R.drawable.speechmefailed);
 			}
 		}
@@ -1958,7 +1955,7 @@ public class Conversation extends Activity {
 			}
 
 			if (conversationItem.smsfailed) {
-				oneline.setBackgroundColor(Color.parseColor(FAILEDCOLOR));
+				oneline.setBackgroundColor(FAILEDCOLOR);
 				speech.setImageResource(R.drawable.speechmefailed);
 			}
 		}
@@ -2549,7 +2546,7 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Update conversation title async.
+	 * Update conversation title async from non UI thread.
 	 * 
 	 * @param context
 	 *            the context
@@ -2561,7 +2558,7 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Update conversation title async.
+	 * Update conversation title async from non UI thread.
 	 * 
 	 * @param context
 	 *            the context
