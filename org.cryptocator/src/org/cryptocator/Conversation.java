@@ -34,70 +34,43 @@
 package org.cryptocator;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-//import org.cryptocator.ScrollViewEx.ScrollViewExListener;
-
-import org.cryptocator.R;
-
-import android.app.ActionBar;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Parcelable;
-import android.provider.ContactsContract;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextWatcher;
-import android.text.method.NumberKeyListener;
 import android.util.Log;
-import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnFocusChangeListener;
+import android.view.View.OnKeyListener;
 import android.view.View.OnLongClickListener;
-import android.view.WindowManager;
-import android.view.WindowManager.LayoutParams;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.SearchView;
-import android.widget.SearchView.OnQueryTextListener;
 import android.widget.Spinner;
-import android.widget.TableLayout;
-import android.widget.Toast;
-//import android.support.v7.widget.PopupMenu;
-import android.widget.ScrollView;
 import android.widget.TextView;
-import android.view.ViewGroup;
-import android.view.View.OnKeyListener;
+//import org.cryptocator.ScrollViewEx.ScrollViewExListener;
+//import android.support.v7.widget.PopupMenu;
 
 /**
  * The Conversation activity is the second most important class. It holds the
@@ -108,6 +81,7 @@ import android.view.View.OnKeyListener;
  * @date 08/23/2015
  * @since 2.1
  */
+@SuppressLint("InflateParams")
 public class Conversation extends Activity {
 
 	/** The fast scroll view. */
@@ -132,6 +106,7 @@ public class Conversation extends Activity {
 	private static int FAILEDCOLOR = Color.parseColor("#6DB0FD");
 
 	/** The mapping. */
+	@SuppressLint("UseSparseArrays")
 	private HashMap<Integer, Mapping> mapping = new HashMap<Integer, Mapping>();
 
 	/** The host uid. */
@@ -1385,14 +1360,8 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
-	// Scrolls down (iff scrolldown) and when the user waits for a small number
-	// of
-	// time but this prevents interrupting the user when he types fast! (e.g.
-	// deleting characters!)
-	// private boolean scrollWait = false;
-
 	/**
-	 * The active scoller. Each scroller increments this counter and will not
+	 * The active scroller. Each scroller increments this counter and will not
 	 * resume if he has not the highest number any more => this means another
 	 * scroller has arrived which will do the job of us.
 	 */
@@ -1606,8 +1575,6 @@ public class Conversation extends Activity {
 			}
 			conversationSize += conversationListDiff.size();
 
-			// possiblySetMessageTextFocus();
-			// measureHeights();
 			if (!Conversation.scrolledDown) {
 				fastScrollView.restoreLockedPosition();
 			} else {
@@ -1625,7 +1592,9 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Adds the mapping.
+	 * Adds the mapping. Note the convention: Use local id instead as a
+	 * placeholder if a mid not yet exists (before the message is sent or if it
+	 * is an SMS). Local ids by convertion are negative numbers.
 	 * 
 	 * @param mid
 	 *            the mid
@@ -1656,7 +1625,7 @@ public class Conversation extends Activity {
 		mappingItem.speech = speech;
 		int insertId = mid;
 		if (insertId == -1) {
-			// convention: use local id instead as a placeholder
+			// Convention: use local id instead as a placeholder
 			insertId = -1 * localid;
 		}
 		// Log.d("communicator",
@@ -1673,7 +1642,9 @@ public class Conversation extends Activity {
 	}
 
 	/**
-	 * Gets the mapping.
+	 * Gets the mapping. If mid is negative by convention we look for a local id
+	 * mapped element because the mid will still be -1 (eg for not-yet-sent
+	 * messages or for SMS).
 	 * 
 	 * @param context
 	 *            the context
@@ -1722,7 +1693,7 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Sets the sent.
+	 * Sets the sent status for a displayed message.
 	 * 
 	 * @param context
 	 *            the context
@@ -1747,7 +1718,7 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Sets the withdraw in conversation.
+	 * Sets the withdraw status for a displayed message.
 	 * 
 	 * @param context
 	 *            the context
@@ -1767,7 +1738,7 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Sets the received.
+	 * Sets the received status for a displayed message.
 	 * 
 	 * @param context
 	 *            the context
@@ -1792,7 +1763,7 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Sets the failed async from non UI thread.
+	 * Sets the failed status async from non UI thread.
 	 * 
 	 * @param context
 	 *            the context
@@ -1810,10 +1781,8 @@ public class Conversation extends Activity {
 		});
 	}
 
-	// -------------------------------------------------------------------------
-
 	/**
-	 * Sets the failed.
+	 * Sets the failed status for a displayed message.
 	 * 
 	 * @param context
 	 *            the context
@@ -1835,7 +1804,7 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Sets the read.
+	 * Sets the read status for a displayed message.
 	 * 
 	 * @param context
 	 *            the context
@@ -1860,7 +1829,9 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Reset values.
+	 * Reset values of this activity. This is usually called from outside if the
+	 * activity is initialized to be used with a specific hostUid (= the
+	 * conversation partner).
 	 * 
 	 * @param hostUid
 	 *            the host uid
@@ -1875,7 +1846,9 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Adds the conversation line.
+	 * Adds the conversation line. Here is where the mapping is created and
+	 * where all elements (e.g. status icons) get created for a specific
+	 * conversation item.
 	 * 
 	 * @param context
 	 *            the context
@@ -1886,7 +1859,7 @@ public class Conversation extends Activity {
 	private View addConversationLine(final Context context,
 			final ConversationItem conversationItem) {
 
-		// do not show system messages or empty messages
+		// Do not show system messages or empty messages
 		if (conversationItem.text == null
 				|| conversationItem.text.length() == 0) {
 			return null;
@@ -1894,14 +1867,13 @@ public class Conversation extends Activity {
 
 		View conversationlistitem = null;
 
-		String name = "Me";
+		// Inflate other XMLs for me or for my conversation partner
 		if (!conversationItem.me(context)) {
 			conversationlistitem = inflater.inflate(R.layout.conversationitem,
 					null);
-			name = Main.UID2Name(context, hostUid, false);
 			EditText conversationText = (EditText) conversationlistitem
 					.findViewById(R.id.conversationtext);
-			// rounded corners
+			// Rounded corners
 			LinearLayout oneline = (LinearLayout) conversationlistitem
 					.findViewById(R.id.oneline);
 			oneline.setBackgroundResource(R.drawable.rounded_corners);
@@ -1916,7 +1888,7 @@ public class Conversation extends Activity {
 			conversationlistitem = inflater.inflate(
 					R.layout.conversationitemme, null);
 
-			// rounded corners
+			// Rounded corners
 			LinearLayout oneline = (LinearLayout) conversationlistitem
 					.findViewById(R.id.oneline);
 			oneline.setBackgroundResource(R.drawable.rounded_cornersme);
@@ -2003,7 +1975,8 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Possible prompt new session.
+	 * Possible prompt for sending a new session key if this is not possible
+	 * because one of the involved users does not have encryption enabled.
 	 * 
 	 * @param context
 	 *            the context
@@ -2024,11 +1997,13 @@ public class Conversation extends Activity {
 					"You cannot use encryption because either you or your communication partner has not turned on this feature.\n\nIn order to use encryption both communication partners need to turn this feature on in their settings.");
 			return;
 		}
-		if (!isSMSModeAvailable(context)) {
-			// No choice, because SMS is not available
-			sendNewSession(context, DB.TRANSPORT_INTERNET);
-			return;
-		}
+		// if (!isSMSModeAvailable(context)) {
+		// // No choice, because SMS is not available
+		// sendNewSession(context, DB.TRANSPORT_INTERNET);
+		// return;
+		// }
+		// ALWAYS OFFER A CHOICE TO MAKE SURE WE REALLY WANT TO SEND A NEW
+		// SESSION
 		// Choice between Internet and SMS
 		promptNewSession(context);
 	}
@@ -2036,7 +2011,7 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Send new session.
+	 * Send a new session key using the given transport.
 	 * 
 	 * @param context
 	 *            the context
@@ -2045,11 +2020,6 @@ public class Conversation extends Activity {
 	 */
 	public void sendNewSession(Context context, int transport) {
 		// Send new key
-		// int transport = DB.TRANSPORT_INTERNET;
-		// if (isSMSModeAvailableAndOn(this)) {
-		// // use SMS transport for sendig new key!!
-		// transport = DB.TRANSPORT_SMS;
-		// }
 		Communicator.getAESKey(this, Conversation.hostUid, true, transport,
 				false, null, true);
 	}
@@ -2057,16 +2027,21 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Prompt new session.
+	 * Prompt to send a new session key. Prompt the user for a transport
+	 * (Internet or SMS).
 	 * 
 	 * @param context
 	 *            the context
 	 */
 	private void promptNewSession(final Context context) {
-		// try {
-
 		String title = "Send New Session Key";
 		String text = "Send the new session key via Internet or SMS?";
+		
+		// No choice, because SMS is not available
+		final boolean noSMSOption = !isSMSModeAvailable(context);
+		if (noSMSOption) {
+			text = "Send the new session key via Internet?";
+		}
 
 		new MessageAlertDialog(context, title, text, null, null, " Cancel ",
 				new MessageAlertDialog.OnSelectionListener() {
@@ -2111,7 +2086,9 @@ public class Conversation extends Activity {
 									}
 								});
 						buttonLayout.addView(internetButton);
-						buttonLayout.addView(smsButton);
+						if (!noSMSOption) {
+							buttonLayout.addView(smsButton);
+						}
 						return buttonLayout;
 					}
 				}).show();
@@ -2120,7 +2097,8 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Prompt message details.
+	 * Prompt message details. Use the Messagedetails activity for that. Set the
+	 * hostUid and the conversationItem here.
 	 * 
 	 * @param context
 	 *            the context
@@ -2130,15 +2108,12 @@ public class Conversation extends Activity {
 	private void promptMessageDetails(final Context context,
 			final ConversationItem conversationItem) {
 		try {
-			// create it
 			Intent dialogIntent = new Intent(context,
 					MessagedetailsActivity.class);
 			dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			MessagedetailsActivity.conversationItem = conversationItem;
 			MessagedetailsActivity.hostUid = hostUid;
-			// start it
 			context.startActivity(dialogIntent);
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			// ignore
@@ -2148,7 +2123,21 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Load conversation list.
+	 * Load conversation list. This is a helper method that uses the database DB
+	 * class. It constructs a conversationListDiff list that can be used to only
+	 * update the currently displayed conversation. This is necessary to FAST
+	 * add new sent or received messages! Note that it is not possible to change
+	 * the order later on. The only case where this matters is when suspending a
+	 * message for sending and auto-sending a fresh session key before sending
+	 * the suspended message afterwards. In this case the suspended message was
+	 * added before the key message but both messages were sent in the other
+	 * order. It may be harder to fix this because we want to see the message
+	 * already even at a point when it is not clear if a new key needs to be
+	 * generated and send before. A hot-fix might be to add the message another
+	 * time and make the previous message invisible to fake a correct order. But
+	 * as this seems not to be clean currently we live with a wrong order in
+	 * this scenario. Still it is the correct created-order but only the wrong
+	 * sent-order.
 	 * 
 	 * @param context
 	 *            the context
@@ -2185,54 +2174,42 @@ public class Conversation extends Activity {
 	private static int minWidthDiff = 100;
 
 	/** The m last height differece. */
-	private static int mLastHeightDifferece;
+	private static int lastHeightDifferece;
 
 	/** The keyboard visible. */
 	private static boolean keyboardVisible = false;
 
-	// private static int maxPanned = 0; // remember the maximal panned height
-	// because when panning Anrdoid
-	// private static int maxPannedWithoutSuggestions = 0; // remember the
-	// maximal panned height because when panning Anrdoid
-	// will already pan including the height for input-suggestions even if this
-	// is not present
-
 	/**
-	 * Checks if is keyboard visible.
+	 * Checks if is keyboard visible. This is a central message that is used in
+	 * {@link OnGlobalLayoutListener} in order to detect keyboard
+	 * opening/closing.
 	 * 
 	 * @param rootView
 	 *            the root view
 	 * @return true, if is keyboard visible
 	 */
 	private boolean isKeyboardVisible(View rootView) {
-		// get screen frame rectangle
-		Rect r = new Rect();
-		rootView.getWindowVisibleDisplayFrame(r);
-		// get screen height
+		// Screen height
+		Rect rect = new Rect();
+		rootView.getWindowVisibleDisplayFrame(rect);
 		int screenHeight = rootView.getRootView().getHeight();
-		// calculate the height difference
-		int heightDifference = screenHeight - (r.bottom - r.top);
+		// Height difference of root view and screen heights
+		int heightDifference = screenHeight - (rect.bottom - rect.top);
 
-		// Log.d("communicator",
-		// "@@@@ heightDifference =" + heightDifference +
-		// ", mLastHeightDifferece = "+mLastHeightDifferece+" , screenHeight = "
-		// + screenHeight);
-
-		// if height difference is different then the last height difference and
-		// is bigger then a third of the screen we can assume the keyboard is
-		// open
-		if (heightDifference != mLastHeightDifferece) {
+		// If height difference is different then the last time and if
+		// is bigger than 1/4 of the screen => assume visible keyboard
+		if (heightDifference != lastHeightDifferece) {
 			if (heightDifference > screenHeight / 4
-					&& ((heightDifference > mLastHeightDifferece + minWidthDiff) || (heightDifference < mLastHeightDifferece
+					&& ((heightDifference > lastHeightDifferece + minWidthDiff) || (heightDifference < lastHeightDifferece
 							- minWidthDiff))) {
-				// keyboard visiblevisible
+				// Keyboard is now visible
 				// Log.d("communicator", "@@@@@@ CHANGE TO VISIBLE=TRUE");
-				mLastHeightDifferece = heightDifference;
+				lastHeightDifferece = heightDifference;
 				keyboardVisible = true;
 			} else if (heightDifference < screenHeight / 4) {
 				// Log.d("communicator", "@@@@@@ CHANGE TO VISIBLE=FALSE");
-				// keyboard hidden
-				mLastHeightDifferece = heightDifference;
+				// Keyboard is now hidden
+				lastHeightDifferece = heightDifference;
 				keyboardVisible = false;
 			}
 		}
@@ -2250,7 +2227,7 @@ public class Conversation extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// This is necessary to enable a context menu
-		getMenuInflater().inflate(R.menu.activity_main, menu);
+		getMenuInflater().inflate(R.menu.activity_conversation, menu);
 		return true;
 	}
 
@@ -2261,10 +2238,9 @@ public class Conversation extends Activity {
 	 * 
 	 * @see android.app.Activity#onKeyDown(int, android.view.KeyEvent)
 	 */
-	// SEARCH KEY OVERRIDE
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		// Log.d("communicator", "@@@@@@ KEYCODE" + keyCode);
+		// SEARCH KEY OVERRIDE
 		if (keyCode == KeyEvent.KEYCODE_SEARCH) {
 			promptSearch(this);
 			return true;
@@ -2273,12 +2249,15 @@ public class Conversation extends Activity {
 
 	}
 
+	// ------------------------------------------------------------------------
+
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
 	 */
 	public boolean onOptionsItemSelected(MenuItem item) {
+		// The context menu implementation
 		switch (item.getItemId()) {
 		case android.R.id.home:
 			goBack(this);
@@ -2290,8 +2269,6 @@ public class Conversation extends Activity {
 			onRestart();
 			onStart();
 			onResume();
-			// resetFastScrollBar();
-			// updateFastScrollBar(0, true);
 			return true;
 		case R.id.item3:
 			clearConversation(this);
@@ -2306,7 +2283,6 @@ public class Conversation extends Activity {
 			possiblePromptNewSession(this);
 			return true;
 		case R.id.menu_settings:
-			// refresh
 			doRefresh(this);
 			return true;
 		default:
@@ -2317,7 +2293,7 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Go back.
+	 * Go back to the main activity.
 	 * 
 	 * @param context
 	 *            the context
@@ -2332,7 +2308,7 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Do refresh.
+	 * Do refresh and try to send or receive message.
 	 * 
 	 * @param context
 	 *            the context
@@ -2340,15 +2316,30 @@ public class Conversation extends Activity {
 	public void doRefresh(final Context context) {
 		Communicator.sendNextMessage(this);
 		Communicator.haveNewMessagesAndReceive(this);
-		// Communicator.updateReceiveInfo(this);
-		// Communicator.updateReadInfo(this);
 		Utility.showToastShortAsync(this, "Refreshing...");
 	}
 
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Prompt search.
+	 * Prompt to search the conversation. Note that this might not be standard
+	 * behavior but still it is a very simple behavior. A search starts at the
+	 * current position (conversation item visible at the top of the screen).
+	 * The user can select to search UP or DOWN starting from this item. The
+	 * text box allows to enter the search text the user searches for. If there
+	 * is no text entered yet the keyboard pops up automatically. Of course this
+	 * is annoying if the user wants to search for several occurrences.
+	 * Therefore the search text is saved and filled out the next time the user
+	 * clicks on search. In this case, when there was a previous search and the
+	 * search text contains something, the keyboard is hidden by default and the
+	 * user must click into the text field in order to change the text field.
+	 * The user may also click on clean which will erase the search text and pop
+	 * up the keyboard immediately. We believe this is a very clean an
+	 * responsive search dialog behavior. If something is found then the
+	 * conversation scrolls to this conversation item and tries to highlight the
+	 * whole text. The next search result must be another conversation item (UP
+	 * or DOWN). If there is no other (UP or DOWN) then the user will get a
+	 * toast informing about the end of search.
 	 * 
 	 * @param context
 	 *            the context
@@ -2376,10 +2367,8 @@ public class Conversation extends Activity {
 							dialog.dismiss();
 							Utility.saveStringSetting(context,
 									"lastconversationsearch", searchString);
-							// Log.d("communicator", "@@@@@@ SEARCH FROM "
-							// + scrollItem);
 
-							// try to unmark
+							// try to unmark (remove previous highlighting)
 							{
 								if (lastFound != -1) {
 									Mapping mappingItem = mapping
@@ -2415,7 +2404,7 @@ public class Conversation extends Activity {
 									if (conversationList.get(c).text
 											.contains(searchString)) {
 										foundItem = c;
-										// try to mark
+										// Try to mark / highlight
 										ConversationItem item = conversationList
 												.get(c);
 										mid = item.mid;
@@ -2423,7 +2412,7 @@ public class Conversation extends Activity {
 											mid = -1 * item.localid;
 										}
 										if (lastFound != mid) {
-											// otherwise search on...
+											// Otherwise search on...
 											Mapping mappingItem = mapping
 													.get(mid);
 											if (mappingItem != null) {
@@ -2438,7 +2427,7 @@ public class Conversation extends Activity {
 													mid);
 											break;
 										} else {
-											foundItem = -1; // we did not find
+											foundItem = -1; // We did not find
 															// anything NEW
 															// here...!
 										}
@@ -2446,8 +2435,6 @@ public class Conversation extends Activity {
 								}
 								if (foundItem != -1) {
 									fastScrollView.scrollToItem(foundItem);
-									// scrollView.scrollTo(0, pos);
-									// updateFastScrollBar(pos, true);
 									Utility.showToastInUIThread(context, "'"
 											+ searchString
 											+ "' found in message "
@@ -2472,7 +2459,9 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Prompt info.
+	 * Prompt info. This is a shortcut for bringing some information to the
+	 * user's attention. It is mostly used in this activity but also in others.
+	 * Therefore it is a static method.
 	 * 
 	 * @param context
 	 *            the context
@@ -2492,17 +2481,15 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Backup.
+	 * Prompt the backup activity to allow the user to backup its conversation.
 	 * 
 	 * @param context
 	 *            the context
 	 */
 	public void backup(Context context) {
-		// create it
 		Intent dialogIntent = new Intent(context, BackupActivity.class);
 		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		BackupActivity.hostUid = hostUid;
-		// start it
 		context.startActivity(dialogIntent);
 	}
 
