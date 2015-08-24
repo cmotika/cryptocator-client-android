@@ -2223,8 +2223,8 @@ public class Communicator {
 		sendSystemMessageWidthdraw(context, uid, mid);
 
 		Utility.showToastAsync(context, "Withdraw request for message " + mid
-				+ "...");		
-		
+				+ "...");
+
 		if (uid >= 0 && mid != -1) {
 			DB.addSendMessage(context, uid, "A" + mid, false,
 					DB.TRANSPORT_INTERNET, true, DB.PRIORITY_KEY);
@@ -2234,7 +2234,7 @@ public class Communicator {
 	}
 
 	// -------------------------------------------------------------------------
-	
+
 	/**
 	 * Checks if is response is a number or starts with a number followed by a
 	 * #.
