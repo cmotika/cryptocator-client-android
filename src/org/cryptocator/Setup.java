@@ -81,6 +81,11 @@ import android.widget.TextView;
  * The Setup class is the third most important activity. It allows the user to
  * create an account or enter/login with an existing account. It allows to
  * enable the SMS option and has a second appearance for the settings dialog.
+ * 
+ * @author Christian Motika
+ * @date 08/23/2015
+ * @since 2.1
+ * 
  */
 @SuppressLint({ "TrulyRandom", "DefaultLocale" })
 public class Setup extends Activity {
