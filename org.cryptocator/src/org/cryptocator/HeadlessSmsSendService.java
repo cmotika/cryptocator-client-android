@@ -10,7 +10,7 @@
  * all contributors, this list of conditions and the following disclaimer.
  * 
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, an acknowledgment to all contributors, this list of conditions
+ * notice, an acknowledgement to all contributors, this list of conditions
  * and the following disclaimer in the documentation and/or other materials
  * provided with the distribution.
  * 
@@ -18,10 +18,10 @@
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS “AS IS” AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS
  * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
  * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
  * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
@@ -33,29 +33,27 @@
  */
 package org.cryptocator;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
+import android.app.Service;
 import android.content.Intent;
+import android.os.IBinder;
 
 /**
- * The MmsReceiver class is currently not implemented. It is currently only
- * there to fulfill the requirements for a default SMS app.
+ * The HeadlessSmsSendService class is currently not implemented. It is
+ * currently only there to fulfill the requirements for a default SMS app.
  * 
  * @author Christian Motika
  * @since 1.2
  * @date 08/23/2015
  * 
  */
-public class MmsReceiver extends BroadcastReceiver {
+public class HeadlessSmsSendService extends Service {
 
 	// ------------------------------------------------------------------------
 
-	public void onCreate(Context context) {
+	@Override
+	public IBinder onBind(Intent intent) {
 		// NOT IMPLEMENTED
-	}
-
-	public void onReceive(Context context, Intent intent) {
-		// NOT IMPLEMENTED
+		return null;
 	}
 
 	// ------------------------------------------------------------------------

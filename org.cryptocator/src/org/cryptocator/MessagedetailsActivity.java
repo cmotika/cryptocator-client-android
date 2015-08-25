@@ -48,7 +48,6 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-// TODO: Auto-generated Javadoc
 /**
  * The MessageDetailsActivity class is responsible for displaying a dialog with
  * the details for a conversation item (message).
