@@ -39,70 +39,77 @@ import java.util.List;
 import org.cryptocator.ScrollViewEx.ScrollViewExListener;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.PorterDuff.Mode;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.ScrollView;
 
 /**
- * The Class FastScollView.
+ * The FastScrollView class is special view containing a ScrollView and a
+ * horizontal FastScrollBar at the right side. The internal ScrollView keeps all
+ * the children vertically. The FastScrollView keeps track of the size of each
+ * child and automatically scrolls to the correct child item (index) if the
+ * FastScroll view is touched by the user. This scroll view is able to defer
+ * scrolling if a NoHang listener tells to do so!
+ * 
+ * @author Christian Motika
+ * @since 2.1
+ * @date 08/23/2015
  */
 public class FastScrollView extends LinearLayout {
 
-	/** The context. */
-	private Context context;
-
-	/** The inner childs. */
+	/** The vertically inner children. */
 	private LinearLayout innerChilds;
 
-	/** The scroll view. */
+	/** The scroll view at the left side. */
 	private ScrollViewEx scrollView;
 
-	/** The scroll bar. */
+	/** The scroll bar at the right side. */
 	private FastScrollBar scrollBar;
 
-	/** The selected index. */
-	private int selectedIndex = -1;
-
-	/** The child list. */
+	/** The list of all children. */
 	private List<View> childList = new ArrayList<View>();
 
-	// /** The instance. */
-	// FastScrollView instance = null;
+	/**
+	 * The heights invalidate to remember when we should need to recompute the
+	 * heights of each child.
+	 */
+	private boolean heightsInvalidate = true;
 
-	private boolean heightsIvalidate = true;
+	/**
+	 * The locked position remembers the index of the child currently visible
+	 * (at the top). If the position is locked the position can be restored
+	 * afterwards using restoreLockedPosition().
+	 */
+	int lockedPos = -1;
+
+	/** The scroll bar visibility was set. The default is false on creation. */
+	private boolean scrollBarVisibilitySet = false;
+
+	/** The scroll bar is visible. */
+	private boolean scrollBarVisible = false;
+
+	/** The cached heights of the children. */
+	public List<Integer> heights = new ArrayList<Integer>();
+
+	/** The cached heights sum of all children. */
+	public int heightsSum = 0;
 
 	// -------------------------------------------------------------------------
 
-	// if > 90% -> snap to 100%
-	public void setSnapDown(int snapDownLimit) {
-		scrollBar.setSnapDown(snapDownLimit);
-	}
-
-	public void setSnapUp(int snapUpLimit) {
-		scrollBar.setSnapUp(snapUpLimit);
-	}
-
-	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
-
+	/** The layout done listener. */
 	private OnLayoutDoneListener layoutDoneListener;
 
+	/** The scroll listener. */
 	private OnScrollListener scrollListener;
 
+	/** The size change listener. */
 	private OnSizeChangeListener sizeChangeListener;
 
+	/** The no hang listener. */
 	private OnNoHangListener noHangListener;
 
 	// -------------------------------------------------------------------------
@@ -129,33 +136,130 @@ public class FastScrollView extends LinearLayout {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * The listener interface for receiving onScroll events. The class that is
+	 * interested in processing a onScroll event implements this interface, and
+	 * the object created with that class is registered with a component using
+	 * the component's <code>addOnScrollListener<code> method. When
+	 * the onScroll event occurs, that object's appropriate
+	 * method is invoked.
+	 * 
+	 * @see OnScrollEvent
+	 */
 	public interface OnScrollListener {
+
+		/**
+		 * On scroll changed.
+		 * 
+		 * @param fastScrollView
+		 *            the fast scroll view
+		 * @param x
+		 *            the x
+		 * @param y
+		 *            the y
+		 * @param oldx
+		 *            the oldx
+		 * @param oldy
+		 *            the oldy
+		 * @param percent
+		 *            the percent
+		 * @param item
+		 *            the item
+		 */
 		void onScrollChanged(FastScrollView fastScrollView, int x, int y,
 				int oldx, int oldy, int percent, int item);
 
+		/**
+		 * On scroll rested.
+		 * 
+		 * @param fastScrollView
+		 *            the fast scroll view
+		 * @param x
+		 *            the x
+		 * @param y
+		 *            the y
+		 * @param oldx
+		 *            the oldx
+		 * @param oldy
+		 *            the oldy
+		 * @param percent
+		 *            the percent
+		 * @param item
+		 *            the item
+		 */
 		void onScrollRested(FastScrollView fastScrollView, int x, int y,
 				int oldx, int oldy, int percent, int item);
 
+		/**
+		 * On snap scroll.
+		 * 
+		 * @param percent
+		 *            the percent
+		 * @param snappedDown
+		 *            the snapped down
+		 * @param snappedUp
+		 *            the snapped up
+		 */
+		void onSnapScroll(int percent, boolean snappedDown, boolean snappedUp);
+
+		/**
+		 * On oversroll.
+		 * 
+		 * @param up
+		 *            the up
+		 */
 		void onOversroll(boolean up);
 	}
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * The listener interface for receiving onSizeChange events. The class that
+	 * is interested in processing a onSizeChange event implements this
+	 * interface, and the object created with that class is registered with a
+	 * component using the component's
+	 * <code>addOnSizeChangeListener<code> method. When
+	 * the onSizeChange event occurs, that object's appropriate
+	 * method is invoked.
+	 * 
+	 * @see OnSizeChangeEvent
+	 */
 	public interface OnSizeChangeListener {
 
 		/**
 		 * On Size Change.
+		 * 
+		 * @param w
+		 *            the w
+		 * @param h
+		 *            the h
+		 * @param oldw
+		 *            the oldw
+		 * @param oldh
+		 *            the oldh
 		 */
 		void onSizeChange(int w, int h, int oldw, int oldh);
 	}
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * The listener interface for receiving onNoHang events. The class that is
+	 * interested in processing a onNoHang event implements this interface, and
+	 * the object created with that class is registered with a component using
+	 * the component's <code>addOnNoHangListener<code> method. When
+	 * the onNoHang event occurs, that object's appropriate
+	 * method is invoked.
+	 * 
+	 * @see OnNoHangEvent
+	 */
 	public interface OnNoHangListener {
 
 		/**
-		 * Compute if no hang is needed. ATTENTION: DO COMPUTATION VERY VERY
+		 * Compute if no hang is needed. ATTENTION: DO COMPUTATION VERY, VERY
 		 * LIGHTWEIGHT!
+		 * 
+		 * @return true, if successful
 		 */
 		boolean noHangNeeded();
 	}
@@ -174,12 +278,24 @@ public class FastScrollView extends LinearLayout {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Sets the on scroll listener.
+	 * 
+	 * @param onScrollListener
+	 *            the new on scroll listener
+	 */
 	public void setOnScrollListener(OnScrollListener onScrollListener) {
 		this.scrollListener = onScrollListener;
 	}
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Sets the on size change listener.
+	 * 
+	 * @param onSizeChangeListener
+	 *            the new on size change listener
+	 */
 	public void setOnSizeChangeListener(
 			OnSizeChangeListener onSizeChangeListener) {
 		this.sizeChangeListener = onSizeChangeListener;
@@ -187,6 +303,12 @@ public class FastScrollView extends LinearLayout {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Sets the on no hang listener.
+	 * 
+	 * @param onNoHangListener
+	 *            the new on no hang listener
+	 */
 	public void setOnNoHangListener(OnNoHangListener onNoHangListener) {
 		this.noHangListener = onNoHangListener;
 	}
@@ -194,6 +316,14 @@ public class FastScrollView extends LinearLayout {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Instantiates a new fast scroll view.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param attrs
+	 *            the attrs
+	 */
 	public FastScrollView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		createInnerViews(context);
@@ -206,8 +336,6 @@ public class FastScrollView extends LinearLayout {
 	 * 
 	 * @param context
 	 *            the context
-	 * @param labels
-	 *            the labels
 	 */
 	public FastScrollView(Context context) {
 		super(context);
@@ -216,8 +344,13 @@ public class FastScrollView extends LinearLayout {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Creates the inner views.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	private void createInnerViews(Context context) {
-		this.context = context;
 		final FastScrollView instance = this;
 
 		LinearLayout.LayoutParams lpinnerChilds = new LinearLayout.LayoutParams(
@@ -247,10 +380,7 @@ public class FastScrollView extends LinearLayout {
 		scrollBar.setProgressDrawable(new ColorDrawable(
 				android.R.color.transparent));
 
-		// android.view.ViewGroup.LayoutParams params = scrollBar
-		// .getLayoutParams();
-		// params.width = 25;
-
+		// DEBUGGING
 		// this.setBackgroundColor(Color.rgb(255, 0, 0));
 		// scrollView.setBackgroundColor(Color.rgb(0, 255, 0));
 		// scrollBar.setBackgroundColor(Color.rgb(0, 0, 255));
@@ -259,47 +389,42 @@ public class FastScrollView extends LinearLayout {
 		scrollView.setVerticalScrollBarEnabled(false);
 		scrollView.setHorizontalScrollBarEnabled(false);
 
+		// If the fast scrollbar is used for scrolling, scroll to the correct
+		// item (derived by the percent)
 		scrollBar.setOnScrollListener(new FastScrollBar.OnScrollListener() {
-
 			public void onScroll(int percent) {
-				// int mymax = getVisibleHeight();
-				// int percent = (y * 100) / mymax;
-				// Log.d("communicator", "######## onTouch y=" + y + ", max =" +
-				// mymax + ", percent="+ percent);
-
-				Log.d("communicator", "PPPPPP FastScrollView.onScroll()");
-
+				// Log.d("communicator", "PPPPPP FastScrollView.onScroll()");
 				scrollToPercent(percent);
 			}
 
 			public void onSnapScroll(int percent, boolean snappedDown,
 					boolean snappedUp) {
-				// TODO Auto-generated method stub
-
+				if (scrollListener != null) {
+					scrollListener
+							.onSnapScroll(percent, snappedDown, snappedUp);
+				}
 			}
 		});
 
+		// This scroll view is able to defer scrolling if NoHang listener tells
+		// to do so!
 		scrollView.setScrollViewListener(new ScrollViewExListener() {
 			public void onScrollChanged(final ScrollViewEx scrollView, int x,
 					final int y, int oldx, int oldy) {
 				if (isNoHangNeeded()) {
 					deferredScrolling = y;
-					Log.d("communicator",
-							"PPPPPP NOHANG FastScrollView.onScrollChanged()");
+					// Log.d("communicator",
+					// "PPPPPP NOHANG FastScrollView.onScrollChanged()");
 					return;
 				}
-				Log.d("communicator", "PPPPPP FastScrollView.onScrollChanged()");
+				// Log.d("communicator",
+				// "PPPPPP FastScrollView.onScrollChanged()");
 
 				int percent = getPosToPercent(y);
 				updateFastScrollBar(percent, false);
 
 				if (scrollListener != null) {
 					int item = getPosToItem(y);
-					// Log.d("communicator",
-					// "@@@@@ ON SCROLL scrollView.scrollView w/ instance = "+instance.hashCode());
-					// Log.d("communicator",
-					// "@@@@ ON SCROLL ("+instance.hashCode()+") CHANGED =======> "
-					// + instance.heights.size() + ", " + instance.heightsSum);
 					scrollListener.onScrollChanged(instance, x, y, oldx, oldy,
 							percent, item);
 				}
@@ -309,13 +434,6 @@ public class FastScrollView extends LinearLayout {
 			public void onScrollRested(ScrollViewEx scrollView, int x, int y,
 					int oldx, int oldy) {
 				Log.d("communicator", "PPPPPP FastScrollView.onScrollRested()");
-
-				// Log.d("communicator",
-				// "@@@@@ scrollView.scrollView w/ instance = "+instance.hashCode());
-				// Log.d("communicator",
-				// "@@@@ SCROLL RESTED ("+instance.hashCode()+") CHANGED =======> "
-				// + instance.heights.size() + ", " + instance.heightsSum);
-				// Log.d("communicator", "######## SCROLL RESTED");
 				if (scrollListener != null) {
 					int percent = getPosToPercent(y);
 					int item = getPosToItem(y);
@@ -346,54 +464,76 @@ public class FastScrollView extends LinearLayout {
 		this.addView(outerLayout);
 
 		resetFastScrollBar();
-		// reset heights
-		heightsIvalidate = true;
+
+		// "reset" heights
+		heightsInvalidate = true;
 	}
 
 	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
 
+	/**
+	 * Scroll to item index.
+	 * 
+	 * @param item
+	 *            the item
+	 */
 	public void scrollToItem(int item) {
 		int pos = getItemToPos(item);
 		int percent = getPosToPercent(pos);
-		// Log.d("communicator", "######## scrollToItem item=" + item +
-		// " => pos="
-		// + pos + " => percent=" + percent);
 		scrollToPercent(percent);
 	}
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Scroll to percent.
+	 * 
+	 * @param percent
+	 *            the percent
+	 */
 	public void scrollToPercent(int percent) {
 		int pos = getPercentToPos(percent);
-		// Log.d("communicator", "######## scrollToPercent percent=" + percent
-		// + " => pos=" + pos);
 		scrollView.scrollTo(0, pos);
 		updateFastScrollBar(percent, true);
 	}
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Scroll up completely.
+	 */
 	public void scrollUp() {
 		scrollToPercent(0);
 	}
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Scroll down completely.
+	 */
 	public void scrollDown() {
 		scrollToPercent(100);
 	}
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Reset fast scroll bar. This is only internally used.
+	 */
 	private void resetFastScrollBar() {
 		scrollBar.setProgress(0);
-		int maxPos = 100;// getMaxPosition() - scrollView.getHeight();
+		// 100% percent is the maximum of the fast scroll bar
+		int maxPos = 100;
 		scrollBar.setMax(maxPos);
 	}
 
 	// -------------------------------------------------------------------------
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.view.View#onSizeChanged(int, int, int, int)
+	 */
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		// CANNOT DO THE CHECK FOR NOHANG HERE BECAUSE OTHERWISE WE CANNOT REACT
 		// E.G. WITH SCROLLING! DO NOT SCROLL IN ONSIZECHANGELISTENER DIRECTLY
@@ -402,47 +542,45 @@ public class FastScrollView extends LinearLayout {
 			sizeChangeListener.onSizeChange(w, h, oldw, oldh);
 		}
 		// should update the scrollbar but cannot do this here because no
-		// new layout heights are there yet. wait for the layout!
+		// new layout heights are not there yet and would be 0 (zero). wait for
+		// the onLayout()!
 	}
 
 	// -------------------------------------------------------------------------
 
-	private boolean scrollBarSet = false;
-	private boolean scrollBarVisible = false;
-
-	private void updateScrollBar(int i) {
+	/**
+	 * Update scroll bar and possibly hide of show it depending on status
+	 * change. If a scroll bar is not necessary because the height of the
+	 * children is smaller than the visible height than no scroll bar will be
+	 * shown.
+	 */
+	private void updateScrollBar() {
 		Log.d("communicator", "PPPPPP FastScrollView.onSizeChanged()");
-		// Log.d("communicator", "@@@@ " + i +
-		// " updateScrollBar getMaxHeight()="
-		// + getMaxPosition() + ", getVisibleHeight()="
-		// + getVisibleHeight());
 		if (getMaxPosition() > 0 && getMaxPosition() <= getVisibleHeight()
-				&& (scrollBarVisible || !scrollBarSet)) {
-			scrollBarSet = true;
+				&& (scrollBarVisible || !scrollBarVisibilitySet)) {
+			scrollBarVisibilitySet = true;
 			scrollBarVisible = false;
-			// android.view.ViewGroup.LayoutParams params = scrollBar
-			// .getLayoutParams();
-			// params.width = 60;
 			scrollBar.setVisibility(View.GONE);
-			// this.invalidate();
-			// this.requestLayout();
-			heightsIvalidate = true;
+			heightsInvalidate = true;
 		} else if (getMaxPosition() > getVisibleHeight()
-				&& (!scrollBarVisible || !scrollBarSet)) {
+				&& (!scrollBarVisible || !scrollBarVisibilitySet)) {
 			scrollBar.setVisibility(View.VISIBLE);
-			// android.view.ViewGroup.LayoutParams params = scrollBar
-			// .getLayoutParams();
-			// params.width = 30;
-			// this.invalidate();
-			// this.requestLayout();
-			scrollBarSet = true;
+			scrollBarVisibilitySet = true;
 			scrollBarVisible = true;
-			heightsIvalidate = true;
+			heightsInvalidate = true;
 		}
 	}
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Get the percent converted to scroll position (sum of heights of
+	 * children).
+	 * 
+	 * @param percent
+	 *            the percent
+	 * @return the percent to pos
+	 */
 	public int getPercentToPos(int percent) {
 		int maxPos = getMaxHeight();
 		int pos = (percent * maxPos) / 100;
@@ -452,6 +590,14 @@ public class FastScrollView extends LinearLayout {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Get the scroll position (sum of heights of children) converted to
+	 * percent.
+	 * 
+	 * @param pos
+	 *            the pos
+	 * @return the pos to percent
+	 */
 	public int getPosToPercent(int pos) {
 		int maxPos = getMaxHeight();
 		int percent = (pos * 100) / maxPos;
@@ -460,50 +606,62 @@ public class FastScrollView extends LinearLayout {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Update the internal fast scroll bar if the scrollBar is not locked or
+	 * override is set. This must invalidate the heights.
+	 * 
+	 * @param percent
+	 *            the percent
+	 * @param override
+	 *            the override
+	 */
 	private void updateFastScrollBar(int percent, boolean override) {
 		if (!scrollBar.isLocked() || override) {
-			// Log.d("communicator", "######## updateFastScrollBar percent="
-			// + percent);
 			scrollBar.setMax(100);
 			scrollBar.setProgress(100 - percent);
-			heightsIvalidate = true;
+			heightsInvalidate = true;
 		}
 	}
 
 	// -------------------------------------------------------------------------
 
-	// forceNoUpdateUi == true makes it more efficient to add several childs at
-	// once
+	/**
+	 * Add a child to the list of children. This must invalidate the heights.
+	 * 
+	 * @param view
+	 *            the view
+	 */
 	public void addChild(View view) {
 		childList.add(view);
 		innerChilds.addView(view);
-		heightsIvalidate = true;
+		heightsInvalidate = true;
 	}
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Clear children. This must invalidate the heights.
+	 */
 	public void clearChilds() {
 		childList.clear();
 		if (innerChilds != null) {
 			innerChilds.removeAllViews();
 		}
-		heightsIvalidate = true;
+		heightsInvalidate = true;
 	}
 
 	// -------------------------------------------------------------------------
 
-	boolean deferredMeasureHeights = false;
+	/** The scrolling was deferred if this is a value != -1. */
 	int deferredScrolling = -1;
 
 	/**
 	 * Potentially refresh state if during an onLayout() method, this
-	 * calculation was skipped because of isNoHangNeeded() was true
+	 * calculation was skipped because of isNoHangNeeded() was true. Update the
+	 * scroll bar now, at a later time (when this method is called). This method
+	 * should only be called if user for example is not currently typing fast/
 	 */
 	public void potentiallyRefreshState() {
-		if (deferredMeasureHeights) {
-			measureHeights();
-			deferredMeasureHeights = false;
-		}
 		if (deferredScrolling != -1) {
 			int percent = getPosToPercent(deferredScrolling);
 			updateFastScrollBar(percent, false);
@@ -513,70 +671,57 @@ public class FastScrollView extends LinearLayout {
 
 	// -------------------------------------------------------------------------
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.widget.LinearLayout#onLayout(boolean, int, int, int, int)
+	 */
 	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		super.onLayout(changed, l, t, r, b);
-		// if (isNoHangNeeded()) {
-		// // remember that we need an update so someone should call
-		// // potentiallyRefreshState()!
-		// deferredMeasureHeights = true;
-		// Log.d("communicator", "PPPPPP NOHANG FastScrollView.onLayout()");
-		// return;
-		// }
 		Log.d("communicator", "PPPPPP FastScrollView.onLayout()");
 		if (!isNoHangNeeded()) {
-			updateScrollBar(4);
+			updateScrollBar();
 			if (layoutDoneListener != null) {
 				layoutDoneListener.doneLayout();
 			}
 		}
 		// IT SEEMS TO BE NECESSARY TO STILL UPDATE THE MEASUREMENTS!!!
-		// WHY???
+		// This should not be deferred like the scrolling
 		measureHeights();
 		changed = false;
 	}
 
 	// -------------------------------------------------------------------------
 
-	/** The heights. */
-	public List<Integer> heights = new ArrayList<Integer>();
-	public int heightsSum = 0;
-
 	/**
-	 * Measure the heights
+	 * Measure the heights if this is necessary. This is necessary if the
+	 * heightsInvalidate flag was set to true (e.g., after adding a child).
 	 */
 	private void measureHeights() {
-		if (!heightsIvalidate) {
+		if (!heightsInvalidate) {
 			return;
 		}
-		heightsIvalidate = false;
+		heightsInvalidate = false;
 		heights.clear();
-		//String heightsString = "";
 		heightsSum = 0;
 		for (View layout : childList) {
 			int h = layout.getMeasuredHeight();
 			heights.add(h);
 			heightsSum += h;
-			//heightsString += heightsSum + ",";
 		}
-		// invalidate
-		// Log.d("communicator", "@@@@ internal heights ("+this.hashCode()+"): "
-		// + heightsString);
-		// Log.d("communicator", "@@@@ internal heights size: " +
-		// heights.size());
-		// Log.d("communicator", "@@@@ internal heightsSum: " + heightsSum);
 	}
 
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Gets the scroll position for a specific child element
+	 * Get the scroll position (sum of heights of children) for a specific child
+	 * element index.
 	 * 
 	 * @param item
 	 *            the item
 	 * @return the position by scroll item
 	 */
-	// Gets the scroll position (sum of heights) by scrolled item
 	public int getItemToPos(int item) {
 		int itemcnt = 0;
 		int hsum = 0;
@@ -592,7 +737,14 @@ public class FastScrollView extends LinearLayout {
 
 	// ------------------------------------------------------------------------
 
-	// Gets the scrolled item by scroll position (sum of heights)
+	/**
+	 * Get the child item index from a scroll position (sum of heights of
+	 * children).
+	 * 
+	 * @param pos
+	 *            the pos
+	 * @return the pos to item
+	 */
 	public int getPosToItem(int pos) {
 		if (heights.size() == 0) {
 			return -1;
@@ -612,7 +764,8 @@ public class FastScrollView extends LinearLayout {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Gets the scroll position for the last (maximum) child element.
+	 * Get the scroll position (sum of heights of children) for the last
+	 * (maximum) child element.
 	 * 
 	 * @return the max position
 	 */
@@ -623,7 +776,7 @@ public class FastScrollView extends LinearLayout {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Gets the maximum height of the filled inner child area.
+	 * Get the maximum height of the filled inner child area.
 	 * 
 	 * @return the max height
 	 */
@@ -638,7 +791,7 @@ public class FastScrollView extends LinearLayout {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Gets the visible height.
+	 * Get the visible height.
 	 * 
 	 * @return the visible height
 	 */
@@ -648,21 +801,36 @@ public class FastScrollView extends LinearLayout {
 
 	// -------------------------------------------------------------------------
 
-	int lockedPos = -1;
-	int lockedPos2 = -1;
-
+	/**
+	 * Lock the position of this fast scroll view. With restoreLockedPosition()
+	 * this scroll position can be restored at a later time. This should be
+	 * called when adding something to the scrollview but if the scroll position
+	 * should be kept.
+	 */
 	public void lockPosition() {
 		lockedPos = this.scrollView.getScrollY();
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Checks if is scroll is currently locked.
+	 * 
+	 * @return true, if is locked
+	 */
 	public boolean isLocked() {
 		return lockedPos != -1;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Restore the previously locked position. The position was set by calling
+	 * lockPosition().
+	 */
 	public void restoreLockedPosition() {
 		final int lockedPosCopy = lockedPos;
 		lockedPos = -1;
-		final FastScrollView me = this;
 		this.postDelayed(new Runnable() {
 			public void run() {
 				resetFastScrollBar();
@@ -675,34 +843,66 @@ public class FastScrollView extends LinearLayout {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Sets the scroll bar background to a specific color.
+	 * 
+	 * @param colorResource
+	 *            the new scroll background
+	 */
 	public void setScrollBackground(final int colorResource) {
-		// Log.d("communicator", "@@@@ set bg color " + colorResource);
-
 		final Handler mUIHandler = new Handler(Looper.getMainLooper());
 		mUIHandler.post(new Thread() {
 			@Override
 			public void run() {
 				super.run();
-				// Log.d("communicator", "@@@@ set bg color2 " + colorResource);
 				scrollBar.setBackgroundResource(colorResource);
-				// scrollBar.invalidate();
-				// scrollBar.requestLayout(); }
 				scrollBar.invalidate();
-				// scrollBar.requestLayout();
 			}
 		});
 
 	}
 
 	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
 
+	/**
+	 * Checks if is no hang needed. If no noHang listener has been established
+	 * then always return false.
+	 * 
+	 * @return true, if is no hang needed
+	 */
 	private boolean isNoHangNeeded() {
 		if (noHangListener == null) {
 			return false;
 		}
 		return noHangListener.noHangNeeded();
 	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sets the snap down value, if > snapDown% then snap to 100%. This value is
+	 * forwarded to the internal FastScrollBar.
+	 * 
+	 * @param snapDownLimit
+	 *            the new snap down
+	 */
+	public void setSnapDown(int snapDownLimit) {
+		scrollBar.setSnapDown(snapDownLimit);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sets the snap up value, if < snapUp% then snap to 0%. This value is
+	 * forwarded to the internal FastScrollBar.
+	 * 
+	 * @param snapUpLimit
+	 *            the new snap up
+	 */
+	public void setSnapUp(int snapUpLimit) {
+		scrollBar.setSnapUp(snapUpLimit);
+	}
+
 	// -------------------------------------------------------------------------
 
 }
