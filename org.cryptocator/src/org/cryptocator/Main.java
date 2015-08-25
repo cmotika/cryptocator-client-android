@@ -103,7 +103,7 @@ public class Main extends Activity {
 	private TextView addUserText;
 
 	/** The add user name. */
-	private AddUserEditText addUserName;
+	private KeyEventEditText addUserName;
 
 	/** The add user button. */
 	private Button addUserButton;
@@ -602,7 +602,7 @@ public class Main extends Activity {
 			adduseritem = ((LinearLayout) findViewById(R.id.adduseritem));
 			addUserText = ((TextView) adduserlistitem
 					.findViewById(R.id.adduser_text));
-			addUserName = ((AddUserEditText) adduserlistitem
+			addUserName = ((KeyEventEditText) adduserlistitem
 					.findViewById(R.id.adduser_name));
 			addUserButton = ((Button) adduserlistitem
 					.findViewById(R.id.adduser_button));
@@ -613,7 +613,7 @@ public class Main extends Activity {
 			// This is not visible until we select it from the context menu
 			showHideAddUser(context, false);
 			addUserName
-					.setKeyListener(new AddUserEditText.AddUserEditTextKeyListener() {
+					.setKeyListener(new KeyEventEditText.KeyEventEditTextEditTextKeyListener() {
 						public boolean keyEvent(int keyCode, KeyEvent event) {
 							if (keyCode == KeyEvent.KEYCODE_BACK
 									&& event.getAction() == KeyEvent.ACTION_UP) {

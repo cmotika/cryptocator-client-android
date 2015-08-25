@@ -67,8 +67,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 /**
- * The ConversationCompose class is for creating new messages. It is basically a
- * stripped down version of the Conversation class.
+ * The ConversationCompose class is responsible for creating new messages. It is
+ * basically a stripped down version of the Conversation class.
  * 
  * @author Christian Motika
  * @since 2.1
@@ -137,6 +137,7 @@ public class ConversationCompose extends Activity {
 		}
 
 		// Apply custom title bar (with holo :-)
+		// See Main.java for more explanation
 		LinearLayout main = Utility.setContentViewWithCustomTitle(this,
 				R.layout.activity_conversation_compose, R.layout.title_general);
 		// main.setGravity(Gravity.BOTTOM);
