@@ -10,7 +10,7 @@
  * all contributors, this list of conditions and the following disclaimer.
  * 
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, an acknowledgement to all contributors, this list of conditions
+ * notice, an acknowledgment to all contributors, this list of conditions
  * and the following disclaimer in the documentation and/or other materials
  * provided with the distribution.
  * 
@@ -33,10 +33,22 @@
  */
 package org.cryptocator;
 
+/**
+ * The LoginData class is a fast data structure to represent login data
+ * consisting of a username a password and a value. Each of these are encoded
+ * for the server. The value consists of the hash of the username and hash of
+ * the password to be able to check consistency on the server. It also contains
+ * the session secret the timestamp and the deviceID. It is more a struct than a
+ * class and for fast processing the objects are made public without any
+ * getter/setter methods.
+ * 
+ * @author Christian Motika
+ * @since 1.2
+ * @date 08/23/2015
+ * 
+ */
 public class LoginData {
-
 	public String user;
 	public String password;
 	public String val;
-	
 }

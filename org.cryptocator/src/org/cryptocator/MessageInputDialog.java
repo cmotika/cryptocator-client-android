@@ -10,7 +10,7 @@
  * all contributors, this list of conditions and the following disclaimer.
  * 
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, an acknowledgement to all contributors, this list of conditions
+ * notice, an acknowledgment to all contributors, this list of conditions
  * and the following disclaimer in the documentation and/or other materials
  * provided with the distribution.
  * 
@@ -33,57 +33,118 @@
  */
 package org.cryptocator;
 
-import org.cryptocator.R;
-
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
-import android.graphics.Rect;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewTreeObserver;
-import android.view.WindowManager;
 import android.view.ViewGroup.LayoutParams;
-import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+/**
+ * The MessageInputDialog class is responsible for displaying a dialog with a
+ * title and text information and up to three buttons: At most two OK buttons
+ * and a CANCEL button. Additionally it has an input text field. The
+ * SelectionListener presents the user entered return text as a String.<BR>
+ * <BR>
+ * The MessageInputDialog needs the following permission: <uses-permission
+ * android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+ * 
+ * @author Christian Motika
+ * @since 1.2
+ * @date 08/23/2015
+ * 
+ */
 public class MessageInputDialog extends Dialog {
 
+	/** The BUTTONO k0. */
 	public static int BUTTONOK0 = 0;
+	
+	/** The BUTTONO k1. */
 	public static int BUTTONOK1 = 1;
+	
+	/** The buttoncancel. */
 	public static int BUTTONCANCEL = 2;
 
+	/**
+	 * The listener interface for receiving onSelection events.
+	 * The class that is interested in processing a onSelection
+	 * event implements this interface, and the object created
+	 * with that class is registered with a component using the
+	 * component's <code>addOnSelectionListener<code> method. When
+	 * the onSelection event occurs, that object's appropriate
+	 * method is invoked.
+	 *
+	 * @see OnSelectionEvent
+	 */
 	public interface OnSelectionListener {
-		void selected(MessageInputDialog dialog, int button, boolean cancel, String returnText);
+		
+		/**
+		 * Selected.
+		 *
+		 * @param dialog the dialog
+		 * @param button the button
+		 * @param cancel the cancel
+		 * @param returnText the return text
+		 */
+		void selected(MessageInputDialog dialog, int button, boolean cancel,
+				String returnText);
 	}
 
+	/** The title message. */
 	String titleMessage;
-	String textMessage;
-	String trueButton;
-	String neutralButton;
-	String falseButton;
-	String returnText;
-	EditText inputText = null;
 	
+	/** The text message. */
+	String textMessage;
+	
+	/** The true button. */
+	String trueButton;
+	
+	/** The neutral button. */
+	String neutralButton;
+	
+	/** The false button. */
+	String falseButton;
+	
+	/** The return text. */
+	String returnText;
+	
+	/** The input text. */
+	EditText inputText = null;
+
+	/** The handled. */
 	boolean handled = false;
 
+	/** The cancel. */
 	boolean cancel = true;
 
+	/** The context. */
 	Context context = null;
+	
+	/** The selection listener. */
 	OnSelectionListener selectionListener;
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Instantiates a new message input dialog.
+	 *
+	 * @param context the context
+	 * @param titleMessage the title message
+	 * @param textMessage the text message
+	 * @param okButton0 the ok button0
+	 * @param okButton1 the ok button1
+	 * @param cancelButton the cancel button
+	 * @param defaultText the default text
+	 * @param selectionListener the selection listener
+	 */
 	public MessageInputDialog(Context context, String titleMessage,
 			String textMessage, String okButton0, String okButton1,
 			String cancelButton, String defaultText,
@@ -100,12 +161,18 @@ public class MessageInputDialog extends Dialog {
 	}
 
 	// -------------------------------------------------------------------------
-	
+
+	/**
+	 * Sets the text.
+	 *
+	 * @param newText the new text
+	 * @param showKeyboard the show keyboard
+	 */
 	public void setText(String newText, boolean showKeyboard) {
 		if (newText != null) {
 			inputText.setText(newText);
 			inputText.setSelection(0, newText.length());
-		} 
+		}
 		if (showKeyboard) {
 			inputText.postDelayed(new Runnable() {
 				public void run() {
@@ -115,10 +182,12 @@ public class MessageInputDialog extends Dialog {
 			}, 100);
 		}
 	}
-	
-	// -------------------------------------------------------------------------
-	
 
+	// -------------------------------------------------------------------------
+
+	/* (non-Javadoc)
+	 * @see android.app.Dialog#onCreate(android.os.Bundle)
+	 */
 	// @Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -130,11 +199,10 @@ public class MessageInputDialog extends Dialog {
 		// NEEDS : <uses-permission
 		// android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 		this.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-		
+
 		dialog.getWindow().setSoftInputMode(
-			    WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-		
-		
+				WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+
 		LinearLayout outerLayout = new LinearLayout(context);
 		outerLayout.setOrientation(LinearLayout.VERTICAL);
 		outerLayout.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -173,9 +241,9 @@ public class MessageInputDialog extends Dialog {
 			okButton.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
 					handled = true;
-					returnText = inputText
-							.getText().toString();
-					selectionListener.selected(dialog, BUTTONOK0, false, returnText);
+					returnText = inputText.getText().toString();
+					selectionListener.selected(dialog, BUTTONOK0, false,
+							returnText);
 				}
 			});
 		}
@@ -189,9 +257,9 @@ public class MessageInputDialog extends Dialog {
 			okButton2.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
 					handled = true;
-					returnText = inputText
-							.getText().toString();
-					selectionListener.selected(dialog, BUTTONOK1, false, returnText);
+					returnText = inputText.getText().toString();
+					selectionListener.selected(dialog, BUTTONOK1, false,
+							returnText);
 				}
 			});
 		}
@@ -205,10 +273,9 @@ public class MessageInputDialog extends Dialog {
 			cancelButton.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
 					handled = true;
-					returnText = inputText
-							.getText().toString();
-					selectionListener.selected(dialog, BUTTONCANCEL, true, returnText
-							);
+					returnText = inputText.getText().toString();
+					selectionListener.selected(dialog, BUTTONCANCEL, true,
+							returnText);
 				}
 			});
 		}
@@ -217,8 +284,8 @@ public class MessageInputDialog extends Dialog {
 			public void onDismiss(DialogInterface arg0) {
 				try {
 					if (!handled) {
-						selectionListener.selected(null, -1, true, inputText.getText()
-								.toString());
+						selectionListener.selected(null, -1, true, inputText
+								.getText().toString());
 					}
 				} catch (Exception e) {
 					// not crash here!
@@ -312,18 +379,16 @@ public class MessageInputDialog extends Dialog {
 
 		// resolveDialogScheme("com.android.internal.R.style.Theme_Dialog_Alert")
 		// getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
-		
-		
-		
-		// SHOW DIALOG AT THE TOP POSITION BECAUSE OTHERWISE IT MIGHT GET PROBLEMS WITH KEYBOARD
+
+		// SHOW DIALOG AT THE TOP POSITION BECAUSE OTHERWISE IT MIGHT GET
+		// PROBLEMS WITH KEYBOARD
 		// SHOWING AT THE BOTTOM
-		
-	     WindowManager.LayoutParams wmlp = dialog.getWindow().getAttributes();
-	     wmlp.gravity = Gravity.TOP;
-	     wmlp.y = 10;   //y position		
-	     //wmlp.gravity = Gravity.TOP | Gravity.LEFT;
-	     //wmlp.x = 100;   //x position
-		
+
+		WindowManager.LayoutParams wmlp = dialog.getWindow().getAttributes();
+		wmlp.gravity = Gravity.TOP;
+		wmlp.y = 10; // y position
+		// wmlp.gravity = Gravity.TOP | Gravity.LEFT;
+		// wmlp.x = 100; //x position
 
 		if (returnText != null && returnText.length() > 0) {
 			inputText.setText(returnText);
@@ -336,69 +401,68 @@ public class MessageInputDialog extends Dialog {
 				}
 			}, 100);
 		}
-		
-		
-//		dialogLayout.getViewTreeObserver().addOnGlobalLayoutListener(
-//				new ViewTreeObserver.OnGlobalLayoutListener() {
-//					public void onGlobalLayout() {
-//						c++;
-//						if (isKeyboardVisible(dialogLayout)) {
-//							dialog.setTitle("KEYBOARD ON " + c);
-//							dialogLayout.setPadding(0, 0, 0, 200);
-//						} else {
-//							dialog.setTitle("KEYBOARD OFF " + c);
-//							dialogLayout.setPadding(0, 0, 0, 0);
-//						}
-//					}
-//				});
 
-		
-		
-//		// Make sure the dialog is shifted up when the keyboard is shown!
-//		// e.g. in the inner view!
-//		this.getWindow().setSoftInputMode(
-//			    WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+		// dialogLayout.getViewTreeObserver().addOnGlobalLayoutListener(
+		// new ViewTreeObserver.OnGlobalLayoutListener() {
+		// public void onGlobalLayout() {
+		// c++;
+		// if (isKeyboardVisible(dialogLayout)) {
+		// dialog.setTitle("KEYBOARD ON " + c);
+		// dialogLayout.setPadding(0, 0, 0, 200);
+		// } else {
+		// dialog.setTitle("KEYBOARD OFF " + c);
+		// dialogLayout.setPadding(0, 0, 0, 0);
+		// }
+		// }
+		// });
+
+		// // Make sure the dialog is shifted up when the keyboard is shown!
+		// // e.g. in the inner view!
+		// this.getWindow().setSoftInputMode(
+		// WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 	}
-	
-//	int c = 0;
-//
-//	// -------------------------------------------------------------------------
-//	private static int minWidthDiff = 100;
-//	private static int mLastHeightDifferece;
-//	private static boolean keyboardVisible = false;
-//	
-//	private boolean isKeyboardVisible(View rootView) {
-//		// get screen frame rectangle
-//		Rect r = new Rect();
-//		rootView.getWindowVisibleDisplayFrame(r);
-//		// get screen height
-//		int screenHeight = rootView.getRootView().getHeight();
-//		// calculate the height difference
-//		int heightDifference = screenHeight - (r.bottom - r.top);
-//
-//		// Log.d("communicator",
-//		// "@@@@ heightDifference =" + heightDifference +
-//		// ", mLastHeightDifferece = "+mLastHeightDifferece+" , screenHeight = "
-//		// + screenHeight);
-//
-//		// if height difference is different then the last height difference and
-//		// is bigger then a third of the screen we can assume the keyboard is
-//		// open
-//		if (heightDifference != mLastHeightDifferece) {
-//			if (heightDifference > screenHeight / 4
-//					&& ((heightDifference > mLastHeightDifferece + minWidthDiff) || (heightDifference < mLastHeightDifferece
-//							- minWidthDiff))) {
-//				// keyboard visiblevisible
-//				// Log.d("communicator", "@@@@@@ CHANGE TO VISIBLE=TRUE");
-//				mLastHeightDifferece = heightDifference;
-//				keyboardVisible = true;
-//			} else if (heightDifference < screenHeight / 4) {
-//				// Log.d("communicator", "@@@@@@ CHANGE TO VISIBLE=FALSE");
-//				// keyboard hidden
-//				mLastHeightDifferece = heightDifference;
-//				keyboardVisible = false;
-//			}
-//		}
-//		return keyboardVisible;
-//	}	
+
+	// int c = 0;
+	//
+	// //
+	// -------------------------------------------------------------------------
+	// private static int minWidthDiff = 100;
+	// private static int mLastHeightDifferece;
+	// private static boolean keyboardVisible = false;
+	//
+	// private boolean isKeyboardVisible(View rootView) {
+	// // get screen frame rectangle
+	// Rect r = new Rect();
+	// rootView.getWindowVisibleDisplayFrame(r);
+	// // get screen height
+	// int screenHeight = rootView.getRootView().getHeight();
+	// // calculate the height difference
+	// int heightDifference = screenHeight - (r.bottom - r.top);
+	//
+	// // Log.d("communicator",
+	// // "@@@@ heightDifference =" + heightDifference +
+	// // ", mLastHeightDifferece = "+mLastHeightDifferece+" , screenHeight = "
+	// // + screenHeight);
+	//
+	// // if height difference is different then the last height difference and
+	// // is bigger then a third of the screen we can assume the keyboard is
+	// // open
+	// if (heightDifference != mLastHeightDifferece) {
+	// if (heightDifference > screenHeight / 4
+	// && ((heightDifference > mLastHeightDifferece + minWidthDiff) ||
+	// (heightDifference < mLastHeightDifferece
+	// - minWidthDiff))) {
+	// // keyboard visiblevisible
+	// // Log.d("communicator", "@@@@@@ CHANGE TO VISIBLE=TRUE");
+	// mLastHeightDifferece = heightDifference;
+	// keyboardVisible = true;
+	// } else if (heightDifference < screenHeight / 4) {
+	// // Log.d("communicator", "@@@@@@ CHANGE TO VISIBLE=FALSE");
+	// // keyboard hidden
+	// mLastHeightDifferece = heightDifference;
+	// keyboardVisible = false;
+	// }
+	// }
+	// return keyboardVisible;
+	// }
 }
