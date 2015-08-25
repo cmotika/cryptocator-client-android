@@ -33,53 +33,68 @@
  */
 package org.cryptocator;
 
-import org.cryptocator.R;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
-import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.provider.ContactsContract;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.TableRow;
 import android.widget.TextView;
 
-//import android.support.v4.app.DialogFragment;
+// TODO: Auto-generated Javadoc
+/**
+ * The MessageDetailsActivity class is responsible for displaying a dialog with
+ * the details for a conversation item (message).
+ * 
+ * @author Christian Motika
+ * @since 1.2
+ * @date 08/23/2015
+ * 
+ */
+public class MessageDetailsActivity extends Activity {
 
-public class MessagedetailsActivity extends Activity {
-
+	/** The conversation item to display information for. */
 	public static ConversationItem conversationItem = null;
+
+	/** The host uid. */
 	public static int hostUid;
 
+	/** The activity. */
 	Activity activity = null;
+
+	/** The context. */
 	Context context = null;
+
+	/** The alert dialog. */
 	AlertDialog alertDialog = null;
+
+	/**
+	 * The cancel flag indicates that no OK button was used to close the dialog
+	 * activity.
+	 */
 	boolean cancel = true;
+
+	/**
+	 * The handled flag indicates that a button was used to close the dialog
+	 * activity.
+	 */
 	boolean handled = false;
 
-	// -------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
 
+	@SuppressLint("InflateParams")
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onCreate(android.os.Bundle)
+	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -88,28 +103,19 @@ public class MessagedetailsActivity extends Activity {
 		activity = this;
 		context = this;
 
-		// super.setTheme(R.style.Theme_Transparent);
-		// this.setTheme(android.R.style.Theme_Dialog);
-		// getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
 		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 
-		// ATTENTION: Necessary to see the calling activity in the background!
-		// android:theme="@style/Theme.Transparent"
-
-		// this.setStyle(DialogFragment.STYLE_NORMAL,
-		// R.style.AlertDialogCustom);
 		String activityTitle = "";
 
 		LayoutInflater inflaterInfo = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		LinearLayout dialogLayout = (LinearLayout) inflaterInfo.inflate(
 				R.layout.activity_messagedetails, null);
-
 		LinearLayout outerLayout = (LinearLayout) dialogLayout
 				.findViewById(R.id.messagedetailsmain);
 		LinearLayout buttonLayout = (LinearLayout) dialogLayout
 				.findViewById(R.id.messagedetailsbuttons);
 
-		// / -------------
+		// -------------
 
 		TextView from = (TextView) dialogLayout.findViewById(R.id.from);
 		TextView to = (TextView) dialogLayout.findViewById(R.id.to);
@@ -134,7 +140,7 @@ public class MessagedetailsActivity extends Activity {
 				.findViewById(R.id.keyexpires);
 		TextView keyhash = (TextView) dialogLayout.findViewById(R.id.keyhash);
 
-		// get updated information
+		// Get updated information about this conversation item
 		final ConversationItem updatedItem = DB.getMessage(context,
 				conversationItem.localid, hostUid);
 
@@ -248,7 +254,7 @@ public class MessagedetailsActivity extends Activity {
 			}
 		});
 
-		// / -------------
+		// -------------
 
 		builder.setTitle(activityTitle);
 
@@ -275,7 +281,7 @@ public class MessagedetailsActivity extends Activity {
 		Window window = alertDialog.getWindow();
 		lp.copyFrom(window.getAttributes());
 		// This makes the dialog take up the full width
-		lp.width = WindowManager.LayoutParams.FILL_PARENT;
+		lp.width = WindowManager.LayoutParams.MATCH_PARENT;
 		// lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
 		window.setAttributes(lp);
 
@@ -292,24 +298,19 @@ public class MessagedetailsActivity extends Activity {
 		if (!conversationItem.smsfailed) {
 			buttonresend.setVisibility(View.GONE);
 		}
-
-		// LayoutParams params = updateNameButton.getLayoutParams();
-		// params.height = 90;
-		// params.width = 90;
-		// params = updatePhoneButton.getLayoutParams();
-		// params.height = 90;
-		// params.width = 90;
-		// params = updateKeyButton.getLayoutParams();
-		// params.height = 90;
-		// params.width = 90;
-
 	}
 
 	// ------------------------------------------------------------------------
-	// ------------------------------------------------------------------------
 
+	/**
+	 * Resend SMS message. This method is currently used only for resending
+	 * previously failed SMS.
+	 * 
+	 * @param conversationItem
+	 *            the conversation item
+	 * @return true, if successful
+	 */
 	public boolean resendMessage(ConversationItem conversationItem) {
-		// resend previously failed SMS
 		String messageTextString = conversationItem.text;
 		boolean encrypted = conversationItem.encrypted;
 		int transport = conversationItem.transport;
@@ -323,6 +324,20 @@ public class MessagedetailsActivity extends Activity {
 		return false;
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Ask the user if he really wants to withdraw the message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 * @param localid
+	 *            the localid
+	 * @param toHostUid
+	 *            the to host uid
+	 */
 	public void askWithdraw(final Context context, final int mid,
 			final int localid, final int toHostUid) {
 		final Activity activity = this;
@@ -330,9 +345,16 @@ public class MessagedetailsActivity extends Activity {
 		if (mid == -1) {
 			titleMessage = "Withdraw Message *" + localid;
 		}
-		String textMessage = "Attention! Withdrawing a message should be used with precaution.\n\nA withdrawn message is deleted from server. There"
-				+ " is no guarantee that it is deleted from other devices that may already have received the message. All devices that connect to the server are advised to"
-				+ " delete the message. Anyhow, this message may already have been read by the recipient. Furthermore, withdrawing will cancel new message notifications of the recipient. You should proceed only if there is no alternative!\n\nDo you really want to withdraw the message?";
+		String textMessage = "Attention! Withdrawing a message should be used with" +
+				" precaution.\n\nA withdrawn message is deleted from server. There"
+				+ " is no guarantee that it is deleted from other devices that may " +
+				"already have received the message. All devices that connect to the " +
+				"server are advised to"
+				+ " delete the message. Anyhow, this message may already have been " +
+				"read by the recipient. Furthermore, withdrawing will cancel new " +
+				"message notifications of the recipient. You should proceed only " +
+				"if there is no alternative!\n\nDo you really want to withdraw" +
+				" the message?";
 		new MessageAlertDialog(context, titleMessage, textMessage,
 				" Withdraw ", " Cancel ", null,
 				new MessageAlertDialog.OnSelectionListener() {
