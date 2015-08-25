@@ -37,16 +37,28 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-
+/**
+ * The BootReceiver class is responsible for starting the Scheduler after
+ * booting of the device finished.
+ * 
+ * @author Christian Motika
+ * @since 2.1
+ * @date 08/23/2015
+ */
 public class BootReceiver extends BroadcastReceiver {
+
+	// -------------------------------------------------------------------------
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		
+
 		boolean isActive = Setup.isActive(context);
-		
+
 		if (isActive) {
 			Scheduler.reschedule(context, false, false, false);
 		}
 	}
+
+	// -------------------------------------------------------------------------
+
 }
