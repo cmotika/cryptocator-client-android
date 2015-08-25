@@ -42,8 +42,9 @@ import android.content.Context;
  * public without any getter/setter methods.
  * 
  * @author Christian Motika
- * @since 2.1
+ * @since 1.2
  * @date 08/23/2015
+ * 
  */
 public class ConversationItem {
 

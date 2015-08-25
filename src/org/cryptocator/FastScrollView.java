@@ -56,8 +56,9 @@ import android.widget.LinearLayout;
  * scrolling if a NoHang listener tells to do so!
  * 
  * @author Christian Motika
- * @since 2.1
+ * @since 1.2
  * @date 08/23/2015
+ * 
  */
 public class FastScrollView extends LinearLayout {
 

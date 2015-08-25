@@ -53,8 +53,9 @@ import android.util.Log;
  * loading conversations or adding new messages to a conversation.
  * 
  * @author Christian Motika
- * @since 2.1
+ * @since 1.2
  * @date 08/23/2015
+ * 
  */
 @SuppressLint("SimpleDateFormat")
 public class DB {
