@@ -1324,7 +1324,7 @@ public class Setup extends Activity {
 	 */
 	private void updateAccountLocked(Context context, boolean silent) {
 		if (accountLocked > 0) {
-			login.setText("   Validate Login   ");
+			login.setText("   Validate / Login   ");
 			newaccount.setEnabled(false);
 			uid.setFocusable(false);
 			email.setFocusable(false);
@@ -1344,7 +1344,7 @@ public class Setup extends Activity {
 			online = false;
 			updateonline();
 
-			login.setText("   Validate Login / Save   ");
+			login.setText("   Validate / Save   ");
 			accountLocked = accountLocked - 1;
 			Conversation
 					.promptInfo(
@@ -2211,6 +2211,8 @@ public class Setup extends Activity {
 	 * Backup the userlist to the server. There is a manual and an automatic
 	 * backup. The automatic is used if SMS option is turned on in order do
 	 * validate if someone else is allowed to download/see our phone number.
+	 * Only registered users will be backed up. Only the UIDs will be backed up
+	 * no display name or phone number will be send to the server!
 	 * 
 	 * @param context
 	 *            the context
@@ -2227,10 +2229,12 @@ public class Setup extends Activity {
 		if (!silent) {
 			setErrorInfo(context, null);
 		}
-		String userlistString = Utility.loadStringSetting(context,
-				SETTINGS_USERLIST, "").replace(",", "#");
 
-		if (userlistString.length() == 0) {
+		// String userlistString = Utility.loadStringSetting(context,
+		// SETTINGS_USERLIST, "");
+		List<Integer> uidList = Main.loadUIDList(context);
+
+		if (uidList.size() == 0) {
 			if (!silent) {
 				setErrorInfo(context, "No users in your list yet!");
 			}
@@ -2240,17 +2244,31 @@ public class Setup extends Activity {
 			return;
 		}
 
-		// RSA encode
-		PublicKey serverKey = getServerkey(context);
-		String userlistStringEnc = Communicator.encryptServerMessage(context,
-				userlistString, serverKey);
-		if (userlistStringEnc == null) {
-			setErrorInfo(context,
-					"Encryption error. Try again after restarting the App.");
-			backup.setEnabled(true);
-			return;
+		// We MUST encrypt each UID individually because the message gets too
+		// long otherwise for RSA encryption
+		String userlistString = "";
+		for (int uid : uidList) {
+			// Only backup registered users for now!
+			if (uid >= 0) {
+				String uidEnc = Setup.encUid(context, uid);
+				if (userlistString.length() > 0) {
+					userlistString += "#";
+				}
+				userlistString += uidEnc;
+			}
 		}
-		userlistStringEnc = Utility.encode(userlistStringEnc);
+
+		// // RSA encode
+		// PublicKey serverKey = getServerkey(context);
+		// String userlistStringEnc = Communicator.encryptServerMessage(context,
+		// userlistString, serverKey);
+		// if (userlistStringEnc == null) {
+		// setErrorInfo(context,
+		// "Encryption error. Try again after restarting the App.");
+		// backup.setEnabled(true);
+		// return;
+		// }
+		String userlistStringEnc = Utility.encode(userlistString);
 
 		String session = Setup.getTmpLogin(context);
 		if (session == null) {
@@ -2294,7 +2312,7 @@ public class Setup extends Activity {
 										if (!silent) {
 											setErrorInfo(
 													context,
-													"Backup of user list to server successful. You can now later restore it, e.g., on a different device or in case of data loss. Note that no messages are backed up.",
+													"Backup of user list to server successful. You can now later restore it, e.g., on a different device or in case of data loss.\n\nNote that no messages are backed up.\n\nAlso note that ONLY registered users are backed up and only their UID not their display name or phone number was saved at the server!",
 													false);
 										}
 									} else {

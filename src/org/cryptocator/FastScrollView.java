@@ -530,7 +530,8 @@ public class FastScrollView extends LinearLayout {
 				layoutDoneListener.doneLayout();
 			}
 		}
-		// IT SEEMS TO ME NECESSARY TO STILL UPDATE THE MEASUREMENTS!!!
+		// IT SEEMS TO BE NECESSARY TO STILL UPDATE THE MEASUREMENTS!!!
+		// WHY???
 		measureHeights();
 		changed = false;
 	}
@@ -550,13 +551,13 @@ public class FastScrollView extends LinearLayout {
 		}
 		heightsIvalidate = false;
 		heights.clear();
-		String heightsString = "";
+		//String heightsString = "";
 		heightsSum = 0;
 		for (View layout : childList) {
 			int h = layout.getMeasuredHeight();
 			heights.add(h);
 			heightsSum += h;
-			heightsString += heightsSum + ",";
+			//heightsString += heightsSum + ",";
 		}
 		// invalidate
 		// Log.d("communicator", "@@@@ internal heights ("+this.hashCode()+"): "
