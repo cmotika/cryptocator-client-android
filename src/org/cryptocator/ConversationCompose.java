@@ -33,432 +33,80 @@
  */
 package org.cryptocator;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import org.cryptocator.ScrollViewEx.ScrollViewExListener;
-
-import org.cryptocator.R;
-
-import android.app.ActionBar;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
-import android.graphics.Rect;
-import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Parcelable;
 import android.provider.ContactsContract;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextWatcher;
-import android.text.method.NumberKeyListener;
-import android.util.Log;
-import android.util.Pair;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnFocusChangeListener;
+import android.view.View.OnKeyListener;
 import android.view.View.OnLongClickListener;
-import android.view.WindowManager.LayoutParams;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.view.WindowManager.LayoutParams;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.Spinner;
-//import android.support.v7.widget.PopupMenu;
 import android.widget.TextView;
-import android.view.ViewGroup;
-import android.view.View.OnKeyListener;
 
+/**
+ * The ConversationCompose class is for creating new messages. It is basically a
+ * stripped down version of the Conversation class.
+ * 
+ * @author Christian Motika
+ * @since 2.1
+ * @date 08/23/2015
+ */
 public class ConversationCompose extends Activity {
 
-	// private LinearLayout conversationinnerview;
+	/** The conversation root view. */
 	private LinearLayout conversationRootView;
 
+	/** The sendspinner. */
 	Spinner sendspinner = null;
 
-	private static boolean alive = false;
+	/** The host uid. */
 	private static int hostUid = -1;
 
+	/** The sendbutton. */
 	private ImagePressButton sendbutton;
+
+	/** The phonebutton. */
 	private ImagePressButton phonebutton;
+
+	/** The message text. */
 	public EditText messageText;
+
+	/** The phone or uid. */
 	public EditText phoneOrUid;
 
-	private ScrollViewEx scrollView;
-
-	private LayoutInflater inflater;
-
-	// tolist
+	/** The list of recipients. */
 	FastScrollView toList = null;
 
-	public static int getHostUid() {
-		return hostUid;
-	}
-
-	@Override
-	protected void onStart() {
-		super.onStart();
-		final Context context = this;
-
-		setTitle("New Message");
-
-		// SET SENDSPINNER
-		sendspinner = (Spinner) findViewById(R.id.sendspinner);
-
-		final String OPTION0 = "SELECT AN OPTIONS"; // / NOT DISPLAYED BY DATA
-													// ADAPTER!!!
-		final String OPTIONCHATON = "  Enable Chat Mode";
-		final String OPTIONCHATOFF = "  Disable Chat Mode";
-
-		final String OPTIONUSECSMS = "  Send Unsecure SMS";
-
-		String[] spinnerTitlesONLYSMS = { OPTION0, OPTIONCHATON };
-		String[] spinnerTitlesONLYSMSChat = { OPTION0, OPTIONCHATOFF, };
-
-		// Populate the spinner using a customized ArrayAdapter that hides the
-		// first (dummy) entry
-		final ArrayAdapter<String> dataAdapterONLYSMS = getMyDataAdatpter(spinnerTitlesONLYSMS);
-		final ArrayAdapter<String> dataAdapterONLYSMSChat = getMyDataAdatpter(spinnerTitlesONLYSMSChat);
-
-		updateSendspinner(context, dataAdapterONLYSMS, dataAdapterONLYSMSChat);
-
-		sendspinner.setOnItemSelectedListener(new OnItemSelectedListener() {
-			public void onItemSelected(AdapterView<?> arg0, View arg1,
-					int arg2, long arg3) {
-				Object object = sendspinner.getSelectedItem();
-				if (object instanceof String) {
-					String option = (String) object;
-					if (option.equals(OPTIONCHATON)
-							|| (option.equals(OPTIONCHATOFF))) {
-						boolean chatmodeOn = Utility.loadBooleanSetting(
-								context, Setup.OPTION_CHATMODE,
-								Setup.DEFAULT_CHATMODE);
-						chatmodeOn = !chatmodeOn;
-						Utility.saveBooleanSetting(context,
-								Setup.OPTION_CHATMODE, chatmodeOn);
-						updateSendspinner(context, dataAdapterONLYSMS,
-								dataAdapterONLYSMSChat);
-						if (chatmodeOn) {
-							Utility.showToastAsync(context,
-									"Chat mode enabled.");
-						} else {
-							Utility.showToastAsync(context,
-									"Chat mode disabled.");
-						}
-					}
-				}
-				sendspinner.setSelection(0);
-			}
-
-			public void onNothingSelected(AdapterView<?> arg0) {
-				//
-			}
-		});
-		sendspinner.setSelection(0);
-		// END SET SENDSPINNER
-
-	}
-
-	// -------------------------------
-
-	private void updateSendspinner(Context context,
-			ArrayAdapter<String> dataAdapterONLYSMS,
-			ArrayAdapter<String> dataAdapterONLYSMSChat) {
-		boolean chatmodeOn = Utility.loadBooleanSetting(context,
-				Setup.OPTION_CHATMODE, Setup.DEFAULT_CHATMODE);
-
-		// only SMS mode available
-		if (chatmodeOn) {
-			sendspinner.setAdapter(dataAdapterONLYSMSChat);
-		} else {
-			sendspinner.setAdapter(dataAdapterONLYSMS);
-		}
-	}
-
-	// -------------------------------
-
-	ArrayAdapter<String> getMyDataAdatpter(String[] titles) {
-		final ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
-				android.R.layout.simple_spinner_dropdown_item, titles) {
-			@Override
-			public View getDropDownView(int position, View convertView,
-					ViewGroup parent) {
-				View v = null;
-
-				// If this is the initial dummy entry, make it hidden
-				if (position == 0) {
-					TextView tv = new TextView(getContext());
-					tv.setHeight(0);
-					tv.setVisibility(View.GONE);
-					v = tv;
-				} else {
-					// Pass convertView as null to prevent reuse of special case
-					// views
-					v = super.getDropDownView(position, null, parent);
-				}
-
-				// Hide scroll bar because it appears sometimes unnecessarily,
-				// this does not prevent scrolling
-				parent.setVerticalScrollBarEnabled(false);
-				return v;
-			}
-		};
-		return dataAdapter;
-	}
-
-	// ------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
 
-	private int getCurrentUid(Context context) {
-		return parsePhoneOrUid(phoneOrUid.getText().toString());
-	}
-
-	private void sendMessage(final Context context) {
-		String messageTextString = messageText.getText().toString();
-		int uid = getCurrentUid(context);
-		if (messageTextString == null || messageTextString.trim().length() == 0
-				|| uid == 0) {
-			return;
-		}
-		if (uid < 0) {
-			// for not registered SMS users we do not prompt but just send an
-			// sms
-			sendMessage(context, DB.TRANSPORT_SMS, false);
-			return;
-		}
-		// now check if SMS and encryption is available
-		boolean mySMSAvailable = Setup.isSMSOptionEnabled(context);
-		boolean otherSMSAvailable = Setup.havePhone(context, uid);
-		boolean sms = mySMSAvailable && otherSMSAvailable;
-		boolean encryption = Setup.isEncryptionAvailable(context, uid);
-
-		sendMessagePrompt(context, sms, encryption);
-	}
-
-	private void sendMessagePrompt(final Context context, final boolean sms,
-			final boolean encryption) {
-		String name = "";
-		int uid = parsePhoneOrUid(phoneOrUid.getText().toString());
-		if (uid != -1) {
-			name = Main.UID2Name(context, uid, false);
-		} else {
-			int backupUid = ReceiveSMS.getUidByPhoneOrCreateUser(context,
-					phoneOrUid.getText().toString(), false);
-			if (backupUid != -1) {
-				name = Main.UID2Name(context, backupUid, false);
-			}
-		}
-
-		String title = "Send Message to " + name;
-		String text = "Send the new message encrypted or not encrypted and via Internet or SMS?";
-		if (sms && !encryption) {
-			text = "Send the new message (unencrypted) via Internet or SMS?";
-		} else if (!sms && encryption) {
-			text = "Send the new message encrypted or not encrypted?";
-		}
-
-		new MessageAlertDialog(context, title, text, null, null, " Cancel ",
-				new MessageAlertDialog.OnSelectionListener() {
-					public void selected(int button, boolean cancel) {
-						// nothing
-					}
-				}, new MessageAlertDialog.OnInnerViewProvider() {
-
-					public View provide(final MessageAlertDialog dialog) {
-						LinearLayout buttonLayout = new LinearLayout(context);
-						buttonLayout.setOrientation(LinearLayout.VERTICAL);
-						buttonLayout.setGravity(Gravity.CENTER_HORIZONTAL);
-						LinearLayout buttonLayout2 = new LinearLayout(context);
-						buttonLayout2.setOrientation(LinearLayout.HORIZONTAL);
-						buttonLayout2.setGravity(Gravity.CENTER_HORIZONTAL);
-						LinearLayout buttonLayout1 = new LinearLayout(context);
-						buttonLayout1.setOrientation(LinearLayout.HORIZONTAL);
-						buttonLayout1.setGravity(Gravity.CENTER_HORIZONTAL);
-
-						LinearLayout.LayoutParams lpButtons = new LinearLayout.LayoutParams(
-								180, 140);
-						lpButtons.setMargins(10, 10, 10, 10);
-						LinearLayout.LayoutParams lpButtonsLayout = new LinearLayout.LayoutParams(
-								LayoutParams.WRAP_CONTENT,
-								LayoutParams.WRAP_CONTENT);
-						lpButtonsLayout.setMargins(0, 0, 0, 20);
-
-						ImageLabelButton internetButtonE = new ImageLabelButton(
-								context);
-						internetButtonE.setTextAndImageResource("Internet",
-								R.drawable.sendlock);
-						internetButtonE.setLayoutParams(lpButtons);
-						internetButtonE
-								.setOnClickListener(new View.OnClickListener() {
-									public void onClick(View v) {
-										sendMessage(context,
-												DB.TRANSPORT_INTERNET, true);
-										dialog.dismiss();
-									}
-								});
-
-						ImageLabelButton internetButton = new ImageLabelButton(
-								context);
-						internetButton.setTextAndImageResource(
-								"Internet Unsec.", R.drawable.send);
-						internetButton.setLayoutParams(lpButtons);
-						internetButton
-								.setOnClickListener(new View.OnClickListener() {
-									public void onClick(View v) {
-										sendMessage(context,
-												DB.TRANSPORT_INTERNET, false);
-										dialog.dismiss();
-									}
-								});
-
-						ImageLabelButton smsButtonE = new ImageLabelButton(
-								context);
-						smsButtonE.setTextAndImageResource("SMS",
-								R.drawable.sendsmslock);
-						smsButtonE.setLayoutParams(lpButtons);
-						smsButtonE
-								.setOnClickListener(new View.OnClickListener() {
-									public void onClick(View v) {
-										sendMessage(context, DB.TRANSPORT_SMS,
-												true);
-										dialog.dismiss();
-									}
-								});
-
-						ImageLabelButton smsButton = new ImageLabelButton(
-								context);
-						smsButton.setTextAndImageResource("SMS Unsecure",
-								R.drawable.sendsms);
-						smsButton.setLayoutParams(lpButtons);
-						smsButton
-								.setOnClickListener(new View.OnClickListener() {
-									public void onClick(View v) {
-										sendMessage(context, DB.TRANSPORT_SMS,
-												false);
-										dialog.dismiss();
-									}
-								});
-
-						if (sms && encryption) {
-							buttonLayout1.addView(internetButtonE);
-							buttonLayout1.addView(internetButton);
-							buttonLayout2.addView(smsButtonE);
-							buttonLayout2.addView(smsButton);
-							buttonLayout.addView(buttonLayout1);
-							buttonLayout.addView(buttonLayout2);
-							buttonLayout2.setLayoutParams(lpButtonsLayout);
-						} else if (sms && !encryption) {
-							buttonLayout1.addView(internetButton);
-							buttonLayout1.addView(smsButton);
-							buttonLayout.addView(buttonLayout1);
-							buttonLayout1.setLayoutParams(lpButtonsLayout);
-						} else if (!sms && encryption) {
-							buttonLayout1.addView(internetButtonE);
-							buttonLayout1.addView(internetButton);
-							buttonLayout.addView(buttonLayout1);
-							buttonLayout1.setLayoutParams(lpButtonsLayout);
-						} else if (!sms && !encryption) {
-							buttonLayout.addView(internetButton);
-							buttonLayout.setLayoutParams(lpButtonsLayout);
-						}
-
-						return buttonLayout;
-					}
-				}).show();
-	}
-
-	// ------------------------------------------------------------------------
-
-	private void sendMessage(Context context, int transport, boolean encrypted) {
-		String messageTextString = messageText.getText().toString();
-		if (messageTextString.trim().length() > 0) {
-
-			// this is the main uid we first try
-			int uid = parsePhoneOrUid(phoneOrUid.getText().toString());
-
-			// Log.d("communicator", "######## sendMessage uid=" + uid);
-
-			// if a phone number is entered then take the backup uid
-			if (uid == -1) {
-				String phoneString = phoneOrUid.getText().toString();
-				// Log.d("communicator", "######## sendMessage phoneString="
-				// + phoneString);
-				if (phoneString == null || phoneString.trim().length() == 0) {
-					return;
-				}
-				// try to find user... or create a new one
-				int backupUid = ReceiveSMS.getUidByPhoneOrCreateUser(context,
-						phoneString, true);
-				// Log.d("communicator", "######## sendMessage backupUid="
-				// + backupUid);
-				uid = backupUid;
-			}
-
-			String name = Main.UID2Name(context, uid, false);
-			// Log.d("communicator", "######## sendMessage name=" + name);
-
-			if (uid != -1) {
-				// Log.d("communicator",
-				// "######## sendMessage SENDING NOW... transport="
-				// + transport + ", encrypted=" + encrypted);
-				if (DB.addSendMessage(context, uid, messageTextString,
-						encrypted, transport, false, DB.PRIORITY_MESSAGE)) {
-					Communicator.sendNewNextMessageAsync(context, transport);
-					String encryptedText = "";
-					if (!encrypted) {
-						encryptedText = "unsecure ";
-					}
-					if (transport == DB.TRANSPORT_INTERNET) {
-						Utility.showToastInUIThread(context, "Sending "
-								+ encryptedText + "message to " + name + ".");
-					} else {
-						Utility.showToastInUIThread(context, "Sending "
-								+ encryptedText + "SMS to " + name + ".");
-					}
-					messageText.setText("");
-					phoneOrUid.setText("");
-					Utility.saveStringSetting(context, "cachedraftcompose", "");
-					Utility.saveStringSetting(context,
-							"cachedraftcomposephone", "");
-					finish();
-				}
-			}
-		}
-	}
-
-	// ------------------------------------------------------------------------
-	// ------------------------------------------------------------------------
-
-	public void setTitle(String title) {
-		TextView titletext = (TextView) findViewById(R.id.titletext);
-		titletext.setText(title);
-	}
-
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onCreate(android.os.Bundle)
+	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -487,8 +135,6 @@ public class ConversationCompose extends Activity {
 			getWindow().setFlags(LayoutParams.FLAG_SECURE,
 					LayoutParams.FLAG_SECURE);
 		}
-
-		inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
 		// Apply custom title bar (with holo :-)
 		LinearLayout main = Utility.setContentViewWithCustomTitle(this,
@@ -670,30 +316,466 @@ public class ConversationCompose extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onStart()
+	 */
+	@Override
+	protected void onStart() {
+		super.onStart();
+		final Context context = this;
+
+		setTitle("New Message");
+
+		// SET SENDSPINNER
+		sendspinner = (Spinner) findViewById(R.id.sendspinner);
+
+		final String OPTION0 = "SELECT AN OPTIONS"; // / NOT DISPLAYED BY DATA
+													// ADAPTER!!!
+		final String OPTIONCHATON = "  Enable Chat Mode";
+		final String OPTIONCHATOFF = "  Disable Chat Mode";
+
+		String[] spinnerTitlesONLYSMS = { OPTION0, OPTIONCHATON };
+		String[] spinnerTitlesONLYSMSChat = { OPTION0, OPTIONCHATOFF, };
+
+		// Populate the spinner using a customized ArrayAdapter that hides the
+		// first (dummy) entry
+		final ArrayAdapter<String> dataAdapterONLYSMS = getMyDataAdatpter(spinnerTitlesONLYSMS);
+		final ArrayAdapter<String> dataAdapterONLYSMSChat = getMyDataAdatpter(spinnerTitlesONLYSMSChat);
+
+		updateSendspinner(context, dataAdapterONLYSMS, dataAdapterONLYSMSChat);
+
+		sendspinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+			public void onItemSelected(AdapterView<?> arg0, View arg1,
+					int arg2, long arg3) {
+				Object object = sendspinner.getSelectedItem();
+				if (object instanceof String) {
+					String option = (String) object;
+					if (option.equals(OPTIONCHATON)
+							|| (option.equals(OPTIONCHATOFF))) {
+						boolean chatmodeOn = Utility.loadBooleanSetting(
+								context, Setup.OPTION_CHATMODE,
+								Setup.DEFAULT_CHATMODE);
+						chatmodeOn = !chatmodeOn;
+						Utility.saveBooleanSetting(context,
+								Setup.OPTION_CHATMODE, chatmodeOn);
+						updateSendspinner(context, dataAdapterONLYSMS,
+								dataAdapterONLYSMSChat);
+						if (chatmodeOn) {
+							Utility.showToastAsync(context,
+									"Chat mode enabled.");
+						} else {
+							Utility.showToastAsync(context,
+									"Chat mode disabled.");
+						}
+					}
+				}
+				sendspinner.setSelection(0);
+			}
+
+			public void onNothingSelected(AdapterView<?> arg0) {
+				//
+			}
+		});
+		sendspinner.setSelection(0);
+		// END SET SENDSPINNER
+
+	}
+
+	// -------------------------------
+
+	/**
+	 * Update sendspinner.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param dataAdapterONLYSMS
+	 *            the data adapter onlysms
+	 * @param dataAdapterONLYSMSChat
+	 *            the data adapter onlysms chat
+	 */
+	private void updateSendspinner(Context context,
+			ArrayAdapter<String> dataAdapterONLYSMS,
+			ArrayAdapter<String> dataAdapterONLYSMSChat) {
+		boolean chatmodeOn = Utility.loadBooleanSetting(context,
+				Setup.OPTION_CHATMODE, Setup.DEFAULT_CHATMODE);
+
+		// only SMS mode available
+		if (chatmodeOn) {
+			sendspinner.setAdapter(dataAdapterONLYSMSChat);
+		} else {
+			sendspinner.setAdapter(dataAdapterONLYSMS);
+		}
+	}
+
+	// -------------------------------
+
+	/**
+	 * Gets the my data adatpter.
+	 * 
+	 * @param titles
+	 *            the titles
+	 * @return the my data adatpter
+	 */
+	ArrayAdapter<String> getMyDataAdatpter(String[] titles) {
+		final ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
+				android.R.layout.simple_spinner_dropdown_item, titles) {
+			@Override
+			public View getDropDownView(int position, View convertView,
+					ViewGroup parent) {
+				View v = null;
+
+				// If this is the initial dummy entry, make it hidden
+				if (position == 0) {
+					TextView tv = new TextView(getContext());
+					tv.setHeight(0);
+					tv.setVisibility(View.GONE);
+					v = tv;
+				} else {
+					// Pass convertView as null to prevent reuse of special case
+					// views
+					v = super.getDropDownView(position, null, parent);
+				}
+
+				// Hide scroll bar because it appears sometimes unnecessarily,
+				// this does not prevent scrolling
+				parent.setVerticalScrollBarEnabled(false);
+				return v;
+			}
+		};
+		return dataAdapter;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the current uid.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the current uid
+	 */
+	private int getCurrentUid(Context context) {
+		return parsePhoneOrUid(phoneOrUid.getText().toString());
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Send message.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void sendMessage(final Context context) {
+		String messageTextString = messageText.getText().toString();
+		int uid = getCurrentUid(context);
+		if (messageTextString == null || messageTextString.trim().length() == 0
+				|| uid == 0) {
+			return;
+		}
+		if (uid < 0) {
+			// for not registered SMS users we do not prompt but just send an
+			// sms
+			sendMessage(context, DB.TRANSPORT_SMS, false);
+			return;
+		}
+		// now check if SMS and encryption is available
+		boolean mySMSAvailable = Setup.isSMSOptionEnabled(context);
+		boolean otherSMSAvailable = Setup.havePhone(context, uid);
+		boolean sms = mySMSAvailable && otherSMSAvailable;
+		boolean encryption = Setup.isEncryptionAvailable(context, uid);
+
+		sendMessagePrompt(context, sms, encryption);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Send message prompt.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param sms
+	 *            the sms
+	 * @param encryption
+	 *            the encryption
+	 */
+	private void sendMessagePrompt(final Context context, final boolean sms,
+			final boolean encryption) {
+		String name = "";
+		int uid = parsePhoneOrUid(phoneOrUid.getText().toString());
+		if (uid != -1) {
+			name = Main.UID2Name(context, uid, false);
+		} else {
+			int backupUid = ReceiveSMS.getUidByPhoneOrCreateUser(context,
+					phoneOrUid.getText().toString(), false);
+			if (backupUid != -1) {
+				name = Main.UID2Name(context, backupUid, false);
+			}
+		}
+
+		String title = "Send Message to " + name;
+		String text = "Send the new message encrypted or not encrypted and via Internet or SMS?";
+		if (sms && !encryption) {
+			text = "Send the new message (unencrypted) via Internet or SMS?";
+		} else if (!sms && encryption) {
+			text = "Send the new message encrypted or not encrypted?";
+		}
+
+		new MessageAlertDialog(context, title, text, null, null, " Cancel ",
+				new MessageAlertDialog.OnSelectionListener() {
+					public void selected(int button, boolean cancel) {
+						// nothing
+					}
+				}, new MessageAlertDialog.OnInnerViewProvider() {
+
+					public View provide(final MessageAlertDialog dialog) {
+						LinearLayout buttonLayout = new LinearLayout(context);
+						buttonLayout.setOrientation(LinearLayout.VERTICAL);
+						buttonLayout.setGravity(Gravity.CENTER_HORIZONTAL);
+						LinearLayout buttonLayout2 = new LinearLayout(context);
+						buttonLayout2.setOrientation(LinearLayout.HORIZONTAL);
+						buttonLayout2.setGravity(Gravity.CENTER_HORIZONTAL);
+						LinearLayout buttonLayout1 = new LinearLayout(context);
+						buttonLayout1.setOrientation(LinearLayout.HORIZONTAL);
+						buttonLayout1.setGravity(Gravity.CENTER_HORIZONTAL);
+
+						LinearLayout.LayoutParams lpButtons = new LinearLayout.LayoutParams(
+								180, 140);
+						lpButtons.setMargins(10, 10, 10, 10);
+						LinearLayout.LayoutParams lpButtonsLayout = new LinearLayout.LayoutParams(
+								LayoutParams.WRAP_CONTENT,
+								LayoutParams.WRAP_CONTENT);
+						lpButtonsLayout.setMargins(0, 0, 0, 20);
+
+						ImageLabelButton internetButtonE = new ImageLabelButton(
+								context);
+						internetButtonE.setTextAndImageResource("Internet",
+								R.drawable.sendlock);
+						internetButtonE.setLayoutParams(lpButtons);
+						internetButtonE
+								.setOnClickListener(new View.OnClickListener() {
+									public void onClick(View v) {
+										sendMessage(context,
+												DB.TRANSPORT_INTERNET, true);
+										dialog.dismiss();
+									}
+								});
+
+						ImageLabelButton internetButton = new ImageLabelButton(
+								context);
+						internetButton.setTextAndImageResource(
+								"Internet Unsec.", R.drawable.send);
+						internetButton.setLayoutParams(lpButtons);
+						internetButton
+								.setOnClickListener(new View.OnClickListener() {
+									public void onClick(View v) {
+										sendMessage(context,
+												DB.TRANSPORT_INTERNET, false);
+										dialog.dismiss();
+									}
+								});
+
+						ImageLabelButton smsButtonE = new ImageLabelButton(
+								context);
+						smsButtonE.setTextAndImageResource("SMS",
+								R.drawable.sendsmslock);
+						smsButtonE.setLayoutParams(lpButtons);
+						smsButtonE
+								.setOnClickListener(new View.OnClickListener() {
+									public void onClick(View v) {
+										sendMessage(context, DB.TRANSPORT_SMS,
+												true);
+										dialog.dismiss();
+									}
+								});
+
+						ImageLabelButton smsButton = new ImageLabelButton(
+								context);
+						smsButton.setTextAndImageResource("SMS Unsecure",
+								R.drawable.sendsms);
+						smsButton.setLayoutParams(lpButtons);
+						smsButton
+								.setOnClickListener(new View.OnClickListener() {
+									public void onClick(View v) {
+										sendMessage(context, DB.TRANSPORT_SMS,
+												false);
+										dialog.dismiss();
+									}
+								});
+
+						if (sms && encryption) {
+							buttonLayout1.addView(internetButtonE);
+							buttonLayout1.addView(internetButton);
+							buttonLayout2.addView(smsButtonE);
+							buttonLayout2.addView(smsButton);
+							buttonLayout.addView(buttonLayout1);
+							buttonLayout.addView(buttonLayout2);
+							buttonLayout2.setLayoutParams(lpButtonsLayout);
+						} else if (sms && !encryption) {
+							buttonLayout1.addView(internetButton);
+							buttonLayout1.addView(smsButton);
+							buttonLayout.addView(buttonLayout1);
+							buttonLayout1.setLayoutParams(lpButtonsLayout);
+						} else if (!sms && encryption) {
+							buttonLayout1.addView(internetButtonE);
+							buttonLayout1.addView(internetButton);
+							buttonLayout.addView(buttonLayout1);
+							buttonLayout1.setLayoutParams(lpButtonsLayout);
+						} else if (!sms && !encryption) {
+							buttonLayout.addView(internetButton);
+							buttonLayout.setLayoutParams(lpButtonsLayout);
+						}
+
+						return buttonLayout;
+					}
+				}).show();
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the host uid.
+	 * 
+	 * @return the host uid
+	 */
+	public static int getHostUid() {
+		return hostUid;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Send message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param transport
+	 *            the transport
+	 * @param encrypted
+	 *            the encrypted
+	 */
+	private void sendMessage(Context context, int transport, boolean encrypted) {
+		String messageTextString = messageText.getText().toString();
+		if (messageTextString.trim().length() > 0) {
+
+			// this is the main uid we first try
+			int uid = parsePhoneOrUid(phoneOrUid.getText().toString());
+
+			// Log.d("communicator", "######## sendMessage uid=" + uid);
+
+			// if a phone number is entered then take the backup uid
+			if (uid == -1) {
+				String phoneString = phoneOrUid.getText().toString();
+				// Log.d("communicator", "######## sendMessage phoneString="
+				// + phoneString);
+				if (phoneString == null || phoneString.trim().length() == 0) {
+					return;
+				}
+				// try to find user... or create a new one
+				int backupUid = ReceiveSMS.getUidByPhoneOrCreateUser(context,
+						phoneString, true);
+				// Log.d("communicator", "######## sendMessage backupUid="
+				// + backupUid);
+				uid = backupUid;
+			}
+
+			String name = Main.UID2Name(context, uid, false);
+			// Log.d("communicator", "######## sendMessage name=" + name);
+
+			if (uid != -1) {
+				// Log.d("communicator",
+				// "######## sendMessage SENDING NOW... transport="
+				// + transport + ", encrypted=" + encrypted);
+				if (DB.addSendMessage(context, uid, messageTextString,
+						encrypted, transport, false, DB.PRIORITY_MESSAGE)) {
+					Communicator.sendNewNextMessageAsync(context, transport);
+					String encryptedText = "";
+					if (!encrypted) {
+						encryptedText = "unsecure ";
+					}
+					if (transport == DB.TRANSPORT_INTERNET) {
+						Utility.showToastInUIThread(context, "Sending "
+								+ encryptedText + "message to " + name + ".");
+					} else {
+						Utility.showToastInUIThread(context, "Sending "
+								+ encryptedText + "SMS to " + name + ".");
+					}
+					messageText.setText("");
+					phoneOrUid.setText("");
+					Utility.saveStringSetting(context, "cachedraftcompose", "");
+					Utility.saveStringSetting(context,
+							"cachedraftcomposephone", "");
+					finish();
+				}
+			}
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sets the title.
+	 * 
+	 * @param title
+	 *            the new title
+	 */
+	public void setTitle(String title) {
+		TextView titletext = (TextView) findViewById(R.id.titletext);
+		titletext.setText(title);
+	}
+
 	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
 
 	// "If the process is killed then all static variables will be reinitialized to their default values."
 
+	/** The instance. */
 	// private static boolean visible;
 	private static ConversationCompose instance = null;
 
+	/** The visible flag. */
 	private static boolean visible = false;
 
+	/** The alive flag. */
+	private static boolean alive = false;
+
+	/**
+	 * Gets the single instance of ConversationCompose.
+	 * 
+	 * @return single instance of ConversationCompose
+	 */
 	public static ConversationCompose getInstance() {
 		return instance;
 	}
 
+	/**
+	 * Checks if is visible.
+	 * 
+	 * @return true, if is visible
+	 */
 	// Returns true if the activity is visible
 	public static boolean isVisible() {
 		return (visible && instance != null);
 	}
 
+	/**
+	 * Checks if is alive.
+	 * 
+	 * @return true, if is alive
+	 */
 	// Returns true if an instance is available
 	public static boolean isAlive() {
 		return (instance != null && ConversationCompose.alive);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onDestroy()
+	 */
 	@Override
 	public void onDestroy() {
 		ConversationCompose.visible = false;
@@ -766,6 +848,11 @@ public class ConversationCompose extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onPause()
+	 */
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -777,25 +864,13 @@ public class ConversationCompose extends Activity {
 		// scrollView.lockPosition();
 	}
 
-	// @Override
-	// protected void onSaveInstanceState(Bundle outState) {
-	// super.onSaveInstanceState(outState);
-	// scrollView.lockPosition();
-	// Log.d("communicator", "#### onSaveInstanceState() LOCK POSITION ");
-	// }
+	// ------------------------------------------------------------------------
 
-	// --------------------------------------
-
-	// @Override
-	// protected void onRestoreInstanceState (Bundle outState) {
-	// super.onRestoreInstanceState (outState);
-	// scrollView.restoreLockedPosition();
-	// Log.d("communicator",
-	// "#### onRestoreInstanceState() RESTORE LOCKED POSITION ");
-	// }
-
-	// --------------------------------------
-
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onResume()
+	 */
 	@Override
 	public void onResume() {
 		super.onResume();
@@ -822,16 +897,44 @@ public class ConversationCompose extends Activity {
 	}
 
 	// ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
 
+	/** The user radio mapping for auto-selecting the current user. */
+	@SuppressLint("UseSparseArrays")
 	private HashMap<Integer, RadioButton> userRadioMapping = new HashMap<Integer, RadioButton>();
+
+	/** The user order mapping for ordering the userlist. */
+	@SuppressLint("UseSparseArrays")
 	private HashMap<Integer, Integer> userOrderMapping = new HashMap<Integer, Integer>();
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Parses the and mark user radio.
+	 * 
+	 * @param phoneOrUid
+	 *            the phone or uid
+	 * @param delay
+	 *            the delay
+	 */
+	@SuppressLint("UseSparseArrays")
 	private void parseAndMarkUserRadio(String phoneOrUid, int delay) {
 		int tmp = parsePhoneOrUid(phoneOrUid);
 		// Log.d("communicator", "@@@@@@ " + phoneOrUid + " >>> " + tmp);
 		markUserRadio(tmp, delay);
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Parses the phone or uid text field and returns the uid if it was given in
+	 * form of "[uid]" where uid is an integer. It returns -1 if this is not a
+	 * valid uid.
+	 * 
+	 * @param phoneOrUid
+	 *            the phone or uid
+	 * @return the int
+	 */
 	private int parsePhoneOrUid(String phoneOrUid) {
 		if (phoneOrUid.startsWith("[") && phoneOrUid.endsWith("]")) {
 			try {
@@ -843,10 +946,18 @@ public class ConversationCompose extends Activity {
 		return -1;
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Mark user radio for the particular uid of the selected recipient.
+	 * 
+	 * @param uid
+	 *            the uid
+	 * @param delay
+	 *            the delay
+	 */
 	private void markUserRadio(int uid, final int delay) {
-		int i = 0;
 		for (int useruid : userRadioMapping.keySet()) {
-			i++;
 			userRadioMapping.get(useruid).setChecked(useruid == uid);
 			if (useruid == uid) {
 				final int scrollItem = userOrderMapping.get(useruid);
@@ -859,25 +970,24 @@ public class ConversationCompose extends Activity {
 		}
 	}
 
-	private void buildToList(final Context context) {
-		// Log.d("communicator", "#### ConversationCompose buildToList :-)");
+	// ------------------------------------------------------------------------
 
+	/**
+	 * Builds the recipient list.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	@SuppressLint("InflateParams")
+	private void buildToList(final Context context) {
 		toList.clearChilds();
 		userRadioMapping.clear();
 		userOrderMapping.clear();
 		int i = 0;
 
 		List<Integer> uidList = Main.loadUIDList(context);
-		// for (int uid : uidList) {
-		// Log.d("communicator", "#### ConversationCompose uid " + uid);
-		// }
-
 		List<UidListItem> fullUidList = Main.buildSortedFullUidList(context,
 				uidList, true);
-
-		// for (UidListItem item : fullUidList) {
-		// Log.d("communicator", "#### ConversationCompose uid " + item.name);
-		// }
 
 		LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -894,7 +1004,6 @@ public class ConversationCompose extends Activity {
 			userRadioMapping.put(uid, userradio);
 			userOrderMapping.put(uid, i++);
 			userradio.setOnClickListener(new View.OnClickListener() {
-
 				public void onClick(View v) {
 					markUserRadio(uid, 100);
 					phoneOrUid.setText("[" + uid + "]");
@@ -916,8 +1025,14 @@ public class ConversationCompose extends Activity {
 	}
 
 	// ------------------------------------------------------------------------
-	// ------------------------------------------------------------------------
 
+	@SuppressWarnings("deprecation")
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onActivityResult(int, int,
+	 * android.content.Intent)
+	 */
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
@@ -932,10 +1047,6 @@ public class ConversationCompose extends Activity {
 				String phone = cursor
 						.getString(cursor
 								.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Nickname.NAME));
-				String name = cursor
-						.getString(cursor
-								.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME));
-
 				this.phoneOrUid.setText(Setup.normalizePhone(phone));
 				// Unmark all potentially marked users
 				markUserRadio(-1, 0);
@@ -951,6 +1062,12 @@ public class ConversationCompose extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Go back.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public void goBack(Context context) {
 		// GET TO THE MAIN SCREEN IF THIS ICON IS CLICKED !
 		Intent intent = new Intent(this, Main.class);
@@ -960,29 +1077,14 @@ public class ConversationCompose extends Activity {
 
 	// -------------------------------------------------------------------------
 
-	// public boolean onOptionsItemSelected(MenuItem item) {
-	// switch (item.getItemId()) {
-	// case android.R.id.home:
-	// // GET TO THE MAIN SCREEN IF THIS ICON IS CLICKED !
-	// Intent intent = new Intent(this, Main.class);
-	// intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-	// startActivity(intent);
-	// return true;
-	// default:
-	// return super.onOptionsItemSelected(item);
-	// }
-	// }
-
-	// -------------------------------------------------------------------------
-
+	/**
+	 * Update send button image.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public void updateSendButtonImage(Context context) {
 		int uid = getCurrentUid(context);
-		// now check if SMS and encryption is available
-		// boolean mySMSAvailable = Setup.isSMSOptionEnabled(context);
-		// boolean otherSMSAvailable = Setup.havePhone(context, uid);
-		// boolean sms = mySMSAvailable && otherSMSAvailable;
-		// boolean encryption = Setup.isEncryptionAvailable(context, uid);
-
 		if (uid == 0 || phoneOrUid == null || phoneOrUid.length() == 0) {
 			// system, disable
 			sendbutton.setEnabled(false);
