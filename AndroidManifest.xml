@@ -64,7 +64,7 @@
             android:theme="@style/Theme.Transparent" >
         </activity>
         <activity
-            android:name="org.cryptocator.MessagedetailsActivity"
+            android:name="org.cryptocator.MessageDetailsActivity"
             android:icon="@drawable/msg"
             android:theme="@style/Theme.Transparent" >
         </activity>

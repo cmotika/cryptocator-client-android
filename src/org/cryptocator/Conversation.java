@@ -2118,10 +2118,10 @@ public class Conversation extends Activity {
 			final ConversationItem conversationItem) {
 		try {
 			Intent dialogIntent = new Intent(context,
-					MessagedetailsActivity.class);
+					MessageDetailsActivity.class);
 			dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			MessagedetailsActivity.conversationItem = conversationItem;
-			MessagedetailsActivity.hostUid = hostUid;
+			MessageDetailsActivity.conversationItem = conversationItem;
+			MessageDetailsActivity.hostUid = hostUid;
 			context.startActivity(dialogIntent);
 		} catch (Exception e) {
 			e.printStackTrace();
