@@ -389,7 +389,7 @@ public class Conversation extends Activity {
 						// + ", scrolledUp=" + scrolledUp
 						// + ", scrolledDown=" + scrolledDown);
 
-						// switch back to normal title
+						// Switch back to normal title
 						updateConversationTitleAsync(context);
 					}
 
@@ -398,7 +398,6 @@ public class Conversation extends Activity {
 							int item) {
 						// Log.d("communicator", "@@@@ onScrollChanged:" +
 						// percent);
-
 						int realItem = conversationSize
 								- conversationList.size() + item;
 						updateConversationTitleAsync(context, realItem + " / "
@@ -406,9 +405,13 @@ public class Conversation extends Activity {
 					}
 
 					public void onOversroll(boolean up) {
-						// doRefresh(context);
-						// switch back to normal title
+						// Switch back to normal title
 						updateConversationTitleAsync(context);
+					}
+
+					public void onSnapScroll(int percent, boolean snappedDown,
+							boolean snappedUp) {
+						// DO NOTHING HERE
 					}
 
 				});
