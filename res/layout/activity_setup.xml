@@ -49,7 +49,7 @@
                         android:layout_marginTop="10px"
                         android:orientation="horizontal" >
 
-                        <org.cryptocator.AddUserEditText
+                        <org.cryptocator.KeyEventEditText
                             android:id="@+id/baseurltext"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -57,7 +57,7 @@
                             android:layout_weight="1"
                             android:inputType="textUri"
                             android:textSize="14sp" >
-                        </org.cryptocator.AddUserEditText>
+                        </org.cryptocator.KeyEventEditText>
 
                         <Button
                             android:id="@+id/baseurlbutton"
