@@ -10,7 +10,7 @@
  * all contributors, this list of conditions and the following disclaimer.
  * 
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, an acknowledgement to all contributors, this list of conditions
+ * notice, an acknowledgment to all contributors, this list of conditions
  * and the following disclaimer in the documentation and/or other materials
  * provided with the distribution.
  * 

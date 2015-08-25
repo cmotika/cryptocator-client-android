@@ -10,7 +10,7 @@
  * all contributors, this list of conditions and the following disclaimer.
  * 
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, an acknowledgement to all contributors, this list of conditions
+ * notice, an acknowledgment to all contributors, this list of conditions
  * and the following disclaimer in the documentation and/or other materials
  * provided with the distribution.
  * 
@@ -33,56 +33,133 @@
  */
 package org.cryptocator;
 
-import org.cryptocator.R;
-
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.ViewGroup.LayoutParams;
-import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+/**
+ * The MessageAlertDialog class is responsible for displaying a dialog with a
+ * title and text information and up to three buttons: At most two OK buttons
+ * and a CANCEL button. Additionally an inner view may optionally be provided. T
+ * This view can hold ANY other objects. The inner view is contributed by
+ * another listener.<BR>
+ * <BR>
+ * The MessageAlertDialog needs the following permission: <uses-permission
+ * android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+ * 
+ * @author Christian Motika
+ * @since 1.2
+ * @date 08/23/2015
+ * 
+ */
 public class MessageAlertDialog extends Dialog {
 
-	public interface OnSelectionListener {
-		void selected(int button, boolean cancel);
-	}
-
-	public interface OnInnerViewProvider {
-		View provide(MessageAlertDialog dialog);
-	}
-
+	/** The title message. */
 	String titleMessage;
+
+	/** The text message. */
 	String textMessage;
+
+	/** The true button. */
 	String trueButton;
+
+	/** The neutral button. */
 	String neutralButton;
+
+	/** The false button. */
 	String falseButton;
 
+	/** The handled. */
 	boolean handled = false;
 
+	/** The cancel. */
 	boolean cancel = true;
 
+	/** The context. */
 	Context context = null;
+
+	/** The selection listener. */
 	OnSelectionListener selectionListener;
+
+	/** The inner view provider. */
 	OnInnerViewProvider innerViewProvider;
 
+	/** The inner view. */
 	View innerView = null;
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * The listener interface for receiving onSelection events. The class that
+	 * is interested in processing a onSelection event implements this
+	 * interface, and the object created with that class is registered with a
+	 * component using the component's
+	 * <code>addOnSelectionListener<code> method. When
+	 * the onSelection event occurs, that object's appropriate
+	 * method is invoked.
+	 * 
+	 * @see OnSelectionEvent
+	 */
+	public interface OnSelectionListener {
+
+		/**
+		 * Selected.
+		 * 
+		 * @param button
+		 *            the button
+		 * @param cancel
+		 *            the cancel
+		 */
+		void selected(int button, boolean cancel);
+	}
+
 	// -------------------------------------------------------------------------
 
+	/**
+	 * The Interface OnInnerViewProvider.
+	 */
+	public interface OnInnerViewProvider {
+
+		/**
+		 * Provide.
+		 * 
+		 * @param dialog
+		 *            the dialog
+		 * @return the view
+		 */
+		View provide(MessageAlertDialog dialog);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Instantiates a new message alert dialog.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param titleMessage
+	 *            the title message
+	 * @param textMessage
+	 *            the text message
+	 * @param okButton0
+	 *            the ok button0
+	 * @param okButton1
+	 *            the ok button1
+	 * @param cancelButton
+	 *            the cancel button
+	 * @param selectionListener
+	 *            the selection listener
+	 */
 	public MessageAlertDialog(Context context, String titleMessage,
 			String textMessage, String okButton0, String okButton1,
 			String cancelButton, OnSelectionListener selectionListener) {
@@ -92,6 +169,26 @@ public class MessageAlertDialog extends Dialog {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Instantiates a new message alert dialog.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param titleMessage
+	 *            the title message
+	 * @param textMessage
+	 *            the text message
+	 * @param okButton0
+	 *            the ok button0
+	 * @param okButton1
+	 *            the ok button1
+	 * @param cancelButton
+	 *            the cancel button
+	 * @param selectionListener
+	 *            the selection listener
+	 * @param innerViewProvider
+	 *            the inner view provider
+	 */
 	public MessageAlertDialog(Context context, String titleMessage,
 			String textMessage, String okButton0, String okButton1,
 			String cancelButton, OnSelectionListener selectionListener,
@@ -109,7 +206,12 @@ public class MessageAlertDialog extends Dialog {
 
 	// -------------------------------------------------------------------------
 
-	// @Override
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Dialog#onCreate(android.os.Bundle)
+	 */
+	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
@@ -202,12 +304,10 @@ public class MessageAlertDialog extends Dialog {
 			}
 		});
 
-		// outerLayout.addView(buttonLayout);
 
 		LinearLayout.LayoutParams lpScrollView = new LinearLayout.LayoutParams(
-				LinearLayout.LayoutParams.FILL_PARENT,
+				LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.WRAP_CONTENT, .8f);
-		// lpScrollView.setMargins(20, 5, 0, 15);
 		ScrollView scrollView = new ScrollView(context);
 		scrollView.setLayoutParams(lpScrollView);
 		scrollView.addView(outerLayout);
@@ -217,8 +317,7 @@ public class MessageAlertDialog extends Dialog {
 		dialogLayout.addView(scrollView);
 		dialogLayout.addView(buttonLayout);
 
-		setContentView(dialogLayout); // do this for Dialog (not AlertDialog)
-		// setView(outerLayout);
+		setContentView(dialogLayout); 
 		setTitle(titleMessage);
 
 		LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(
@@ -260,34 +359,10 @@ public class MessageAlertDialog extends Dialog {
 		}
 		outerLayout.setMinimumWidth(minWidth);
 
-		// View decor = this.getWindow().getDecorView();
-		// decor.get
-		// .setBackgroundColor(Color.rgb(255, 255, 255));
-
-		// (new ContextThemeWrapper(this, R.style.AlertDialogCustom));
-
-		// setContentView(com.android.internal.R.style.Theme_Dialog_Alert);
-		//
-
-		// super.setTheme(android.R.style.Theme_Dialog);
-		// ContextThemeWrapper wrapper = new ContextThemeWrapper(context,
-		// R.style.AlertDialogCustom);
-		// wrapper.
-
-		// this.getLayoutInflater().inflate(R.style.AlertDialogCustom,
-		// this.getWindow().getDecorView());
-		// setContentView(R.style.AlertDialogCustom);
-
-		// set dolphin
+		// Set dolphin background
 		Utility.setBackground(context, outerLayout, R.drawable.dolphins3);
-
-		// resolveDialogScheme("com.android.internal.R.style.Theme_Dialog_Alert")
-		// getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
-
-//		// Make sure the dialog is shifted up when the keyboard is shown!
-//		this.getWindow().setSoftInputMode(
-//			    WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 	}
 
 	// -------------------------------------------------------------------------
+	
 }
