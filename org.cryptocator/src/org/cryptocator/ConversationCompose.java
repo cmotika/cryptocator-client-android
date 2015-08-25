@@ -71,8 +71,9 @@ import android.widget.TextView;
  * basically a stripped down version of the Conversation class.
  * 
  * @author Christian Motika
- * @since 2.1
+ * @since 1.2
  * @date 08/23/2015
+ * 
  */
 public class ConversationCompose extends Activity {
 

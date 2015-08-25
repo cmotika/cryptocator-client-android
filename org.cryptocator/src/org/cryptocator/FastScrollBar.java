@@ -48,8 +48,9 @@ import android.widget.SeekBar;
  * Snapping can be defined for up and down.
  * 
  * @author Christian Motika
- * @since 2.1
+ * @since 1.2
  * @date 08/23/2015
+ * 
  */
 @SuppressLint("WrongCall")
 public class FastScrollBar extends SeekBar {

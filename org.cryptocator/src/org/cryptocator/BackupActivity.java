@@ -61,8 +61,9 @@ import android.widget.LinearLayout;
  * backup to the Clipboard of the device.
  * 
  * @author Christian Motika
- * @since 2.1
+ * @since 1.2
  * @date 08/23/2015
+ * 
  */
 public class BackupActivity extends Activity {
 

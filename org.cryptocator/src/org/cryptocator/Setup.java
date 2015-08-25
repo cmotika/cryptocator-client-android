@@ -84,7 +84,7 @@ import android.widget.TextView;
  * 
  * @author Christian Motika
  * @date 08/23/2015
- * @since 2.1
+ * @since 1.2
  * 
  */
 @SuppressLint({ "TrulyRandom", "DefaultLocale" })
