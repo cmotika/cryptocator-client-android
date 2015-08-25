@@ -84,7 +84,7 @@ public class DB {
 	 */
 	public static int lastReceivedMid = -1;
 
-	/** The SMS dimmy mid. */
+	/** The SMS dummy mid. */
 	public static int SMS_MID = -1;
 
 	/** The transport Internet. */
