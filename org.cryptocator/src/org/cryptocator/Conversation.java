@@ -254,7 +254,11 @@ public class Conversation extends Activity {
 		TextWatcher textWatcher = new TextWatcher() {
 			public void onTextChanged(CharSequence s, int start, int before,
 					int count) {
-				lastKeyStroke = DB.getTimestamp();
+				// DO FAST COMPUTATION HERE
+				// It does appear that System.currentTimeMillis() is twice as
+				// fast as System.nanoTime(). However 29ns is going to be much
+				// shorter than anything else you'd be measuring anyhow.
+				lastKeyStroke = System.currentTimeMillis();
 			}
 
 			public void beforeTextChanged(CharSequence s, int start, int count,
@@ -1082,8 +1086,9 @@ public class Conversation extends Activity {
 	 */
 	public static boolean isTyping() {
 		// If the conversation is NOT visible the user cannot type fast!
-		return isVisible() && !(lastKeyStroke == 0)
-				&& ((DB.getTimestamp() - lastKeyStroke) < Setup.TYPING_TIMEOUT_BEFORE_BACKGROUND_ACTIVITY);
+		return isVisible()
+				&& !(lastKeyStroke == 0)
+				&& ((System.currentTimeMillis() - lastKeyStroke) < Setup.TYPING_TIMEOUT_BEFORE_BACKGROUND_ACTIVITY);
 	}
 
 	/**
@@ -1094,8 +1099,9 @@ public class Conversation extends Activity {
 	 */
 	public static boolean isTypingFast() {
 		// If the conversation is NOT visible the user cannot type fast!
-		return isVisible() && !(lastKeyStroke == 0)
-				&& ((DB.getTimestamp() - lastKeyStroke) < Setup.TYPING_TIMEOUT_BEFORE_UI_ACTIVITY);
+		return isVisible()
+				&& !(lastKeyStroke == 0)
+				&& ((System.currentTimeMillis() - lastKeyStroke) < Setup.TYPING_TIMEOUT_BEFORE_UI_ACTIVITY);
 	}
 
 	/**
@@ -2036,7 +2042,7 @@ public class Conversation extends Activity {
 	private void promptNewSession(final Context context) {
 		String title = "Send New Session Key";
 		String text = "Send the new session key via Internet or SMS?";
-		
+
 		// No choice, because SMS is not available
 		final boolean noSMSOption = !isSMSModeAvailable(context);
 		if (noSMSOption) {
