@@ -50,38 +50,98 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.content.Context;
-import android.util.Log;
 
+/**
+ * The HttpStringRequest class is responsible for making HTTP GET request in
+ * order to communicate with a HTTP server.
+ * 
+ * @author Christian Motika
+ * @since 1.2
+ * @date 08/23/2015
+ * 
+ */
 public class HttpStringRequest {
 
+	/** The listener for the server response. */
+	private OnResponseListener listener;
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * The listener interface for receiving onResponse events. The class that is
+	 * interested in processing a onResponse event implements this interface,
+	 * and the object created with that class is registered with a component
+	 * using the component's <code>addOnResponseListener<code> method. When
+	 * the onResponse event occurs, that object's appropriate
+	 * method is invoked.
+	 * 
+	 * @see OnResponseEvent
+	 */
 	public interface OnResponseListener {
+
+		/**
+		 * Response of the server as String.
+		 * 
+		 * @param response
+		 *            the response
+		 */
 		void response(String response);
 	}
 
-	private OnResponseListener listener;
-	
 	// -------------------------------------------------------------------------
-	
+
+	/**
+	 * Sets the on response listener.
+	 * 
+	 * @param responseListener
+	 *            the new on response listener
+	 */
 	public void setOnResponseListener(OnResponseListener responseListener) {
 		listener = responseListener;
 	}
-	
+
 	// -------------------------------------------------------------------------
 
-	public HttpStringRequest(Context context, String url, OnResponseListener responseListener) {
+	/**
+	 * Instantiates a new http string request.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param url
+	 *            the url
+	 * @param responseListener
+	 *            the response listener
+	 */
+	public HttpStringRequest(Context context, String url,
+			OnResponseListener responseListener) {
 		listener = responseListener;
 		(new UrlThread(context, url)).start();
 	}
-	
-	// -------------------------------------------------------------------------
+
 	// -------------------------------------------------------------------------
 
+	/**
+	 * The inner class UrlThread is used to do the HTTP request in a separate
+	 * background thread asynchronously and NOT in the UI thread.
+	 */
 	class UrlThread extends Thread {
+
+		/** The context. */
 		Context context;
+
+		/** The url. */
 		String url;
 
 		// ------------------------------------------------
 
+		/**
+		 * Instantiates a new url thread.
+		 * 
+		 * @param context
+		 *            the context
+		 * @param url
+		 *            the url
+		 */
 		public UrlThread(Context context, String url) {
 			super();
 			this.context = context;
@@ -90,6 +150,11 @@ public class HttpStringRequest {
 
 		// ------------------------------------------------
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.lang.Thread#run()
+		 */
 		public void run() {
 			String response;
 			try {
@@ -105,18 +170,32 @@ public class HttpStringRequest {
 	}
 
 	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
-	
-	public static String getData(Context context, String url) throws ClientProtocolException, IOException {
+
+	/**
+	 * Gets the data method should NOT be used directly as it blocks the current
+	 * thread until data is received. It is used internally by the UrlThread.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param url
+	 *            the url
+	 * @return the data
+	 * @throws ClientProtocolException
+	 *             the client protocol exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	public static String getData(Context context, String url)
+			throws ClientProtocolException, IOException {
 		// Create a new HttpClient
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpGet request = new HttpGet();
 		String returnValue = "";
 		try {
-	        URI website = new URI(url);
-	        request.setURI(website);
-	        HttpResponse response = httpclient.execute(request);
-	        returnValue = getContentAsString(response);
+			URI website = new URI(url);
+			request.setURI(website);
+			HttpResponse response = httpclient.execute(request);
+			returnValue = getContentAsString(response);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -126,12 +205,22 @@ public class HttpStringRequest {
 
 	// -------------------------------------------------------------------------
 
-	public static String getContentAsString(HttpResponse response) throws IOException {
+	/**
+	 * Convert the content of a HTTP response into a string.
+	 * 
+	 * @param response
+	 *            the response
+	 * @return the content as string
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	private static String getContentAsString(HttpResponse response)
+			throws IOException {
 		String returnString = "";
 		HttpEntity httpEntity = response.getEntity();
 
 		InputStream inputStream = httpEntity.getContent();
-		InputStreamReader is = new InputStreamReader(inputStream, "ISO-8859-1"); //"UTF-8");
+		InputStreamReader is = new InputStreamReader(inputStream, "ISO-8859-1"); // "UTF-8");
 
 		if (is != null) {
 			Writer writer = new StringWriter();
@@ -147,24 +236,12 @@ public class HttpStringRequest {
 				is.close();
 			}
 
-			
 			returnString = writer.toString().replace("\n", "");
-			
-//			returnString = Utility.reencodeISO(returnString);
-//			
-//			returnString = returnString.replace("Markt", "Mürkt");
-//			
-//			String dummyString = returnString.substring(returnString.indexOf("Meldorf"));
-			
-			Log.d("Notdienst", "### returnString=" + returnString);
-//			Log.d("Notdienst", "### returnString2=" + dummyString);
-
 		}
 
 		return returnString;
 	}
 
 	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
-	
+
 }
