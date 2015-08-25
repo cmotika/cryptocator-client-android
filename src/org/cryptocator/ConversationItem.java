@@ -48,13 +48,13 @@ import android.content.Context;
 public class ConversationItem {
 
 	/**
-	 * The sendingid is the id of this conversation item in the SENDING
+	 * The sending id is the id of this conversation item in the SENDING
 	 * table/database.
 	 */
 	public int sendingid = -1;
 
 	/**
-	 * The localid is the local id of this conversation item in the MESSAGES
+	 * The local id is the local id of this conversation item in the MESSAGES
 	 * table/database for the particular user.
 	 */
 	public int localid;

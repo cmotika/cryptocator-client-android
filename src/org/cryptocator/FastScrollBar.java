@@ -38,60 +38,166 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.SeekBar;
 
+/**
+ * The FastScrollBar class is a vertical special scrollbar which actually is a
+ * utilized SeekBar. It has a specific thumb image that can be defined. A scroll
+ * listener can be defined that listens to onScroll or onSnapScroll events.
+ * Snapping can be defined for up and down.
+ * 
+ * @author Christian Motika
+ * @since 2.1
+ * @date 08/23/2015
+ */
 @SuppressLint("WrongCall")
 public class FastScrollBar extends SeekBar {
-			 
-	// ms for wich to lock the setProgress() input in case of moving manually!
+
+	/**
+	 * The Constant LOCKTIMEOUT specifies the ms for wich to lock the
+	 * setProgress() input in case of moving manually!.
+	 */
 	static final int LOCKTIMEOUT = 200;
-	
-	private Drawable thumb;
+
+	/** The locked timestamp. */
 	long lockedTimestamp = 0;
-	
+
+	/** The snap up. */
 	private int snapUp = -1;
+
+	/** The snap down. */
 	private int snapDown = -1;
+
+	/** The current progress. */
 	private int currentProgress;
-	
+
+	/** The nosnap. */
 	public static int NOSNAP = -1;
-	
+
+	/** The scroll listener. */
 	private OnScrollListener scrollListener;
-	
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * The listener interface for receiving onScroll events. The class that is
+	 * interested in processing a onScroll event implements this interface, and
+	 * the object created with that class is registered with a component using
+	 * the component's <code>addOnScrollListener<code> method. When
+	 * the onScroll event occurs, that object's appropriate
+	 * method is invoked.
+	 * 
+	 * @see OnScrollEvent
+	 */
 	public interface OnScrollListener {
+
+		/**
+		 * On scroll.
+		 * 
+		 * @param percent
+		 *            the percent
+		 */
 		void onScroll(int percent);
 
+		/**
+		 * On snap scroll.
+		 * 
+		 * @param percent
+		 *            the percent
+		 * @param snappedDown
+		 *            the snapped down
+		 * @param snappedUp
+		 *            the snapped up
+		 */
 		void onSnapScroll(int percent, boolean snappedDown, boolean snappedUp);
 	}
-	
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sets the on scroll listener.
+	 * 
+	 * @param onScrollListener
+	 *            the new on scroll listener
+	 */
 	public void setOnScrollListener(OnScrollListener onScrollListener) {
 		scrollListener = onScrollListener;
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Instantiates a new fast scroll bar.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public FastScrollBar(Context context) {
 		super(context);
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Instantiates a new fast scroll bar.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param attrs
+	 *            the attrs
+	 * @param defStyle
+	 *            the def style
+	 */
 	public FastScrollBar(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Instantiates a new fast scroll bar.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param attrs
+	 *            the attrs
+	 */
 	public FastScrollBar(Context context, AttributeSet attrs) {
 		super(context, attrs);
 	}
 
+	// ------------------------------------------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.widget.AbsSeekBar#onSizeChanged(int, int, int, int)
+	 */
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(h, w, oldh, oldw);
 	}
 
+	// ------------------------------------------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * android.widget.AbsSeekBar#setThumb(android.graphics.drawable.Drawable)
+	 */
 	@Override
 	public void setThumb(Drawable thumb) {
 		super.setThumb(thumb);
-		this.thumb = thumb;
-//		this.scrollTo(0, (int) currentProgress);
 	}
 
+	// ------------------------------------------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.widget.AbsSeekBar#onMeasure(int, int)
+	 */
 	@Override
 	protected synchronized void onMeasure(int widthMeasureSpec,
 			int heightMeasureSpec) {
@@ -99,45 +205,100 @@ public class FastScrollBar extends SeekBar {
 		setMeasuredDimension(getMeasuredHeight(), getMeasuredWidth());
 	}
 
-	// Canvas cachedc = null;
-	// public void refresgDraw() {
-	// if (cachedc != null) {
-	// cachedc.rotate(-90);
-	// //c.translate(-getHeight(), 0);
-	// super.onDraw(cachedc);
-	// }
-	// }
-	
-	// if > 90% -> snap to 100%
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sets the snap down value, if > snapDown% then snap to 100%.
+	 * 
+	 * @param snapDownLimit
+	 *            the new snap down
+	 */
 	public void setSnapDown(int snapDownLimit) {
 		snapDown = snapDownLimit;
 	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sets the snap up value, if < snapUp% then snap to 0%.
+	 * 
+	 * @param snapUpLimit
+	 *            the new snap up
+	 */
 	public void setSnapUp(int snapUpLimit) {
 		snapUp = snapUpLimit;
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Checks if is locked.
+	 * 
+	 * @return true, if is locked
+	 */
 	public boolean isLocked() {
 		return ((getTimestamp() - LOCKTIMEOUT) < lockedTimestamp);
 	}
 
+	// ------------------------------------------------------------------------
+
+	@SuppressLint("ClickableViewAccessibility")
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.widget.ProgressBar#setProgress(int)
+	 */
 	@Override
 	public synchronized void setProgress(int progress) {
 		super.setProgress(progress);
 		onSizeChanged(getWidth(), getHeight(), 0, 0);
 	}
 
+	// ------------------------------------------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.widget.AbsSeekBar#onDraw(android.graphics.Canvas)
+	 */
 	protected void onDraw(Canvas c) {
 		c.rotate(-90);
 		c.translate(-getHeight(), 0);
 		super.onDraw(c);
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the timestamp.
+	 * 
+	 * @return the timestamp
+	 */
 	public static long getTimestamp() {
 		long timeStamp = System.currentTimeMillis(); // calendar.getTimeInMillis();
 		return timeStamp;
 	}
 
+	// ------------------------------------------------------------------------
 
+	/**
+	 * Gets the current progress in percent.
+	 * 
+	 * @return the current progress
+	 */
+	public int getCurrentProgress() {
+		return currentProgress;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.widget.AbsSeekBar#onTouchEvent(android.view.MotionEvent)
+	 */
+	// This ScrollBar should only be used for touch displays.
+	@SuppressLint("ClickableViewAccessibility")
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		if (!isEnabled()) {
@@ -151,7 +312,7 @@ public class FastScrollBar extends SeekBar {
 		case MotionEvent.ACTION_UP:
 			lockedTimestamp = getTimestamp();
 			int i = 0;
-			
+
 			int max = getMax();
 			int height = getHeight();
 			int cur = (int) event.getY();
@@ -172,18 +333,18 @@ public class FastScrollBar extends SeekBar {
 				}
 			}
 			i = max - percent;
-			
+
 			currentProgress = i;
 			setProgress(i);
-			
+
 			if (scrollListener != null) {
 				scrollListener.onScroll(percent);
 				if (snappedUp || snappedDown) {
-					scrollListener.onSnapScroll(percent, snappedDown, snappedUp);
+					scrollListener
+							.onSnapScroll(percent, snappedDown, snappedUp);
 				}
 			}
-			
-//			Log.d("communicator", "@@@@@@ Progress=" + getProgress() + "");
+
 			onSizeChanged(getWidth(), getHeight(), 0, 0);
 			break;
 		case MotionEvent.ACTION_CANCEL:
@@ -191,5 +352,7 @@ public class FastScrollBar extends SeekBar {
 		}
 		return true;
 	}
+
+	// ------------------------------------------------------------------------
 
 }
