@@ -36,27 +36,16 @@ package org.cryptocator;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.cryptocator.R;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
-import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.provider.ContactsContract;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -64,31 +53,60 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.TableRow;
-import android.widget.TextView;
 
-//import android.support.v4.app.DialogFragment;
-
+/**
+ * The BackupActivity class is responsible for displaying a backup dialog to let
+ * the user choose which messages (mids) to backup. It also performs copying the
+ * backup to the Clipboard of the device.
+ * 
+ * @author Christian Motika
+ * @since 2.1
+ * @date 08/23/2015
+ */
 public class BackupActivity extends Activity {
 
+	/** The conversation item. */
 	public static ConversationItem conversationItem = null;
+
+	/** The host uid. */
 	public static int hostUid;
 
+	/** The cached first mid. This is the first possible mid to backup. */
 	private int firstMid = 0;
+
+	/** The cached last mid. This is the last possible mid to backup */
 	private int lastMid = 0;
+
+	/** The complete conversation list. */
 	private List<ConversationItem> conversationList = new ArrayList<ConversationItem>();
 
+	/** The activity. */
 	Activity activity = null;
+
+	/** The context. */
 	Context context = null;
-	AlertDialog alertDialog = null;
+
+	/** The backup dialog. */
+	AlertDialog backupDialog = null;
+
+	/** The cancel flag. Per default it is true unless an OK-button was pressed. */
 	boolean cancel = true;
+
+	/**
+	 * The handled flag. It tells if a button was pressed or if the dialog was
+	 * closed, e.g., using the BACK key.
+	 */
 	boolean handled = false;
 
-	// -------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
 
+	@SuppressLint("InflateParams")
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onCreate(android.os.Bundle)
+	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -97,16 +115,12 @@ public class BackupActivity extends Activity {
 		activity = this;
 		context = this;
 
-		// super.setTheme(R.style.Theme_Transparent);
-		// this.setTheme(android.R.style.Theme_Dialog);
-		// getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
 		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 
 		// ATTENTION: Necessary to see the calling activity in the background!
 		// android:theme="@style/Theme.Transparent"
 
-		// this.setStyle(DialogFragment.STYLE_NORMAL,
-		// R.style.AlertDialogCustom);
+		// The title is set later
 		String activityTitle = "";
 
 		LayoutInflater inflaterInfo = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -118,8 +132,9 @@ public class BackupActivity extends Activity {
 		LinearLayout buttonLayout = (LinearLayout) dialogLayout
 				.findViewById(R.id.backupbuttons);
 
-		// / -------------
+		// -------------
 
+		// Set icon and title of the dialog
 		builder.setIcon(R.drawable.backup);
 		activityTitle = "Backup Messages";
 
@@ -199,7 +214,8 @@ public class BackupActivity extends Activity {
 						backupText.append(Main.UID2Name(context, item.from,
 								true));
 						if (details.isChecked()) {
-							backupText.append(System.getProperty("line.separator"));
+							backupText.append(System
+									.getProperty("line.separator"));
 							backupText.append("Created: "
 									+ DB.getDateString(item.created, false));
 							backupText.append(System
@@ -242,24 +258,21 @@ public class BackupActivity extends Activity {
 						backupText.append(System.getProperty("line.separator"));
 						backupText.append(item.text);
 					}
-					
+
 					if (active && item.mid >= toMid) {
 						active = false;
 					}
-					
 
 				}
 
-				Log.d("communicator", "@@@@ BACKUP : "
-						+ backupText.toString());
+				Log.d("communicator", "@@@@ BACKUP : " + backupText.toString());
 
 				Utility.copyToClipboard(context, backupText.toString());
 				if (backupText.toString().length() > 0) {
 					Utility.showToastAsync(context,
 							"Backup of Conversation in Clipboard now.");
 				} else {
-					Utility.showToastAsync(context,
-							"Nothing to backup.");
+					Utility.showToastAsync(context, "Nothing to backup.");
 				}
 
 				activity.finish();
@@ -271,17 +284,9 @@ public class BackupActivity extends Activity {
 			}
 		});
 
-		// / -------------
+		// -------------
 
 		builder.setTitle(activityTitle);
-
-		// outerLayout.setOnClickListener(new View.OnClickListener() {
-		// public void onClick(View v) {
-		// // dialog.dismiss();
-		// activity.finish();
-		// }
-		// });
-
 		builder.setView(dialogLayout);
 
 		builder.setOnCancelListener(new OnCancelListener() {
@@ -291,33 +296,22 @@ public class BackupActivity extends Activity {
 			}
 		});
 
-		alertDialog = builder.show();
+		backupDialog = builder.show();
 
 		// Grab the window of the dialog, and change the width
 		WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-		Window window = alertDialog.getWindow();
+		Window window = backupDialog.getWindow();
 		lp.copyFrom(window.getAttributes());
 		// This makes the dialog take up the full width
-		lp.width = WindowManager.LayoutParams.FILL_PARENT;
+		lp.width = WindowManager.LayoutParams.MATCH_PARENT;
 		// lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
 		window.setAttributes(lp);
 
 		Utility.setBackground(context, outerLayout, R.drawable.dolphins3light);
 		Utility.setBackground(context, buttonLayout, R.drawable.dolphins4light);
 
-		// LayoutParams params = updateNameButton.getLayoutParams();
-		// params.height = 90;
-		// params.width = 90;
-		// params = updatePhoneButton.getLayoutParams();
-		// params.height = 90;
-		// params.width = 90;
-		// params = updateKeyButton.getLayoutParams();
-		// params.height = 90;
-		// params.width = 90;
-
 	}
 
-	// ------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
 
 }
