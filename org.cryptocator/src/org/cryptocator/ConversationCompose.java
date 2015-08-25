@@ -758,7 +758,7 @@ public class ConversationCompose extends Activity {
 			}
 		}
 		if (saved) {
-			Utility.showToastShortAsync(this, "Message saved as draft.");
+			Utility.showToastShortAsync(this, "Draft saved.");
 		}
 		ConversationCompose.visible = false;
 		super.onStop();

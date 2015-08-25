@@ -78,7 +78,10 @@ public class DB {
 	 */
 	public static final String TABLE_SENT = "sent";
 
-	/** The last received mid. */
+	/**
+	 * The globally last received mid (cached version). There is also a settings
+	 * entry to be updated: Setup.SETTINGS_DEFAULTMID.
+	 */
 	public static int lastReceivedMid = -1;
 
 	/** The SMS dimmy mid. */
@@ -2247,5 +2250,5 @@ public class DB {
 	}
 
 	// -----------------------------------------------------------------
-	
+
 }

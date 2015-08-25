@@ -131,6 +131,9 @@ public class Communicator {
 	 * message.
 	 */
 	public static String KEY_ERROR_SEPARATOR = "@@";
+	
+	public static String NEWLINEESCAPE = "@@@NEWLINE@@@";
+	public static String HASHESCAPE = "@@@HASH@@@";
 
 	// ----------------------------------------------------------------------------------
 
@@ -369,7 +372,7 @@ public class Communicator {
 	 * @param context
 	 *            the context
 	 */
-	public static void receiveNextMessage(final Context context) {
+	public synchronized static void receiveNextMessage(final Context context) {
 		messageReceived = false;
 
 		final int largestMid = DB.getLargestMid(context);
@@ -485,8 +488,45 @@ public class Communicator {
 										}
 
 										// Skip if not in our list && ignore is
-										// turned on
-										if (!discardMessageAndSaveLargestMid) {
+										// turned on OR if this mid is already
+										// in our DB!
+										boolean alreadyInDB = DB.isAlreadyInDB(
+												context, newItem.mid,
+												newItem.from);
+
+										// Test if the user not exists and if we
+										// want to skip unknown users
+										boolean skipBecauseOfUnknownUser = false;
+										List<Integer> uidList = Main
+												.loadUIDList(context);
+										if (!Main.alreadyInList(newItem.from,
+												uidList)) {
+											// The user who sent us a message is
+											// not
+											// in our list! What now?
+											boolean ignore = Utility
+													.loadBooleanSetting(
+															context,
+															Setup.OPTION_IGNORE,
+															Setup.DEFAULT_IGNORE);
+											if (ignore) {
+												// The user must be added to our
+												// list
+												uidList.add(newItem.from);
+												DB.ensureDBInitialized(context,
+														uidList);
+												Main.saveUIDList(context,
+														uidList);
+												Main.possiblyRebuildUserlistAsync(
+														context, false);
+											} else {
+												skipBecauseOfUnknownUser = true;
+											}
+										}
+
+										if (!skipBecauseOfUnknownUser
+												&& !alreadyInDB
+												&& !discardMessageAndSaveLargestMid) {
 											newItem.text = handleReceivedText(
 													context, text, newItem);
 											success2 = updateUIForReceivedMessage(
@@ -559,34 +599,30 @@ public class Communicator {
 	 */
 	public static boolean updateUIForReceivedMessage(Context context,
 			ConversationItem newItem) {
-		List<Integer> uidList = Main.loadUIDList(context);
-		boolean skip = false;
 		boolean success2 = false;
-		if (!Main.alreadyInList(newItem.from, uidList)) {
-			// The user who sent us a message is not
-			// in our list! What now?
-			boolean ignore = Utility.loadBooleanSetting(context,
-					Setup.OPTION_IGNORE, Setup.DEFAULT_IGNORE);
-			if (!ignore) {
-				// The user must be added to our
-				// list
-				uidList.add(newItem.from);
-				DB.ensureDBInitialized(context, uidList);
-				Main.saveUIDList(context, uidList);
-				Main.possiblyRebuildUserlistAsync(context, false);
-			} else {
-				skip = true;
-			}
-		}
 
-		if (skip) {
-			messageReceived = true;
-			// Log.d("communicator",
-			// "RECEIVED MESSAGE SKIPPED!!! "
-			// + response2);
-		} else if (DB.isAlreadyInDB(context, newItem.mid, newItem.from)) {
-			// Not insert again!
-		} else if (DB.updateMessage(context, newItem, newItem.from)) {
+		// THE FOLLOWING IS DONE ALREADY IN receiveNextMessage() NOW. 25.08.15
+		// AS ALSO ReceiveSMS.handleMessage would create an SMS user.
+		//
+		// List<Integer> uidList = Main.loadUIDList(context);
+		// if (!Main.alreadyInList(newItem.from, uidList)) {
+		// // The user who sent us a message is not
+		// // in our list! What now?
+		// boolean ignore = Utility.loadBooleanSetting(context,
+		// Setup.OPTION_IGNORE, Setup.DEFAULT_IGNORE);
+		// if (!ignore) {
+		// // The user must be added to our
+		// // list
+		// uidList.add(newItem.from);
+		// DB.ensureDBInitialized(context, uidList);
+		// Main.saveUIDList(context, uidList);
+		// Main.possiblyRebuildUserlistAsync(context, false);
+		// } else {
+		// skipUnknownUser = true;
+		// }
+		// }
+
+		if (DB.updateMessage(context, newItem, newItem.from)) {
 			messageReceived = true;
 			Log.d("communicator", "RECEIVED MESSAGE IN DB NOW!!! from:"
 					+ newItem.from);
@@ -716,8 +752,10 @@ public class Communicator {
 			// This is an unencrypted message
 			newItem.encrypted = false;
 			text = text.substring(1);
-			text = text.replace("@@@NEWLINE@@@",
+			text = text.replace(NEWLINEESCAPE,
 					System.getProperty("line.separator"));
+			text = text.replace(HASHESCAPE,
+					"#");
 			Log.d("communicator", "QQQQQQ handleReceivedText #1  newItem.from="
 					+ newItem.from + ", newItem.created=" + newItem.created
 					+ ", text=" + text);
@@ -811,9 +849,14 @@ public class Communicator {
 							// ATTENTION: If not scrolled down then send an
 							// additional toast!
 							if (!Conversation.scrolledDown && !newItem.isKey) {
-								Utility.showToastShortAsync(context,
-										"New message " + newItem.mid
-												+ " received.");
+								if (newItem.transport == DB.TRANSPORT_INTERNET) {
+									Utility.showToastShortAsync(context,
+											"New message " + newItem.mid
+													+ " received.");
+								} else {
+									Utility.showToastShortAsync(context,
+											"New SMS received.");
+								}
 							}
 							Conversation.getInstance().updateConversationlist(
 									context);
@@ -831,9 +874,15 @@ public class Communicator {
 												+ newItem.from);
 								createNotification(context, newItem);
 							}
-							if (Conversation.isAlive()) {
+							if (Conversation.isAlive()
+									&& Conversation.getHostUid() == newItem.from) {
 								// Still update because conversation is in
 								// memory!
+								// Also possibly scroll down: If the user
+								// unlocks the phone,
+								// and scrolledDown was true, then he expects to
+								// see the
+								// last/newest message!
 								Conversation.getInstance()
 										.updateConversationlist(context);
 							}
