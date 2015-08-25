@@ -356,12 +356,12 @@ public class Conversation extends Activity {
 						// + fastScrollView.heights.size() + ", " +
 						// fastScrollView.heightsSum);
 
-						if (percent >= 95) {
+						if (percent >= 97) {
 							scrolledDown = true;
 							scrolledUp = false;
 							fastScrollView
 									.setScrollBackground(R.color.invisible);
-						} else if (percent <= 5) {
+						} else if (percent <= 3) {
 							showTitlebarAsync(context);
 							scrolledUp = true;
 							scrolledDown = false;
@@ -1081,7 +1081,8 @@ public class Conversation extends Activity {
 	 * @return true, if is typing
 	 */
 	public static boolean isTyping() {
-		return !(lastKeyStroke == 0)
+		// If the conversation is NOT visible the user cannot type fast!
+		return isVisible() && !(lastKeyStroke == 0)
 				&& ((DB.getTimestamp() - lastKeyStroke) < Setup.TYPING_TIMEOUT_BEFORE_BACKGROUND_ACTIVITY);
 	}
 
@@ -1092,7 +1093,8 @@ public class Conversation extends Activity {
 	 * @return true, if is typing fast
 	 */
 	public static boolean isTypingFast() {
-		return !(lastKeyStroke == 0)
+		// If the conversation is NOT visible the user cannot type fast!
+		return isVisible() && !(lastKeyStroke == 0)
 				&& ((DB.getTimestamp() - lastKeyStroke) < Setup.TYPING_TIMEOUT_BEFORE_UI_ACTIVITY);
 	}
 
@@ -1168,7 +1170,7 @@ public class Conversation extends Activity {
 			if (!draft.equals(msg)) {
 				// only if message changed
 				Utility.saveStringSetting(this, "cachedraft" + hostUid, msg);
-				Utility.showToastShortAsync(this, "Message saved as draft.");
+				Utility.showToastShortAsync(this, "Draft saved.");
 			}
 		}
 		super.onStop();

@@ -192,6 +192,7 @@ public class Main extends Activity {
 		btncompose.setAdditionalPressWhiteView(btncomposeparent);
 		btncompose.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
+				showHideAddUser(context, false);
 				composeMessage(context, null, null);
 			}
 		});
@@ -201,6 +202,7 @@ public class Main extends Activity {
 		btnadduser.setAdditionalPressWhiteView(btnadduserparent);
 		btnadduser.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
+				showHideAddUser(context, false);
 				showHideAddUser(context, true);
 			}
 		});
@@ -210,6 +212,7 @@ public class Main extends Activity {
 		btnrefresh.setAdditionalPressWhiteView(btnrefreshparent);
 		btnrefresh.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
+				showHideAddUser(context, false);
 				doRefresh(context);
 			}
 		});
@@ -219,6 +222,7 @@ public class Main extends Activity {
 		btnmenu.setAdditionalPressWhiteView(btnmenuparent);
 		btnmenu.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
+				showHideAddUser(context, false);
 				openOptionsMenu();
 			}
 		});

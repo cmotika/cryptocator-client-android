@@ -462,15 +462,15 @@ public class Setup extends Activity {
 	public static final String SETTINGS_PHONEISMODIFIED = "phoneismodified";
 
 	/**
-	 * The Constant SETTINGS_DEFAULTMID. For each user: This is the base mid, we
-	 * do not request messages before this mid.
+	 * The Constant SETTINGS_DEFAULTMID. Globally for all users: This is the
+	 * base mid, we do not request messages before this mid.
 	 */
 	public static final String SETTINGS_DEFAULTMID = "defaultmid";
 
 	/**
-	 * The Constant SETTINGS_DEFAULTMID_DEFAULT. For each user: should only be
-	 * -1 if there is no msg in the DB. Then we retrieve the highest mid from
-	 * server!
+	 * The Constant SETTINGS_DEFAULTMID_DEFAULT. Globally for all users: should
+	 * only be -1 if there is no msg in the DB. Then we retrieve the highest mid
+	 * from server!
 	 */
 	public static final int SETTINGS_DEFAULTMID_DEFAULT = -1;
 
@@ -4012,7 +4012,7 @@ public class Setup extends Activity {
 					}));
 		}
 	}
-	
+
 	// -------------------------------------------------------------------------
 
 	/**
@@ -4076,7 +4076,7 @@ public class Setup extends Activity {
 	}
 
 	// -------------------------------------------------------------------------
-	
+
 	/**
 	 * Update serverkey.
 	 * 
@@ -4301,7 +4301,7 @@ public class Setup extends Activity {
 				* simpleKey[5] + 1000 * simpleKey[6] + 1000 * simpleKey[7];
 		return checkSum + uidEncrypted;
 	}
-	
+
 	// -------------------------------------------------------------------------
 
 	/**
