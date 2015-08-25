@@ -33,115 +33,296 @@
  */
 package org.cryptocator;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
-import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 
+/**
+ * The ImagePressButton class is a special ImageButton that can highlight its
+ * background or an additional (parent) view for a while (300ms) when the button
+ * is pressed.
+ * 
+ * @author Christian Motika
+ * @since 1.2
+ * @date 08/23/2015
+ * 
+ */
+@SuppressLint("ClickableViewAccessibility")
 public class ImagePressButton extends ImageButton {
 
+	/** The original bitmap. */
 	Bitmap original;
+
+	/** The pressed bitmap calculated from the original bitmap. */
 	Bitmap pressed;
+
+	/** The original drawable. */
 	Drawable dOriginal;
+
+	/** The pressed drawable calculated from the original bitmap. */
 	Drawable dPressed;
+
+	/** The shift of the pressed bitmap/drawable. */
 	int shift = 5;
+
+	/** The delay internal until the original drawable is restored. */
 	int delayInternal = 300;
+
+	/**
+	 * The flag that tells if the button is active or not reacting to touch
+	 * events.
+	 */
 	boolean active = false;
+
+	/**
+	 * The initialized flag tells if the pressed bitmap/drawable has been
+	 * created.
+	 */
 	boolean initialized = false;
+
+	/**
+	 * The background internal flag tells if the bitmap should be drawn to the
+	 * background or to the foreground. Background images are stretched to the
+	 * button size while foreground images are not stretched at all.
+	 */
 	boolean backgroundInternal = true;
+
+	/**
+	 * The additional white view that can be set optionally. If set the
+	 * background of this view is set to the WHITEPRESS color for the duration
+	 * of 300ms.
+	 */
 	View additionalWhiteView = null;
-	
+
+	/** The whitepress color. */
 	public int WHITEPRESS = Color.parseColor("#44FFFFFF");
+
+	/** The transparent color. */
 	public int TRANSPARENT = Color.parseColor("#00FFFFFF");
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Instantiates a new image press button.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public ImagePressButton(Context context) {
 		super(context);
-		// TODO Auto-generated constructor stub
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Instantiates a new image press button.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param attrs
+	 *            the attrs
+	 */
 	public ImagePressButton(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		// TODO Auto-generated constructor stub
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Instantiates a new image press button.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param attrs
+	 *            the attrs
+	 * @param defStyle
+	 *            the def style
+	 */
 	public ImagePressButton(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-		// TODO Auto-generated constructor stub
 	}
 
+	// ------------------------------------------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.widget.ImageView#setImageResource(int)
+	 */
 	@Override
 	public void setImageResource(int resId) {
 		super.setImageResource(resId);
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sets the image press resource.
+	 * 
+	 * @param resId
+	 *            the new image press resource
+	 */
 	public void setImagePressResource(int resId) {
 		super.setImageResource(resId);
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Initialize press image resource.
+	 * 
+	 * @param resId
+	 *            the res id
+	 */
+	@SuppressLint("ClickableViewAccessibility")
 	public void initializePressImageResource(int resId) {
 		initializePressImageResource(resId, shift, delayInternal,
-				Color.parseColor("#00000000"), true);
+				TRANSPARENT, true);
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Initialize press image resource white.
+	 * 
+	 * @param resId
+	 *            the res id
+	 */
 	public void initializePressImageResourceWhite(int resId) {
 		initializePressImageResource(resId, shift, delayInternal,
-				Color.parseColor("#44FFFFFF"), true);
+				WHITEPRESS, true);
 	}
 
+	// ------------------------------------------------------------------------
 
+	/**
+	 * Sets the additional press white view.
+	 * 
+	 * @param view
+	 *            the new additional press white view
+	 */
 	public void setAdditionalPressWhiteView(View view) {
 		additionalWhiteView = view;
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Initialize press image resource white.
+	 * 
+	 * @param resId
+	 *            the res id
+	 * @param background
+	 *            the background
+	 */
 	public void initializePressImageResourceWhite(int resId, boolean background) {
-		initializePressImageResource(resId, shift, delayInternal,
-				WHITEPRESS, background);
+		initializePressImageResource(resId, shift, delayInternal, WHITEPRESS,
+				background);
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Initialize press image resource.
+	 * 
+	 * @param resId
+	 *            the res id
+	 * @param background
+	 *            the background
+	 */
 	public void initializePressImageResource(int resId, boolean background) {
-		initializePressImageResource(resId, shift, delayInternal,
-				Color.parseColor("#00000000"), background);
+		initializePressImageResource(resId, shift, delayInternal, TRANSPARENT,
+				background);
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Initialize press image resource.
+	 * 
+	 * @param resId
+	 *            the res id
+	 * @param shift
+	 *            the shift
+	 * @param delay
+	 *            the delay
+	 */
 	public void initializePressImageResource(int resId, int shift, int delay) {
-		initializePressImageResource(resId, shift, delay,
-				Color.parseColor("#00000000"), true);
+		initializePressImageResource(resId, shift, delay, TRANSPARENT, true);
 	}
 
-	public void initializePressImageResource(int resId, int shift, int delay, boolean background) {
-		initializePressImageResource(resId, shift, delay,
-				Color.parseColor("#00000000"), background);
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Initialize press image resource.
+	 * 
+	 * @param resId
+	 *            the res id
+	 * @param shift
+	 *            the shift
+	 * @param delay
+	 *            the delay
+	 * @param background
+	 *            the background
+	 */
+	public void initializePressImageResource(int resId, int shift, int delay,
+			boolean background) {
+		initializePressImageResource(resId, shift, delay, TRANSPARENT,
+				background);
 	}
-	
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Deactivate press image resource white.
+	 */
 	public void deactivatePressImageResourceWhite() {
-		active = false; 
+		active = false;
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Activate press image resource white.
+	 */
 	public void activatePressImageResourceWhite() {
 		active = true;
-	} 
+	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Initialize press image resource and installs the listener for the
+	 * duration after the touch event of the button (press).
+	 * 
+	 * @param resId
+	 *            the res id
+	 * @param shift
+	 *            the shift
+	 * @param delay
+	 *            the delay
+	 * @param color
+	 *            the color
+	 * @param background
+	 *            the background
+	 */
 	public void initializePressImageResource(int resId, int shift, int delay,
 			int color, boolean background) {
 		active = true;
 		this.shift = shift;
 		this.delayInternal = delay;
 		this.backgroundInternal = background;
-
-		Paint paint = new Paint();
 
 		Bitmap icon = BitmapFactory.decodeResource(this.getResources(), resId);
 
@@ -165,6 +346,7 @@ public class ImagePressButton extends ImageButton {
 
 		final ImageButton instance = this;
 		this.setOnTouchListener(new View.OnTouchListener() {
+			@SuppressWarnings("deprecation")
 			public boolean onTouch(View v, MotionEvent event) {
 				if (active) {
 					if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -179,7 +361,8 @@ public class ImagePressButton extends ImageButton {
 						instance.postDelayed(new Runnable() {
 							public void run() {
 								if (additionalWhiteView != null) {
-									additionalWhiteView.setBackgroundColor(TRANSPARENT);
+									additionalWhiteView
+											.setBackgroundColor(TRANSPARENT);
 								}
 								if (backgroundInternal) {
 									instance.setBackgroundDrawable(dOriginal);
@@ -193,26 +376,8 @@ public class ImagePressButton extends ImageButton {
 				return false;
 			}
 		});
-
-		// super.setImageBitmap(icon2);
 	}
 
-	// @Override
-	// protected void onDraw(Canvas canvas) {
-	// super.onDraw(canvas);
-	//
-	// // Calc text size
-	// Paint paint = new Paint();
-	// paint.setColor(this.textColor);
-	// paint.setTextSize(this.textSize);
-	// Rect bounds = new Rect();
-	// paint.getTextBounds(this.text, 0, this.text.length(), bounds);
-	//
-	// // Draw the Text
-	// float buttonWitdh = this.getWidth();
-	// float buttonHeight = this.getHeight();
-	// canvas.drawText(this.text, (buttonWitdh - bounds.width()) / 2,
-	// buttonHeight - height - height / 2, paint);
-	// }
+	// ------------------------------------------------------------------------
 
 }
