@@ -375,7 +375,7 @@ public class FastScrollView extends LinearLayout {
 		scrollView.setLayoutParams(lpScrollView);
 
 		LinearLayout.LayoutParams lpScrollBar = new LinearLayout.LayoutParams(
-				30, LinearLayout.LayoutParams.MATCH_PARENT, 1);
+				35, LinearLayout.LayoutParams.MATCH_PARENT, 1);
 		lpScrollBar.setMargins(0, 0, 0, 0);
 		scrollBar.setLayoutParams(lpScrollBar);
 		scrollBar.setProgressDrawable(new ColorDrawable(
@@ -850,13 +850,13 @@ public class FastScrollView extends LinearLayout {
 	 * @param colorResource
 	 *            the new scroll background
 	 */
-	public void setScrollBackground(final int colorResource) {
+	public void setScrollBackground(final int color) {
 		final Handler mUIHandler = new Handler(Looper.getMainLooper());
 		mUIHandler.post(new Thread() {
 			@Override
 			public void run() {
 				super.run();
-				scrollBar.setBackgroundResource(colorResource);
+				scrollBar.setBackgroundColor(color);
 				scrollBar.invalidate();
 			}
 		});

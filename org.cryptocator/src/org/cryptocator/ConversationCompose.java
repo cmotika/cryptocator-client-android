@@ -41,6 +41,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -54,6 +55,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnLongClickListener;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager.LayoutParams;
@@ -92,6 +94,9 @@ public class ConversationCompose extends Activity {
 
 	/** The smiley button. */
 	private ImagePressButton smileybutton;
+
+	/** The attachment button. */
+	private ImagePressButton attachmentbutton;
 
 	/** The addition button. */
 	private ImagePressButton additionbutton;
@@ -198,39 +203,100 @@ public class ConversationCompose extends Activity {
 		LinearLayout sendbuttonparent = (LinearLayout) findViewById(R.id.sendbuttonparent);
 		sendbutton.setAdditionalPressWhiteView(sendbuttonparent);
 
-		smileybutton = ((ImagePressButton) findViewById(R.id.smiliebutton));
-		LinearLayout smiliebuttonparent = (LinearLayout) findViewById(R.id.smiliebuttonparent);
+		final LinearLayout additions = (LinearLayout) findViewById(R.id.additions);
+		smileybutton = ((ImagePressButton) findViewById(R.id.smileybutton));
+		LinearLayout smiliebuttonparent = (LinearLayout) findViewById(R.id.smileybuttonparent);
 		smileybutton.setAdditionalPressWhiteView(smiliebuttonparent);
-		smileybutton.initializePressImageResource(R.drawable.smiliebtn, false);
-		smileybutton.setVisibility(View.GONE);
+		smileybutton.initializePressImageResource(R.drawable.smileybtn, 3, 300,
+				false);
+
+		attachmentbutton = ((ImagePressButton) findViewById(R.id.attachmentbutton));
+		LinearLayout attachmentbuttonparent = (LinearLayout) findViewById(R.id.attachmentbuttonparent);
+		attachmentbutton.setAdditionalPressWhiteView(attachmentbuttonparent);
+		attachmentbutton.initializePressImageResource(R.drawable.attachmentbtn,
+				3, 300, false);
 
 		additionbutton = ((ImagePressButton) findViewById(R.id.additionbutton));
-		LinearLayout additionbuttonparent = (LinearLayout) findViewById(R.id.additionbuttonparent);
-		additionbutton.setAdditionalPressWhiteView(additionbuttonparent);
-		additionbutton.initializePressImageResource(R.drawable.additionbtn, 0,
-				300, true);
+		// LinearLayout additionbuttonparent = (LinearLayout)
+		// findViewById(R.id.additionbuttonparent);
+		// additionbutton.setAdditionalPressWhiteView(additionbuttonparent);
+		// additionbutton.initializePressImageResource(R.drawable.additionbtn,
+		// 0,
+		// 300, true);
 		additionbutton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				// toggle
 				additionsVisible = !additionsVisible;
 				if (additionsVisible) {
-					smileybutton.setVisibility(View.VISIBLE);
+					additions.setVisibility(View.VISIBLE);
 				} else {
-					smileybutton.setVisibility(View.GONE);
+					additions.setVisibility(View.GONE);
 				}
 			}
 		});
 		if (additionsVisible) {
-			smileybutton.setVisibility(View.VISIBLE);
+			additions.setVisibility(View.VISIBLE);
 		} else {
-			smileybutton.setVisibility(View.GONE);
+			additions.setVisibility(View.GONE);
 		}
 		// If smileys are turned of then do not display the additions button
 		if (!(Utility.loadBooleanSetting(context, Setup.OPTION_SMILEYS,
 				Setup.DEFAULT_SMILEYS))) {
-			additionbutton.setVisibility(View.GONE);
 			smileybutton.setVisibility(View.GONE);
+			LinearLayout.LayoutParams lpattachmentbuttonparent = new LinearLayout.LayoutParams(
+					LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+			lpattachmentbuttonparent.setMargins(2, 0, 5, 0);
+			attachmentbuttonparent.setLayoutParams(lpattachmentbuttonparent);
 		}
+		smileybutton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				final boolean wasKeyboardVisible = isKeyboardVisible(conversationRootView);
+				SmileyPrompt smileyPrompt = new SmileyPrompt();
+
+				smileyPrompt
+						.setOnSmileySelectedListener(new SmileyPrompt.OnSmileySelectedListener() {
+							public void onSelect(String textualSmiley) {
+								if (textualSmiley != null) {
+									// messageText.getText().append(textualSmiley);
+									// if text was selected replace the text
+									int i = messageText.getSelectionStart();
+									int e = messageText.getSelectionEnd();
+									String prevText = messageText.getText()
+											.toString();
+									if (i < 0) {
+										// default fallback is concatenation
+										if (!prevText.endsWith(" ")) {
+											prevText = prevText.concat(" ");
+										}
+										messageText.setText(prevText
+												+ textualSmiley + " ");
+									} else {
+										// otherwise try to fill in the text
+										String text1 = prevText.substring(0, i);
+										if (!text1.endsWith(" ")) {
+											text1 = text1.concat(" ");
+										}
+										if (e < 0) {
+											e = i;
+										}
+										String text2 = prevText.substring(e);
+										if (!text2.startsWith(" ")) {
+											text2 = " " + text2;
+										}
+										messageText.setText(text1.concat(
+												textualSmiley).concat(text2));
+									}
+									messageText.setSelection(messageText
+											.getText().length());
+									if (wasKeyboardVisible) {
+										potentiallyShowKeyboard(context, true);
+									}
+								}
+							}
+						});
+				smileyPrompt.promptSmileys(context);
+			}
+		});
 
 		sendbutton.setLongClickable(true);
 		sendbutton.setOnLongClickListener(new OnLongClickListener() {
@@ -339,8 +405,12 @@ public class ConversationCompose extends Activity {
 						if (nowOrientationChanged) {
 							orientationChanged = true;
 						}
-						
-						Log.d("communicator", "SMILEY: nowLandscape=" + nowLandscape + ", lastOrientationLandscape="+lastOrientationLandscape+", nowChanged=" + nowOrientationChanged + ", orientationChanged=" + orientationChanged);
+
+						Log.d("communicator", "SMILEY: nowLandscape="
+								+ nowLandscape + ", lastOrientationLandscape="
+								+ lastOrientationLandscape + ", nowChanged="
+								+ nowOrientationChanged
+								+ ", orientationChanged=" + orientationChanged);
 
 						if (Utility
 								.loadBooleanSetting(context,
@@ -1176,6 +1246,82 @@ public class ConversationCompose extends Activity {
 			}
 		}
 		parseAndMarkUserRadio(phoneOrUid.getText().toString(), 100);
+
+	}
+
+	// -------------------------------------------------------------------------
+
+	/** The min width diff. */
+	private static int minWidthDiff = 100;
+
+	/** The m last height differece. */
+	private static int lastHeightDifferece;
+
+	/** The keyboard visible. */
+	private static boolean keyboardVisible = false;
+
+	/**
+	 * Checks if is keyboard visible. This is a central message that is used in
+	 * {@link OnGlobalLayoutListener} in order to detect keyboard
+	 * opening/closing.
+	 * 
+	 * @param rootView
+	 *            the root view
+	 * @return true, if is keyboard visible
+	 */
+	private boolean isKeyboardVisible(View rootView) {
+		// Screen height
+		Rect rect = new Rect();
+		rootView.getWindowVisibleDisplayFrame(rect);
+		int screenHeight = rootView.getRootView().getHeight();
+		// Height difference of root view and screen heights
+		int heightDifference = screenHeight - (rect.bottom - rect.top);
+
+		// If height difference is different then the last time and if
+		// is bigger than 1/4 of the screen => assume visible keyboard
+		if (heightDifference != lastHeightDifferece) {
+			if (heightDifference > screenHeight / 4
+					&& ((heightDifference > lastHeightDifferece + minWidthDiff) || (heightDifference < lastHeightDifferece
+							- minWidthDiff))) {
+				// Keyboard is now visible
+				// Log.d("communicator", "@@@@@@ CHANGE TO VISIBLE=TRUE");
+				lastHeightDifferece = heightDifference;
+				keyboardVisible = true;
+			} else if (heightDifference < screenHeight / 4) {
+				// Log.d("communicator", "@@@@@@ CHANGE TO VISIBLE=FALSE");
+				// Keyboard is now hidden
+				lastHeightDifferece = heightDifference;
+				keyboardVisible = false;
+			}
+		}
+		return keyboardVisible;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Show the keyboard (if parameter is true) but always fake lastKeyStrok
+	 * 
+	 * @param context
+	 *            the context
+	 * @param showKeyboard
+	 *            the show keyboard
+	 */
+	public void potentiallyShowKeyboard(final Context context,
+			final boolean showKeyboard) {
+		// Fake a keyboard entry for convenience: If the user immediately
+		// wants to start typing - he just can and will not be interrupted!
+		// :-)
+		Conversation.lastKeyStroke = DB.getTimestamp();
+		messageText.postDelayed(new Runnable() {
+			public void run() {
+				// Fake a keyboard entry for convenience
+				Conversation.lastKeyStroke = DB.getTimestamp();
+				messageText.requestFocus();
+				Utility.showKeyboardExplicit(messageText);
+				messageText.requestFocus();
+			}
+		}, 200);
 
 	}
 

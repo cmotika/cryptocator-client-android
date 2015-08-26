@@ -56,6 +56,12 @@ public class SmileyPrompt {
 	/** The smiley selected listener. */
 	OnSmileySelectedListener onSmileySelectedListener = null;
 
+	/** The maximal number of smileys per row in landscape mode. */
+	final int MAXSMILEYCOLUMNSLANDSCAPE = 5;
+
+	/** The maximal number of smileys per row in non-landscape mode. */
+	final int MAXSMILEYCOLUMNSPORTRAIT = 3;
+
 	// ------------------------------------------------------------------------
 
 	public interface OnSmileySelectedListener {
@@ -125,10 +131,18 @@ public class SmileyPrompt {
 	private LinearLayout buildSmileyTable(final Context context,
 			final Dialog dialog) {
 		int smileys = SmileyEditText.smileyText.length;
-		int maxrowsandcolumns = (int) Math.ceil(Math.sqrt(smileys));
+		// int maxrowsandcolumns = (int) Math.ceil(Math.sqrt(smileys));
+
+		int maxcolumns = MAXSMILEYCOLUMNSPORTRAIT;
+		if (Utility.isOrientationLandscape(context)) {
+			maxcolumns = MAXSMILEYCOLUMNSLANDSCAPE;
+		}
+
+		int maxrows = (int) Math.ceil(((double) smileys)
+				/ ((double) maxcolumns));
 
 		Log.d("communicator", "SMILEY: smileys=" + smileys);
-		Log.d("communicator", "SMILEY: maxrowsandcolumns=" + maxrowsandcolumns);
+		Log.d("communicator", "SMILEY: maxrows=" + maxrows);
 
 		LinearLayout smileyLayout = new LinearLayout(context);
 		smileyLayout.setOrientation(LinearLayout.VERTICAL);
@@ -140,38 +154,38 @@ public class SmileyPrompt {
 		TableLayout.LayoutParams lpTable = new TableLayout.LayoutParams(
 				TableLayout.LayoutParams.WRAP_CONTENT,
 				TableLayout.LayoutParams.WRAP_CONTENT);
-		lpTable.setMargins(10, 20, 10, 20);
+		lpTable.setMargins(5, 10, 5, 10);
 		tableLayout.setLayoutParams(lpTable);
 
 		TableRow.LayoutParams lpRows = new TableRow.LayoutParams(
 				TableRow.LayoutParams.WRAP_CONTENT,
 				TableRow.LayoutParams.WRAP_CONTENT);
 
-		TableRow.LayoutParams lpButtons = new TableRow.LayoutParams(
-				120,
-				120);
-		lpButtons.setMargins(2, 2, 2, 2);
+		TableRow.LayoutParams lpButtons = new TableRow.LayoutParams(120, 120);
+		lpButtons.setMargins(0, 0, 0, 0);
 
 		// Initialize index to -1 in order to start with 0
 		int index = 0;
-		for (int row = 0; row < maxrowsandcolumns; row++) {
+		for (int row = 0; row < maxrows; row++) {
 			TableRow tableRow = new TableRow(context);
 			tableRow.setLayoutParams(lpRows);
-			for (int column = 0; column < maxrowsandcolumns; column++) {
+			for (int column = 0; column < maxcolumns; column++) {
 				if (index < smileys) {
+
+					final int orderNumber = SmileyEditText.smileyOrder[index];
+
 					ImageLabelButton smileButton = new ImageLabelButton(context);
-					String smileyImg = "s" + index;
+					String smileyImg = "s" + orderNumber;
 					int id = context.getResources().getIdentifier(smileyImg,
 							"drawable", context.getPackageName());
 					smileButton.setTextAndImageResource(
-							SmileyEditText.smileyLabel[index], id);
+							SmileyEditText.smileyLabel[orderNumber], id);
 					smileButton.setLayoutParams(lpButtons);
-					final int index2 = index;
 					smileButton.setOnClickListener(new View.OnClickListener() {
 						public void onClick(View v) {
 							if (onSmileySelectedListener != null) {
 								onSmileySelectedListener
-										.onSelect(SmileyEditText.smileyText[index2]);
+										.onSelect(SmileyEditText.smileyText[orderNumber]);
 							}
 							dialog.dismiss();
 						}

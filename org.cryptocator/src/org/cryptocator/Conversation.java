@@ -41,11 +41,15 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -67,6 +71,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout.LayoutParams;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -138,6 +143,9 @@ public class Conversation extends Activity {
 	/** The smiley button. */
 	private ImagePressButton smileybutton;
 
+	/** The attachment button. */
+	private ImagePressButton attachmentbutton;
+
 	/** The addition button. */
 	private ImagePressButton additionbutton;
 
@@ -156,6 +164,17 @@ public class Conversation extends Activity {
 	 * faster.
 	 */
 	int lastHeight = 0;
+
+	/**
+	 * The color of the fast scroll background when scrolling and not scroll
+	 * locked down.
+	 */
+	final int FASTSCROLLBACKSCROLLINGBACKGROUND = Color.parseColor("#55555555");
+
+	/**
+	 * The color of the fast scroll background when scroll locked down.
+	 */
+	final int FASTSCROLLBACKLOCKEDBACKGROUND = Color.parseColor("#00555555");
 
 	// ------------------------------------------------------------------------
 
@@ -279,61 +298,110 @@ public class Conversation extends Activity {
 		};
 		messageText.addTextChangedListener(textWatcher);
 
-		// ActionBar actionBar = getActionBar();
-		// actionBar.setDisplayHomeAsUpEnabled(true);
-
 		sendbutton = ((ImagePressButton) findViewById(R.id.sendbutton));
 		LinearLayout sendbuttonparent = (LinearLayout) findViewById(R.id.sendbuttonparent);
 		sendbutton.setAdditionalPressWhiteView(sendbuttonparent);
 
-		smileybutton = ((ImagePressButton) findViewById(R.id.smiliebutton));
-		LinearLayout smiliebuttonparent = (LinearLayout) findViewById(R.id.smiliebuttonparent);
+		final LinearLayout additions = (LinearLayout) findViewById(R.id.additions);
+		smileybutton = ((ImagePressButton) findViewById(R.id.smileybutton));
+		LinearLayout smiliebuttonparent = (LinearLayout) findViewById(R.id.smileybuttonparent);
 		smileybutton.setAdditionalPressWhiteView(smiliebuttonparent);
-		smileybutton.initializePressImageResource(R.drawable.smiliebtn, false);
-		smileybutton.setVisibility(View.GONE);
+		smileybutton.initializePressImageResource(R.drawable.smileybtn, 3, 300,
+				false);
+
+		attachmentbutton = ((ImagePressButton) findViewById(R.id.attachmentbutton));
+		LinearLayout attachmentbuttonparent = (LinearLayout) findViewById(R.id.attachmentbuttonparent);
+		attachmentbutton.setAdditionalPressWhiteView(attachmentbuttonparent);
+		attachmentbutton.initializePressImageResource(R.drawable.attachmentbtn,
+				3, 300, false);
 
 		additionbutton = ((ImagePressButton) findViewById(R.id.additionbutton));
-		LinearLayout additionbuttonparent = (LinearLayout) findViewById(R.id.additionbuttonparent);
-		additionbutton.setAdditionalPressWhiteView(additionbuttonparent);
-		additionbutton.initializePressImageResource(R.drawable.additionbtn, 0,
-				300, true);
+		// LinearLayout additionbuttonparent = (LinearLayout)
+		// findViewById(R.id.additionbuttonparent);
+		// additionbutton.setAdditionalPressWhiteView(additionbuttonparent);
+		// additionbutton.initializePressImageResource(R.drawable.additionbtn,
+		// 0,
+		// 300, true);
 		additionbutton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				// toggle
 				additionsVisible = !additionsVisible;
 				if (additionsVisible) {
-					smileybutton.setVisibility(View.VISIBLE);
+					additions.setVisibility(View.VISIBLE);
 				} else {
-					smileybutton.setVisibility(View.GONE);
+					additions.setVisibility(View.GONE);
 				}
 			}
 		});
 		if (additionsVisible) {
-			smileybutton.setVisibility(View.VISIBLE);
+			additions.setVisibility(View.VISIBLE);
 		} else {
-			smileybutton.setVisibility(View.GONE);
+			additions.setVisibility(View.GONE);
 		}
 		// If smileys are turned of then do not display the additions button
 		if (!(Utility.loadBooleanSetting(context, Setup.OPTION_SMILEYS,
 				Setup.DEFAULT_SMILEYS))) {
-			additionbutton.setVisibility(View.GONE);
 			smileybutton.setVisibility(View.GONE);
+			LinearLayout.LayoutParams lpattachmentbuttonparent = new LinearLayout.LayoutParams(
+					LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+			lpattachmentbuttonparent.setMargins(2, 0, 5, 0);
+			attachmentbuttonparent.setLayoutParams(lpattachmentbuttonparent);
 		}
 		smileybutton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
+				final boolean wasKeyboardVisible = isKeyboardVisible(conversationRootView);
+
 				SmileyPrompt smileyPrompt = new SmileyPrompt();
-				smileyPrompt.setOnSmileySelectedListener(new SmileyPrompt.OnSmileySelectedListener() {
-					public void onSelect(String textualSmiley) {
-						if (textualSmiley != null) {
-							messageText.getText().append(textualSmiley);
-						}
-					}
-				});
+				smileyPrompt
+						.setOnSmileySelectedListener(new SmileyPrompt.OnSmileySelectedListener() {
+							public void onSelect(String textualSmiley) {
+								if (textualSmiley != null) {
+									// messageText.getText().append(textualSmiley);
+									// if text was selected replace the text
+									int i = messageText.getSelectionStart();
+									int e = messageText.getSelectionEnd();
+									String prevText = messageText.getText()
+											.toString();
+									if (i < 0) {
+										// default fallback is concatenation
+										if (!prevText.endsWith(" ")) {
+											prevText = prevText.concat(" ");
+										}
+										messageText.setText(prevText
+												+ textualSmiley + " ");
+									} else {
+										// otherwise try to fill in the text
+										String text1 = prevText.substring(0, i);
+										if (!text1.endsWith(" ")) {
+											text1 = text1.concat(" ");
+										}
+										if (e < 0) {
+											e = i;
+										}
+										String text2 = prevText.substring(e);
+										if (!text2.startsWith(" ")) {
+											text2 = " " + text2;
+										}
+										messageText.setText(text1.concat(
+												textualSmiley).concat(text2));
+									}
+									messageText.setSelection(messageText
+											.getText().length());
+									if (wasKeyboardVisible) {
+										scrollDownNow(context, true);
+									}
+								}
+							}
+						});
 				smileyPrompt.promptSmileys(context);
 			}
 		});
-		
-		
+		attachmentbutton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				selectAttachment(context);
+			}
+		});
+
 		if (hostUid == 0) {
 			// system, disable
 			sendbutton.setEnabled(false);
@@ -417,20 +485,22 @@ public class Conversation extends Activity {
 						// + fastScrollView.heights.size() + ", " +
 						// fastScrollView.heightsSum);
 
-						if (percent >= 97) {
+						if (percent >= 99) {
 							scrolledDown = true;
 							scrolledUp = false;
 							fastScrollView
-									.setScrollBackground(R.color.invisible);
-						} else if (percent <= 3) {
+									.setScrollBackground(FASTSCROLLBACKLOCKEDBACKGROUND);
+						} else if (percent <= 1) {
 							showTitlebarAsync(context);
 							scrolledUp = true;
 							scrolledDown = false;
-							fastScrollView.setScrollBackground(R.color.gray);
+							fastScrollView
+									.setScrollBackground(FASTSCROLLBACKSCROLLINGBACKGROUND);
 						} else {
 							scrolledUp = false;
 							scrolledDown = false;
-							fastScrollView.setScrollBackground(R.color.gray);
+							fastScrollView
+									.setScrollBackground(FASTSCROLLBACKSCROLLINGBACKGROUND);
 						}
 						scrollItem = item;
 
@@ -546,7 +616,8 @@ public class Conversation extends Activity {
 
 						// if the keyboard pops up and scrolledDown == true,
 						// then scroll down manually!
-						scollDownAfterTypingFast(showKeyboard);
+						// do not do this delayed because orientation changed!
+						scrollDownNow(context, showKeyboard);
 					}
 				});
 
@@ -1524,23 +1595,37 @@ public class Conversation extends Activity {
 			// the user rests
 			// for some time..
 		} else if (!isTypingFast()) {
-			// Log.d("communicator", "@@@@ scollDownAfterTypingFast(["
-			// + scrollNumber + "], showKeyboard=" + showKeyboard
-			// + ") 2 => !isTypingFast, !!!SCROLL!!! ");
-			// we should update the scroll view height here because it was
-			// blocked/skipped during fast typing!
-			fastScrollView.potentiallyRefreshState();
-			// Otherwise we can scroll immediately if the user already rests!
-			// and is not typing
-			fastScrollView.postDelayed(new Runnable() {
-				public void run() {
-					updateConversationTitleAsync(context);
-					isKeyboardVisible(conversationRootView);
-					foceScrollDown(keyboardVisible || showKeyboard);
-				}
-			}, 100);
-
+			scrollDownNow(context, showKeyboard);
 		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Scroll down now (immediately) - do not wait for fast typing to end, we
+	 * should be sure that the user does not fast type!
+	 * 
+	 * @param context
+	 *            the context
+	 * @param showKeyboard
+	 *            the show keyboard
+	 */
+	public void scrollDownNow(final Context context, final boolean showKeyboard) {
+		// Log.d("communicator", "@@@@ scollDownAfterTypingFast(["
+		// + scrollNumber + "], showKeyboard=" + showKeyboard
+		// + ") 2 => !isTypingFast, !!!SCROLL!!! ");
+		// we should update the scroll view height here because it was
+		// blocked/skipped during fast typing!
+		fastScrollView.potentiallyRefreshState();
+		// Otherwise we can scroll immediately if the user already rests!
+		// and is not typing
+		fastScrollView.postDelayed(new Runnable() {
+			public void run() {
+				updateConversationTitleAsync(context);
+				isKeyboardVisible(conversationRootView);
+				foceScrollDown(keyboardVisible || showKeyboard);
+			}
+		}, 100);
 	}
 
 	// -------------------------------------------------------------------------
@@ -2660,6 +2745,80 @@ public class Conversation extends Activity {
 		} else {
 			Conversation.getInstance().setTitle(titleText);
 		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	private static final int SELECT_PICTURE = 1;
+
+	/**
+	 * Select attachment.
+	 * 
+	 * @param activity
+	 *            the activity
+	 */
+	public static void selectAttachment(Activity activity) {
+		Intent intent = new Intent();
+
+		if (Build.VERSION.SDK_INT >= 19) {
+			intent = new Intent(
+					Intent.ACTION_PICK,
+					android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+			activity.startActivityForResult(intent, SELECT_PICTURE);
+		} else {
+			intent.setType("image/*");
+			intent.setAction(Intent.ACTION_GET_CONTENT);
+			activity.startActivityForResult(
+					Intent.createChooser(intent, "Select Attachment"),
+					SELECT_PICTURE);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	// To handle when an image is selected from the browser, add the following
+	// to your Activity
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+		// String currImageURI = data.getData().toString();
+		// Log.d("Notdienst", "##### requestCode=" + requestCode +
+		// ", resultCode=" + resultCode + ", " + currImageURI);
+
+		if (resultCode == RESULT_OK) {
+			if (requestCode == SELECT_PICTURE) {
+				// currImageURI is the global variable I'm using to hold the
+				// content:// URI of the image
+				String currImageURI = getRealPathFromURI(data.getData());
+
+				messageText.append(currImageURI);
+			}
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	// And to convert the image URI to the direct file system path of the image
+	// file
+	public String getRealPathFromURI(Uri contentUri) {
+		String returnPath = null;
+
+		if (Build.VERSION.SDK_INT < 19) {
+			// can post image
+			String[] proj = { MediaStore.Images.Media.DATA };
+			Cursor cursor = managedQuery(contentUri, proj, // Which columns to
+															// return
+					null, // WHERE clause; which rows to return (all rows)
+					null, // WHERE clause selection arguments (none)
+					null); // Order-by clause (ascending by name)
+			int column_index = cursor
+					.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+			cursor.moveToFirst();
+			returnPath = cursor.getString(column_index);
+		} else {
+			returnPath = contentUri.toString();
+		}
+		return returnPath;
 	}
 
 	// -------------------------------------------------------------------------

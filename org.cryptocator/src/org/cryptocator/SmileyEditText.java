@@ -29,13 +29,31 @@ import android.widget.EditText;
  */
 public class SmileyEditText extends EditText {
 
+	// /** The constant for mapping order from smiley index number. */
+	// public static final int[] smileyOrder = { 5, 0, 1, 3, 7, 6, 2, 4 };
+	//
+	// /** The constant for mapping label from smiley index number. */
+	// public static final String[] smileyLabel = { "biggrin", "frown", "mad",
+	// "pleased", "rolleyes", "smile", "tongue", "wink" };
+	//
+	// /** The constant for mapping text from smiley index number. */
+	// public static final String[] smileyText = { "=)", ":(", ">:|", ":]",
+	// "^^",
+	// ":)", ":P", ";)" };
+
+	/** The constant for mapping order from smiley index number. */
+	public static final int[] smileyOrder = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+			11, 12, 13, 14};
+
 	/** The constant for mapping label from smiley index number. */
-	public static final String[] smileyLabel = { "biggrin", "frown", "mad", "pleased", "rolleyes",
-			"smile", "tongue", "wink" };
+	public static final String[] smileyLabel = { "smile", "frown", "drained",
+			"desperate", "tongue", "wink", "cheer", "biggrin", "loving",
+			"no clue", "marveled", "tired", "faithful", "sobbing", "rolleyes" };
 
 	/** The constant for mapping text from smiley index number. */
-	public static final String[] smileyText = { "=)", ":(", ">:|", ":]", "^^",
-			":)", ":P", ";)" };
+	public static final String[] smileyText = { ":-)", ":-(", ":-B", ":-/",
+			":-Z", ";-)", ":~f", ":-D", ":-K", ":~b", ":-8", ":-M", ":-A",
+			":~C", ":~d" };
 
 	/** The constant spannableFactory. */
 	private static final Spannable.Factory spannableFactory = Spannable.Factory
@@ -47,16 +65,25 @@ public class SmileyEditText extends EditText {
 	 */
 	// Java characters that have to be escaped in regular expressions:
 	// \.[]{}()*+-?^$|
-	private static final Pattern[] refSmileys = { Pattern.compile("=\\)"),
-			Pattern.compile(":\\("), Pattern.compile(">:\\|"),
-			Pattern.compile(":\\]"), Pattern.compile("\\^\\^"),
-			Pattern.compile(":\\)"), Pattern.compile(":P"),
-			Pattern.compile(";\\)") };
+	// private static final Pattern[] refSmileys = { Pattern.compile("=\\)"),
+	// Pattern.compile(":\\("), Pattern.compile(">:\\|"),
+	// Pattern.compile(":\\]"), Pattern.compile("\\^\\^"),
+	// Pattern.compile(":\\)"), Pattern.compile(":P"),
+	// Pattern.compile(";\\)") };
+
+	private static final Pattern[] refSmileys = { Pattern.compile(":\\-\\)"),
+			Pattern.compile(":\\-\\("), Pattern.compile(":\\-B"),
+			Pattern.compile(":\\-\\/"), Pattern.compile(":\\-Z"),
+			Pattern.compile(";\\-\\)"), Pattern.compile(":~f"),
+			Pattern.compile(":\\-D"), Pattern.compile(":\\-K"),
+			Pattern.compile(":~b"), Pattern.compile(":\\-8"),
+			Pattern.compile(":\\-M"), Pattern.compile(":\\-A"),
+			Pattern.compile(":~C"), Pattern.compile(":~d") };
 
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Instantiates a new smilie edit text.
+	 * Instantiates a new smiley edit text.
 	 * 
 	 * @param context
 	 *            the context

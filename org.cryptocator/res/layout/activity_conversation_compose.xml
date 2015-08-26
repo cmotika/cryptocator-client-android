@@ -99,7 +99,8 @@
             android:gravity="center"
             android:text="Compose a new unencrypted SMS message here. Add a phone number at the top.\n\nInvite this user to use Cryptocator in order to exchange secure messages!"
             android:textSize="16sp" >
-        </TextView>        -->
+        </TextView>
+        -->
 
     </LinearLayout>
 
@@ -118,7 +119,7 @@
             android:layout_weight="1"
             android:orientation="horizontal" >
 
-                        <LinearLayout
+            <LinearLayout
                 android:id="@+id/additionbuttonparent"
                 android:layout_width="wrap_content"
                 android:layout_height="fill_parent"
@@ -127,49 +128,86 @@
 
                 <org.cryptocator.ImagePressButton
                     android:id="@+id/additionbutton"
-                    android:layout_width="20px"
+                    android:layout_width="38px"
                     android:layout_height="70px"
                     android:layout_gravity="bottom"
                     android:layout_marginBottom="0px"
                     android:layout_marginTop="0px"
                     android:layout_weight="1"
+                    android:background="@drawable/additionbtnback"
                     android:minWidth="20px"
-                    android:background="@drawable/additionbtn"
+                    android:src="@drawable/additionbtn"
                     android:text="" >
                 </org.cryptocator.ImagePressButton>
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/smiliebuttonparent"
+                android:id="@+id/additions"
                 android:layout_width="wrap_content"
                 android:layout_height="fill_parent"
                 android:layout_gravity="bottom"
-                android:layout_marginLeft="2px"
-                android:layout_marginRight="5px"
+                android:layout_marginLeft="0px"
+                android:layout_marginRight="0px"
                 android:orientation="vertical" >
 
-                <org.cryptocator.ImagePressButton
-                    android:id="@+id/smiliebutton"
-                    android:layout_width="70px"
-                    android:layout_height="70px"
-                    android:layout_gravity="bottom"
-                    android:layout_marginBottom="7px"
-                    android:layout_marginTop="3px"
-                    android:layout_weight="1"
-                    android:background="@android:color/transparent"
-                    android:minWidth="100px"
-                    android:src="@drawable/smiliebtn"
-                    android:text="" >
-                </org.cryptocator.ImagePressButton>
+                <LinearLayout
+                    android:id="@+id/smileybuttonparent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="2px"
+                    android:layout_marginRight="5px"
+                    android:layout_weight="50"
+                    android:orientation="vertical" >
+
+                    <org.cryptocator.ImagePressButton
+                        android:id="@+id/smileybutton"
+                        android:layout_width="70px"
+                        android:layout_height="43px"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginBottom="4px"
+                        android:layout_marginTop="0px"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:minWidth="100px"
+                        android:src="@drawable/smileybtn"
+                        android:text="" >
+                    </org.cryptocator.ImagePressButton>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/attachmentbuttonparent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="2px"
+                    android:layout_marginRight="5px"
+                    android:layout_weight="50"
+                    android:orientation="vertical" >
+
+                    <org.cryptocator.ImagePressButton
+                        android:id="@+id/attachmentbutton"
+                        android:layout_width="70px"
+                        android:layout_height="43px"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginBottom="4px"
+                        android:layout_marginTop="0px"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:minWidth="100px"
+                        android:src="@drawable/attachmentbtn"
+                        android:text="" >
+                    </org.cryptocator.ImagePressButton>
+                </LinearLayout>
             </LinearLayout>
-            
-            
+
             <EditText
                 android:id="@+id/messageText"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5px"
-                android:layout_marginTop="5px"
+                android:layout_marginBottom="20px"
+                android:layout_marginTop="20px"
                 android:layout_weight="2"
                 android:text="" >
 
@@ -187,14 +225,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="fill_parent"
                 android:layout_gravity="bottom"
-                android:layout_marginLeft="10px"
+                android:layout_marginLeft="5px"
                 android:orientation="vertical" >
 
                 <org.cryptocator.ImagePressButton
                     android:id="@+id/sendbutton"
-                    android:layout_width="100px"
+                    android:layout_width="90px"
                     android:layout_height="70px"
-                    android:layout_marginTop="5px"
+                    android:layout_marginTop="7px"
+	                android:layout_marginBottom="7px"
                     android:layout_weight="1"
                     android:background="@android:color/transparent"
                     android:minWidth="100px"
