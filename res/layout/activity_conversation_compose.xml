@@ -118,6 +118,52 @@
             android:layout_weight="1"
             android:orientation="horizontal" >
 
+                        <LinearLayout
+                android:id="@+id/additionbuttonparent"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_gravity="bottom"
+                android:orientation="vertical" >
+
+                <org.cryptocator.ImagePressButton
+                    android:id="@+id/additionbutton"
+                    android:layout_width="20px"
+                    android:layout_height="70px"
+                    android:layout_gravity="bottom"
+                    android:layout_marginBottom="0px"
+                    android:layout_marginTop="0px"
+                    android:layout_weight="1"
+                    android:minWidth="20px"
+                    android:background="@drawable/additionbtn"
+                    android:text="" >
+                </org.cryptocator.ImagePressButton>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/smiliebuttonparent"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_gravity="bottom"
+                android:layout_marginLeft="2px"
+                android:layout_marginRight="5px"
+                android:orientation="vertical" >
+
+                <org.cryptocator.ImagePressButton
+                    android:id="@+id/smiliebutton"
+                    android:layout_width="70px"
+                    android:layout_height="70px"
+                    android:layout_gravity="bottom"
+                    android:layout_marginBottom="7px"
+                    android:layout_marginTop="3px"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:minWidth="100px"
+                    android:src="@drawable/smiliebtn"
+                    android:text="" >
+                </org.cryptocator.ImagePressButton>
+            </LinearLayout>
+            
+            
             <EditText
                 android:id="@+id/messageText"
                 android:layout_width="fill_parent"
