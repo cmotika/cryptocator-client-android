@@ -264,7 +264,7 @@ public class Setup extends Activity {
 	 * activity) in this time but scroll if the user holds on for at least 1
 	 * seconds.
 	 */
-	public static final int TYPING_TIMEOUT_BEFORE_UI_ACTIVITY = 1000;
+	public static final int TYPING_TIMEOUT_BEFORE_UI_ACTIVITY = 2000;
 
 	/** After a connection error first try again after 10 sec. */
 	public static final int ERROR_UPDATE_INTERVAL = 10; // 10 seconds
@@ -390,7 +390,7 @@ public class Setup extends Activity {
 	public static final String OPTION_SMILEYS = "Graphical Smileys";
 
 	/** The Constant DEFAULT_QUICKTYPE. */
-	public static final boolean DEFAULT_SMILEYS = false;
+	public static final boolean DEFAULT_SMILEYS = true;
 
 	/** The Constant HELP_QUICKTYPE. */
 	public static final String HELP_SMILEY = "If you enable this option then textual smileys are shown as graphical ones.";
@@ -3618,49 +3618,49 @@ public class Setup extends Activity {
 		phone = phone.replace("+49", "");
 		phone = phone.replace("+1", "");
 		phone = phone.replace("+", "");
-		phone = phone.replaceAll("[^0-9]", "");
-		// Log.d("communicator", "XXX FAKEUID normalized phone=" + phone);
-		int parts = phone.length() / FAKEUIDLEN;
-		if (phone.length() % FAKEUIDLEN != 0) {
-			parts++;
-		}
-		int returnUID = 0;
-		int phoneLen = phone.length();
-		for (int part = 0; part < parts; part++) {
-			int start = part * FAKEUIDLEN;
-			int end = start + FAKEUIDLEN;
-			if (end >= phoneLen) {
-				end = phoneLen - 1;
-			}
-			// Log.d("communicator", "XXX FAKEUID start=" + start + ", end=" +
-			// end);
-			String phonePart = phone.substring(start, end);
-			int phonePartInt = Utility.parseInt(phonePart, 0);
-			// Log.d("communicator", "XXX FAKEUID part[" + part + "] returnUID="
-			// + returnUID + " + phonePartInt=" + phonePartInt);
-			returnUID = returnUID + phonePartInt;
-		}
-		// Log.d("communicator", "XXX FAKEUID " + phone + " --> "
-		// + (-1 * returnUID));
+		// phone = phone.replaceAll("[^0-9]", "");
+		// // Log.d("communicator", "XXX FAKEUID normalized phone=" + phone);
+		// int parts = phone.length() / FAKEUIDLEN;
+		// if (phone.length() % FAKEUIDLEN != 0) {
+		// parts++;
+		// }
+		// int returnUID = 0;
+		// int phoneLen = phone.length();
+		// for (int part = 0; part < parts; part++) {
+		// int start = part * FAKEUIDLEN;
+		// int end = start + FAKEUIDLEN;
+		// if (end >= phoneLen) {
+		// end = phoneLen - 1;
+		// }
+		// // Log.d("communicator", "XXX FAKEUID start=" + start + ", end=" +
+		// // end);
+		// String phonePart = phone.substring(start, end);
+		// int phonePartInt = Utility.parseInt(phonePart, 0);
+		// // Log.d("communicator", "XXX FAKEUID part[" + part + "] returnUID="
+		// // + returnUID + " + phonePartInt=" + phonePartInt);
+		// returnUID = returnUID + phonePartInt;
+		// }
+		// // Log.d("communicator", "XXX FAKEUID " + phone + " --> "
+		// // + (-1 * returnUID));
+		// if (returnUID == 0) {
 
-		if (returnUID == 0) {
-			int i = 0;
-			boolean toggle = false;
-			String tmp = Utility.md5(phone);
-			for (byte c : tmp.getBytes()) {
-				if (toggle) {
-					i += c;
-				} else {
-					i += 10 * c;
-				}
-				toggle = !toggle;
+		int i = 0;
+		boolean toggle = false;
+		String tmp = Utility.md5(phone);
+		for (byte c : tmp.getBytes()) {
+			if (toggle) {
+				i += c;
+			} else {
+				i += 10 * c;
 			}
-			String tmp2 = i + "";
-			if (tmp2.length() > FAKEUIDLEN) {
-				tmp2 = tmp2.substring(0, FAKEUIDLEN);
-			}
-			returnUID = Utility.parseInt(tmp2, 0);
+			toggle = !toggle;
 		}
+		String tmp2 = i + "";
+		if (tmp2.length() > FAKEUIDLEN) {
+			tmp2 = tmp2.substring(0, FAKEUIDLEN);
+		}
+		int returnUID = Utility.parseInt(tmp2, 0);
+		// }
 		// Log.d("communicator", "XXX FAKEUID RETURNED " + phone + " --> "
 		// + (-1 * returnUID));
 		return (-1 * returnUID);
