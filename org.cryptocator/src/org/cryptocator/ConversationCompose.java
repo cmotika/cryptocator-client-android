@@ -46,6 +46,7 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -89,6 +90,12 @@ public class ConversationCompose extends Activity {
 	/** The sendbutton. */
 	private ImagePressButton sendbutton;
 
+	/** The smiley button. */
+	private ImagePressButton smileybutton;
+
+	/** The addition button. */
+	private ImagePressButton additionbutton;
+
 	/** The phonebutton. */
 	private ImagePressButton phonebutton;
 
@@ -100,6 +107,15 @@ public class ConversationCompose extends Activity {
 
 	/** The list of recipients. */
 	FastScrollView toList = null;
+
+	/** The additions visible flag tells if, e.g., smilie button is visible. */
+	private static boolean additionsVisible = false;
+
+	/** The last orientation landscape. */
+	private boolean lastOrientationLandscape = false;
+
+	/** The flat telling that the user has already changed the orientation. */
+	private boolean orientationChanged = false;
 
 	// ------------------------------------------------------------------------
 
@@ -177,14 +193,44 @@ public class ConversationCompose extends Activity {
 		};
 		messageText.addTextChangedListener(textWatcher);
 
-		// ActionBar actionBar = getActionBar();
-		// actionBar.setDisplayHomeAsUpEnabled(true);
-
 		// Send Button
-
 		sendbutton = ((ImagePressButton) findViewById(R.id.sendbutton));
 		LinearLayout sendbuttonparent = (LinearLayout) findViewById(R.id.sendbuttonparent);
 		sendbutton.setAdditionalPressWhiteView(sendbuttonparent);
+
+		smileybutton = ((ImagePressButton) findViewById(R.id.smiliebutton));
+		LinearLayout smiliebuttonparent = (LinearLayout) findViewById(R.id.smiliebuttonparent);
+		smileybutton.setAdditionalPressWhiteView(smiliebuttonparent);
+		smileybutton.initializePressImageResource(R.drawable.smiliebtn, false);
+		smileybutton.setVisibility(View.GONE);
+
+		additionbutton = ((ImagePressButton) findViewById(R.id.additionbutton));
+		LinearLayout additionbuttonparent = (LinearLayout) findViewById(R.id.additionbuttonparent);
+		additionbutton.setAdditionalPressWhiteView(additionbuttonparent);
+		additionbutton.initializePressImageResource(R.drawable.additionbtn, 0,
+				300, true);
+		additionbutton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				// toggle
+				additionsVisible = !additionsVisible;
+				if (additionsVisible) {
+					smileybutton.setVisibility(View.VISIBLE);
+				} else {
+					smileybutton.setVisibility(View.GONE);
+				}
+			}
+		});
+		if (additionsVisible) {
+			smileybutton.setVisibility(View.VISIBLE);
+		} else {
+			smileybutton.setVisibility(View.GONE);
+		}
+		// If smileys are turned of then do not display the additions button
+		if (!(Utility.loadBooleanSetting(context, Setup.OPTION_SMILEYS,
+				Setup.DEFAULT_SMILEYS))) {
+			additionbutton.setVisibility(View.GONE);
+			smileybutton.setVisibility(View.GONE);
+		}
 
 		sendbutton.setLongClickable(true);
 		sendbutton.setOnLongClickListener(new OnLongClickListener() {
@@ -283,26 +329,42 @@ public class ConversationCompose extends Activity {
 		conversationRootView.getViewTreeObserver().addOnGlobalLayoutListener(
 				new ViewTreeObserver.OnGlobalLayoutListener() {
 					public void onGlobalLayout() {
+						// fake a keyboard entry for convenience
+						Conversation.lastKeyStroke = DB.getTimestamp();
+
+						boolean nowLandscape = Utility
+								.isOrientationLandscape(context);
+						boolean nowOrientationChanged = (lastOrientationLandscape != nowLandscape);
+						lastOrientationLandscape = nowLandscape;
+						if (nowOrientationChanged) {
+							orientationChanged = true;
+						}
+						
+						Log.d("communicator", "SMILEY: nowLandscape=" + nowLandscape + ", lastOrientationLandscape="+lastOrientationLandscape+", nowChanged=" + nowOrientationChanged + ", orientationChanged=" + orientationChanged);
 
 						if (Utility
 								.loadBooleanSetting(context,
 										Setup.OPTION_QUICKTYPE,
 										Setup.DEFAULT_QUICKTYPE)
-								&& Utility.isOrientationLandscape(context)) {
-							// if keyboard is visible, then set cursor to text
-							// field!
-							// fake a keyboard entry for convenience
-							Conversation.lastKeyStroke = DB.getTimestamp();
-							messageText.postDelayed(new Runnable() {
-								public void run() {
-									// fake a keyboard entry for convenience
-									Conversation.lastKeyStroke = DB
-											.getTimestamp();
-									messageText.requestFocus();
-									Utility.showKeyboardExplicit(messageText);
-									messageText.requestFocus();
-								}
-							}, 200);
+								&& nowLandscape) {
+
+							// if we NEVER changed before (=start in landscape)
+							// or if we have just changed the orientation
+							if (!orientationChanged || nowOrientationChanged) {
+								// if keyboard is visible, then set cursor to
+								// text
+								// field!
+								messageText.postDelayed(new Runnable() {
+									public void run() {
+										// fake a keyboard entry for convenience
+										Conversation.lastKeyStroke = DB
+												.getTimestamp();
+										messageText.requestFocus();
+										Utility.showKeyboardExplicit(messageText);
+										messageText.requestFocus();
+									}
+								}, 200);
+							}
 						}
 					}
 				});

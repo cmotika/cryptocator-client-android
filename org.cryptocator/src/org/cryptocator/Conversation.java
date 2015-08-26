@@ -135,11 +135,20 @@ public class Conversation extends Activity {
 	/** The central send button. */
 	private ImagePressButton sendbutton;
 
+	/** The smiley button. */
+	private ImagePressButton smileybutton;
+
+	/** The addition button. */
+	private ImagePressButton additionbutton;
+
 	/** The message text. */
 	public EditText messageText;
 
 	/** The inflater. */
 	private LayoutInflater inflater;
+
+	/** The additions visible flag tells if, e.g., smilie button is visible. */
+	private static boolean additionsVisible = false;
 
 	/**
 	 * The last height is necessary to detect if the height changes. If it NOT
@@ -277,6 +286,54 @@ public class Conversation extends Activity {
 		LinearLayout sendbuttonparent = (LinearLayout) findViewById(R.id.sendbuttonparent);
 		sendbutton.setAdditionalPressWhiteView(sendbuttonparent);
 
+		smileybutton = ((ImagePressButton) findViewById(R.id.smiliebutton));
+		LinearLayout smiliebuttonparent = (LinearLayout) findViewById(R.id.smiliebuttonparent);
+		smileybutton.setAdditionalPressWhiteView(smiliebuttonparent);
+		smileybutton.initializePressImageResource(R.drawable.smiliebtn, false);
+		smileybutton.setVisibility(View.GONE);
+
+		additionbutton = ((ImagePressButton) findViewById(R.id.additionbutton));
+		LinearLayout additionbuttonparent = (LinearLayout) findViewById(R.id.additionbuttonparent);
+		additionbutton.setAdditionalPressWhiteView(additionbuttonparent);
+		additionbutton.initializePressImageResource(R.drawable.additionbtn, 0,
+				300, true);
+		additionbutton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				// toggle
+				additionsVisible = !additionsVisible;
+				if (additionsVisible) {
+					smileybutton.setVisibility(View.VISIBLE);
+				} else {
+					smileybutton.setVisibility(View.GONE);
+				}
+			}
+		});
+		if (additionsVisible) {
+			smileybutton.setVisibility(View.VISIBLE);
+		} else {
+			smileybutton.setVisibility(View.GONE);
+		}
+		// If smileys are turned of then do not display the additions button
+		if (!(Utility.loadBooleanSetting(context, Setup.OPTION_SMILEYS,
+				Setup.DEFAULT_SMILEYS))) {
+			additionbutton.setVisibility(View.GONE);
+			smileybutton.setVisibility(View.GONE);
+		}
+		smileybutton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				SmileyPrompt smileyPrompt = new SmileyPrompt();
+				smileyPrompt.setOnSmileySelectedListener(new SmileyPrompt.OnSmileySelectedListener() {
+					public void onSelect(String textualSmiley) {
+						if (textualSmiley != null) {
+							messageText.getText().append(textualSmiley);
+						}
+					}
+				});
+				smileyPrompt.promptSmileys(context);
+			}
+		});
+		
+		
 		if (hostUid == 0) {
 			// system, disable
 			sendbutton.setEnabled(false);

@@ -2270,8 +2270,6 @@ public class Communicator {
 	 */
 	public static void sendSystemMessageWidthdraw(final Context context,
 			final int uid, final int mid) {
-		sendSystemMessageWidthdraw(context, uid, mid);
-
 		Utility.showToastAsync(context, "Withdraw request for message " + mid
 				+ "...");
 

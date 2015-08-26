@@ -1008,6 +1008,30 @@
                             android:src="@drawable/help" />
                     </LinearLayout>
 
+                                        <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" >
+
+                        <CheckBox
+                            android:id="@+id/smileys"
+                            android:layout_width="wrap_content"
+                            android:layout_height="-14px"
+                            android:layout_marginLeft="20px"
+                            android:text="  Graphical Smileys" >
+                        </CheckBox>
+
+                        <ImageView
+                            android:id="@+id/helpsmileys"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="10px"
+                            android:clickable="true"
+                            android:src="@drawable/help" />
+                    </LinearLayout>
+                    
                     <View
                         android:layout_width="fill_parent"
                         android:layout_height="1dp"

@@ -386,6 +386,15 @@ public class Setup extends Activity {
 	/** The Constant HELP_QUICKTYPE. */
 	public static final String HELP_QUICKTYPE = "If you switch your phone orientation to landscape in order to type, the keyboard is shown automatically and you can just start typing without extra clicking into the message input text field.";
 
+	/** The Constant OPTION_QUICKTYPE. */
+	public static final String OPTION_SMILEYS = "Graphical Smileys";
+
+	/** The Constant DEFAULT_QUICKTYPE. */
+	public static final boolean DEFAULT_SMILEYS = false;
+
+	/** The Constant HELP_QUICKTYPE. */
+	public static final String HELP_SMILEY = "If you enable this option then textual smileys are shown as graphical ones.";
+
 	/** The Constant OPTION_RECEIVEALLSMS. */
 	public static final String OPTION_RECEIVEALLSMS = "receiveallsms";
 
@@ -565,6 +574,9 @@ public class Setup extends Activity {
 	/** The quicktype. */
 	private CheckBox quicktype;
 
+	/** The smileys. */
+	private CheckBox smileys;
+
 	/** The noscreenshots. */
 	private CheckBox noscreenshots;
 
@@ -597,6 +609,9 @@ public class Setup extends Activity {
 
 	/** The helpquicktype. */
 	private ImageView helpquicktype;
+
+	/** The helpsmileys. */
+	private ImageView helpsmileys;
 
 	/** The helpchatmode. */
 	private ImageView helpchatmode;
@@ -909,6 +924,7 @@ public class Setup extends Activity {
 		noread = (CheckBox) findViewById(R.id.noread);
 		chatmode = (CheckBox) findViewById(R.id.chatmode);
 		quicktype = (CheckBox) findViewById(R.id.quicktype);
+		smileys = (CheckBox) findViewById(R.id.smileys);
 		receiveallsms = (CheckBox) findViewById(R.id.receiveallsms);
 		noscreenshots = (CheckBox) findViewById(R.id.noscreenshots);
 		powersave = (CheckBox) findViewById(R.id.powersave);
@@ -1038,6 +1054,14 @@ public class Setup extends Activity {
 							quicktype.isChecked());
 				}
 			});
+			smileys.setChecked(Utility.loadBooleanSetting(context,
+					Setup.OPTION_SMILEYS, Setup.DEFAULT_SMILEYS));
+			smileys.setOnClickListener(new OnClickListener() {
+				public void onClick(View arg0) {
+					Utility.saveBooleanSetting(context, Setup.OPTION_SMILEYS,
+							smileys.isChecked());
+				}
+			});
 			noscreenshots.setChecked(Utility.loadBooleanSetting(context,
 					Setup.OPTION_NOSCREENSHOTS, Setup.DEFAULT_NOSCREENSHOTS));
 			noscreenshots.setOnClickListener(new OnClickListener() {
@@ -1101,6 +1125,7 @@ public class Setup extends Activity {
 			helpnoread = (ImageView) findViewById(R.id.helpnoread);
 			helpchatmode = (ImageView) findViewById(R.id.helpchatmode);
 			helpquicktype = (ImageView) findViewById(R.id.helpquicktype);
+			helpsmileys = (ImageView) findViewById(R.id.helpsmileys);
 			helpnoscreenshots = (ImageView) findViewById(R.id.helpnoscreenshots);
 			helppowersave = (ImageView) findViewById(R.id.helppowersave);
 			helpreceiveallsms = (ImageView) findViewById(R.id.helpreceiveallsms);
@@ -1147,6 +1172,11 @@ public class Setup extends Activity {
 			helpquicktype.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					setErrorInfo(HELP_QUICKTYPE, false);
+				}
+			});
+			helpsmileys.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					setErrorInfo(HELP_SMILEY, false);
 				}
 			});
 			helpnoscreenshots.setOnClickListener(new OnClickListener() {
