@@ -38,17 +38,28 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+/**
+ * The UserPresentReceiver is responsible for canceling notifications but ONLY
+ * if the screen is UNLOCKED.
+ * 
+ * @author Christian Motika
+ * @since 1.2
+ * @date 08/23/2015
+ */
 public class UserPresentReceiver extends BroadcastReceiver {
+
+	// ------------------------------------------------------------------------
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		String action = intent.getAction();
 
-		Log.d("communicator", "@@@@ UserPresentReceiver.onReceive() USER_PRESENT #0"
-				+ action);
+		Log.d("communicator",
+				"@@@@ UserPresentReceiver.onReceive() USER_PRESENT #0" + action);
 
 		if (action != null && action.endsWith("USER_PRESENT")) {
-			Log.d("communicator", "@@@@ UserPresentReceiver.onReceive() USER_PRESENT #1");
+			Log.d("communicator",
+					"@@@@ UserPresentReceiver.onReceive() USER_PRESENT #1");
 
 			// onResume of the activity will be called when ACTION_SCREEN_ON
 			// is fired. Create a handler and wait for ACTION_USER_PRESENT.
@@ -56,8 +67,6 @@ public class UserPresentReceiver extends BroadcastReceiver {
 			//
 			// WE NEED TO WAIT UNTIL THE SCREEN IS UNLOCKED BEFORE WE
 			// CANCEL THE NOTIFICATION
-			// =>>> The Scheduler already listens to USER_PRESENT, it will
-			// clear the notification in this case!
 			if (Utility.loadBooleanSetting(context, Setup.OPTION_NOTIFICATION,
 					Setup.DEFAULT_NOTIFICATION)
 					&& !Utility.isScreenLocked(context)) {
@@ -71,7 +80,8 @@ public class UserPresentReceiver extends BroadcastReceiver {
 				}
 			}
 		}
-
 	}
+
+	// ------------------------------------------------------------------------
 
 }
