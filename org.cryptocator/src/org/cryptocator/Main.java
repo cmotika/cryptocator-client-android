@@ -352,7 +352,7 @@ public class Main extends Activity {
 	 *            the context
 	 */
 	public static void startAccount(Context context) {
-		Intent dialogIntent = new Intent(context, SetupAccount.class);
+		Intent dialogIntent = new Intent(context, Setup.class);
 		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		dialogIntent.putExtra("account", "account");
 		context.startActivity(dialogIntent);
