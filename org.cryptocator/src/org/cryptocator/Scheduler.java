@@ -36,7 +36,6 @@ package org.cryptocator;
 import java.util.Date;
 
 import android.app.AlarmManager;
-import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -44,71 +43,77 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-/*
+/**
+ * The Scheduler is a central part in processing messages and triggering polling
+ * or sending of messages.
  * 
- <action android:name="android.intent.action.PROVIDER_CHANGED" />
- <action android:name="android.intent.action.BOOT_COMPLETED" />
- <action android:name="android.intent.action.USER_PRESENT" />
- <action android:name="android.intent.action.ANY_DATA_STATE" />
- <action android:name="android.intent.action.DATE_CHANGED" />
- <!-- <action android:name="android.intent.action.TIME_TICK" /> -->
- <action android:name="android.intent.action.USER_PRESENT" />
- <action android:name="android.intent.action.SERVICE_STATE" />
- <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
- <action android:name="com.google.gservices.intent.action.GSERVICES_CHANGED" />
- <action android:name="android.accounts.LOGIN_ACCOUNTS_CHANGED" />
- <action android:name="android.intent.action.SIM_STATE_CHANGED" />
- <action android:name="android.intent.action.SCREEN_ON" />
- <action android:name="android.intent.action.SCREEN_OFF" />
- <action android:name="android.intent.action.CLOSE_SYSTEM_DIALOGS" />
- <action android:name="com.google.gservices.intent.action.GSERVICES_OVERRIDE" />
- <action android:name="android.intent.action.NOTIFICATION_UPDATE" />
- <action android:name="android.intent.action.NOTIFICATION_ADD" />
- <action android:name="android.intent.action.UMS_DISCONNECTED" />
- <action android:name="android.intent.action.PHONE_STATE" />
- <action android:name="android.intent.action.UID_REMOVED" />
- <action android:name="android.intent.action.UMS_CONNECTED" />
- <action android:name="android.net.conn.BACKGROUND_DATA_SETTING_CHANGED" />
- <action android:name="android.intent.action.NOTIFICATION_ADD" />
- <action android:name="android.net.conn.BACKGROUND_DATA_SETTING_CHANGED" />
- <action android:name="android.intent.action.CONFIGURATION_CHANGED" />
- <action android:name="android.intent.action.LOCALE_CHANGED" />
-
- if event is ongoing() ---> put it in ongoingEventList
-
- * 
+ * @author Christian Motika
+ * @since 1.2
+ * @date 08/23/2015
  * 
  */
-
 public class Scheduler extends BroadcastReceiver {
 
-	interface OnUpdateListener {
-		public void update();
-	}
-
+	/** The pending intent. */
 	public static PendingIntent pendingIntent = null;
+
+	/** A listener triggered when the Scheduler decides to update. */
 	private static OnUpdateListener listener = null;
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * The listener interface for receiving onUpdate events. The class that is
+	 * interested in processing a onUpdate event implements this interface, and
+	 * the object created with that class is registered with a component using
+	 * the component's <code>addOnUpdateListener<code> method. When
+	 * the onUpdate event occurs, that object's appropriate
+	 * method is invoked.
+	 * 
+	 * @see OnUpdateEvent
+	 */
+	interface OnUpdateListener {
+
+		/**
+		 * Update.
+		 */
+		public void update();
+	}
+
+	// -------------------------------------------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.content.BroadcastReceiver#onReceive(android.content.Context,
+	 * android.content.Intent)
+	 */
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		String action = intent.getAction();
 
-		// Do the rescheduling silently!
-		// Log.d("communicator",
-		// "#### SCHEDULE INTENT ON CalendarAlarmScheduler, action = "
-		// + action);
-
 		if (action != null && action.endsWith("USER_PRESENT")) {
 			// IF THE SCREEN TURNS ON AND WE ARE STILL IN CONVERSATION ... THEN
 			// UPDATE THESE IMMEDIATELY
-			update(context);
+
+			// We do not want sending messages here to prevent any
+			// double-sending
+			update(context, true);
 		}
 
+		// The scheduler must be called again at a later time
+		// also the update is triggered here
 		Scheduler.reschedule(context, false, true, false);
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update pending intent.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	// Retrieve the pendingIntent of the Scheduler
 	public static void updatePendingIntent(Context context) {
 		if (pendingIntent == null) {
@@ -119,19 +124,40 @@ public class Scheduler extends BroadcastReceiver {
 	}
 
 	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
 
+	/**
+	 * Sets the update listener.
+	 * 
+	 * @param onUpdateListener
+	 *            the new update listener
+	 */
 	public static void setUpdateListener(OnUpdateListener onUpdateListener) {
 		listener = onUpdateListener;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Clear update listener.
+	 */
 	public static void clearUpdateListener() {
 		listener = null;
 	}
 
 	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
 
+	/**
+	 * Reschedule and trigger update.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param error
+	 *            the error
+	 * @param alsoUpdate
+	 *            the also update
+	 * @param fast
+	 *            the fast
+	 */
 	// Reschedule the next alarm (that has not been discarded yet)
 	public static void reschedule(Context context, boolean error,
 			boolean alsoUpdate, boolean fast) {
@@ -208,13 +234,13 @@ public class Scheduler extends BroadcastReceiver {
 			alarmManager.set(AlarmManager.RTC_WAKEUP, alarmUtcTime,
 					Scheduler.pendingIntent);
 
-			// if everythin goes right then update possibly
+			// if everything goes right then update possibly
 			if (alsoUpdate) {
 				if (Conversation.isVisible() && Conversation.isTyping()) {
 					Log.d("communicator", "#### UPDATE SKIPPED - TYPING");
 				} else {
 					Log.d("communicator", "#### UPDATE - NOT TYPING");
-					update(context);
+					update(context, false);
 					if (listener != null) {
 						listener.update();
 					} else {
@@ -254,8 +280,14 @@ public class Scheduler extends BroadcastReceiver {
 
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Update.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	// UPDATE
-	private static void update(final Context context) {
+	private static void update(final Context context, final boolean onlyReceive) {
 		// If a message previously sent, try to send the next message with
 		// priority
 		// only if no message is to send, try to receive a message,
@@ -302,18 +334,24 @@ public class Scheduler extends BroadcastReceiver {
 							+ Communicator.messagesToSend);
 
 					if (Communicator.messageSent || Communicator.messagesToSend) {
-						Communicator.sendNextMessage(context);
+						if (!onlyReceive) {
+							Communicator.sendNextMessage(context);
+						}
 						Communicator.haveNewMessagesAndReceive(context);
 					} else if (Communicator.messageReceived) {
 						Communicator.haveNewMessagesAndReceive(context);
 					} else if (Main.isVisible() || Conversation.isVisible()) {
 						// Only update receive info & read info if in
 						// conversation!
-						Communicator.sendNextMessage(context);
+						if (!onlyReceive) {
+							Communicator.sendNextMessage(context);
+						}
 						Communicator.haveNewMessagesAndReceive(context);
 					} else {
 						// Background service only send & receive messages
-						Communicator.sendNextMessage(context);
+						if (!onlyReceive) {
+							Communicator.sendNextMessage(context);
+						}
 						Communicator.haveNewMessagesAndReceive(context);
 					}
 				} catch (Exception e) {
@@ -323,68 +361,6 @@ public class Scheduler extends BroadcastReceiver {
 		}).start();
 	}
 
-	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
-
-	// public static WatchDogThread watchDogThread = null;
-	//
-	// public static void startWatchDogThread(Context context, int seconds) {
-	// if (watchDogThread == null) {
-	// watchDogThread = new WatchDogThread(context, seconds);
-	// watchDogThread.start();
-	// } else {
-	// watchDogThread.cancel();
-	// }
-	// }
-	//
-	// public static void stopWatchDogThread() {
-	// if (watchDogThread != null) {
-	// watchDogThread.cancel();
-	// }
-	// }
-	//
-	// static class WatchDogThread extends Thread {
-	// Context context;
-	// boolean cancel = false;
-	// int seconds = 0;
-	//
-	// public WatchDogThread(Context context,
-	// int seconds) {
-	// super();
-	// this.context = context;
-	// this.seconds = seconds;
-	// }
-	//
-	// public void cancel() {
-	// cancel = true;
-	// }
-	//
-	// public void run() {
-	// Setup.debugLog(context, "Scheduler.WatchDog #1");
-	// while (!cancel) {
-	// seconds--;
-	// Log.d("Notdienst", "XXX WatchDog " + seconds);
-	// if (seconds < 0) {
-	// break;
-	// }
-	// try {
-	// Thread.sleep(1000);
-	// } catch (InterruptedException e) {
-	// e.printStackTrace();
-	// }
-	// }
-	// Setup.debugLog(context, "Scheduler.WatchDog #2 cancel="+cancel);
-	// if (!cancel) {
-	// Setup.debugLog(context, "Scheduler.WatchDog #3 ERROR - RESCHEDULE");
-	// // FAST RESCHEDULE ON ERROR AFTER SOME (ERROR INTERVAL) TIME
-	// Scheduler.reschedule(context, true, false, true);
-	// }
-	// watchDogThread = null;
-	// }
-	//
-	// }
-
-	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
 }

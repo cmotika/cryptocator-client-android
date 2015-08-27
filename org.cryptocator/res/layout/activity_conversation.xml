@@ -26,8 +26,8 @@
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="5px"
-            android:layout_marginTop="5px"
+            android:layout_marginBottom="0px"
+            android:layout_marginTop="0px"
             android:minHeight="60dp"
             android:orientation="horizontal" >
 
@@ -113,17 +113,18 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <EditText
+            <org.cryptocator.ImageSmileyEditText
                 android:id="@+id/messageText"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5px"
-                android:layout_marginTop="5px"
+                android:layout_marginTop="22px"
+                android:layout_marginBottom="22px"
                 android:layout_weight="2"
                 android:text="" >
 
                 <requestFocus />
-            </EditText>
+            </org.cryptocator.ImageSmileyEditText>
 
             <Spinner
                 android:id="@+id/sendspinner"

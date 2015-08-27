@@ -33,40 +33,37 @@
  */
 package org.cryptocator;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
-import android.location.LocationManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.PowerManager;
-import android.os.Vibrator;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
-import android.widget.Toast;
 
+/**
+ * The ReceiveSMS class is responsible for handling incoming SMS.
+ * 
+ * @author Christian Motika
+ * @since 1.2
+ * @date 08/23/2015
+ * 
+ */
 public class ReceiveSMS extends BroadcastReceiver {
 
 	// Get the object of SmsManager
 	final SmsManager sms = SmsManager.getDefault();
 
-	public void onCreate(Context context) {
-	}
+	// ------------------------------------------------------------------------
 
+	/* (non-Javadoc)
+	 * @see android.content.BroadcastReceiver#onReceive(android.content.Context, android.content.Intent)
+	 */
+	@SuppressLint("UseSparseArrays")
 	public void onReceive(Context context, Intent intent) {
 
 		// Retrieves a map of extended data from the intent.
@@ -76,13 +73,13 @@ public class ReceiveSMS extends BroadcastReceiver {
 
 		if (Setup.isSMSDefaultApp(context, false)) {
 			if (intent.getAction().contains("SMS_DELIVER")) {
-				// IFF WE ARE THE DEFAULT APPLICATION FOR SMS, THEN IGNORE THE SMS_DELIVER BECAUSE WE
-				// ALREADY ALWAYS GET THE SMS_RECEIVED AND DO NOT WANT TO PROCESS AN SMS TWICE!
+				// IFF WE ARE THE DEFAULT APPLICATION FOR SMS, THEN IGNORE THE
+				// SMS_DELIVER BECAUSE WE
+				// ALREADY ALWAYS GET THE SMS_RECEIVED AND DO NOT WANT TO
+				// PROCESS AN SMS TWICE!
 				return;
 			}
 		}
-	    
-			
 
 		try {
 
@@ -102,15 +99,17 @@ public class ReceiveSMS extends BroadcastReceiver {
 					phones.add(phone);
 
 					int phoneHash = Setup.getFakeUIDFromPhone(phone);
-					Log.d("communicator", "SMS FAKE UID for :" + phone + " is " +  phoneHash);
+					Log.d("communicator", "SMS FAKE UID for :" + phone + " is "
+							+ phoneHash);
 					boolean secureSMS = message
 							.startsWith(SendSMS.SECURESMS_ID);
+					// abortBroadcast() only works for preKitkat Androids! See below.
 					if (secureSMS || receiveAllSMS
 							|| messages.containsKey(phone)
 							|| messages.containsKey(phoneHash)) {
-						// abort broadcast to other apps
-// FIXME: DISBALED JUST FOR DEBUGGING !! ENABLE IT !!!
-//						abortBroadcast();
+						// Abort broadcast to other apps
+						// FIXME: DISBALED JUST FOR DEBUGGING !! ENABLE IT !!!
+						// abortBroadcast();
 						abortBroadcast();
 					}
 
@@ -188,53 +187,69 @@ public class ReceiveSMS extends BroadcastReceiver {
 	}
 
 	// -------------------------------------------------------------------------
-	
-	public static int getUidByPhoneOrCreateUser(Context context, String phone, boolean createUserIfNotExists) {
+
+	/**
+	 * Gets the uid by phone or create a new user.
+	 *
+	 * @param context the context
+	 * @param phone the phone
+	 * @param createUserIfNotExists the create user if not exists
+	 * @return the uid by phone or create user
+	 */
+	public static int getUidByPhoneOrCreateUser(Context context, String phone,
+			boolean createUserIfNotExists) {
 		int uid = Setup.getUIDByPhone(context, phone, false);
 
 		if (uid == -1 && createUserIfNotExists) {
-			// new user
+			// New user
 			phone = Setup.normalizePhone(phone);
 			// Try to resolve the name from the phone book!
-			String name = Main.getNameFromAddressBook(context, phone); 
+			String name = Main.getNameFromAddressBook(context, phone);
 			if (name == null) {
-				// name not found, take telephone number as a default name for SMS users
+				// Name not found, take telephone number as a default name for
+				// SMS users
 				name = phone;
 			}
-			
-			// address book
+
+			// Address book
 			Main.addUser(context, phone, name, false);
 			uid = Setup.getUIDByPhone(context, phone, false);
-			Log.d("communicator", "SMS Receive from new user : " + uid + ", " + name);
+			Log.d("communicator", "SMS Receive from new user : " + uid + ", "
+					+ name);
 		}
 		return uid;
 	}
-	
+
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Handle SMS message.
+	 *
+	 * @param context the context
+	 * @param phone the phone
+	 * @param message the message
+	 * @return true, if successful
+	 */
 	private boolean handleMessage(Context context, String phone, String message) {
-		// test message
 		boolean receiveAllSMS = Setup.isSMSDefaultApp(context, false);
 
 		boolean secureSMS = message.startsWith(SendSMS.SECURESMS_ID);
 		if (secureSMS) {
 			message = message.substring(SendSMS.SECURESMS_ID.length());
-			// message = Utility.convertBASE64ToString(message);
 		}
 
 		if (secureSMS || receiveAllSMS) {
 
 			int uid = getUidByPhoneOrCreateUser(context, phone, receiveAllSMS);
-			
+
 			Log.d("communicator", "SMS Receive from " + phone
 					+ " internally UID=" + uid + " the following text: '"
 					+ message + "'");
 
-			
-			// this should be an ecnrypted sms, sent by delphino
+			// This should be an encrypted sms, sent by delphino
 			// cryptocator
 			if (uid != -1) {
-				// only allow sms messages from known users
+				// Only allow sms messages from known users
 				// HANDLE
 				final ConversationItem newItem = new ConversationItem();
 				newItem.mid = DB.SMS_MID; // this is an SMS, we will not
@@ -251,27 +266,21 @@ public class ReceiveSMS extends BroadcastReceiver {
 				}
 				newItem.text = message;
 				if (secureSMS) {
-//					 Log.d("communicator",
-//					 "SMS Encrypted Processing handleReceivedText : " + newItem.text);
 					newItem.text = Communicator.handleReceivedText(context,
 							message, newItem);
-//					 Log.d("communicator",
-//					 "SMS Decrypted Processed handleReceivedText : " + newItem.text);
 				} else {
-//					 Log.d("communicator",
-//					 "SMS Plaintext Processed handleReceivedText : " + newItem.text);
-					// this is a normal SMS, unenrcypted, just put it as is in the database
-					Main.updateLastMessage(context, newItem.from, newItem.text.trim(),
-							newItem.created);
+					// This is a normal SMS, unenrcypted, just put it as is in
+					// the database
+					Main.updateLastMessage(context, newItem.from,
+							newItem.text.trim(), newItem.created);
 				}
 
-				// Log.d("communicator", "SMS Received text : " + newItem.text);
 				boolean success2 = Communicator.updateUIForReceivedMessage(
 						context, newItem);
 
 				if (newItem.text.contains("[ invalid session key ]")
 						|| newItem.text.contains("[ decryption failed ]")) {
-					// we should try to update the public rsa key of this user
+					// We should try to update the public rsa key of this user
 					Communicator.updateKeysFromServer(context,
 							Main.loadUIDList(context), true, null);
 				}
@@ -279,14 +288,16 @@ public class ReceiveSMS extends BroadcastReceiver {
 				if (success2) {
 					Communicator.liveUpdateOrNotify(context, newItem);
 				}
-				// no further processing
+				// No further processing
 				return true;
 			}
 
 		}
-		// have not handled message, further processing
+		// Have not handled message, further processing
 		return false;
 	}
+
+	// ------------------------------------------------------------------------
 
 	/*
 	 * 
@@ -318,5 +329,7 @@ public class ReceiveSMS extends BroadcastReceiver {
 	 * http://android-developers.blogspot.in/2013/10/getting-your-sms-apps
 	 * -ready-for-kitkat.html
 	 */
+
+	// ------------------------------------------------------------------------
 
 }

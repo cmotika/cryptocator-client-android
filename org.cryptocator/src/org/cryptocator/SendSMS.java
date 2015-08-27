@@ -35,28 +35,31 @@ package org.cryptocator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
 
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Handler;
 import android.os.Looper;
-import android.telephony.CellInfo;
-import android.telephony.CellLocation;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
 import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
-import android.telephony.cdma.CdmaCellLocation;
-import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 
+/**
+ * The SendSMS class is responsible for dividing SMS into multiparts and sending
+ * them. It will internally keep the sent parts in a data structure until they
+ * are sent.
+ * 
+ * @author Christian Motika
+ * @since 1.2
+ * @date 08/23/2015
+ * 
+ */
+@SuppressLint("UseSparseArrays")
 public class SendSMS {
 
 	public static final int SMS_SENDING_TIMEOUT = 60 * 1000; // AFTER 60
@@ -71,20 +74,43 @@ public class SendSMS {
 	public static final String SECURESMSSENT = "SECURESMSSENT";
 	public static final String SECURESMSDELIVERED = "SECURESMSDELIVERED";
 
-	/** The currently sending sms. */
+	/** The currently sending sms for counting down sent SMS parts. */
 	private static HashMap<Integer, Integer> currentlySending = new HashMap<Integer, Integer>();
+
+	/** The currently sending timestamp for detecting timeouts. */
 	private static HashMap<Integer, Long> currentlySendingTimestamp = new HashMap<Integer, Long>();
+
+	/**
+	 * The currently sending threads for having a handle to the thread sending a
+	 * particular SMS.
+	 */
 	private static HashMap<Integer, SMSSendThread> currentlySendingThreads = new HashMap<Integer, SMSSendThread>();
 
+	/** The in service means we are registered to network. */
 	public static boolean inService = false;
+
+	/** The has signal as set by older devices. */
 	public static boolean hasSignal = false;
+
+	/** The has signal new as set by newer devices. */
 	public static boolean hasSignalNew = false;
+
+	/** The current signal. */
 	public static int signal = 0;
+
+	/** The phone state listener for updating hasSignal and inService flags. */
+	private static PhoneStateListener phoneStateListener = null;
 
 	// ------------------------------------------------------------------------
 
-	private static PhoneStateListener phoneStateListener = null;
-
+	/**
+	 * Ensure phone state listener is registered. This listener is responsible
+	 * for setting inService and hasSignal/hasSignalNew flags.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	@SuppressWarnings("deprecation")
 	private static void ensurePhoneStateListener(Context context) {
 		if (phoneStateListener == null) {
 			final Handler mUIHandler = new Handler(Looper.getMainLooper());
@@ -107,9 +133,9 @@ public class SendSMS {
 								hasSignal = false;
 							}
 						}
-						
-						
-						public void onSignalStrengthsChanged(SignalStrength signalStrength) {
+
+						public void onSignalStrengthsChanged(
+								SignalStrength signalStrength) {
 							int signal = signalStrength.getGsmSignalStrength();
 							if (signal > 0) {
 								SendSMS.signal = signal;
@@ -128,37 +154,37 @@ public class SendSMS {
 						public void onServiceStateChanged(
 								ServiceState serviceState) {
 							super.onServiceStateChanged(serviceState);
-							String phonestate;
+							//String phonestate;
 
 							switch (serviceState.getState()) {
 							case ServiceState.STATE_EMERGENCY_ONLY:
 								Log.d("communicator",
 										"#### phoneStateListener --- EMERGENCY ONLU ");
-								phonestate = "STATE_EMERGENCY_ONLY";
+								//phonestate = "STATE_EMERGENCY_ONLY";
 								inService = false;
 								break;
 							case ServiceState.STATE_IN_SERVICE:
 								Log.d("communicator",
 										"#### phoneStateListener --- IN SERVICE ");
-								phonestate = "STATE_IN_SERVICE";
+								//phonestate = "STATE_IN_SERVICE";
 								inService = true;
 								break;
 							case ServiceState.STATE_OUT_OF_SERVICE:
 								Log.d("communicator",
 										"#### phoneStateListener --- OUT OF SERVICE ");
-								phonestate = "STATE_OUT_OF_SERVICE";
+								//phonestate = "STATE_OUT_OF_SERVICE";
 								inService = false;
 								break;
 							case ServiceState.STATE_POWER_OFF:
 								Log.d("communicator",
 										"#### phoneStateListener --- POWER OFF ");
-								phonestate = "STATE_POWER_OFF";
+								//phonestate = "STATE_POWER_OFF";
 								inService = false;
 								break;
 							default:
 								Log.d("communicator",
 										"#### phoneStateListener --- UNKNOWN ");
-								phonestate = "Unknown";
+								//phonestate = "Unknown";
 								inService = false;
 								break;
 							}
@@ -172,13 +198,28 @@ public class SendSMS {
 				.getSystemService(Context.TELEPHONY_SERVICE);
 		telephonyManager.listen(phoneStateListener,
 				PhoneStateListener.LISTEN_SIGNAL_STRENGTH);
-		telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+		telephonyManager.listen(phoneStateListener,
+				PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
 		telephonyManager.listen(phoneStateListener,
 				PhoneStateListener.LISTEN_SERVICE_STATE);
 	}
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * When starting to send an SMS set the sending count down and update the
+	 * timestamp. The timestamp is necessary to detect a timeout if an SMS could
+	 * not be sent here in order to be able to try it again. Before the timeout
+	 * is reached any further tries to send this SMS will be rejected. After the
+	 * timeout retries are permitted.
+	 * 
+	 * @param localId
+	 *            the local id
+	 * @param numParts
+	 *            the num parts
+	 * @param sendingThread
+	 *            the sending thread
+	 */
 	public static synchronized void startSendingTimestamp(int localId,
 			int numParts, SMSSendThread sendingThread) {
 		currentlySending.put(localId, numParts);
@@ -187,10 +228,28 @@ public class SendSMS {
 
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Update sending timestamp if an SMS is sent.
+	 * 
+	 * @param localId
+	 *            the local id
+	 */
 	public static synchronized void updateSendingTimestamp(int localId) {
 		currentlySendingTimestamp.put(localId, DB.getTimestamp());
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Set an SMS part with the local id to be successfully sent. If all parts
+	 * have been sent (countDown == 0) then remove it from the status of
+	 * currently being in sending.
+	 * 
+	 * @param localId
+	 *            the local id
+	 */
 	public static synchronized void smsSent(int localId) {
 		if (currentlySending != null && localId != -1) {
 			if (currentlySending.containsKey(localId)) {
@@ -216,6 +275,16 @@ public class SendSMS {
 		}
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Tell if an SMS with the local id is still sending. Sending may take a
+	 * while for all parts to be sent.
+	 * 
+	 * @param localId
+	 *            the local id
+	 * @return true, if successful
+	 */
 	public static synchronized boolean smsSending(int localId) {
 		if (localId == -1) {
 			return false;
@@ -253,7 +322,8 @@ public class SendSMS {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Waits for a signal to send the sms.
+	 * Send an SMS if it is not still sending. If it is still sending and this
+	 * fails, we will automatically try again at a later point in time.
 	 * 
 	 * @param context
 	 *            the context
@@ -263,6 +333,12 @@ public class SendSMS {
 	 *            the text
 	 * @param localId
 	 *            the local id
+	 * @param hostUid
+	 *            the host uid
+	 * @param sendingId
+	 *            the sending id
+	 * @param encrypted
+	 *            the encrypted
 	 */
 	public static void sendSMS(final Context context, final String number,
 			final String text, final int localId, final int hostUid,
@@ -287,8 +363,27 @@ public class SendSMS {
 	}
 
 	// ------------------------------------------------------------------------
+
+	/**
+	 * Checks if we currently have a signal and are possibly able to send SMS.
+	 * This is when older devices set hasSignal or newer devices set
+	 * hasSignalNew and at the same time inService is set to true.
+	 * 
+	 * @return true, if successful
+	 */
+	private static boolean hasSignal() {
+		return (SendSMS.hasSignal || SendSMS.hasSignalNew) && SendSMS.inService;
+	}
+
+	// ------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
 
+	/**
+	 * The internal class SMSSendThread is able to send an SMS. If there is no
+	 * signal or we are not registered to a network then this thread waits until
+	 * it is possible to try sending. Then it sends parts if this SMS is too
+	 * long (which most encrypted SMS will be).
+	 */
 	static class SMSSendThread implements Runnable {
 
 		boolean cancel = false;
@@ -301,6 +396,8 @@ public class SendSMS {
 		String text;
 		boolean encrypted;
 
+		// --------------------------------------------------------------------
+
 		public SMSSendThread(Context context, String number, int localId,
 				int hostUid, int sendingId, String text, boolean encrypted) {
 			this.context = context;
@@ -312,11 +409,15 @@ public class SendSMS {
 			this.encrypted = encrypted;
 		}
 
+		// --------------------------------------------------------------------
+
 		public void cancel() {
 			Log.d("communicator", "#### sendSMSThread(" + this.hashCode()
 					+ ") CANCEL localid=" + localId);
 			cancel = true;
 		}
+
+		// --------------------------------------------------------------------
 
 		public void run() {
 			Log.d("communicator", "#### sendSMSThread(" + this.hashCode()
@@ -408,10 +509,10 @@ public class SendSMS {
 						try {
 							// Try to send (multipart) SMS
 							smsManager.sendMultipartTextMessage(number, null,
-								parts, sentIntents, deliveryIntents);
+									parts, sentIntents, deliveryIntents);
 						} catch (Exception ee) {
 							ee.printStackTrace();
-							
+
 							// INCREMENT FAIL COUNTER
 							if (DB.incrementFailed(context, localId, hostUid)) {
 								if (DB.removeSentMessage(context, sendingId)) {
@@ -420,18 +521,22 @@ public class SendSMS {
 											"SMS "
 													+ localId
 													+ " to "
-													+ Main.UID2Name(context, hostUid, false)
+													+ Main.UID2Name(context,
+															hostUid, false)
 													+ " failed to send after "
 													+ Setup.SMS_FAIL_CNT
 													+ " tries. (RESULT_ERROR_GENERIC_FAILURE)");
-									Conversation.setFailedAsync(context, localId);
+									Conversation.setFailedAsync(context,
+											localId);
 								}
 							}
-							Log.d("communicator", "#### SMS " + localId
-									+ " NOT SENT (RESULT_ERROR_GENERIC_FAILURE)");
+							Log.d("communicator",
+									"#### SMS "
+											+ localId
+											+ " NOT SENT (RESULT_ERROR_GENERIC_FAILURE)");
 							SendSMS.smsSent(localId);
 						}
-						
+
 						Log.d("communicator",
 								"sendSMSThread(" + this.hashCode()
 										+ ") SMS Send " + localId + " DONE");
@@ -460,92 +565,4 @@ public class SendSMS {
 	// ------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
 
-	private static boolean hasSignal() {
-
-		return (SendSMS.hasSignal || SendSMS.hasSignalNew) && SendSMS.inService;
-
-		// TelephonyManager telephonyManager = (TelephonyManager)
-		// context.getSystemService(Context.TELEPHONY_SERVICE);
-		// int state = telephonyManager.getSimState();
-		// Log.d("communicator", "#### hasSignal(state) : " + state);
-		// if (state == TelephonyManager.SIM_STATE_READY)
-
-		// ConnectivityManager cm = (ConnectivityManager)
-		// context.getSystemService(Context.CONNECTIVITY_SERVICE);
-		// if (cm != null) {
-		// cm.getNetworkInfo(ConnectivityManager.)
-		// }
-		//
-		// NetworkInfo info = ConnectivityManager.getNetworkInfo(context);
-		// NetworkInfo info = .getNetworkInfo(context);
-		//
-		// TelephonyManager telephonyManager = (TelephonyManager) context
-		// .getSystemService(Context.TELEPHONY_SERVICE);
-		// CellLocation location = telephonyManager.getCellLocation();
-
-		// boolean someSignal = false;
-
-		// List<CellInfo> infoList = telephonyManager.getAllCellInfo();
-		// if (infoList.size() > 0) {
-		// for (CellInfo info : infoList) {
-		// someSignal = someSignal || info.isRegistered();
-		// Log.d("communicator", "#### hasSignal(info) : " +
-		// info.isRegistered());
-		// }
-		// }
-
-		// if (location instanceof GsmCellLocation) {
-		// GsmCellLocation gsmCellLocation = (GsmCellLocation) location;
-		// someSignal = someSignal || (gsmCellLocation.getCid() > -1);
-		// Log.d("communicator", "#### hasSignal(GsmCellLocation) : " +
-		// someSignal);
-		// }
-		//
-		// if (location instanceof CdmaCellLocation) {
-		// CdmaCellLocation cdmaCellLocation = (CdmaCellLocation) location;
-		// someSignal = someSignal || (cdmaCellLocation.getBaseStationId() >
-		// -1);
-		// Log.d("communicator", "#### hasSignal(CdmaCellLocation) : " +
-		// someSignal);
-		// }
-		//
-		// Log.d("communicator", "#### hasSignal(?) : " +
-		// location.getClass().getName());
-		//
-		//
-		// // if something is wrong with signal detection, use randomly answer
-		// TRUE
-		// int upper = (int) (Math.random() * 10);
-		// if (upper > 8) {
-		// // fake hasSignal == true in 1 of 10 unsuccessful tries
-		// // return true;
-		// Log.d("communicator", "#### hasSignal() FAKE TRUE!");
-		// }
-
-		// return someSignal;
-
-	}
-	// ------------------------------------------------------------------------
-	// ------------------------------------------------------------------------
 }
-
-// // Check network connection
-// private static boolean isNetworkConnected(Context context) {
-// ConnectivityManager connectivityManager = (ConnectivityManager) context
-// .getSystemService(Context.CONNECTIVITY_SERVICE);
-// NetworkInfo activeNetworkInfo = connectivityManager
-// .getActiveNetworkInfo();
-// if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
-// return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-// }
-// return false;
-// }
-
-// // for example value of first element
-// CellInfo cellInfo = telephonyManager.getAllCellInfo().get(0);
-// return cellInfo.isRegistered();
-// CellInfoGsm cellinfogsm =
-// .getAllCellInfo().get(0);
-// CellSignalStrengthGsm cellSignalStrengthGsm =
-// cellinfogsm.getCellSignalStrength();
-// return (cellSignalStrengthGsm.getDbm() > 0);

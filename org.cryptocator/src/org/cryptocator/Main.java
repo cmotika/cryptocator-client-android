@@ -1169,7 +1169,7 @@ public class Main extends Activity {
 	 */
 	public void addUser(final Context context, final int uid) {
 
-		String session = Setup.getTmpLogin(context);
+		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
 			// Error resume is automatically done by getTmpLogin, not logged in
 			return;
@@ -1489,7 +1489,7 @@ public class Main extends Activity {
 					+ "";
 		}
 
-		String session = Setup.getTmpLogin(context);
+		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
 			// error resume is automatically done by getTmpLogin, not logged in
 			return;

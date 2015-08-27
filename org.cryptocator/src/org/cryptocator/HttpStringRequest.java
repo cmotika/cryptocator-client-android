@@ -41,19 +41,26 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 
 import android.content.Context;
+import android.util.Log;
 
 /**
- * The HttpStringRequest class is responsible for making HTTP GET request in
- * order to communicate with a HTTP server.
+ * The HttpStringRequest class is responsible for making HTTP GET and POST
+ * requests in order to communicate with a HTTP server.
  * 
  * @author Christian Motika
  * @since 1.2
@@ -103,7 +110,7 @@ public class HttpStringRequest {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Instantiates a new http string request.
+	 * Instantiates a new http get string request.
 	 * 
 	 * @param context
 	 *            the context
@@ -114,8 +121,30 @@ public class HttpStringRequest {
 	 */
 	public HttpStringRequest(Context context, String url,
 			OnResponseListener responseListener) {
+		Log.d("communicator", "GET REQUEST: url=" + url);
+
 		listener = responseListener;
-		(new UrlThread(context, url)).start();
+		(new UrlThread(context, url, false)).start();
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Instantiates a new http get or post string request.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param url
+	 *            the url
+	 * @param responseListener
+	 *            the response listener
+	 */
+	public HttpStringRequest(Context context, String url, boolean postRequest,
+			OnResponseListener responseListener) {
+		Log.d("communicator", "POST REQUEST: url=" + url);
+
+		listener = responseListener;
+		(new UrlThread(context, url, postRequest)).start();
 	}
 
 	// -------------------------------------------------------------------------
@@ -125,6 +154,9 @@ public class HttpStringRequest {
 	 * background thread asynchronously and NOT in the UI thread.
 	 */
 	class UrlThread extends Thread {
+
+		/** The post request. */
+		boolean postRequest = false;
 
 		/** The context. */
 		Context context;
@@ -142,10 +174,11 @@ public class HttpStringRequest {
 		 * @param url
 		 *            the url
 		 */
-		public UrlThread(Context context, String url) {
+		public UrlThread(Context context, String url, boolean postRequest) {
 			super();
 			this.context = context;
 			this.url = url;
+			this.postRequest = postRequest;
 		}
 
 		// ------------------------------------------------
@@ -158,7 +191,7 @@ public class HttpStringRequest {
 		public void run() {
 			String response;
 			try {
-				response = getData(context, url);
+				response = getData(context, url, postRequest);
 				listener.response(response);
 			} catch (ClientProtocolException e) {
 				e.printStackTrace();
@@ -185,19 +218,84 @@ public class HttpStringRequest {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	public static String getData(Context context, String url)
-			throws ClientProtocolException, IOException {
+	public static String getData(Context context, String url,
+			boolean postRequest) throws ClientProtocolException, IOException {
 		// Create a new HttpClient
 		HttpClient httpclient = new DefaultHttpClient();
-		HttpGet request = new HttpGet();
 		String returnValue = "";
-		try {
-			URI website = new URI(url);
-			request.setURI(website);
-			HttpResponse response = httpclient.execute(request);
-			returnValue = getContentAsString(response);
-		} catch (Exception e) {
-			e.printStackTrace();
+
+		if (!postRequest) {
+			HttpGet request = new HttpGet();
+			try {
+				URI website = new URI(url);
+				request.setURI(website);
+				HttpResponse response = httpclient.execute(request);
+				returnValue = getContentAsString(response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else {
+			String urlWithParams[] = url.split("\\?");
+			boolean hasUrl = (urlWithParams != null)
+					&& (urlWithParams.length > 0);
+			if (!hasUrl) {
+				return "";
+			}
+			String postUrl = urlWithParams[0];
+			boolean hasParams = urlWithParams.length > 1;
+
+			Log.d("communicator", "POST REQUEST: URL=" + postUrl);
+
+			HttpPost request = new HttpPost();
+			try {
+				URI website = new URI(postUrl);
+				request.setURI(website);
+
+				if (hasParams) {
+					String urlValues[] = urlWithParams[1].split("&");
+					int valuesCnt = urlValues.length;
+
+					Log.d("communicator", "POST REQUEST: valuesCnt="
+							+ valuesCnt);
+
+					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
+							valuesCnt);
+
+					for (int i = 0; i < valuesCnt; i++) {
+						String nameAndValue = urlValues[i];
+						if (nameAndValue.contains("=")) {
+							String[] values = nameAndValue.split("=");
+							String name = values[0];
+							String value = values[1];
+							Log.d("communicator", "POST REQUEST: PAIR[" + i
+									+ "] name=" + name + ", val=" + value);
+							nameValuePairs.add(new BasicNameValuePair(name,
+									value));
+						}
+					}
+
+					try {
+						HttpEntity entity = new UrlEncodedFormEntity(
+								nameValuePairs);
+						request.setEntity(entity);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+
+				HttpResponse response = httpclient.execute(request);
+				Log.d("communicator",
+						"POST RESPONSE: response=" + response.toString());
+
+				// returnValue = getContent(response);
+				returnValue = getContentAsString(response);
+
+				Log.d("communicator", "POST RESPONSE: returnValue="
+						+ returnValue);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 		return returnValue;

@@ -38,11 +38,26 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+/**
+ * The SendSMSDelivered class is responsible updating the message database and
+ * the UI if an SMS is received (delivered) by the recipient. It knows by the
+ * local id and the sending id which message to update.
+ * 
+ * @author Christian Motika
+ * @since 1.2
+ * @date 08/23/2015
+ * 
+ */
 public class SendSMSDelivered extends BroadcastReceiver {
 
-	public void onCreate(Context context) {
-	}
+	// ------------------------------------------------------------------------
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.content.BroadcastReceiver#onReceive(android.content.Context,
+	 * android.content.Intent)
+	 */
 	public void onReceive(Context context, Intent intent) {
 		int localId = -1;
 		int hostUid = -1;
@@ -62,17 +77,19 @@ public class SendSMSDelivered extends BroadcastReceiver {
 				if (itemToSend != null) {
 					itemToSend.received = DB.getTimestamp();
 					DB.updateMessage(context, itemToSend, hostUid);
-					// -1 * localId : convention so that mapping lookup will take localid into account because we will never have a mid
+					// -1 * localId : convention so that mapping lookup will
+					// take localid into account because we will never have a
+					// mid
 					// for an SMS message!
-					Communicator.updateSentReceivedReadAsync(context, -1 * itemToSend.localid,
-							itemToSend.to, false, true, false, false);
+					Communicator.updateSentReceivedReadAsync(context, -1
+							* itemToSend.localid, itemToSend.to, false, true,
+							false, false);
 				}
-				//Utility.showToastAsync(context, "SMS DELIVERED " + localId);
-			} 
+				// Utility.showToastAsync(context, "SMS DELIVERED " + localId);
+			}
 		}
 	}
 
-	//-------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
 
-	
 }

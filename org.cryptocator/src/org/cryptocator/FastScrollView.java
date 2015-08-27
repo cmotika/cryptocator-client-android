@@ -707,7 +707,12 @@ public class FastScrollView extends LinearLayout {
 		heights.clear();
 		heightsSum = 0;
 		for (View layout : childList) {
-			int h = layout.getMeasuredHeight();
+			int h = 0;
+			try {
+				h = layout.getMeasuredHeight();
+			} catch(Exception e){
+				e.printStackTrace();
+			}
 			heights.add(h);
 			heightsSum += h;
 		}

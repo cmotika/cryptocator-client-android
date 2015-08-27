@@ -132,7 +132,7 @@ public class Communicator {
 	 * message.
 	 */
 	public static String KEY_ERROR_SEPARATOR = "@@";
-	
+
 	public static String NEWLINEESCAPE = "@@@NEWLINE@@@";
 	public static String HASHESCAPE = "@@@HASH@@@";
 
@@ -380,7 +380,7 @@ public class Communicator {
 		// This should be the case for an empty database only!
 		final boolean discardMessageAndSaveLargestMid = (largestMid == -1);
 
-		String session = Setup.getTmpLogin(context);
+		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
 			// Error resume is automatically done by getTmpLogin, not logged in
 			return;
@@ -755,8 +755,7 @@ public class Communicator {
 			text = text.substring(1);
 			text = text.replace(NEWLINEESCAPE,
 					System.getProperty("line.separator"));
-			text = text.replace(HASHESCAPE,
-					"#");
+			text = text.replace(HASHESCAPE, "#");
 			Log.d("communicator", "QQQQQQ handleReceivedText #1  newItem.from="
 					+ newItem.from + ", newItem.created=" + newItem.created
 					+ ", text=" + text);
@@ -1347,14 +1346,15 @@ public class Communicator {
 			return;
 		}
 		url = Setup.getBaseURL(context) + "cmd=send&session=" + session
-				+ "&host=" + Utility.encode(encUid) + "&val="
-				+ Utility.encode(created + "#" + msgText);
+				+ "&host=" +encUid + "&val=" + created + "#"
+				+ msgText;
+		// + Utility.encode(created + "#" + msgText);
 
 		Log.d("communicator", "SEND NEXT MESSAGE: " + url);
 		final String url2 = url;
 		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
-				url2, new HttpStringRequest.OnResponseListener() {
+				url2, true, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
 						boolean success = false;
 						boolean resposeError = true;
@@ -1607,7 +1607,7 @@ public class Communicator {
 			final String keyhash) {
 		final String uidString = Utility.loadStringSetting(context, "uid", "");
 
-		String session = Setup.getTmpLogin(context);
+		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
 			// Error resume is automatically done by getTmpLogin, not logged in
 			Utility.showToastAsync(context, "Error sending account key "
@@ -1670,7 +1670,7 @@ public class Communicator {
 	 */
 	public static void clearKeyFromServer(final Context context,
 			final String keyhash) {
-		String session = Setup.getTmpLogin(context);
+		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
 			// Error resume is automatically done by getTmpLogin, not logged in
 			Utility.showToastAsync(context, "Error clearing account " + keyhash
@@ -1750,7 +1750,7 @@ public class Communicator {
 			}
 		}
 
-		String session = Setup.getTmpLogin(context);
+		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
 			// error resume is automatically done by getTmpLogin, not logged in
 			return;
@@ -1885,7 +1885,7 @@ public class Communicator {
 			return;
 		}
 
-		String session = Setup.getTmpLogin(context);
+		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
 			// error resume is automatically done by getTmpLogin, not logged in
 			return;
@@ -1978,7 +1978,7 @@ public class Communicator {
 			return;
 		}
 
-		String session = Setup.getTmpLogin(context);
+		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
 			// error resume is automatically done by getTmpLogin, not logged in
 			return;

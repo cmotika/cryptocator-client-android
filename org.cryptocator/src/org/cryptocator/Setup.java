@@ -1858,7 +1858,7 @@ public class Setup extends Activity {
 		}
 		usernameStringEnc = Utility.encode(usernameStringEnc);
 
-		String session = Setup.getTmpLogin(context);
+		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
 			setErrorInfo("Session error. Try again after restarting the App.");
 			updateuser.setEnabled(true);
@@ -1958,7 +1958,7 @@ public class Setup extends Activity {
 		}
 		pwdChangeStringEnc = Utility.encode(pwdChangeStringEnc);
 
-		String session = Setup.getTmpLogin(context);
+		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
 			setErrorInfo("Session error. Try again after restarting the App.");
 			updatepwd.setEnabled(true);
@@ -2300,7 +2300,7 @@ public class Setup extends Activity {
 		// }
 		String userlistStringEnc = Utility.encode(userlistString);
 
-		String session = Setup.getTmpLogin(context);
+		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
 			setErrorInfo(context,
 					"Session error. Try again after restarting the App.");
@@ -2393,7 +2393,7 @@ public class Setup extends Activity {
 		restore.setEnabled(false);
 		setErrorInfo(null);
 
-		String session = Setup.getTmpLogin(context);
+		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
 			setErrorInfo(context,
 					"Session error. Try again after restarting the App.");
@@ -2535,7 +2535,7 @@ public class Setup extends Activity {
 		}
 		phoneStringEnc = Utility.encode(phoneStringEnc);
 
-		String session = Setup.getTmpLogin(context);
+		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
 			setErrorInfo(context,
 					"Session error. Try again after restarting the App.");
@@ -3860,6 +3860,23 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Gets the tmp login url encoded or null.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the tmp login encoded
+	 */
+	public static String getTmpLoginEncoded(Context context) {
+		String session = getTmpLogin(context);
+		if (session != null) {
+			return Utility.encode(session);
+		}
+		return null;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
 	 * Gets the tmp login. returns the session value that is used expect
 	 * session=md5(sessionid#timestampinseconds#secret#salt)#sessionid#salt
 	 * 
@@ -3878,7 +3895,7 @@ public class Setup extends Activity {
 		String session = Utility.md5(sessionid + "#" + timeStampInSeconds + "#"
 				+ secret + "#" + salt)
 				+ "#" + sessionid + "#" + salt;
-		return Utility.encode(session);
+		return session;
 	}
 
 	// -------------------------------------------------------------------------

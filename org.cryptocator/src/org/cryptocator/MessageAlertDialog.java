@@ -64,6 +64,17 @@ import android.widget.TextView;
  */
 public class MessageAlertDialog extends Dialog {
 
+	/** The fist OK BUTTONO. */
+	public static int BUTTONOK0 = 0;
+
+	/** The second OK BUTTON. */
+	public static int BUTTONOK1 = 1;
+
+	/** The CANCEL button. */
+	public static int BUTTONCANCEL = 2;
+
+	// ------------------------------------------------------------------------
+
 	/** The title message. */
 	String titleMessage;
 
@@ -304,7 +315,6 @@ public class MessageAlertDialog extends Dialog {
 			}
 		});
 
-
 		LinearLayout.LayoutParams lpScrollView = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.WRAP_CONTENT, .8f);
@@ -317,7 +327,7 @@ public class MessageAlertDialog extends Dialog {
 		dialogLayout.addView(scrollView);
 		dialogLayout.addView(buttonLayout);
 
-		setContentView(dialogLayout); 
+		setContentView(dialogLayout);
 		setTitle(titleMessage);
 
 		LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(
@@ -364,5 +374,5 @@ public class MessageAlertDialog extends Dialog {
 	}
 
 	// -------------------------------------------------------------------------
-	
+
 }
