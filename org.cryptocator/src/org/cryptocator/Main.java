@@ -1792,7 +1792,7 @@ public class Main extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Edits the user using the {@link UserdetailsActivity}.
+	 * Edits the user using the {@link UserdetailsActivityY}.
 	 * 
 	 * @param context
 	 *            the context
@@ -1800,9 +1800,9 @@ public class Main extends Activity {
 	 *            the uid
 	 */
 	public static void editUser(Context context, int uid) {
-		Intent dialogIntent = new Intent(context, UserdetailsActivity.class);
+		Intent dialogIntent = new Intent(context, UserdetailsActivityY.class);
 		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		UserdetailsActivity.uid = uid;
+		UserdetailsActivityY.uid = uid;
 		context.startActivity(dialogIntent);
 	}
 

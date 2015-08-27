@@ -33,50 +33,33 @@
  */
 package org.cryptocator;
 
-import java.io.IOException;
-import java.util.Date;
-
-import org.apache.http.client.ClientProtocolException;
-
 import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.WindowManager;
-import android.view.View.OnClickListener;
-import android.view.View.OnKeyListener;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.ScrollView;
-import android.widget.SeekBar;
-import android.widget.TextView;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 
+/**
+ * The TransitActivity is called from a system notification. It opens the
+ * conversation of the particular user.
+ * 
+ * @author Christian Motika
+ * @date 08/23/2015
+ * @since 1.2
+ * 
+ */
 public class TransitActivity extends Activity {
 
+	// ------------------------------------------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onCreate(android.os.Bundle)
+	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
-		final Activity activity = this;
 
 		final Context context = this;
 
@@ -87,11 +70,13 @@ public class TransitActivity extends Activity {
 				Intent dialogIntent = new Intent(context, Conversation.class);
 				dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				Conversation.resetValues(hostuid);
-				// start it
 				context.startActivity(dialogIntent);
 			}
 		}
 
 		finish();
 	}
+
+	// ------------------------------------------------------------------------
+
 }
