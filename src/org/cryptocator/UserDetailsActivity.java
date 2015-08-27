@@ -66,7 +66,7 @@ import android.widget.TextView;
 
 //import android.support.v4.app.DialogFragment;
 
-public class UserdetailsActivityY extends Activity {
+public class UserDetailsActivity extends Activity {
 
 	public static int uid = -1;
 	public static String HIDDENPHONETEXT = "[ automatic ]";
