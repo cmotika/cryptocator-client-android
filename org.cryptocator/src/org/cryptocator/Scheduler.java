@@ -109,12 +109,11 @@ public class Scheduler extends BroadcastReceiver {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Update pending intent.
+	 * Retrieve the pendingIntent of the Scheduler.
 	 * 
 	 * @param context
 	 *            the context
 	 */
-	// Retrieve the pendingIntent of the Scheduler
 	public static void updatePendingIntent(Context context) {
 		if (pendingIntent == null) {
 			pendingIntent = PendingIntent.getBroadcast(context, 0, new Intent(

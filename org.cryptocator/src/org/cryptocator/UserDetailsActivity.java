@@ -33,7 +33,6 @@
  */
 package org.cryptocator;
 
-import org.cryptocator.R;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -42,7 +41,6 @@ import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -50,7 +48,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.ContactsContract;
 import android.text.InputType;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
@@ -64,28 +61,64 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-//import android.support.v4.app.DialogFragment;
-
+/**
+ * The UserDetailsActivity prompts a dialog with user details and allows to set
+ * a display name and an individual phone number.
+ * 
+ * @author Christian Motika
+ * @since 1.2
+ * @date 08/23/2015
+ */
 public class UserDetailsActivity extends Activity {
 
+	/** The uid. */
 	public static int uid = -1;
+
+	/** The hidden phone text. */
 	public static String HIDDENPHONETEXT = "[ automatic ]";
 
+	/** The name. */
 	EditText name;
+
+	/** The phone. */
 	EditText phone;
-	String phoneHidden; // this is used to save the NOT visible phone number for registered users where the number is not manually edited
+
+	/** The phone hidden. */
+	String phoneHidden; // this is used to save the NOT visible phone number for
+						// registered users where the number is not manually
+						// edited
+
+	/** The key. */
 	EditText key;
+
+	/** The name check. */
 	CheckBox nameCheck;
+
+	/** The phone check. */
 	CheckBox phoneCheck;
 
+	/** The activity. */
 	Activity activity = null;
+
+	/** The context. */
 	Context context = null;
+
+	/** The alert dialog. */
 	AlertDialog alertDialog = null;
+
+	/** The cancel. */
 	boolean cancel = true;
+
+	/** The handled. */
 	boolean handled = false;
 
-	// -------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onCreate(android.os.Bundle)
+	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -94,27 +127,14 @@ public class UserDetailsActivity extends Activity {
 		activity = this;
 		context = this;
 
-		// super.setTheme(R.style.Theme_Transparent);
-		// this.setTheme(android.R.style.Theme_Dialog);
-		// getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
 		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 
-		// ATTENTION: Necessary to see the calling activity in the background!
-		// android:theme="@style/Theme.Transparent"
-
-		// this.setStyle(DialogFragment.STYLE_NORMAL,
-		// R.style.AlertDialogCustom);
 		builder.setTitle(Main.UID2Name(context, uid, true));
 
 		LinearLayout.LayoutParams lpTextTitle = new LinearLayout.LayoutParams(
-				LinearLayout.LayoutParams.FILL_PARENT,
+				LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.WRAP_CONTENT);
 		lpTextTitle.setMargins(20, 20, 20, 20);
-
-		// LinearLayout.LayoutParams lpSection = new LinearLayout.LayoutParams(
-		// LinearLayout.LayoutParams.FILL_PARENT,
-		// LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
-		// lpSection.setMargins(15, 5, 15, 5);
 
 		LinearLayout.LayoutParams lpSectionInnerLeft = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -128,7 +148,7 @@ public class UserDetailsActivity extends Activity {
 		outerLayout.setOrientation(LinearLayout.VERTICAL);
 		outerLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 		LinearLayout.LayoutParams lpOuterLayout = new LinearLayout.LayoutParams(
-				LinearLayout.LayoutParams.FILL_PARENT,
+				LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.WRAP_CONTENT);
 		outerLayout.setLayoutParams(lpOuterLayout);
 
@@ -140,7 +160,6 @@ public class UserDetailsActivity extends Activity {
 
 		TextView detailsName = new TextView(context);
 		detailsName.setText("Display Name: ");
-		// detailsName.setLayoutParams(lpTextTitle);
 		name = new EditText(context);
 		nameCheck = new CheckBox(context);
 		nameCheck.setText("Automatically Update");
@@ -172,17 +191,13 @@ public class UserDetailsActivity extends Activity {
 		nameLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 		nameLayout.addView(nameInnerLayout);
 		nameLayout.addView(updateNameButton);
-		// nameLayout.setLayoutParams(lpSection);
 
 		TextView detailsPhone = new TextView(context);
 		detailsPhone.setText("Phone Number: ");
-		// detailsPhone.setLayoutParams(lpTextTitle);
 		phone = new EditText(context);
 		phone.setInputType(InputType.TYPE_CLASS_PHONE);
 		phoneCheck = new CheckBox(context);
 		phoneCheck.setText("Automatically Update");
-		// android:ems="10"
-		// android:inputType="phone">
 
 		LinearLayout phoneInnerLayout = new LinearLayout(context);
 		phoneInnerLayout.setOrientation(LinearLayout.VERTICAL);
@@ -196,8 +211,7 @@ public class UserDetailsActivity extends Activity {
 		Drawable mapImage = context.getResources()
 				.getDrawable(R.drawable.phone);
 		if (uid < 0) {
-			mapImage = context.getResources()
-					.getDrawable(R.drawable.phonesms);
+			mapImage = context.getResources().getDrawable(R.drawable.phonesms);
 		}
 		updatePhoneButton.setImageDrawable(mapImage);
 		updatePhoneButton.setLayoutParams(lpSectionInnerRight);
@@ -214,15 +228,10 @@ public class UserDetailsActivity extends Activity {
 		phoneLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 		phoneLayout.addView(phoneInnerLayout);
 		phoneLayout.addView(updatePhoneButton);
-		// phoneLayout.setLayoutParams(lpSection);
 
 		TextView detailsKey = new TextView(context);
 		detailsKey.setText("Account Key: ");
-		// detailsKey.setLayoutParams(lpTextTitle);
 		key = new EditText(context);
-		// key.setFocusable(false);
-		// key.setClickable(true);
-		//key.setTextSize(8);
 		key.setKeyListener(null);
 
 		LinearLayout keyInnerLayout = new LinearLayout(context);
@@ -248,8 +257,6 @@ public class UserDetailsActivity extends Activity {
 		keyLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 		keyLayout.addView(keyInnerLayout);
 		keyLayout.addView(updateKeyButton);
-		// keyLayout.setBackgroundColor(Color.BLUE);
-		// keyLayout.setLayoutParams(lpSection);
 
 		LinearLayout buttonLayout = new LinearLayout(context);
 		buttonLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -257,8 +264,7 @@ public class UserDetailsActivity extends Activity {
 				| Gravity.CENTER_VERTICAL);
 		buttonLayout.setBackgroundColor(Color.rgb(150, 150, 150));
 		LinearLayout.LayoutParams lpButtonSection = new LinearLayout.LayoutParams(
-				LinearLayout.LayoutParams.FILL_PARENT, 90, 0f);
-		// lpButtonSection.setMargins(0, 5, 15, 15);
+				LinearLayout.LayoutParams.MATCH_PARENT, 90, 0f);
 		buttonLayout.setLayoutParams(lpButtonSection);
 
 		LinearLayout layout = new LinearLayout(context);
@@ -272,9 +278,8 @@ public class UserDetailsActivity extends Activity {
 		layout.addView(keyLayout);
 
 		LinearLayout.LayoutParams lpScrollView = new LinearLayout.LayoutParams(
-				LinearLayout.LayoutParams.FILL_PARENT,
+				LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.WRAP_CONTENT, .8f);
-		// lpScrollView.setMargins(20, 5, 0, 15);
 		ScrollView scrollView = new ScrollView(context);
 		scrollView.setLayoutParams(lpScrollView);
 		scrollView.addView(outerLayout);
@@ -288,7 +293,6 @@ public class UserDetailsActivity extends Activity {
 
 		builder.setOnCancelListener(new OnCancelListener() {
 			public void onCancel(DialogInterface dialog) {
-				// dialog.dismiss();
 				activity.finish();
 			}
 		});
@@ -306,12 +310,11 @@ public class UserDetailsActivity extends Activity {
 		Window window = alertDialog.getWindow();
 		lp.copyFrom(window.getAttributes());
 		// This makes the dialog take up the full width
-		lp.width = WindowManager.LayoutParams.FILL_PARENT;
+		lp.width = WindowManager.LayoutParams.MATCH_PARENT;
 		// lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
 		window.setAttributes(lp);
 
 		Button deleteButton = new Button(context);
-		// deleteButton.setVisibility(View.GONE);
 		buttonLayout.addView(deleteButton);
 		deleteButton.setVisibility(View.VISIBLE);
 		deleteButton.setText("  Delete  ");
@@ -333,10 +336,8 @@ public class UserDetailsActivity extends Activity {
 											if (button == 0) {
 												// delete
 												if (Main.isAlive()) {
-													Main.getInstance()
-															.deleteUser(
-																	context,
-																	uid);
+													Main.deleteUser(context,
+															uid);
 												}
 												finish();
 											}
@@ -344,14 +345,13 @@ public class UserDetailsActivity extends Activity {
 									}
 								}).show();
 					} catch (Exception e) {
-						// ignore
+						// Ignore
 					}
 				}
 			}
 		});
 
 		Button okButton = new Button(context);
-		// okButton.setVisibility(View.GONE);
 		buttonLayout.addView(okButton);
 		okButton.setVisibility(View.VISIBLE);
 		okButton.setText("   Save   ");
@@ -373,7 +373,6 @@ public class UserDetailsActivity extends Activity {
 		});
 
 		Button cancelButton = new Button(context);
-		// cancelButton.setVisibility(View.GONE);
 		buttonLayout.addView(cancelButton);
 		cancelButton.setVisibility(View.VISIBLE);
 		cancelButton.setText("   Cancel   ");
@@ -396,11 +395,6 @@ public class UserDetailsActivity extends Activity {
 		params = updateKeyButton.getLayoutParams();
 		params.height = 90;
 		params.width = 90;
-
-//		if (uid >= 0) {
-//			// Do not display phon number iff registered user!
-//			phoneLayout.setVisibility(View.GONE);
-//		}
 
 		// DATA
 		String text = "UID: " + uid + "\n\n";
@@ -431,10 +425,12 @@ public class UserDetailsActivity extends Activity {
 		if (Setup.havePhone(context, uid)) {
 			phoneHidden = Setup.getPhone(context, uid);
 			if (Setup.isPhoneModified(context, uid)) {
-				// the phone number has been modified so it is okay to display it
+				// The phone number has been modified so it is okay to display
+				// it.
 				phone.setText(phoneHidden);
 			} else {
-				// the phone number was set by the server for a registered user, so it is NOT okay to display it
+				// The phone number was set by the server for a registered user,
+				// so it is NOT okay to display it
 				// for privacy!
 				phone.setText(HIDDENPHONETEXT);
 			}
@@ -452,13 +448,15 @@ public class UserDetailsActivity extends Activity {
 			phoneCheck.setChecked(false);
 			phoneCheck.setEnabled(false);
 			phoneCheck.setVisibility(View.GONE);
-			// updateNameButton.setVisibility(View.GONE);
 			updateKeyButton.setVisibility(View.GONE);
 		}
 	}
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Update username asynchronously.
+	 */
 	private void updateUsername() {
 
 		if (uid >= 0) {
@@ -499,6 +497,9 @@ public class UserDetailsActivity extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Update key asynchronously.
+	 */
 	private void updateKey() {
 		key.setText("Updating...");
 		Communicator.getKeyFromServer(this, uid, new Main.UpdateListener() {
@@ -509,7 +510,7 @@ public class UserDetailsActivity extends Activity {
 					public void run() {
 						super.run();
 						key.setText(Setup.getKeyHash(context, uid));
-//						key.setText(data);
+						// key.setText(data);
 					}
 				});
 			}
@@ -518,14 +519,20 @@ public class UserDetailsActivity extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Save the display name and phone.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	private void save(Context context) {
-		
+
 		String newPhone = Setup.normalizePhone(phone.getText().toString());
 		if (!newPhone.equals(HIDDENPHONETEXT)) {
-			// the phone number has been manually edited, so we can now flag it as manually edited and show it next time
+			// the phone number has been manually edited, so we can now flag it
+			// as manually edited and show it next time
 			Setup.savePhoneIsModified(context, uid, true);
-			Setup.savePhone(context, uid,
-				newPhone, true);
+			Setup.savePhone(context, uid, newPhone, true);
 		}
 		Main.saveUID2Name(context, uid, name.getText().toString());
 		Main.setUpdateName(context, uid, nameCheck.isChecked());
@@ -534,6 +541,13 @@ public class UserDetailsActivity extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onActivityResult(int, int,
+	 * android.content.Intent)
+	 */
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
@@ -556,10 +570,10 @@ public class UserDetailsActivity extends Activity {
 					this.name.setText(name);
 				}
 				this.phone.setText(Setup.normalizePhone(phone));
-
-				// normalize phone number
 			}
 		}
 	}
+
+	// ------------------------------------------------------------------------
 
 }
