@@ -57,7 +57,7 @@ import android.widget.TextView;
  * @date 08/23/2015
  * 
  */
-public class MessageDetailsActivity extends Activity {
+public class MessagedetailsActivityZ extends Activity {
 
 	/** The conversation item to display information for. */
 	public static ConversationItem conversationItem = null;

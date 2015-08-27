@@ -18,9 +18,8 @@
     </uses-permission>
     -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- send images -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />  <!-- send images -->
-    <uses-permission android:name="android.permission.MANAGE_DOCUMENTS" />  <!-- send images -->
-
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- send images -->
+    <uses-permission android:name="android.permission.MANAGE_DOCUMENTS" /> <!-- send images -->
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.READ_CONTACTS" /> <!-- reading telephone number -->
@@ -54,13 +53,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="org.cryptocator.Setup"
-            android:label="Settings" >
-        </activity>
-        <activity
-            android:name="org.cryptocator.SetupAccount"
-            android:label="Account" >
+        <activity android:name="org.cryptocator.Setup" >
         </activity>
         <activity
             android:name="org.cryptocator.UserdetailsActivity"
