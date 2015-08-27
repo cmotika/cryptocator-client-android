@@ -56,7 +56,7 @@
         <activity android:name="org.cryptocator.Setup" >
         </activity>
         <activity
-            android:name="org.cryptocator.UserdetailsActivityY"
+            android:name="org.cryptocator.UserDetailsActivity"
             android:icon="@drawable/person"
             android:theme="@style/Theme.Transparent" >
         </activity>
