@@ -70,9 +70,8 @@ public class SmileyPrompt {
 		 * If a smiley is selected the textualSmiley String holds the textual
 		 * representation of the smiley. If no smiley is selected the parameter
 		 * is null.
-		 * 
-		 * @param percent
-		 *            the percent
+		 *
+		 * @param textualSmiley the textual smiley
 		 */
 		void onSelect(String textualSmiley);
 	}
@@ -130,7 +129,7 @@ public class SmileyPrompt {
 	 */
 	private LinearLayout buildSmileyTable(final Context context,
 			final Dialog dialog) {
-		int smileys = SmileyEditText.smileyText.length;
+		int smileys = ImageSmileyEditText.smileyText.length;
 		// int maxrowsandcolumns = (int) Math.ceil(Math.sqrt(smileys));
 
 		int maxcolumns = MAXSMILEYCOLUMNSPORTRAIT;
@@ -172,20 +171,22 @@ public class SmileyPrompt {
 			for (int column = 0; column < maxcolumns; column++) {
 				if (index < smileys) {
 
-					final int orderNumber = SmileyEditText.smileyOrder[index];
+					final int orderNumber = ImageSmileyEditText.smileyOrder[index];
 
 					ImageLabelButton smileButton = new ImageLabelButton(context);
 					String smileyImg = "s" + orderNumber;
+					//Log.d("communicator", "SMILEY["+index+"] " + smileyImg);
 					int id = context.getResources().getIdentifier(smileyImg,
 							"drawable", context.getPackageName());
+					//Log.d("communicator", "SMILEY["+index+"] id=" + id);
 					smileButton.setTextAndImageResource(
-							SmileyEditText.smileyLabel[orderNumber], id);
+							ImageSmileyEditText.smileyLabel[orderNumber], id);
 					smileButton.setLayoutParams(lpButtons);
 					smileButton.setOnClickListener(new View.OnClickListener() {
 						public void onClick(View v) {
 							if (onSmileySelectedListener != null) {
 								onSmileySelectedListener
-										.onSelect(SmileyEditText.smileyText[orderNumber]);
+										.onSelect(ImageSmileyEditText.smileyText[orderNumber]);
 							}
 							dialog.dismiss();
 						}

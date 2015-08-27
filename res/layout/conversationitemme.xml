@@ -35,7 +35,7 @@
         android:orientation="vertical" > 
 
 
-        <org.cryptocator.SmileyEditText
+        <org.cryptocator.ImageSmileyEditText
             android:id="@+id/conversationtext"
             style="?android:attr/textViewStyle"
             android:layout_width="wrap_content"
@@ -55,7 +55,7 @@
             android:textColorLink="#ffffffff"
             android:textIsSelectable="true"
             android:textSize="18dp" >
-        </org.cryptocator.SmileyEditText>
+        </org.cryptocator.ImageSmileyEditText>
 
         <LinearLayout
             android:layout_width="wrap_content"

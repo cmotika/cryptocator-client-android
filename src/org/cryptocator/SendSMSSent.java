@@ -33,8 +33,6 @@
  */
 package org.cryptocator;
 
-import java.util.Currency;
-
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -42,11 +40,26 @@ import android.content.Intent;
 import android.telephony.SmsManager;
 import android.util.Log;
 
+/**
+ * The SendSMSSent class is responsible updating the message database and the UI
+ * if an SMS, i.e., all parts of an SMS, has been sent. It knows by the local id
+ * and the sending id which message to update.
+ * 
+ * @author Christian Motika
+ * @since 1.2
+ * @date 08/23/2015
+ * 
+ */
 public class SendSMSSent extends BroadcastReceiver {
 
-	public void onCreate(Context context) {
-	}
+	// ------------------------------------------------------------------------
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.content.BroadcastReceiver#onReceive(android.content.Context,
+	 * android.content.Intent)
+	 */
 	public void onReceive(Context context, Intent intent) {
 		int localId = -1;
 		int hostUid = -1;
@@ -159,6 +172,6 @@ public class SendSMSSent extends BroadcastReceiver {
 		}
 	}
 
-	// -------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
 
 }

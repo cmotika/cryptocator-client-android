@@ -105,7 +105,7 @@ public class ConversationCompose extends Activity {
 	private ImagePressButton phonebutton;
 
 	/** The message text. */
-	public EditText messageText;
+	public ImageSmileyEditText messageText;
 
 	/** The phone or uid. */
 	public EditText phoneOrUid;
@@ -181,7 +181,28 @@ public class ConversationCompose extends Activity {
 		toList.setSnapDown(80);
 		toList.setSnapUp(20);
 
-		messageText = ((EditText) findViewById(R.id.messageText));
+		messageText = ((ImageSmileyEditText) findViewById(R.id.messageText));
+
+		messageText
+				.setOnCutCopyPasteListener(new ImageSmileyEditText.OnCutCopyPasteListener() {
+					public void onPaste() {
+						// If an image or smiley is pasted then do a new layout!
+						int selection = messageText.getSelectionStart();
+						String messageTextBackup = messageText.getText()
+								.toString();
+						messageText.setText(messageTextBackup);
+						if (selection > -1) {
+							messageText.setSelection(selection);
+						}
+					}
+
+					public void onCut() {
+					}
+
+					public void onCopy() {
+						
+					}
+				});
 
 		TextWatcher textWatcher = new TextWatcher() {
 			public void onTextChanged(CharSequence s, int start, int before,
@@ -257,37 +278,9 @@ public class ConversationCompose extends Activity {
 						.setOnSmileySelectedListener(new SmileyPrompt.OnSmileySelectedListener() {
 							public void onSelect(String textualSmiley) {
 								if (textualSmiley != null) {
-									// messageText.getText().append(textualSmiley);
-									// if text was selected replace the text
-									int i = messageText.getSelectionStart();
-									int e = messageText.getSelectionEnd();
-									String prevText = messageText.getText()
-											.toString();
-									if (i < 0) {
-										// default fallback is concatenation
-										if (!prevText.endsWith(" ")) {
-											prevText = prevText.concat(" ");
-										}
-										messageText.setText(prevText
-												+ textualSmiley + " ");
-									} else {
-										// otherwise try to fill in the text
-										String text1 = prevText.substring(0, i);
-										if (!text1.endsWith(" ")) {
-											text1 = text1.concat(" ");
-										}
-										if (e < 0) {
-											e = i;
-										}
-										String text2 = prevText.substring(e);
-										if (!text2.startsWith(" ")) {
-											text2 = " " + text2;
-										}
-										messageText.setText(text1.concat(
-												textualSmiley).concat(text2));
-									}
-									messageText.setSelection(messageText
-											.getText().length());
+									Utility.smartPaste(messageText,
+											textualSmiley, " ", " ", true,
+											false);
 									if (wasKeyboardVisible) {
 										potentiallyShowKeyboard(context, true);
 									}

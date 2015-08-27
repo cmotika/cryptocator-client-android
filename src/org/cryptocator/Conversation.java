@@ -33,6 +33,7 @@
  */
 package org.cryptocator;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,16 +43,20 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.provider.MediaStore.Images;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -150,7 +155,7 @@ public class Conversation extends Activity {
 	private ImagePressButton additionbutton;
 
 	/** The message text. */
-	public EditText messageText;
+	public ImageSmileyEditText messageText;
 
 	/** The inflater. */
 	private LayoutInflater inflater;
@@ -276,8 +281,29 @@ public class Conversation extends Activity {
 					}
 				});
 
-		messageText = ((EditText) findViewById(R.id.messageText));
+		messageText = ((ImageSmileyEditText) findViewById(R.id.messageText));
 		// fastscrollbar = (FastScrollBar) findViewById(R.id.fastscrollbar);
+
+		messageText
+				.setOnCutCopyPasteListener(new ImageSmileyEditText.OnCutCopyPasteListener() {
+					public void onPaste() {
+						// If an image or smiley is pasted then do a new layout!
+						int selection = messageText.getSelectionStart();
+						String messageTextBackup = messageText.getText()
+								.toString();
+						messageText.setText(messageTextBackup);
+						if (selection > -1) {
+							messageText.setSelection(selection);
+						}
+					}
+
+					public void onCut() {
+					}
+
+					public void onCopy() {
+						promptImageSaveAs(context);
+					}
+				});
 
 		TextWatcher textWatcher = new TextWatcher() {
 			public void onTextChanged(CharSequence s, int start, int before,
@@ -356,37 +382,9 @@ public class Conversation extends Activity {
 						.setOnSmileySelectedListener(new SmileyPrompt.OnSmileySelectedListener() {
 							public void onSelect(String textualSmiley) {
 								if (textualSmiley != null) {
-									// messageText.getText().append(textualSmiley);
-									// if text was selected replace the text
-									int i = messageText.getSelectionStart();
-									int e = messageText.getSelectionEnd();
-									String prevText = messageText.getText()
-											.toString();
-									if (i < 0) {
-										// default fallback is concatenation
-										if (!prevText.endsWith(" ")) {
-											prevText = prevText.concat(" ");
-										}
-										messageText.setText(prevText
-												+ textualSmiley + " ");
-									} else {
-										// otherwise try to fill in the text
-										String text1 = prevText.substring(0, i);
-										if (!text1.endsWith(" ")) {
-											text1 = text1.concat(" ");
-										}
-										if (e < 0) {
-											e = i;
-										}
-										String text2 = prevText.substring(e);
-										if (!text2.startsWith(" ")) {
-											text2 = " " + text2;
-										}
-										messageText.setText(text1.concat(
-												textualSmiley).concat(text2));
-									}
-									messageText.setSelection(messageText
-											.getText().length());
+									Utility.smartPaste(messageText,
+											textualSmiley, " ", " ", true,
+											false);
 									if (wasKeyboardVisible) {
 										scrollDownNow(context, true);
 									}
@@ -2017,12 +2015,13 @@ public class Conversation extends Activity {
 		}
 
 		View conversationlistitem = null;
+		ImageSmileyEditText conversationText = null;
 
 		// Inflate other XMLs for me or for my conversation partner
 		if (!conversationItem.me(context)) {
 			conversationlistitem = inflater.inflate(R.layout.conversationitem,
 					null);
-			EditText conversationText = (EditText) conversationlistitem
+			conversationText = (ImageSmileyEditText) conversationlistitem
 					.findViewById(R.id.conversationtext);
 			// Rounded corners
 			LinearLayout oneline = (LinearLayout) conversationlistitem
@@ -2039,7 +2038,7 @@ public class Conversation extends Activity {
 			conversationlistitem = inflater.inflate(
 					R.layout.conversationitemme, null);
 
-			// Rounded corners
+			// // Rounded corners
 			LinearLayout oneline = (LinearLayout) conversationlistitem
 					.findViewById(R.id.oneline);
 			oneline.setBackgroundResource(R.drawable.rounded_cornersme);
@@ -2050,7 +2049,7 @@ public class Conversation extends Activity {
 					.findViewById(R.id.msgreceived);
 			ImageView read = (ImageView) conversationlistitem
 					.findViewById(R.id.msgread);
-			EditText conversationText = (EditText) conversationlistitem
+			conversationText = (ImageSmileyEditText) conversationlistitem
 					.findViewById(R.id.conversationtext);
 			ImageView speech = (ImageView) conversationlistitem
 					.findViewById(R.id.msgspeech);
@@ -2083,11 +2082,24 @@ public class Conversation extends Activity {
 			}
 		}
 
+		conversationText
+				.setOnCutCopyPasteListener(new ImageSmileyEditText.OnCutCopyPasteListener() {
+					public void onPaste() {
+					}
+
+					public void onCut() {
+					}
+
+					public void onCopy() {
+						promptImageSaveAs(context);
+					}
+				});
+
 		TextView conversationTime = (TextView) conversationlistitem
 				.findViewById(R.id.conversationtime);
 
-		EditText conversationText = (EditText) conversationlistitem
-				.findViewById(R.id.conversationtext);
+		// // set software layering
+		// conversationText.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
 		ImageView locked = (ImageView) conversationlistitem
 				.findViewById(R.id.msglocked);
@@ -2776,6 +2788,36 @@ public class Conversation extends Activity {
 
 	// -------------------------------------------------------------------------
 
+	// And to convert the image URI to the direct file system path of the image
+	// file
+	@SuppressWarnings("deprecation")
+	public String getRealPathFromURI(Uri contentUri) {
+		String returnPath = null;
+
+		try {
+			if (Build.VERSION.SDK_INT < 19) {
+				// can post image
+				String[] proj = { MediaStore.Images.Media.DATA };
+				Cursor cursor = managedQuery(contentUri, proj, // Which columns
+																// to
+																// return
+						null, // WHERE clause; which rows to return (all rows)
+						null, // WHERE clause selection arguments (none)
+						null); // Order-by clause (ascending by name)
+				int column_index = cursor
+						.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+				cursor.moveToFirst();
+				returnPath = cursor.getString(column_index);
+			} else {
+				returnPath = contentUri.toString();
+			}
+		} catch (Exception e) {
+		}
+		return returnPath;
+	}
+
+	// -------------------------------------------------------------------------
+
 	// To handle when an image is selected from the browser, add the following
 	// to your Activity
 	@Override
@@ -2787,38 +2829,194 @@ public class Conversation extends Activity {
 
 		if (resultCode == RESULT_OK) {
 			if (requestCode == SELECT_PICTURE) {
+				boolean ok = false;
 				// currImageURI is the global variable I'm using to hold the
 				// content:// URI of the image
-				String currImageURI = getRealPathFromURI(data.getData());
+				String attachmentPath = getRealPathFromURI(data.getData());
 
-				messageText.append(currImageURI);
+				if (attachmentPath != null) {
+					try {
+
+						// GET request is limited to 2048 bytes
+
+						// String encodedImage =
+						// getResizedImageAsBASE64String(this, attachmentPath,
+						// 300, 300, 20).replace("\n", "").replace("\r", "");
+						String encodedImage = getResizedImageAsBASE64String(
+								this, attachmentPath, 150, 150, 15).replace(
+								"\n", "").replace("\r", "");
+						if (encodedImage != null) {
+							messageText.append("[img " + encodedImage + "]");
+							ok = true;
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				if (!ok) {
+					Utility.showToastInUIThread(this,
+							"Selected file is not a valid image.");
+				}
 			}
 		}
 	}
 
 	// -------------------------------------------------------------------------
 
-	// And to convert the image URI to the direct file system path of the image
-	// file
-	public String getRealPathFromURI(Uri contentUri) {
-		String returnPath = null;
+	public static String getResizedImageAsBASE64String(Context context,
+			String attachmentPath, int maxWidth, int maxHeight, int quality) {
+		byte[] bytes = Utility.getFile(attachmentPath);
+		Bitmap bitmap = Utility.getBitmapFromBytes(bytes);
+		Bitmap resizedBitmap = Utility.getResizedImage(bitmap, maxWidth,
+				maxHeight);
+		// Drawable drawable = Utility.getDrawableFromBitmap(context,
+		// resizedBitmap);
 
-		if (Build.VERSION.SDK_INT < 19) {
-			// can post image
-			String[] proj = { MediaStore.Images.Media.DATA };
-			Cursor cursor = managedQuery(contentUri, proj, // Which columns to
-															// return
-					null, // WHERE clause; which rows to return (all rows)
-					null, // WHERE clause selection arguments (none)
-					null); // Order-by clause (ascending by name)
-			int column_index = cursor
-					.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-			cursor.moveToFirst();
-			returnPath = cursor.getString(column_index);
-		} else {
-			returnPath = contentUri.toString();
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		resizedBitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
+		byte[] byteArray = stream.toByteArray();
+		String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
+		return encoded;
+	}
+
+	// -------------------------------------------------------------------------
+
+	public static void promptImageSaveAs(final Context context) {
+		final String copiedText = Utility.pasteFromClipboard(context);
+		if (!(copiedText.startsWith("[img ") && copiedText.endsWith("]"))) {
+			// no image copied or more than an image... do not ask
+			return;
 		}
-		return returnPath;
+
+		String title = "Save Image?";
+		String text = "You copied an image into the Clipboard. Do you want to save or share it?";
+
+		new MessageAlertDialog(context, title, text, " Save ", " Share ",
+				" Cancel ", new MessageAlertDialog.OnSelectionListener() {
+					public void selected(int button, boolean cancel) {
+						if (button == MessageAlertDialog.BUTTONOK0) {
+							String encodedImg = copiedText.substring(5,
+									copiedText.length() - 1);
+							Bitmap bitmap = Utility.loadImageFromBASE64String(
+									context, encodedImg);
+
+							String bitmapPath = Utility.insertImage(
+									context.getContentResolver(), bitmap,
+									"Cryptocator Images", null);
+
+							// String bitmapPath = Images.Media.insertImage(
+							// context.getContentResolver(), bitmap,
+							// "Cryptocator Images", null);
+
+							// // Update date taken
+							// ContentValues values = new ContentValues();
+							// values.put(Images.Media.DATE_TAKEN,
+							// System.currentTimeMillis());
+							// values.put(Images.Media.MIME_TYPE, "image/jpeg");
+							// values.put(MediaStore.MediaColumns.DATA,
+							// bitmapPath);
+							// context.getContentResolver().update(
+							// Images.Media.EXTERNAL_CONTENT_URI,
+							// values,
+							// MediaStore.MediaColumns.DATA + " = "
+							// + bitmapPath, null);
+
+							// File pictureFolder = Environment
+							// .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+							// File imagesFolder = new File(pictureFolder,
+							// "Cryptocator Images");
+							//
+							// ContentValues values = new ContentValues();
+							// values.put(Media.TITLE, "Cryptocator Image");
+							// values.put(Media.DESCRIPTION,
+							// "Cryptocator Image");
+							// values.put(Images.Media.DATE_TAKEN,
+							// System.currentTimeMillis()); // DATE HERE
+							// values.put(Images.Media.MIME_TYPE, "image/jpeg");
+							// values.put(MediaStore.MediaColumns.DATA,
+							// imagesFolder.toString());
+							// Uri bitmapPath2 = context.getContentResolver()
+							// .insert(Media.EXTERNAL_CONTENT_URI, values);
+							// String bitmapPath = bitmapPath2.toString();
+							//
+							// {
+							// FileOutputStream out = null;
+							// try {
+							// out = new FileOutputStream(bitmapPath
+							// .toString());
+							// bitmap.compress(Bitmap.CompressFormat.PNG,
+							// 100, out); // bmp is your Bitmap
+							// // instance
+							// // PNG is a lossless format, the compression
+							// // factor (100) is ignored
+							// } catch (Exception e) {
+							// e.printStackTrace();
+							// } finally {
+							// try {
+							// if (out != null) {
+							// out.close();
+							// }
+							// } catch (Exception e) {
+							// e.printStackTrace();
+							// }
+							// }
+							// }
+
+							MediaScannerConnection
+									.scanFile(
+											context,
+											new String[] { bitmapPath },
+											null,
+											new MediaScannerConnection.OnScanCompletedListener() {
+												public void onScanCompleted(
+														String path, Uri uri) {
+													Log.i("TAG",
+															"Finished scanning "
+																	+ path);
+												}
+											});
+
+							Utility.showToastAsync(context, "Image saved to "
+									+ bitmapPath);
+							// TODO: create
+
+							// File storageDir = new File(
+							// Environment
+							// .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+							// "Cryptocator Images");
+
+							// Intent mediaScanIntent = new
+							// Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+							// File f = new File(bitmapPath);
+							// Uri contentUri = Uri.fromFile(f);
+							// mediaScanIntent.setData(contentUri);
+							// context.sendBroadcast(mediaScanIntent);
+
+						}
+						if (button == MessageAlertDialog.BUTTONOK1) {
+
+							String encodedImg = copiedText.substring(5,
+									copiedText.length() - 1);
+							Bitmap bitmap = Utility.loadImageFromBASE64String(
+									context, encodedImg);
+
+							String bitmapPath = Images.Media.insertImage(
+									context.getContentResolver(), bitmap,
+									"Cryptocator Images", null);
+							Uri bitmapUri = Uri.parse(bitmapPath);
+
+							Intent sendIntent = new Intent(Intent.ACTION_SEND);
+							sendIntent.setType("image/*");
+							sendIntent.putExtra(Intent.EXTRA_SUBJECT,
+									"Cryptocator Image");
+							sendIntent.putExtra(Intent.EXTRA_STREAM, bitmapUri);
+							sendIntent.putExtra(Intent.EXTRA_TEXT,
+									"Cryptocator Image");
+							context.startActivity(Intent.createChooser(
+									sendIntent, "Email:"));
+						}
+					}
+				}, null).show();
 	}
 
 	// -------------------------------------------------------------------------

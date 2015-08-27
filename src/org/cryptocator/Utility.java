@@ -33,10 +33,15 @@
  */
 package org.cryptocator;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
@@ -66,6 +71,8 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.KeyguardManager;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -75,13 +82,17 @@ import android.graphics.Rect;
 import android.graphics.Shader.TileMode;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Vibrator;
+import android.provider.MediaStore;
+import android.provider.MediaStore.Images;
 import android.provider.Settings.Secure;
 import android.telephony.TelephonyManager;
 import android.util.Base64;
@@ -1835,5 +1846,294 @@ public class Utility {
 	}
 
 	// -------------------------------------------------------------------------
-	
+
+	/**
+	 * Reads a file and encodes the bytes with BASE64 for transmission.
+	 * 
+	 * @param attachmentPath
+	 *            the attachment path
+	 * @return the encoded image
+	 */
+	public static String getEncodedFile(String attachmentPath) {
+		try {
+			byte[] bytes = getFile(attachmentPath);
+			String encodedFile = Base64.encodeToString(bytes, Base64.DEFAULT);
+			return encodedFile;
+		} catch (Exception e) {
+			// Ignore, return null
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Reads a file and returns the bytes
+	 * 
+	 * @param attachmentPath
+	 *            the attachment path
+	 * @return the encoded image
+	 */
+	public static byte[] getFile(String attachmentPath) {
+		File attachmentFile = new File(attachmentPath);
+		int fileSize = (int) attachmentFile.length();
+		byte[] bytes = new byte[fileSize];
+		try {
+			BufferedInputStream buf = new BufferedInputStream(
+					new FileInputStream(attachmentFile));
+			buf.read(bytes, 0, bytes.length);
+			buf.close();
+			return bytes;
+		} catch (Exception e) {
+			// Ignore, return null
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the bitmap from bytes.
+	 * 
+	 * @param bytes
+	 *            the bytes
+	 * @return the bitmap from bytes
+	 */
+	public static Bitmap getBitmapFromBytes(byte[] bytes) {
+		Bitmap bitmap = null;
+		try {
+			if (Build.VERSION.SDK_INT < 19) {
+				bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+			} else {
+				try {
+					bitmap = BitmapFactory.decodeByteArray(bytes, 0,
+							bytes.length);
+				} catch (Exception e) {
+					// Fallback
+					e.printStackTrace();
+					bitmap = BitmapFactory.decodeByteArray(bytes, 0,
+							bytes.length);
+				}
+			}
+		} catch (Exception e) {
+		}
+		return bitmap;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the drawable from bitmap.
+	 * 
+	 * @param bitmap
+	 *            the bitmap
+	 * @return the drawable from bitmap
+	 */
+	public static Drawable getDrawableFromBitmap(Context context, Bitmap bitmap) {
+		if (bitmap != null) {
+			Drawable drawable = new BitmapDrawable(context.getResources(),
+					bitmap);
+			return drawable;
+		}
+		return null;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Load drawable image from a BASE64 encoded String.
+	 * 
+	 * @param encodedImage
+	 *            the encoded image
+	 * @return the drawable
+	 */
+	public static Drawable loadDrawableFromBASE64String(String encodedImage) {
+		byte[] imageBytes = Base64.decode(encodedImage.getBytes(),
+				Base64.DEFAULT);
+		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
+				imageBytes);
+		Drawable drawable = Drawable.createFromStream(byteArrayInputStream,
+				"attachment");
+		return drawable;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Load a bitmap image from a BASE64 encoded String.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param encodedImage
+	 *            the encoded image
+	 * @return the bitmap
+	 */
+	public static Bitmap loadImageFromBASE64String(Context context,
+			String encodedImage) {
+		byte[] imageBytes = Base64.decode(encodedImage.getBytes(),
+				Base64.DEFAULT);
+		return getBitmapFromBytes(imageBytes);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Get a resized version of a bitmap image.
+	 * 
+	 * @param bitmap
+	 *            the bitmap
+	 * @param maxWidth
+	 *            the max width
+	 * @param maxHeight
+	 *            the max height
+	 * @return the resized image
+	 */
+	public static Bitmap getResizedImage(Bitmap bitmap, int maxWidth,
+			int maxHeight) {
+		int bitmapWidth = bitmap.getWidth();
+		int bitmapHeight = bitmap.getHeight();
+		int newWidth = bitmapWidth;
+		int newHeight = bitmapHeight;
+		if (bitmapWidth > maxWidth) {
+			float scale = ((float) bitmapWidth) / ((float) maxWidth);
+			newWidth = maxWidth;
+			newHeight = (int) ((float) bitmapHeight / scale);
+		}
+		if (bitmapHeight > maxHeight) {
+			float scale = ((float) bitmapHeight) / ((float) maxHeight);
+			newHeight = maxHeight;
+			newWidth = (int) ((float) bitmapWidth / scale);
+		}
+
+		Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, newWidth,
+				newHeight, true);
+		bitmap.recycle();
+		bitmap = scaledBitmap;
+		System.gc();
+		return bitmap;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Smart paste some pasteText into an editText. Remember the position (i)
+	 * and jump behind the pastedText afterwards if not jumpToEnd is selected.
+	 * If selectAfterPaste is set then select the pasted text.
+	 * 
+	 * 
+	 * @param editText
+	 *            the edit text
+	 * @param pasteText
+	 *            the paste text
+	 * @param ensureBefore
+	 *            the ensure before
+	 * @param ensureAfter
+	 *            the ensure after
+	 * @param jumpToEnd
+	 *            the jump to end
+	 */
+	public static void smartPaste(EditText editText, String pasteText,
+			String ensureBefore, String ensureAfter, boolean jumpToEnd,
+			boolean selectAfterPaste) {
+		// messageText.getText().append(textualSmiley);
+		// if text was selected replace the text
+		int i = editText.getSelectionStart();
+		int e = editText.getSelectionEnd();
+		String prevText = editText.getText().toString();
+		if (i < 0) {
+			// default fallback is concatenation
+			if (!prevText.endsWith(ensureBefore)) {
+				prevText = prevText.concat(ensureBefore);
+			}
+			editText.setText(prevText + pasteText + ensureAfter);
+		} else {
+			// otherwise try to fill in the text
+			String text1 = prevText.substring(0, i);
+			if (!text1.endsWith(ensureBefore)) {
+				text1 = text1.concat(ensureBefore);
+			}
+			if (e < 0) {
+				e = i;
+			}
+			String text2 = prevText.substring(e);
+			if (!text2.startsWith(ensureAfter)) {
+				text2 = ensureAfter + text2;
+			}
+			editText.setText(text1.concat(pasteText).concat(text2));
+		}
+		if (selectAfterPaste) {
+			editText.setSelection(i, i + pasteText.length());
+		} else if (jumpToEnd) {
+			editText.setSelection(editText.getText().length());
+		} else {
+			editText.setSelection(i);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Stores an image in the gallery. This is a fixed version that stores
+	 * correct DATE_TAKEN so that the ordering of remains correct.
+	 * 
+	 * @see android.provider.MediaStore.Images.Media#insertImage(ContentResolver,
+	 *      Bitmap, String, String)
+	 */
+	public static final String insertImage(ContentResolver contentResolver,
+			Bitmap bitmap, String title, String description) {
+
+		final int SAVEQUALITY = 100;
+
+		ContentValues values = new ContentValues();
+		values.put(Images.Media.TITLE, title);
+		values.put(Images.Media.DISPLAY_NAME, title);
+		values.put(Images.Media.DESCRIPTION, description);
+		values.put(Images.Media.MIME_TYPE, "image/jpeg");
+		// Fix
+		values.put(Images.Media.DATE_ADDED, System.currentTimeMillis());
+		values.put(Images.Media.DATE_TAKEN, System.currentTimeMillis());
+
+		Uri url = null;
+		String returnValue = null;
+		boolean ok = false;
+
+		try {
+			url = contentResolver.insert(
+					MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+			if (bitmap != null) {
+				OutputStream outputStream = contentResolver
+						.openOutputStream(url);
+				try {
+					bitmap.compress(Bitmap.CompressFormat.JPEG, SAVEQUALITY,
+							outputStream);
+					ok = true;
+				} catch (Exception e) {
+					// ignore
+				}
+				outputStream.close();
+			}
+		} catch (Exception e) {
+			// ignore
+		}
+
+		if (!ok) {
+			// If something went wrong, delete the entry
+			if (url != null) {
+				contentResolver.delete(url, null, null);
+				url = null;
+			}
+		}
+
+		if (url != null) {
+			returnValue = url.toString();
+		}
+
+		return returnValue;
+	}
+
+	// -------------------------------------------------------------------------
+
 }
