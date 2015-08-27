@@ -33,30 +33,69 @@
  */
 package org.cryptocator;
 
+import android.annotation.SuppressLint;
 import java.util.Collections;
 import java.util.List;
 
-
+/**
+ * The UidListItem is an item for the extended UID list that needs to be sorted
+ * by the timestamp of the last message for the main activity or the name for
+ * composing activity (addressbook style).
+ * 
+ * @author Christian Motika
+ * @since 1.2
+ * @date 08/23/2015
+ */
 public class UidListItem implements Comparable<UidListItem> {
-    public int uid;
-    public String name;
-    public Long lastMessageTimestamp;
-    public String lastMessage;
-    private static boolean sortByName = false;
-    
-    public int compareTo(UidListItem other) {
-    	if (sortByName) {
-    		// sort by name on request
-            return (name.toLowerCase().compareTo(other.name.toLowerCase()));
-    	} else {
-    		// default sort by lastMessage
-            return -(lastMessageTimestamp.compareTo(other.lastMessageTimestamp));
-    	}
-    }
 
-    public static void sort(List<UidListItem> list, boolean sortByName) {
-    	UidListItem.sortByName = sortByName;
-    	Collections.sort(list);
-    }
+	/** The uid. */
+	public int uid;
+
+	/** The name. */
+	public String name;
+
+	/** The last message timestamp. */
+	public Long lastMessageTimestamp;
+
+	/** The last message. */
+	public String lastMessage;
+
+	/** The sort by name. */
+	private static boolean sortByName = false;
+
+	// ------------------------------------------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@SuppressLint("DefaultLocale")
+	public int compareTo(UidListItem other) {
+		if (sortByName) {
+			// sort by name on request
+			return (name.toLowerCase().compareTo(other.name.toLowerCase()));
+		} else {
+			// default sort by lastMessage
+			return -(lastMessageTimestamp.compareTo(other.lastMessageTimestamp));
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sort.
+	 * 
+	 * @param list
+	 *            the list
+	 * @param sortByName
+	 *            the sort by name
+	 */
+	public static void sort(List<UidListItem> list, boolean sortByName) {
+		UidListItem.sortByName = sortByName;
+		Collections.sort(list);
+	}
+
+	// ------------------------------------------------------------------------
+
 }
-
