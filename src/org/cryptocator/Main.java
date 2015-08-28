@@ -1486,7 +1486,7 @@ public class Main extends Activity {
 
 		String uidListAsStringEncoded = "";
 		if (uidListAsString != null) {
-			uidListAsStringEncoded = Utility.encode(uidListAsString);
+			uidListAsStringEncoded = Utility.urlEncode(uidListAsString);
 		} else {
 			uidListAsStringEncoded = Setup.encUid(context, uidSingleLookup)
 					+ "";
