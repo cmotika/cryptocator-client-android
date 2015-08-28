@@ -682,6 +682,7 @@ public class FastScrollView extends LinearLayout {
 		super.onLayout(changed, l, t, r, b);
 		Log.d("communicator", "PPPPPP FastScrollView.onLayout()");
 		if (!isNoHangNeeded()) {
+			Log.d("communicator", "PPPPPP FastScrollView.onLayout() : UPDATING SCROLL BAR....");
 			updateScrollBar();
 			if (layoutDoneListener != null) {
 				layoutDoneListener.doneLayout();
@@ -701,7 +702,10 @@ public class FastScrollView extends LinearLayout {
 	 */
 	private void measureHeights() {
 		if (!heightsInvalidate) {
+			Log.d("communicator", "PPPPPP FastScrollView.onLayout()->measureHeights() : SKIPPED");
 			return;
+		} else {
+			Log.d("communicator", "PPPPPP FastScrollView.onLayout()->measureHeights() : MEASURING...");
 		}
 		heightsInvalidate = false;
 		heights.clear();
