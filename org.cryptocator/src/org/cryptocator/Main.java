@@ -237,6 +237,8 @@ public class Main extends Activity {
 		// Refresh current RSA keys from server (in the background if necessary)
 		Communicator.updateKeysFromServer(context, uidList, false, null);
 		Communicator.updatePhonesFromServer(this, uidList, false);
+		// Refresh server attachment limit (if needed)
+		Setup.updateAttachmentServerLimit(context, false);
 
 		// Set the backgrounds
 		Utility.setBackground(this, titlemain, R.drawable.dolphins3blue);
@@ -406,7 +408,8 @@ public class Main extends Activity {
 		// Force check Internet and account login information
 		Communicator.haveNewMessagesAndReceive(context);
 		Communicator.receiveNextMessage(context);
-
+		Setup.updateAttachmentServerLimit(context, true);
+		
 		Utility.showToastAsync(context, "Refreshing....");
 		if (Main.isAlive()) {
 			Main.getInstance().mainBackground.postDelayed(new Runnable() {

@@ -541,9 +541,45 @@ public class Setup extends Activity {
 	/**
 	 * The Constant SMS_FAIL_CNT. Try to send an SMS 5 times before claiming
 	 * failed (ONLY counting unknown errors, NO network errors!). If the network
-	 * is down the sms should wait until it is up again and NOT fail.
+	 * is down the SMS should wait until it is up again and NOT fail.
 	 */
 	public static final int SMS_FAIL_CNT = 3;
+
+	/**
+	 * The Constant SERVER_ATTACHMENT_LIMIT. Must be acquired by the server on
+	 * refresh of userlist or if not set (=-1). A value of 0 means that
+	 * attachments are not allowed for Internet messages and any other values
+	 * limits the size in KB for messages.
+	 */
+	public static final String SERVER_ATTACHMENT_LIMIT = "serverattachmentlimit";
+
+	/**
+	 * The Constant SERVER_ATTACHMENT_LIMIT_DEFAULT tells that we did not yet
+	 * load the server limit.
+	 */
+	public static final int SERVER_ATTACHMENT_LIMIT_DEFAULT = -1;
+
+	/**
+	 * The Constant UPDATE_SERVER_ATTACHMENT_LIMIT_INTERVAL. Update at most
+	 * every 60 minutes.
+	 */
+	public static final int UPDATE_SERVER_ATTACHMENT_LIMIT_MINIMAL_INTERVAL = 60; // Minutes
+
+	/**
+	 * The Constant LASTUPDATE_SERVER_ATTACHMENT_LIMIT. The timestamp when the
+	 * server limit last time
+	 */
+	public static final String LASTUPDATE_SERVER_ATTACHMENT_LIMIT = "lastupdateserverattachmentlimit";
+
+	/**
+	 * The Constant SIZEWARNING_SMS. If this numebr of bytes is passed more than
+	 * 10 multipart SMS need to be send. Before sending such large SMS alert the
+	 * user!
+	 */
+	public static final int SMS_SIZE_WARNING = 1600;
+	
+	/** The standardsmssize. */
+	public static int SMS_DEFAULT_SIZE = 160;	
 
 	// ------------------------------------------------------------------------
 
@@ -4148,10 +4184,10 @@ public class Setup extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	// update if not present, will be deleted on login failure
+	// Update if not present, will be deleted on login failure
 	public static void updateServerkey(final Context context) {
 		if (getServerkeyAsString(context).equals("")) {
-			// no serverkey there, needs to update
+			// No serverkey there, needs to update
 
 			String url = null;
 			url = Setup.getBaseURL(context) + "cmd=serverkey";
@@ -4562,6 +4598,97 @@ public class Setup extends Activity {
 	 */
 	public static boolean isUIDDefined(Context context) {
 		return (Utility.loadStringSetting(context, "uid", "").trim().length() != 0);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Update attachment server limit if more than
+	 * UPDATE_SERVER_ATTACHMENT_LIMIT_MINIMAL_INTERVAL minutes have passed or
+	 * forceUpdate is set.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param forceUpdate
+	 *            the force update
+	 */
+	public static void updateAttachmentServerLimit(final Context context,
+			boolean forceUpdate) {
+		long lastTime = Utility.loadLongSetting(context,
+				Setup.LASTUPDATE_SERVER_ATTACHMENT_LIMIT, 0);
+		final long currentTime = DB.getTimestamp();
+		if (!forceUpdate
+				&& (lastTime
+						+ (Setup.UPDATE_SERVER_ATTACHMENT_LIMIT_MINIMAL_INTERVAL * 1000 * 60) > currentTime)) {
+			// Do not do this more frequently
+			return;
+		}
+
+		String url = null;
+		url = Setup.getBaseURL(context) + "cmd=attachments";
+		final String url2 = url;
+		@SuppressWarnings("unused")
+		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
+				url2, new HttpStringRequest.OnResponseListener() {
+					public void response(String response) {
+						if (Communicator.isResponseValid(response)) {
+							if (Communicator.isResponsePositive(response)) {
+								// Save the attachment limit in KB
+								String content = Communicator
+										.getResponseContent(response);
+								if (content != null) {
+									int limit = Utility.parseInt(content, -1);
+									Utility.saveIntSetting(context,
+											Setup.SERVER_ATTACHMENT_LIMIT,
+											limit);
+									Log.d("communicator",
+											"XXXX SAVED SERVER ATTACHMENT LIMIT KB='"
+													+ content + "'");
+									Utility.saveLongSetting(
+											context,
+											Setup.LASTUPDATE_SERVER_ATTACHMENT_LIMIT,
+											currentTime);
+								}
+							} else {
+								// No attachments allowed
+								Utility.saveIntSetting(context,
+										Setup.SERVER_ATTACHMENT_LIMIT, 0);
+							}
+						}
+					}
+				}));
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the attachment server limit. -1 means that no limit has been set
+	 * (this is also means we do not allow attachments), 0 means that the server
+	 * does not allow attachments at all and any other values is the limit in
+	 * KB.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the attachment server limit
+	 */
+	public static int getAttachmentServerLimit(Context context) {
+		return Utility.loadIntSetting(context, Setup.SERVER_ATTACHMENT_LIMIT,
+				Setup.SERVER_ATTACHMENT_LIMIT_DEFAULT);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Checks if is attachments allowed by server that is if the server has ben
+	 * queried already if he allows and if the server has responded to allow
+	 * more than 0 KB.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return true, if is attachments allowed by server
+	 */
+	public static boolean isAttachmentsAllowedByServer(Context context) {
+		return (getAttachmentServerLimit(context) > 0);
 	}
 
 	// ------------------------------------------------------------------------

@@ -187,20 +187,14 @@ public class ConversationCompose extends Activity {
 				.setOnCutCopyPasteListener(new ImageSmileyEditText.OnCutCopyPasteListener() {
 					public void onPaste() {
 						// If an image or smiley is pasted then do a new layout!
-						int selection = messageText.getSelectionStart();
-						String messageTextBackup = messageText.getText()
-								.toString();
-						messageText.setText(messageTextBackup);
-						if (selection > -1) {
-							messageText.setSelection(selection);
-						}
+						Conversation.reprocessPossibleImagesInText(messageText);
 					}
 
 					public void onCut() {
 					}
 
 					public void onCopy() {
-						
+
 					}
 				});
 
@@ -281,9 +275,9 @@ public class ConversationCompose extends Activity {
 									Utility.smartPaste(messageText,
 											textualSmiley, " ", " ", true,
 											false);
-									if (wasKeyboardVisible) {
-										potentiallyShowKeyboard(context, true);
-									}
+								}
+								if (wasKeyboardVisible) {
+									potentiallyShowKeyboard(context, true);
 								}
 							}
 						});
@@ -605,7 +599,7 @@ public class ConversationCompose extends Activity {
 		if (uid < 0) {
 			// for not registered SMS users we do not prompt but just send an
 			// sms
-			sendMessage(context, DB.TRANSPORT_SMS, false);
+			sendMessageOrPrompt(context, DB.TRANSPORT_SMS, false);
 			return;
 		}
 		// now check if SMS and encryption is available
@@ -685,7 +679,7 @@ public class ConversationCompose extends Activity {
 						internetButtonE
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
-										sendMessage(context,
+										sendMessageOrPrompt(context,
 												DB.TRANSPORT_INTERNET, true);
 										dialog.dismiss();
 									}
@@ -699,7 +693,7 @@ public class ConversationCompose extends Activity {
 						internetButton
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
-										sendMessage(context,
+										sendMessageOrPrompt(context,
 												DB.TRANSPORT_INTERNET, false);
 										dialog.dismiss();
 									}
@@ -713,7 +707,7 @@ public class ConversationCompose extends Activity {
 						smsButtonE
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
-										sendMessage(context, DB.TRANSPORT_SMS,
+										sendMessageOrPrompt(context, DB.TRANSPORT_SMS,
 												true);
 										dialog.dismiss();
 									}
@@ -727,7 +721,7 @@ public class ConversationCompose extends Activity {
 						smsButton
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
-										sendMessage(context, DB.TRANSPORT_SMS,
+										sendMessageOrPrompt(context, DB.TRANSPORT_SMS,
 												false);
 										dialog.dismiss();
 									}
@@ -775,6 +769,71 @@ public class ConversationCompose extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
+	 * Send message or prompt the user if the message is too large for SMS or
+	 * contains too large images for Internet/server limits.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param transport
+	 *            the transport
+	 * @param encrypted
+	 *            the encrypted
+	 * @param promptLargeSMSOrLargeImages
+	 *            the prompt large sms or large images
+	 */
+	private void sendMessageOrPrompt(final Context context,
+			final int transport, final boolean encrypted) {
+		final String messageTextString = messageText.getText().toString()
+				.trim();
+		if (messageTextString.length() > 0) {
+			if (transport == DB.TRANSPORT_INTERNET) {
+				final String messageTextString2 = Conversation
+						.possiblyRemoveImageAttachments(context,
+								messageTextString);
+				if ((messageTextString2.length() != messageTextString.length())) {
+					String title = "WARNING";
+					String text = "This message contains at least one image that exceeded server limits. "
+							+ "It will be removed automatically.\n\nDo you still want to send the message?";
+					new MessageAlertDialog(context, title, text, " Yes ",
+							" No ", " Cancel ",
+							new MessageAlertDialog.OnSelectionListener() {
+								public void selected(int button, boolean cancel) {
+									if (button == MessageAlertDialog.BUTTONOK0) {
+										sendMessage(context, transport,
+												encrypted, messageTextString2);
+									}
+								}
+							}).show();
+					return;
+				}
+			} else {
+				if (messageTextString.length() > Setup.SMS_SIZE_WARNING) {
+					int numSMS = (int) (messageTextString.length() / Setup.SMS_DEFAULT_SIZE);
+					String title = "WARNING";
+					String text = "This is a large message which will need "
+							+ numSMS + " SMS to be sent!\n\nReally send "
+							+ numSMS + " SMS?";
+					new MessageAlertDialog(context, title, text, " Yes ",
+							" No ", " Cancel ",
+							new MessageAlertDialog.OnSelectionListener() {
+								public void selected(int button, boolean cancel) {
+									if (button == MessageAlertDialog.BUTTONOK0) {
+										sendMessage(context, transport,
+												encrypted, messageTextString);
+									}
+								}
+							}).show();
+					return;
+				}
+			}
+			// Message is not too long and not contains too large images
+			sendMessage(context, transport, encrypted, messageTextString);
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
 	 * Send message.
 	 * 
 	 * @param context
@@ -784,59 +843,56 @@ public class ConversationCompose extends Activity {
 	 * @param encrypted
 	 *            the encrypted
 	 */
-	private void sendMessage(Context context, int transport, boolean encrypted) {
-		String messageTextString = messageText.getText().toString();
-		if (messageTextString.trim().length() > 0) {
+	private void sendMessage(final Context context, final int transport,
+			final boolean encrypted, final String messageTextString) {
 
-			// this is the main uid we first try
-			int uid = parsePhoneOrUid(phoneOrUid.getText().toString());
+		// this is the main uid we first try
+		int uid = parsePhoneOrUid(phoneOrUid.getText().toString());
 
-			// Log.d("communicator", "######## sendMessage uid=" + uid);
+		// Log.d("communicator", "######## sendMessage uid=" + uid);
 
-			// if a phone number is entered then take the backup uid
-			if (uid == -1) {
-				String phoneString = phoneOrUid.getText().toString();
-				// Log.d("communicator", "######## sendMessage phoneString="
-				// + phoneString);
-				if (phoneString == null || phoneString.trim().length() == 0) {
-					return;
-				}
-				// try to find user... or create a new one
-				int backupUid = ReceiveSMS.getUidByPhoneOrCreateUser(context,
-						phoneString, true);
-				// Log.d("communicator", "######## sendMessage backupUid="
-				// + backupUid);
-				uid = backupUid;
+		// if a phone number is entered then take the backup uid
+		if (uid == -1) {
+			String phoneString = phoneOrUid.getText().toString();
+			// Log.d("communicator", "######## sendMessage phoneString="
+			// + phoneString);
+			if (phoneString == null || phoneString.trim().length() == 0) {
+				return;
 			}
+			// try to find user... or create a new one
+			int backupUid = ReceiveSMS.getUidByPhoneOrCreateUser(context,
+					phoneString, true);
+			// Log.d("communicator", "######## sendMessage backupUid="
+			// + backupUid);
+			uid = backupUid;
+		}
 
-			String name = Main.UID2Name(context, uid, false);
-			// Log.d("communicator", "######## sendMessage name=" + name);
+		String name = Main.UID2Name(context, uid, false);
+		// Log.d("communicator", "######## sendMessage name=" + name);
 
-			if (uid != -1) {
-				// Log.d("communicator",
-				// "######## sendMessage SENDING NOW... transport="
-				// + transport + ", encrypted=" + encrypted);
-				if (DB.addSendMessage(context, uid, messageTextString,
-						encrypted, transport, false, DB.PRIORITY_MESSAGE)) {
-					Communicator.sendNewNextMessageAsync(context, transport);
-					String encryptedText = "";
-					if (!encrypted) {
-						encryptedText = "unsecure ";
-					}
-					if (transport == DB.TRANSPORT_INTERNET) {
-						Utility.showToastInUIThread(context, "Sending "
-								+ encryptedText + "message to " + name + ".");
-					} else {
-						Utility.showToastInUIThread(context, "Sending "
-								+ encryptedText + "SMS to " + name + ".");
-					}
-					messageText.setText("");
-					phoneOrUid.setText("");
-					Utility.saveStringSetting(context, "cachedraftcompose", "");
-					Utility.saveStringSetting(context,
-							"cachedraftcomposephone", "");
-					finish();
+		if (uid != -1) {
+			// Log.d("communicator",
+			// "######## sendMessage SENDING NOW... transport="
+			// + transport + ", encrypted=" + encrypted);
+			if (DB.addSendMessage(context, uid, messageTextString, encrypted,
+					transport, false, DB.PRIORITY_MESSAGE)) {
+				Communicator.sendNewNextMessageAsync(context, transport);
+				String encryptedText = "";
+				if (!encrypted) {
+					encryptedText = "unsecure ";
 				}
+				if (transport == DB.TRANSPORT_INTERNET) {
+					Utility.showToastInUIThread(context, "Sending "
+							+ encryptedText + "message to " + name + ".");
+				} else {
+					Utility.showToastInUIThread(context, "Sending "
+							+ encryptedText + "SMS to " + name + ".");
+				}
+				messageText.setText("");
+				phoneOrUid.setText("");
+				Utility.saveStringSetting(context, "cachedraftcompose", "");
+				Utility.saveStringSetting(context, "cachedraftcomposephone", "");
+				finish();
 			}
 		}
 	}
