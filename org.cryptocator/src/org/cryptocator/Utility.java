@@ -50,6 +50,7 @@ import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
@@ -722,15 +723,33 @@ public class Utility {
 	// ---------------------------------------------------------------------------
 
 	/**
-	 * Encode.
+	 * Encode for URL.
 	 * 
 	 * @param text
 	 *            the text
 	 * @return the string
 	 */
-	public static String encode(String text) {
+	public static String urlEncode(String text) {
 		try {
 			return URLEncoder.encode(text, "utf-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	// ---------------------------------------------------------------------------
+
+	/**
+	 * decode from URL.
+	 * 
+	 * @param text
+	 *            the text
+	 * @return the string
+	 */
+	public static String urlDecode(String urltext) {
+		try {
+			return URLDecoder.decode(urltext, "utf-8");
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}

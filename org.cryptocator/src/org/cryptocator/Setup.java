@@ -1703,7 +1703,7 @@ public class Setup extends Activity {
 			login.setEnabled(true);
 			return;
 		}
-		uidStringEnc = Utility.encode(uidStringEnc);
+		uidStringEnc = Utility.urlEncode(uidStringEnc);
 		String emailStringEnd = Communicator.encryptServerMessage(context,
 				emailString, serverKey);
 		if (emailStringEnd == null) {
@@ -1711,7 +1711,7 @@ public class Setup extends Activity {
 			login.setEnabled(true);
 			return;
 		}
-		emailStringEnd = Utility.encode(emailStringEnd);
+		emailStringEnd = Utility.urlEncode(emailStringEnd);
 
 		String reseturl = null;
 		String reactivateurl = null;
@@ -1892,7 +1892,7 @@ public class Setup extends Activity {
 			updateuser.setEnabled(true);
 			return;
 		}
-		usernameStringEnc = Utility.encode(usernameStringEnc);
+		usernameStringEnc = Utility.urlEncode(usernameStringEnc);
 
 		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
@@ -1992,7 +1992,7 @@ public class Setup extends Activity {
 			updatepwd.setEnabled(true);
 			return;
 		}
-		pwdChangeStringEnc = Utility.encode(pwdChangeStringEnc);
+		pwdChangeStringEnc = Utility.urlEncode(pwdChangeStringEnc);
 
 		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
@@ -2107,7 +2107,7 @@ public class Setup extends Activity {
 			create.setEnabled(true);
 			return;
 		}
-		emailString = Utility.encode(emailString);
+		emailString = Utility.urlEncode(emailString);
 
 		pwdString = Communicator.encryptServerMessage(context, pwdString,
 				serverKey);
@@ -2116,7 +2116,7 @@ public class Setup extends Activity {
 			create.setEnabled(true);
 			return;
 		}
-		pwdString = Utility.encode(pwdString);
+		pwdString = Utility.urlEncode(pwdString);
 
 		usernameString = Communicator.encryptServerMessage(context,
 				usernameString, serverKey);
@@ -2125,7 +2125,7 @@ public class Setup extends Activity {
 			create.setEnabled(true);
 			return;
 		}
-		usernameString = Utility.encode(usernameString);
+		usernameString = Utility.urlEncode(usernameString);
 
 		String url = null;
 		String reseturl = null;
@@ -2334,7 +2334,7 @@ public class Setup extends Activity {
 		// backup.setEnabled(true);
 		// return;
 		// }
-		String userlistStringEnc = Utility.encode(userlistString);
+		String userlistStringEnc = Utility.urlEncode(userlistString);
 
 		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
@@ -2569,7 +2569,7 @@ public class Setup extends Activity {
 			enablesmsoption.setEnabled(true);
 			return;
 		}
-		phoneStringEnc = Utility.encode(phoneStringEnc);
+		phoneStringEnc = Utility.urlEncode(phoneStringEnc);
 
 		String session = Setup.getTmpLoginEncoded(context);
 		if (session == null) {
@@ -3905,7 +3905,7 @@ public class Setup extends Activity {
 	public static String getTmpLoginEncoded(Context context) {
 		String session = getTmpLogin(context);
 		if (session != null) {
-			return Utility.encode(session);
+			return Utility.urlEncode(session);
 		}
 		return null;
 	}
@@ -4012,9 +4012,9 @@ public class Setup extends Activity {
 				+ encryptedBase64ValString);
 
 		LoginData loginData = new LoginData();
-		loginData.user = Utility.encode(eLoginUser);
-		loginData.password = Utility.encode(eLoginPassword);
-		loginData.val = Utility.encode(encryptedBase64ValString);
+		loginData.user = Utility.urlEncode(eLoginUser);
+		loginData.password = Utility.urlEncode(eLoginPassword);
+		loginData.val = Utility.urlEncode(encryptedBase64ValString);
 
 		return loginData;
 	}

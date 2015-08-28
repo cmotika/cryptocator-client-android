@@ -164,7 +164,7 @@ public class Communicator {
 				+ "cmd=have&session="
 				+ sessionid
 				+ "&val="
-				+ Utility.encode(largestMid + "#"
+				+ Utility.urlEncode(largestMid + "#"
 						+ DB.getLargestTimestampReceived(context) + "#"
 						+ DB.getLargestTimestampRead(context));
 
@@ -1345,11 +1345,28 @@ public class Communicator {
 			// Secret may be not set yet, try again later!
 			return;
 		}
-		url = Setup.getBaseURL(context) + "cmd=send&session=" + session
-				+ "&host=" +encUid + "&val=" + created + "#"
-				+ msgText;
-		// + Utility.encode(created + "#" + msgText);
 
+		Log.d("communicator", "SEND NEXT MESSAGE msgText=" + msgText);
+
+		url = Setup.getBaseURL(context) + "cmd=send&session=" + Utility.urlEncode(session)
+				+ "&host=" +encUid + "&val=" +  Utility.urlEncode(created + "#"
+				+ msgText);
+		
+
+//		
+//		// TEST GET REQUEST JUST TO COMPARE
+//		final String url2222 = Setup.getBaseURL(context) + "cmd=send&session=" + Utility.encode(session)
+//				+ "&host=" + Utility.encode(encUid) + "&val=" + Utility.encode(created + "#" + msgText);
+//		Log.d("communicator", "SEND NEXT MESSAGE2222: " + url2222);
+//		HttpStringRequest httpStringRequest2222 = (new HttpStringRequest(context,
+//				url2222, false, new HttpStringRequest.OnResponseListener() {
+//					public void response(String response) {
+//						Log.d("communicator",
+//								"SEND NEXT MESSAGE2222 OK!!! " + response);
+//					}
+//		}));
+		
+		
 		Log.d("communicator", "SEND NEXT MESSAGE: " + url);
 		final String url2 = url;
 		@SuppressWarnings("unused")
@@ -1621,7 +1638,7 @@ public class Communicator {
 
 		String url = null;
 		url = Setup.getBaseURL(context) + "cmd=sendkey&session=" + session
-				+ "&val=" + Utility.encode(key);
+				+ "&val=" + Utility.urlEncode(key);
 
 		Log.d("communicator", "###### SEND KEY TO SERVER " + url);
 		final String url2 = url;
@@ -1758,7 +1775,7 @@ public class Communicator {
 
 		String url = null;
 		url = Setup.getBaseURL(context) + "cmd=haskey&session=" + session
-				+ "&val=" + Utility.encode(uidliststring);
+				+ "&val=" + Utility.urlEncode(uidliststring);
 
 		Log.d("communicator", "###### REQUEST HAS KEY " + url);
 		final String url2 = url;
@@ -1893,7 +1910,7 @@ public class Communicator {
 
 		String url = null;
 		url = Setup.getBaseURL(context) + "cmd=hasphone&session=" + session
-				+ "&val=" + Utility.encode(uidliststring);
+				+ "&val=" + Utility.urlEncode(uidliststring);
 
 		Log.d("communicator", "###### REQUEST HAS PHONE (" + uidliststring
 				+ ") " + url);

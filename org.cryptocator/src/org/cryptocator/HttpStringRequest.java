@@ -266,7 +266,7 @@ public class HttpStringRequest {
 						if (nameAndValue.contains("=")) {
 							String[] values = nameAndValue.split("=");
 							String name = values[0];
-							String value = values[1];
+							String value = Utility.urlDecode(values[1]);
 							Log.d("communicator", "POST REQUEST: PAIR[" + i
 									+ "] name=" + name + ", val=" + value);
 							nameValuePairs.add(new BasicNameValuePair(name,
