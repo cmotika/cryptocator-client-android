@@ -100,6 +100,7 @@ import android.provider.MediaStore.Images;
 import android.provider.Settings.Secure;
 import android.telephony.TelephonyManager;
 import android.util.Base64;
+import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -2025,45 +2026,45 @@ public class Utility {
 		int newWidth = bitmapWidth;
 		int newHeight = bitmapHeight;
 
-		// Log.d("communicator", "RESIZE: maxWidth=" + maxWidth + ", maxHeight="
-		// + maxHeight);
-		// Log.d("communicator", "RESIZE: bmpW=" + bitmapWidth + ", bmpH="
-		// + bitmapHeight);
+		Log.d("communicator", "RESIZE: maxWidth=" + maxWidth + ", maxHeight="
+				+ maxHeight);
+		Log.d("communicator", "RESIZE: bmpW=" + bitmapWidth + ", bmpH="
+				+ bitmapHeight);
 
 		if (bitmapWidth > bitmapHeight) {
 			// Log.d("communicator", "RESIZE Landscape: bitmapWidth="
 			// + bitmapWidth + " >? " + maxWidth + "=maxWidth");
 			// Landscape
-			if (bitmapWidth > maxWidth) {
-				float scale = ((float) bitmapWidth) / ((float) maxWidth);
-				// Log.d("communicator", "RESIZE: (1) scale=" + scale);
-				newWidth = maxWidth;
-				newHeight = (int) ((float) bitmapHeight / scale);
-			} else if (bitmapHeight > maxHeight) {
-				float scale = ((float) bitmapHeight) / ((float) maxHeight);
-				// Log.d("communicator", "RESIZE: (2) scale=" + scale);
-				newHeight = maxHeight;
-				newWidth = (int) ((float) bitmapWidth / scale);
-			}
+			// if (bitmapWidth > maxWidth) {
+			float scale = ((float) bitmapWidth) / ((float) maxWidth);
+			// Log.d("communicator", "RESIZE: (1) scale=" + scale);
+			newWidth = maxWidth;
+			newHeight = (int) ((float) bitmapHeight / scale);
+			// } else if (bitmapHeight > maxHeight) {
+			// float scale = ((float) bitmapHeight) / ((float) maxHeight);
+			// // Log.d("communicator", "RESIZE: (2) scale=" + scale);
+			// newHeight = maxHeight;
+			// newWidth = (int) ((float) bitmapWidth / scale);
+			// }
 
 		} else {
 			// Log.d("communicator", "RESIZE Portrait: bitmapHeight="
 			// + bitmapHeight + " >? " + maxHeight + "=maxHeight");
 			// Portrait
-			if (bitmapHeight > maxHeight) {
-				float scale = ((float) bitmapHeight) / ((float) maxHeight);
-				// Log.d("communicator", "RESIZE: (3) scale=" + scale);
-				newHeight = maxHeight;
-				newWidth = (int) ((float) bitmapWidth / scale);
-			} else if (bitmapWidth > maxWidth) {
-				float scale = ((float) bitmapWidth) / ((float) maxWidth);
-				// Log.d("communicator", "RESIZE: (4) scale=" + scale);
-				newWidth = maxWidth;
-				newHeight = (int) ((float) bitmapHeight / scale);
-			}
+			// if (bitmapHeight > maxHeight) {
+			float scale = ((float) bitmapHeight) / ((float) maxHeight);
+			// Log.d("communicator", "RESIZE: (3) scale=" + scale);
+			newHeight = maxHeight;
+			newWidth = (int) ((float) bitmapWidth / scale);
+			// } else if (bitmapWidth > maxWidth) {
+			// float scale = ((float) bitmapWidth) / ((float) maxWidth);
+			// // Log.d("communicator", "RESIZE: (4) scale=" + scale);
+			// newWidth = maxWidth;
+			// newHeight = (int) ((float) bitmapHeight / scale);
+			// }
 		}
-		// Log.d("communicator", "RESIZE RESULT: newWidth=" + newWidth + ", "
-		// + newHeight + "=newHeight");
+		Log.d("communicator", "RESIZE RESULT: newWidth=" + newWidth + ", "
+				+ newHeight + "=newHeight");
 		Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, newWidth,
 				newHeight, true);
 		if (deleteSource) {
@@ -2094,7 +2095,7 @@ public class Utility {
 	 */
 	public static void smartPaste(EditText editText, String pasteText,
 			String ensureBefore, String ensureAfter, boolean jumpToEnd,
-			boolean selectAfterPaste) {
+			boolean selectAfterPaste, boolean ensureBeforeOnlyIfNotBeginning) {
 		// messageText.getText().append(textualSmiley);
 		// if text was selected replace the text
 		int i = editText.getSelectionStart();
@@ -2103,14 +2104,18 @@ public class Utility {
 		if (i < 0) {
 			// default fallback is concatenation
 			if (!prevText.endsWith(ensureBefore)) {
-				prevText = prevText.concat(ensureBefore);
+				if (!ensureBeforeOnlyIfNotBeginning || prevText.length() > 0) {
+					prevText = prevText.concat(ensureBefore);
+				}
 			}
 			editText.setText(prevText + pasteText + ensureAfter);
 		} else {
 			// otherwise try to fill in the text
 			String text1 = prevText.substring(0, i);
 			if (!text1.endsWith(ensureBefore)) {
-				text1 = text1.concat(ensureBefore);
+				if (!ensureBeforeOnlyIfNotBeginning || prevText.length() > 0) {
+					text1 = text1.concat(ensureBefore);
+				}
 			}
 			if (e < 0) {
 				e = i;
@@ -2262,6 +2267,21 @@ public class Utility {
 	public static boolean isCameraAvailable(Context context) {
 		PackageManager packageManager = context.getPackageManager();
 		return (packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA));
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the length in KB with one decimal after comma.
+	 * 
+	 * @param lengthInBytes
+	 *            the length in bytes
+	 * @return the kb
+	 */
+	public static String getKB(int lengthInBytes) {
+		int lenKB = (int) Math.ceil(((double) lengthInBytes) / 100);
+		float lenKB2 = ((float)lenKB) / 10;
+		return lenKB2 + "";
 	}
 
 	// -------------------------------------------------------------------------

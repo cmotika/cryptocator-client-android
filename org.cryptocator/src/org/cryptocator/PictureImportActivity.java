@@ -156,7 +156,13 @@ public class PictureImportActivity extends Activity {
 	private static OnPictureImportListener onPictureImportListener = null;
 
 	/** The alert color if attachment size is too large for Internet message. */
-	private static int BACKALERTCOLOR = Color.parseColor("#AAFF0000");
+	private static int BACKALERTOKCOLOR = Color.parseColor("#8800FF00");
+
+	/** The alert color if attachment size is too large for Internet message. */
+	private static int BACKALERTWARN1COLOR = Color.parseColor("#88FFFF00");
+
+	/** The alert color if attachment size is too large for Internet message. */
+	private static int BACKALERTWARN2COLOR = Color.parseColor("#88FF0000");
 
 	// ------------------------------------------------------------------------
 
@@ -447,17 +453,18 @@ public class PictureImportActivity extends Activity {
 		int len = result.length();
 		int sms = len / Setup.SMS_DEFAULT_SIZE;
 
-		int lenKB = len / 100;
-		float lenKB2 = lenKB / 10;
+		int lenKB = len / 1000;
+		String lenKB2 = Utility.getKB(len);
 
 		if (result != null) {
 			result = "[img " + result + "]";
-			// reprocessPossibleImagesInText(messageText);
 		}
 		String displayText = "Your image will spend " + lenKB2 + " KB \n("
 				+ sms + " SMS).";
+		sizetextback.setBackgroundColor(BACKALERTOKCOLOR);
 
 		if (sms > (Setup.SMS_SIZE_WARNING / Setup.SMS_DEFAULT_SIZE)) {
+			sizetextback.setBackgroundColor(BACKALERTWARN1COLOR);
 			// This attachment image will produce more SMS than the current
 			// warning limit, so also warn here!
 			displayText += "\n\nYour image will be large and should not be sent via SMS!";
@@ -465,18 +472,15 @@ public class PictureImportActivity extends Activity {
 
 		int limit = Setup.getAttachmentServerLimit(context);
 		if (limit == 0) {
-			sizetextback.setBackgroundColor(BACKALERTCOLOR);
+			sizetextback.setBackgroundColor(BACKALERTWARN2COLOR);
 			displayText += "\n\nATTENTION: The server does not allow any attachments. This image will get removed when sent as Internet message.";
 		}
 		else if (lenKB > limit) {
-			sizetextback.setBackgroundColor(BACKALERTCOLOR);
+			sizetextback.setBackgroundColor(BACKALERTWARN2COLOR);
 			displayText += "\n\nATTENTION: The server permits only attachments up to "
 					+ limit
 					+ " KB. This image is too large and will get removed when sent as Internet message.";
-		} else {
-			sizetextback.setBackgroundColor(BACKTRANSPARENTCOLOR);
 		}
-
 		sizetext.setText(displayText);
 	}
 
@@ -489,12 +493,12 @@ public class PictureImportActivity extends Activity {
 	 *            the rating
 	 */
 	private void updateQuality(float rating) {
-		final int QUALITY0 = 5; // 5%
-		final int QUALITY1 = 10; // 5%
-		final int QUALITY2 = 20; // 5%
-		final int QUALITY3 = 50; // 5%
-		final int QUALITY4 = 70; // 5%
-		final int QUALITY5 = 100; // 5%
+		final int QUALITY0 = 5; 
+		final int QUALITY1 = 10; 
+		final int QUALITY2 = 20; 
+		final int QUALITY3 = 40; 
+		final int QUALITY4 = 60; 
+		final int QUALITY5 = 80; 
 
 		if (rating <= 1) {
 			selectedQuality = QUALITY0;

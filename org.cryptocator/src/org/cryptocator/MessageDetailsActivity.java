@@ -46,6 +46,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 /**
@@ -132,12 +133,19 @@ public class MessageDetailsActivity extends Activity {
 				.findViewById(R.id.transport);
 		TextView encrypted = (TextView) dialogLayout
 				.findViewById(R.id.encrypted);
+		TextView size = (TextView) dialogLayout.findViewById(R.id.size);
 
 		TextView keycreated = (TextView) dialogLayout
 				.findViewById(R.id.keycreated);
 		TextView keyexpires = (TextView) dialogLayout
 				.findViewById(R.id.keyexpires);
 		TextView keyhash = (TextView) dialogLayout.findViewById(R.id.keyhash);
+		TableRow keycreatedrow = (TableRow) dialogLayout
+				.findViewById(R.id.keycreatedrow);
+		TableRow keyexpiresrow = (TableRow) dialogLayout
+				.findViewById(R.id.keyexpiresrow);
+		TableRow keyhashrow = (TableRow) dialogLayout
+				.findViewById(R.id.keyhashrow);
 
 		// Get updated information about this conversation item
 		final ConversationItem updatedItem = DB.getMessage(context,
@@ -177,8 +185,12 @@ public class MessageDetailsActivity extends Activity {
 
 		if (updatedItem.transport == DB.TRANSPORT_INTERNET) {
 			transport.setText("Internet");
+			size.setText(Utility.getKB(updatedItem.text.length()) + " KB");
 		} else {
 			transport.setText("SMS");
+			size.setText(((int) (Math.ceil(((double) updatedItem.text.length())
+					/ ((double) Setup.SMS_DEFAULT_SIZE))))
+					+ " SMS");
 		}
 		if (updatedItem.encrypted) {
 			encrypted.setText("Yes");
@@ -197,6 +209,16 @@ public class MessageDetailsActivity extends Activity {
 		keyexpires.setText(DB.getDateString(keyOutdatedTS, true));
 		String keyhashstring = Setup.getAESKeyHash(context, hostUid);
 		keyhash.setText(keyhashstring + " (current)");
+
+		if (hostUid < 0) {
+			// SMS user only - hide key info, there cannot be any key!
+			keycreatedrow.setVisibility(View.GONE);
+			keyexpiresrow.setVisibility(View.GONE);
+			keyhashrow.setVisibility(View.GONE);
+			// Cheat here with the "\n" ... some extra space because for SMS
+			// users we do not show the key section!
+			size.setText(size.getText().toString() + "\n");
+		}
 
 		if (updatedItem.transport == DB.TRANSPORT_INTERNET) {
 			builder.setIcon(R.drawable.msginfo);
@@ -344,16 +366,16 @@ public class MessageDetailsActivity extends Activity {
 		if (mid == -1) {
 			titleMessage = "Withdraw Message *" + localid;
 		}
-		String textMessage = "Attention! Withdrawing a message should be used with" +
-				" precaution.\n\nA withdrawn message is deleted from server. There"
-				+ " is no guarantee that it is deleted from other devices that may " +
-				"already have received the message. All devices that connect to the " +
-				"server are advised to"
-				+ " delete the message. Anyhow, this message may already have been " +
-				"read by the recipient. Furthermore, withdrawing will cancel new " +
-				"message notifications of the recipient. You should proceed only " +
-				"if there is no alternative!\n\nDo you really want to withdraw" +
-				" the message?";
+		String textMessage = "Attention! Withdrawing a message should be used with"
+				+ " precaution.\n\nA withdrawn message is deleted from server. There"
+				+ " is no guarantee that it is deleted from other devices that may "
+				+ "already have received the message. All devices that connect to the "
+				+ "server are advised to"
+				+ " delete the message. Anyhow, this message may already have been "
+				+ "read by the recipient. Furthermore, withdrawing will cancel new "
+				+ "message notifications of the recipient. You should proceed only "
+				+ "if there is no alternative!\n\nDo you really want to withdraw"
+				+ " the message?";
 		new MessageAlertDialog(context, titleMessage, textMessage,
 				" Withdraw ", " Cancel ", null,
 				new MessageAlertDialog.OnSelectionListener() {
