@@ -1916,8 +1916,14 @@ public class Utility {
 				} catch (Exception e) {
 					// Fallback
 					e.printStackTrace();
-					bitmap = BitmapFactory.decodeByteArray(bytes, 0,
-							bytes.length);
+					try {
+						bitmap = BitmapFactory.decodeByteArray(bytes, 0,
+								bytes.length);
+					} catch (Exception e2) {
+						// fail slient
+						e2.printStackTrace();
+						return null;
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -2229,15 +2235,16 @@ public class Utility {
 
 	/**
 	 * Checks if a is camera available on the current device.
-	 *
-	 * @param context the context
+	 * 
+	 * @param context
+	 *            the context
 	 * @return true, if is camera available
 	 */
 	public static boolean isCameraAvailable(Context context) {
 		PackageManager packageManager = context.getPackageManager();
 		return (packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA));
 	}
-	
+
 	// -------------------------------------------------------------------------
 
 }
