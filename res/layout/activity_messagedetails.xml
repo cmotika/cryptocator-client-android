@@ -7,15 +7,15 @@
 
     <ScrollView
         android:id="@+id/messagedetailscrollview"
-        android:layout_weight="0.8"
         android:layout_width="match_parent"
-        android:layout_height="fill_parent" >
+        android:layout_height="fill_parent"
+        android:layout_weight="0.8" >
 
         <LinearLayout
             android:id="@+id/messagedetailsmain"
             android:layout_width="fill_parent"
-            android:clickable="true"
             android:layout_height="wrap_content"
+            android:clickable="true"
             android:orientation="vertical" >
 
             <TableLayout
@@ -24,9 +24,9 @@
                 android:layout_height="fill_parent" >
 
                 <TableRow
-                    android:layout_marginTop="20px"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="20px"
                     android:padding="0dip" >
 
                     <TextView
@@ -54,10 +54,11 @@
                         android:textSize="16sp" >
                     </TextView>
                 </TableRow>
+
                 <TableRow
-                    android:layout_marginTop="0px"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="0px"
                     android:padding="0dip" >
 
                     <TextView
@@ -85,6 +86,7 @@
                         android:textSize="12sp" >
                     </TextView>
                 </TableRow>
+
                 <TableRow
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -98,7 +100,6 @@
                         android:layout_marginLeft="20px"
                         android:layout_marginRight="5px"
                         android:layout_marginTop="0px"
-                        
                         android:gravity="right"
                         android:text="To:"
                         android:textSize="16sp" >
@@ -112,11 +113,11 @@
                         android:layout_marginLeft="5px"
                         android:layout_marginRight="20px"
                         android:layout_marginTop="0px"
-                        
                         android:text="delphino [ 3 ]"
                         android:textSize="16sp" >
                     </TextView>
                 </TableRow>
+
                 <TableRow
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -130,7 +131,6 @@
                         android:layout_marginLeft="20px"
                         android:layout_marginRight="5px"
                         android:layout_marginTop="0px"
-                        
                         android:gravity="right"
                         android:text=""
                         android:textSize="16sp" >
@@ -144,17 +144,15 @@
                         android:layout_marginLeft="5px"
                         android:layout_marginRight="20px"
                         android:layout_marginTop="0px"
-                        
                         android:text="Account Key: "
                         android:textSize="12sp" >
                     </TextView>
                 </TableRow>
-                
-                
-                                <TableRow
-                    android:layout_marginTop="20px"
+
+                <TableRow
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="20px"
                     android:padding="0dip" >
 
                     <TextView
@@ -165,9 +163,9 @@
                         android:layout_marginLeft="20px"
                         android:layout_marginRight="5px"
                         android:layout_marginTop="0px"
-                        android:textColor="#FFFFFFFF"
                         android:gravity="right"
                         android:text="Created:"
+                        android:textColor="#FFFFFFFF"
                         android:textSize="16sp" >
                     </TextView>
 
@@ -179,18 +177,16 @@
                         android:layout_marginLeft="5px"
                         android:layout_marginRight="20px"
                         android:layout_marginTop="0px"
-                        android:textColor="#FFFFFFFF"
-                        
                         android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
                         android:textSize="16sp" >
                     </TextView>
                 </TableRow>
-                
-                                
-                                                                                                <TableRow
-                    android:layout_marginTop="0px"
+
+                <TableRow
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="0px"
                     android:padding="0dip" >
 
                     <TextView
@@ -201,10 +197,9 @@
                         android:layout_marginLeft="20px"
                         android:layout_marginRight="5px"
                         android:layout_marginTop="0px"
-                                                android:textColor="#FFFFFFFF"
-                        
                         android:gravity="right"
                         android:text="Sent:"
+                        android:textColor="#FFFFFFFF"
                         android:textSize="16sp" >
                     </TextView>
 
@@ -216,18 +211,16 @@
                         android:layout_marginLeft="5px"
                         android:layout_marginRight="20px"
                         android:layout_marginTop="0px"
-                                                android:textColor="#FFFFFFFF"
-                        
                         android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
                         android:textSize="16sp" >
                     </TextView>
-                </TableRow>                
-                                
-                                
-                                                                <TableRow
-                    android:layout_marginTop="0px"
+                </TableRow>
+
+                <TableRow
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="0px"
                     android:padding="0dip" >
 
                     <TextView
@@ -238,10 +231,9 @@
                         android:layout_marginLeft="20px"
                         android:layout_marginRight="5px"
                         android:layout_marginTop="0px"
-                                                android:textColor="#FFFFFFFF"
-                        
                         android:gravity="right"
                         android:text="Received:"
+                        android:textColor="#FFFFFFFF"
                         android:textSize="16sp" >
                     </TextView>
 
@@ -252,17 +244,17 @@
                         android:layout_marginBottom="1px"
                         android:layout_marginLeft="5px"
                         android:layout_marginRight="20px"
-                        android:layout_marginTop="0px"                        android:textColor="#FFFFFFFF"
-                        
-                        
+                        android:layout_marginTop="0px"
                         android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
                         android:textSize="16sp" >
                     </TextView>
-                </TableRow>                
-                                                                <TableRow
-                    android:layout_marginTop="0px"
+                </TableRow>
+
+                <TableRow
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="0px"
                     android:padding="0dip" >
 
                     <TextView
@@ -273,10 +265,9 @@
                         android:layout_marginLeft="20px"
                         android:layout_marginRight="5px"
                         android:layout_marginTop="0px"
-                                                android:textColor="#FFFFFFFF"
-                        
                         android:gravity="right"
                         android:text="Read:"
+                        android:textColor="#FFFFFFFF"
                         android:textSize="16sp" >
                     </TextView>
 
@@ -288,17 +279,17 @@
                         android:layout_marginLeft="5px"
                         android:layout_marginRight="20px"
                         android:layout_marginTop="0px"
-                                                android:textColor="#FFFFFFFF"
-                        
                         android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
                         android:textSize="16sp" >
                     </TextView>
-                </TableRow>                
-                                                                                                <TableRow
-                        android:id="@+id/withdrawnrow"
-                    android:layout_marginTop="0px"
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/withdrawnrow"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="0px"
                     android:padding="0dip" >
 
                     <TextView
@@ -309,10 +300,9 @@
                         android:layout_marginLeft="20px"
                         android:layout_marginRight="5px"
                         android:layout_marginTop="0px"
-                                                android:textColor="#FFFFFFFF"
-                        
                         android:gravity="right"
                         android:text="Withdrawn:"
+                        android:textColor="#FFFFFFFF"
                         android:textSize="16sp" >
                     </TextView>
 
@@ -324,21 +314,16 @@
                         android:layout_marginLeft="5px"
                         android:layout_marginRight="20px"
                         android:layout_marginTop="0px"
-                                                android:textColor="#FFFFFFFF"
-                        
                         android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
                         android:textSize="16sp" >
                     </TextView>
-                </TableRow>                
-                                           
-                                                                                                
-                                                                                                
-                                                                                                
-                                                                                                
-                                                                                                                                <TableRow
-                    android:layout_marginTop="20px"
+                </TableRow>
+
+                <TableRow
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="20px"
                     android:padding="0dip" >
 
                     <TextView
@@ -349,10 +334,9 @@
                         android:layout_marginLeft="20px"
                         android:layout_marginRight="5px"
                         android:layout_marginTop="0px"
-                                                                        android:textColor="#FFFFFFFF"
-                        
                         android:gravity="right"
                         android:text="Transport:"
+                        android:textColor="#FFFFFFFF"
                         android:textSize="16sp" >
                     </TextView>
 
@@ -364,16 +348,16 @@
                         android:layout_marginLeft="5px"
                         android:layout_marginRight="20px"
                         android:layout_marginTop="0px"
-                                                                        android:textColor="#FFFFFFFF"
-                        
                         android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
                         android:textSize="16sp" >
                     </TextView>
-                </TableRow>                
-                                <TableRow
-                    android:layout_marginTop="0px"
+                </TableRow>
+
+                <TableRow
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="0px"
                     android:padding="0dip" >
 
                     <TextView
@@ -384,10 +368,9 @@
                         android:layout_marginLeft="20px"
                         android:layout_marginRight="5px"
                         android:layout_marginTop="0px"
-                                                                        android:textColor="#FFFFFFFF"
-                        
                         android:gravity="right"
                         android:text="Encrypted:"
+                        android:textColor="#FFFFFFFF"
                         android:textSize="16sp" >
                     </TextView>
 
@@ -399,23 +382,18 @@
                         android:layout_marginLeft="5px"
                         android:layout_marginRight="20px"
                         android:layout_marginTop="0px"
-                                                                        android:textColor="#FFFFFFFF"
-                        
                         android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
                         android:textSize="16sp" >
                     </TextView>
-                </TableRow>          
-                
-                                
-                                
-                    
-                                                                   <TableRow
-                    android:layout_marginTop="20px"
+                </TableRow>
+
+                <TableRow
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="0px"
                     android:padding="0dip" >
-                    
-                    
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -424,7 +402,41 @@
                         android:layout_marginLeft="20px"
                         android:layout_marginRight="5px"
                         android:layout_marginTop="0px"
-                        
+                        android:gravity="right"
+                        android:text="Size:"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/size"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/keyhashrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="20px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
                         android:gravity="right"
                         android:text="Session Key:"
                         android:textSize="16sp" >
@@ -438,12 +450,13 @@
                         android:layout_marginLeft="5px"
                         android:layout_marginRight="20px"
                         android:layout_marginTop="0px"
-                        
                         android:text="delphino [ 3 ]"
                         android:textSize="16sp" >
                     </TextView>
-                </TableRow>                                                                                                    
+                </TableRow>
+
                 <TableRow
+                    android:id="@+id/keycreatedrow"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="0dip" >
@@ -456,7 +469,6 @@
                         android:layout_marginLeft="20px"
                         android:layout_marginRight="5px"
                         android:layout_marginTop="0px"
-                        
                         android:gravity="right"
                         android:text="Key Created:"
                         android:textSize="16sp" >
@@ -470,19 +482,18 @@
                         android:layout_marginLeft="5px"
                         android:layout_marginRight="20px"
                         android:layout_marginTop="0px"
-                        
                         android:text="delphino [ 3 ]"
                         android:textSize="16sp" >
                     </TextView>
-                </TableRow>                                          
-                               <TableRow
-                    android:layout_marginTop="0px"
-                    android:layout_marginBottom="20px"
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/keyexpiresrow"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginTop="0px"
                     android:padding="0dip" >
-
-
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -492,7 +503,6 @@
                         android:layout_marginLeft="20px"
                         android:layout_marginRight="5px"
                         android:layout_marginTop="0px"
-                        
                         android:gravity="right"
                         android:text="Key Expires:"
                         android:textSize="16sp" >
@@ -506,52 +516,45 @@
                         android:layout_marginLeft="5px"
                         android:layout_marginRight="20px"
                         android:layout_marginTop="0px"
-                        
                         android:text="delphino [ 3 ]"
                         android:textSize="16sp" >
                     </TextView>
-                </TableRow>                                                                                                    
-                
-                
-                
+                </TableRow>
             </TableLayout>
         </LinearLayout>
     </ScrollView>
 
-        <LinearLayout
-            android:id="@+id/messagedetailsbuttons"
-            android:layout_width="fill_parent"
-            android:layout_height="60sp"
-            android:layout_gravity="center_horizontal"
-            android:gravity="center_vertical|center_horizontal"
-            android:orientation="horizontal" >
-        
+    <LinearLayout
+        android:id="@+id/messagedetailsbuttons"
+        android:layout_width="fill_parent"
+        android:layout_height="60sp"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_vertical|center_horizontal"
+        android:orientation="horizontal" >
 
-                                                           <Button
-                                       android:id="@+id/buttonresend"
-                                       android:layout_width="wrap_content"
-                                       android:layout_height="wrap_content"
-                                       android:text="Resend" />
-                                                           
-                                               <Button
-                                       android:id="@+id/buttonwithdraw"
-                                       android:layout_width="wrap_content"
-                                       android:layout_height="wrap_content"
-                                       android:text="Withdraw" />
-                                               
-                                                                                  <Button
-                                       android:id="@+id/buttoncopy"
-                                       android:layout_width="wrap_content"
-                                       android:layout_height="wrap_content"
-                                       android:text=" Copy " />
+        <Button
+            android:id="@+id/buttonresend"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Resend" />
 
-                                                                                                                                                                    <Button
-                                       android:id="@+id/buttonrespond"
-                                       android:layout_width="wrap_content"
-                                       android:layout_height="wrap_content"
-                                       android:text="Respond" />
- 
-        </LinearLayout>
-    
-    
+        <Button
+            android:id="@+id/buttonwithdraw"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Withdraw" />
+
+        <Button
+            android:id="@+id/buttoncopy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" Copy " />
+
+        <Button
+            android:id="@+id/buttonrespond"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Respond" />
+    </LinearLayout>
+
 </LinearLayout>

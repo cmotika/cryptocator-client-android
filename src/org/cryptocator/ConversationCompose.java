@@ -113,7 +113,7 @@ public class ConversationCompose extends Activity {
 	/** The list of recipients. */
 	FastScrollView toList = null;
 
-	/** The additions visible flag tells if, e.g., smilie button is visible. */
+	/** The additions visible flag tells if, e.g., smiley button is visible. */
 	private static boolean additionsVisible = false;
 
 	/** The last orientation landscape. */
@@ -274,7 +274,7 @@ public class ConversationCompose extends Activity {
 								if (textualSmiley != null) {
 									Utility.smartPaste(messageText,
 											textualSmiley, " ", " ", true,
-											false);
+											false, true);
 								}
 								if (wasKeyboardVisible) {
 									potentiallyShowKeyboard(context, true);
@@ -426,13 +426,8 @@ public class ConversationCompose extends Activity {
 					}
 				});
 
-		// Force overflow buttons
-		Utility.forceOverflowMenuButtons(this);
-		// updateMenu(this);
 		parseAndMarkUserRadio(phoneOrUid.getText().toString(), 1000);
-
 		updateSendButtonImage(context);
-
 	}
 
 	// -------------------------------------------------------------------------
@@ -707,8 +702,8 @@ public class ConversationCompose extends Activity {
 						smsButtonE
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
-										sendMessageOrPrompt(context, DB.TRANSPORT_SMS,
-												true);
+										sendMessageOrPrompt(context,
+												DB.TRANSPORT_SMS, true);
 										dialog.dismiss();
 									}
 								});
@@ -721,8 +716,8 @@ public class ConversationCompose extends Activity {
 						smsButton
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
-										sendMessageOrPrompt(context, DB.TRANSPORT_SMS,
-												false);
+										sendMessageOrPrompt(context,
+												DB.TRANSPORT_SMS, false);
 										dialog.dismiss();
 									}
 								});

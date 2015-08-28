@@ -169,7 +169,7 @@ public class Conversation extends Activity {
 	 * The color of the fast scroll background when scrolling and not scroll
 	 * locked down.
 	 */
-	final int FASTSCROLLBACKSCROLLINGBACKGROUND = Color.parseColor("#55555555");
+	final int FASTSCROLLBACKSCROLLINGBACKGROUND = Color.parseColor("#44000000");
 
 	/**
 	 * The color of the fast scroll background when scroll locked down.
@@ -373,9 +373,11 @@ public class Conversation extends Activity {
 								if (textualSmiley != null) {
 									Utility.smartPaste(messageText,
 											textualSmiley, " ", " ", true,
-											false);
+											false, true);
 								}
 								if (wasKeyboardVisible) {
+									Log.d("communicator",
+											"@@@@ smileybutton->scrollDownNow()");
 									scrollDownNow(context, true);
 								}
 							}
@@ -472,12 +474,12 @@ public class Conversation extends Activity {
 						// + fastScrollView.heights.size() + ", " +
 						// fastScrollView.heightsSum);
 
-						if (percent >= 98) {
+						if (percent >= 99) {
 							scrolledDown = true;
 							scrolledUp = false;
 							fastScrollView
 									.setScrollBackground(FASTSCROLLBACKLOCKEDBACKGROUND);
-						} else if (percent <= 2) {
+						} else if (percent <= 1) {
 							showTitlebarAsync(context);
 							scrolledUp = true;
 							scrolledDown = false;
@@ -536,7 +538,7 @@ public class Conversation extends Activity {
 						// Log.d("communicator", "######## SCROLL CHANGED X");
 						// if the keyboard pops up and scrolledDown == true,
 						// then scroll down manually!
-						scollDownAfterTypingFast(false);
+						scrollDownAfterTypingFast(false);
 					}
 				});
 
@@ -604,17 +606,11 @@ public class Conversation extends Activity {
 						// if the keyboard pops up and scrolledDown == true,
 						// then scroll down manually!
 						// do not do this delayed because orientation changed!
-						scrollDownNow(context, showKeyboard);
+						if (scrolledDown) {
+							scrollDownNow(context, showKeyboard);
+						}
 					}
 				});
-
-		// // setMessageTextFocus();
-		// resetFastScrollBar();
-
-		// Force overfloebuttons
-		Utility.forceOverflowMenuButtons(this);
-		// updateMenu(this);
-
 	}
 
 	// ------------------------------------------------------------------------
@@ -776,7 +772,8 @@ public class Conversation extends Activity {
 						}
 					} else if (option.equals(OPTIONSECMSG)) {
 						if (Setup.haveKey(context, hostUid)) {
-							sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET, true);
+							sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET,
+									true);
 						} else {
 							promptInfo(
 									context,
@@ -785,7 +782,8 @@ public class Conversation extends Activity {
 
 						}
 					} else if (option.equals(OPTIONUSECMSG)) {
-						sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET, false);
+						sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET,
+								false);
 					} else if (option.equals(OPTIONUSECSMS)) {
 						sendMessageOrPrompt(context, DB.TRANSPORT_SMS, false);
 					}
@@ -1481,14 +1479,14 @@ public class Conversation extends Activity {
 	 * @param keyboardVisible
 	 *            the keyboard visible
 	 */
-	private void foceScrollDown(boolean keyboardVisible) {
+	private void foceScrollDown(boolean keyboardVisible, int delay) {
 		Log.d("communicator", "@@@@ foceScrollDown(alsoSetTextFocus? "
 				+ keyboardVisible + ")");
 		fastScrollView.postDelayed(new Runnable() {
 			public void run() {
 				fastScrollView.scrollDown();
 			}
-		}, 100);
+		}, 100 + delay);
 
 		Log.d("communicator", "@@@@ foceScrollDown() -> keyboardVisible="
 				+ keyboardVisible);
@@ -1507,7 +1505,7 @@ public class Conversation extends Activity {
 					Utility.showKeyboardExplicit(messageText);
 					messageText.requestFocus();
 				}
-			}, 200);
+			}, 200 + delay);
 		}
 	}
 
@@ -1527,7 +1525,7 @@ public class Conversation extends Activity {
 	 * @param showKeyboard
 	 *            the show keyboard
 	 */
-	private void scollDownAfterTypingFast(boolean showKeyboard) {
+	private void scrollDownAfterTypingFast(boolean showKeyboard) {
 		if (!scrolledDown && hasScrolled) {
 			Log.d("communicator",
 					"@@@@ scollDownAfterTypingFast() => return (scrolledDown="
@@ -1569,7 +1567,7 @@ public class Conversation extends Activity {
 					isKeyboardVisible(conversationRootView);
 					if (!isTypingFast()) {
 						// here we scroll if not already scrolled down!
-						foceScrollDown(keyboardVisible || showKeyboard);
+						foceScrollDown(keyboardVisible || showKeyboard, 0);
 					} else {
 						int newOrOldScrollNumber = scrollNumber;
 						if (scrollNumber < 0) {
@@ -1619,18 +1617,32 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Scroll down now (immediately) - do not wait for fast typing to end, we
-	 * should be sure that the user does not fast type!
+	 * Scroll down now.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param showKeyboard
+	 *            the show keyboard
+	 * @param delay
+	 *            the delay
+	 */
+	public void scrollDownNow(final Context context, final boolean showKeyboard) {
+		scrollDownSoon(context, showKeyboard, 0);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Scroll down soon or now - do not wait for fast typing to end, we should
+	 * be sure that the user does not fast type!
 	 * 
 	 * @param context
 	 *            the context
 	 * @param showKeyboard
 	 *            the show keyboard
 	 */
-	public void scrollDownNow(final Context context, final boolean showKeyboard) {
-		// Log.d("communicator", "@@@@ scollDownAfterTypingFast(["
-		// + scrollNumber + "], showKeyboard=" + showKeyboard
-		// + ") 2 => !isTypingFast, !!!SCROLL!!! ");
+	public void scrollDownSoon(final Context context,
+			final boolean showKeyboard, final int delay) {
 		// we should update the scroll view height here because it was
 		// blocked/skipped during fast typing!
 		fastScrollView.potentiallyRefreshState();
@@ -1640,7 +1652,7 @@ public class Conversation extends Activity {
 			public void run() {
 				updateConversationTitleAsync(context);
 				isKeyboardVisible(conversationRootView);
-				foceScrollDown(keyboardVisible || showKeyboard);
+				foceScrollDown(keyboardVisible || showKeyboard, delay);
 			}
 		}, 100);
 	}
@@ -1746,7 +1758,7 @@ public class Conversation extends Activity {
 			if (!Conversation.scrolledDown) {
 				fastScrollView.restoreLockedPosition();
 			} else {
-				scollDownAfterTypingFast(false);
+				scrollDownAfterTypingFast(false);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2837,13 +2849,26 @@ public class Conversation extends Activity {
 				}
 			}
 			if (requestCode == TAKE_PHOTO) {
-				Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-				// String bitmapPath = Utility.insertImage(
-				// this.getContentResolver(), bitmap,
-				// "Cryptocator Images", null);
-				// Utility.updateMediaScanner(this, bitmapPath);
+				final boolean keyboardWasVisible = keyboardVisible;
+				final boolean wasScrolledDown = scrolledDown;
+				final Context context = this;
+				PictureImportActivity
+						.setOnPictureImportListener(new PictureImportActivity.OnPictureImportListener() {
+							public void onImport(String encodedImage) {
+								lastKeyStroke = DB.getTimestamp()
+										- Setup.TYPING_TIMEOUT_BEFORE_UI_ACTIVITY
+										- 1;
+								Utility.smartPaste(messageText, encodedImage,
+										" ", " ", false, false, true);
+								if (wasScrolledDown) {
+									scrollDownNow(context, keyboardWasVisible);
+									scrollDownSoon(context, keyboardWasVisible,
+											2000);
+								}
+							}
+						});
 
-				Utility.showToastAsync(this, "Photo taken");
+				Bitmap bitmap = (Bitmap) data.getExtras().get("data");
 				Intent dialogIntent = new Intent(this,
 						PictureImportActivity.class);
 				dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -2864,10 +2889,17 @@ public class Conversation extends Activity {
 	 */
 	public static void promptImageSaveAs(final Context context) {
 		final String copiedText = Utility.pasteFromClipboard(context);
-		if (!(copiedText.startsWith("[img ") && copiedText.endsWith("]"))) {
+		int imgStart = copiedText.indexOf("[img ");
+		if (imgStart == -1) {
 			// no image copied or more than an image... do not ask
 			return;
 		}
+		int imgEnd = copiedText.indexOf("]", imgStart);
+		if (imgEnd == -1) {
+			// no image copied or more than an image... do not ask
+			return;
+		}
+		final String encodedImg = copiedText.substring(imgStart, imgEnd);
 
 		String title = "Save Image?";
 		String text = "You copied an image into the Clipboard. Do you want to save or share it?";
@@ -2876,39 +2908,49 @@ public class Conversation extends Activity {
 				" Cancel ", new MessageAlertDialog.OnSelectionListener() {
 					public void selected(int button, boolean cancel) {
 						if (button == MessageAlertDialog.BUTTONOK0) {
-							// Save image in gallery
-							String encodedImg = copiedText.substring(5,
-									copiedText.length() - 1);
-							Bitmap bitmap = Utility.loadImageFromBASE64String(
-									context, encodedImg);
-							String bitmapPath = Utility.insertImage(
-									context.getContentResolver(), bitmap,
-									"Cryptocator Images", null);
-							Utility.updateMediaScanner(context, bitmapPath);
-							Utility.showToastAsync(context, "Image saved to "
-									+ bitmapPath);
+							try {
+								// Save image in gallery
+								Bitmap bitmap = Utility
+										.loadImageFromBASE64String(context,
+												encodedImg);
+								String bitmapPath = Utility.insertImage(
+										context.getContentResolver(), bitmap,
+										"Cryptocator Images", null);
+								Utility.updateMediaScanner(context, bitmapPath);
+								Utility.showToastAsync(context,
+										"Image saved to " + bitmapPath);
+							} catch (Exception e) {
+								Utility.showToastAsync(context,
+										"Error saving image to gallery.");
+							}
 						}
 						if (button == MessageAlertDialog.BUTTONOK1) {
 							// Share image to other apps
-							String encodedImg = copiedText.substring(5,
-									copiedText.length() - 1);
-							Bitmap bitmap = Utility.loadImageFromBASE64String(
-									context, encodedImg);
+							try {
+								Bitmap bitmap = Utility
+										.loadImageFromBASE64String(context,
+												encodedImg);
 
-							String bitmapPath = Images.Media.insertImage(
-									context.getContentResolver(), bitmap,
-									"Cryptocator Images", null);
-							Uri bitmapUri = Uri.parse(bitmapPath);
+								String bitmapPath = Images.Media.insertImage(
+										context.getContentResolver(), bitmap,
+										"Cryptocator Images", null);
+								Uri bitmapUri = Uri.parse(bitmapPath);
 
-							Intent sendIntent = new Intent(Intent.ACTION_SEND);
-							sendIntent.setType("image/*");
-							sendIntent.putExtra(Intent.EXTRA_SUBJECT,
-									"Cryptocator Image");
-							sendIntent.putExtra(Intent.EXTRA_STREAM, bitmapUri);
-							sendIntent.putExtra(Intent.EXTRA_TEXT,
-									"Cryptocator Image");
-							context.startActivity(Intent.createChooser(
-									sendIntent, "Share"));
+								Intent sendIntent = new Intent(
+										Intent.ACTION_SEND);
+								sendIntent.setType("image/*");
+								sendIntent.putExtra(Intent.EXTRA_SUBJECT,
+										"Cryptocator Image");
+								sendIntent.putExtra(Intent.EXTRA_STREAM,
+										bitmapUri);
+								sendIntent.putExtra(Intent.EXTRA_TEXT,
+										"Cryptocator Image");
+								context.startActivity(Intent.createChooser(
+										sendIntent, "Share"));
+							} catch (Exception e) {
+								Utility.showToastAsync(context,
+										"Error sharing image.");
+							}
 						}
 					}
 				}, null).show();
@@ -2942,13 +2984,18 @@ public class Conversation extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	public void insertImage(Context context, String attachmentPath) {
+	public void insertImage(final Context context, String attachmentPath) {
+		final boolean keyboardWasVisible = keyboardVisible;
+		final boolean wasScrolledDown = scrolledDown;
 		PictureImportActivity
 				.setOnPictureImportListener(new PictureImportActivity.OnPictureImportListener() {
 					public void onImport(String encodedImage) {
 						Utility.smartPaste(messageText, encodedImage, " ", " ",
-								false, false);
-						// reprocessPossibleImagesInText(editText)
+								false, false, true);
+						if (wasScrolledDown) {
+							scrollDownNow(context, keyboardWasVisible);
+							scrollDownSoon(context, keyboardWasVisible, 2000);
+						}
 					}
 				});
 		Intent dialogIntent = new Intent(context, PictureImportActivity.class);
@@ -2969,6 +3016,14 @@ public class Conversation extends Activity {
 	 *            the context
 	 */
 	public static void promptImageInsert(final Activity activity) {
+		if (hostUid < 0) {
+			// SMS users cannot receive images!
+			promptInfo(
+					activity,
+					"No Registered User",
+					"In order to send attachment images, your communication partner needs to be registered.");
+			return;
+		}
 		if (!Setup.isAttachmentsAllowedByServer(activity)) {
 			String title = "Attachments Not Allowed";
 			String text = "Attachments are not allowed by the server and will be removed for Internet messages.\n"
@@ -3015,7 +3070,7 @@ public class Conversation extends Activity {
 						buttonLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 
 						LinearLayout.LayoutParams lpButtons = new LinearLayout.LayoutParams(
-								180, 120);
+								180, 130);
 						lpButtons.setMargins(20, 20, 20, 20);
 
 						ImageLabelButton galleryButton = new ImageLabelButton(
@@ -3083,6 +3138,9 @@ public class Conversation extends Activity {
 
 		int limit = Setup.getAttachmentServerLimit(context) * 1000;
 		if (text.length() < limit) {
+			Log.d("communicator",
+					"total text is smaller than the attachment limit : textlen="
+							+ text.length() + " < " + limit + " (limit)");
 			// The total text is smaller than the attachment limit, so we do not
 			// need to erase images manually
 			return text;
@@ -3094,6 +3152,7 @@ public class Conversation extends Activity {
 		int start = text.indexOf(STARTTAG);
 
 		if (start < 0) {
+			Log.d("communicator", "possiblyRemoveImageAttachments NO images");
 			// No images to remove
 			return text;
 		}
@@ -3157,9 +3216,16 @@ public class Conversation extends Activity {
 				final String messageTextString2 = Conversation
 						.possiblyRemoveImageAttachments(context,
 								messageTextString);
+				Log.d("communicator",
+						"msgTextLEN=" + messageTextString.length());
+				Log.d("communicator",
+						"msgText2LEN=" + messageTextString2.length());
+				Log.d("communicator", "msgText=" + messageTextString);
+				Log.d("communicator", "msgText2=" + messageTextString2);
+
 				if ((messageTextString2.length() != messageTextString.length())) {
 					String title = "WARNING";
-					String text = "This message contains at least one image that exceeded server limits. "
+					String text = "This message contains at least one image that exceeds server limits. "
 							+ "It will be removed automatically.\n\nDo you still want to send the message?";
 					new MessageAlertDialog(context, title, text, " Yes ",
 							" No ", " Cancel ",
@@ -3178,7 +3244,8 @@ public class Conversation extends Activity {
 					int numSMS = (int) (messageTextString.length() / Setup.SMS_DEFAULT_SIZE);
 					String title = "WARNING";
 					String text = "This is a large message which will need "
-							+ numSMS + " SMS to be sent!\n\nReally send "
+							+ numSMS
+							+ " multi part SMS to be sent!\n\nReally send "
 							+ numSMS + " SMS?";
 					new MessageAlertDialog(context, title, text, " Yes ",
 							" No ", " Cancel ",
