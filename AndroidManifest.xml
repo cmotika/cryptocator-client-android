@@ -17,6 +17,8 @@
          <uses-permission android:name="android.permission.READ_PHONE_STATE" > 
     </uses-permission>
     -->
+	<uses-permission android:name="android.permission.CAMERA"/> <!-- insert taken photo -->
+	
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- send images -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- send images -->
     <uses-permission android:name="android.permission.MANAGE_DOCUMENTS" /> <!-- send images -->
@@ -68,6 +70,11 @@
         <activity
             android:name="org.cryptocator.BackupActivity"
             android:icon="@drawable/backup"
+            android:theme="@style/Theme.Transparent" >
+        </activity>
+        <activity
+            android:name="org.cryptocator.PictureImportActivity"
+            android:icon="@drawable/pictureimport"
             android:theme="@style/Theme.Transparent" >
         </activity>
         <activity

@@ -33,7 +33,6 @@
  */
 package org.cryptocator;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,21 +41,17 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -288,13 +283,7 @@ public class Conversation extends Activity {
 				.setOnCutCopyPasteListener(new ImageSmileyEditText.OnCutCopyPasteListener() {
 					public void onPaste() {
 						// If an image or smiley is pasted then do a new layout!
-						int selection = messageText.getSelectionStart();
-						String messageTextBackup = messageText.getText()
-								.toString();
-						messageText.setText(messageTextBackup);
-						if (selection > -1) {
-							messageText.setSelection(selection);
-						}
+						reprocessPossibleImagesInText(messageText);
 					}
 
 					public void onCut() {
@@ -385,9 +374,9 @@ public class Conversation extends Activity {
 									Utility.smartPaste(messageText,
 											textualSmiley, " ", " ", true,
 											false);
-									if (wasKeyboardVisible) {
-										scrollDownNow(context, true);
-									}
+								}
+								if (wasKeyboardVisible) {
+									scrollDownNow(context, true);
 								}
 							}
 						});
@@ -396,7 +385,7 @@ public class Conversation extends Activity {
 		});
 		attachmentbutton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				selectAttachment(context);
+				promptImageInsert(context);
 			}
 		});
 
@@ -418,9 +407,9 @@ public class Conversation extends Activity {
 		sendbutton.setOnClickListener(new OnClickListener() {
 			public void onClick(View arg0) {
 				if (isSMSModeAvailableAndOn(context)) {
-					sendSecureSms(context);
+					sendMessageOrPrompt(context, DB.TRANSPORT_SMS, true);
 				} else {
-					sendSecureMsg(context);
+					sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET, true);
 				}
 			}
 		});
@@ -778,7 +767,7 @@ public class Conversation extends Activity {
 						// }
 					} else if (option.equals(OPTIONSECSMS)) {
 						if (hostUid >= 0) {
-							sendSecureSms(context);
+							sendMessageOrPrompt(context, DB.TRANSPORT_SMS, true);
 						} else {
 							promptInfo(
 									context,
@@ -787,7 +776,7 @@ public class Conversation extends Activity {
 						}
 					} else if (option.equals(OPTIONSECMSG)) {
 						if (Setup.haveKey(context, hostUid)) {
-							sendSecureMsg(context);
+							sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET, true);
 						} else {
 							promptInfo(
 									context,
@@ -796,9 +785,9 @@ public class Conversation extends Activity {
 
 						}
 					} else if (option.equals(OPTIONUSECMSG)) {
-						sendUnsecureMsg(context);
+						sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET, false);
 					} else if (option.equals(OPTIONUSECSMS)) {
-						sendUnsecureSms(context);
+						sendMessageOrPrompt(context, DB.TRANSPORT_SMS, false);
 					}
 				}
 				sendspinner.setSelection(0);
@@ -1018,18 +1007,49 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
+	 * Send message dispatch method is only called from sendMessageOrPrompt().
+	 * It should not be called directly.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param text
+	 *            the text
+	 * @param encrypted
+	 *            the encrypted
+	 * @param transport
+	 *            the transport
+	 */
+	private void sendMessage(Context context, int transport, boolean encrypted,
+			String text) {
+		if (transport == DB.TRANSPORT_INTERNET) {
+			if (encrypted) {
+				sendSecureMsg(context, text);
+			} else {
+				sendUnsecureMsg(context, text);
+			}
+		} else {
+			if (encrypted) {
+				sendSecureSms(context, text);
+			} else {
+				sendUnsecureSms(context, text);
+			}
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
 	 * Send unsecure sms.
 	 * 
 	 * @param context
 	 *            the context
 	 */
-	private void sendUnsecureSms(Context context) {
-		String messageTextString = messageText.getText().toString();
-		if (messageTextString.trim().length() > 0) {
+	private void sendUnsecureSms(Context context, String text) {
+		if (text.length() > 0) {
 			String phone = Setup.getPhone(context, hostUid);
 			if (phone != null && phone.length() > 0) {
-				if (DB.addSendMessage(context, hostUid, messageTextString,
-						false, DB.TRANSPORT_SMS, false, DB.PRIORITY_MESSAGE)) {
+				if (DB.addSendMessage(context, hostUid, text, false,
+						DB.TRANSPORT_SMS, false, DB.PRIORITY_MESSAGE)) {
 					updateConversationlist(context);
 					Communicator.sendNewNextMessageAsync(context,
 							DB.TRANSPORT_SMS);
@@ -1047,14 +1067,13 @@ public class Conversation extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	private void sendSecureSms(Context context) {
-		String messageTextString = messageText.getText().toString();
-		if (messageTextString.trim().length() > 0) {
+	private void sendSecureSms(Context context, String text) {
+		if (text.length() > 0) {
 			boolean encrypted = Setup.encryptedSentPossible(context, hostUid);
 			String phone = Setup.getPhone(context, hostUid);
 			if (phone != null && phone.length() > 0) {
-				if (DB.addSendMessage(context, hostUid, messageTextString,
-						encrypted, DB.TRANSPORT_SMS, false, DB.PRIORITY_MESSAGE)) {
+				if (DB.addSendMessage(context, hostUid, text, encrypted,
+						DB.TRANSPORT_SMS, false, DB.PRIORITY_MESSAGE)) {
 					updateConversationlist(context);
 					Communicator.sendNewNextMessageAsync(context,
 							DB.TRANSPORT_SMS);
@@ -1072,12 +1091,12 @@ public class Conversation extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	private void sendSecureMsg(Context context) {
-		if (messageText.getText().toString().trim().length() > 0) {
+	private void sendSecureMsg(Context context, String text) {
+		if (text.length() > 0) {
+			text = possiblyRemoveImageAttachments(context, text);
 			boolean encrypted = Setup.encryptedSentPossible(context, hostUid);
-			if (DB.addSendMessage(context, hostUid, messageText.getText()
-					.toString(), encrypted, DB.TRANSPORT_INTERNET, false,
-					DB.PRIORITY_MESSAGE)) {
+			if (DB.addSendMessage(context, hostUid, text, encrypted,
+					DB.TRANSPORT_INTERNET, false, DB.PRIORITY_MESSAGE)) {
 				updateConversationlist(context);
 				Communicator.sendNewNextMessageAsync(context,
 						DB.TRANSPORT_INTERNET);
@@ -1094,12 +1113,12 @@ public class Conversation extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	private void sendUnsecureMsg(Context context) {
-		if (messageText.getText().toString().trim().length() > 0) {
+	private void sendUnsecureMsg(Context context, String text) {
+		if (text.length() > 0) {
+			text = possiblyRemoveImageAttachments(context, text);
 			boolean encrypted = false;
-			if (DB.addSendMessage(context, hostUid, messageText.getText()
-					.toString(), encrypted, DB.TRANSPORT_INTERNET, false,
-					DB.PRIORITY_MESSAGE)) {
+			if (DB.addSendMessage(context, hostUid, text, encrypted,
+					DB.TRANSPORT_INTERNET, false, DB.PRIORITY_MESSAGE)) {
 				updateConversationlist(context);
 				Communicator.sendNewNextMessageAsync(context,
 						DB.TRANSPORT_INTERNET);
@@ -2762,6 +2781,7 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	private static final int SELECT_PICTURE = 1;
+	private static final int TAKE_PHOTO = 2;
 
 	/**
 	 * Select attachment.
@@ -2788,67 +2808,25 @@ public class Conversation extends Activity {
 
 	// -------------------------------------------------------------------------
 
-	// And to convert the image URI to the direct file system path of the image
-	// file
-	@SuppressWarnings("deprecation")
-	public String getRealPathFromURI(Uri contentUri) {
-		String returnPath = null;
-
-		try {
-			if (Build.VERSION.SDK_INT < 19) {
-				// can post image
-				String[] proj = { MediaStore.Images.Media.DATA };
-				Cursor cursor = managedQuery(contentUri, proj, // Which columns
-																// to
-																// return
-						null, // WHERE clause; which rows to return (all rows)
-						null, // WHERE clause selection arguments (none)
-						null); // Order-by clause (ascending by name)
-				int column_index = cursor
-						.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-				cursor.moveToFirst();
-				returnPath = cursor.getString(column_index);
-			} else {
-				returnPath = contentUri.toString();
-			}
-		} catch (Exception e) {
-		}
-		return returnPath;
-	}
-
-	// -------------------------------------------------------------------------
-
-	// To handle when an image is selected from the browser, add the following
-	// to your Activity
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onActivityResult(int, int,
+	 * android.content.Intent)
+	 */
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-		// String currImageURI = data.getData().toString();
-		// Log.d("Notdienst", "##### requestCode=" + requestCode +
-		// ", resultCode=" + resultCode + ", " + currImageURI);
-
+		// To handle when an image is selected from the browser, add the
+		// following
+		// to your Activity
 		if (resultCode == RESULT_OK) {
 			if (requestCode == SELECT_PICTURE) {
 				boolean ok = false;
-				// currImageURI is the global variable I'm using to hold the
-				// content:// URI of the image
-				String attachmentPath = getRealPathFromURI(data.getData());
-
+				String attachmentPath = Utility.getRealPathFromURI(this,
+						data.getData());
 				if (attachmentPath != null) {
 					try {
-
-						// GET request is limited to 2048 bytes
-
-						// String encodedImage =
-						// getResizedImageAsBASE64String(this, attachmentPath,
-						// 300, 300, 20).replace("\n", "").replace("\r", "");
-						String encodedImage = getResizedImageAsBASE64String(
-								this, attachmentPath, 150, 150, 15).replace(
-								"\n", "").replace("\r", "");
-						if (encodedImage != null) {
-							messageText.append("[img " + encodedImage + "]");
-							ok = true;
-						}
+						insertImage(this, attachmentPath);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -2858,29 +2836,32 @@ public class Conversation extends Activity {
 							"Selected file is not a valid image.");
 				}
 			}
+			if (requestCode == TAKE_PHOTO) {
+				Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+				// String bitmapPath = Utility.insertImage(
+				// this.getContentResolver(), bitmap,
+				// "Cryptocator Images", null);
+				// Utility.updateMediaScanner(this, bitmapPath);
+
+				Utility.showToastAsync(this, "Photo taken");
+				Intent dialogIntent = new Intent(this,
+						PictureImportActivity.class);
+				dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				PictureImportActivity.attachmentBitmap = bitmap;
+				this.startActivity(dialogIntent);
+			}
 		}
 	}
 
 	// -------------------------------------------------------------------------
 
-	public static String getResizedImageAsBASE64String(Context context,
-			String attachmentPath, int maxWidth, int maxHeight, int quality) {
-		byte[] bytes = Utility.getFile(attachmentPath);
-		Bitmap bitmap = Utility.getBitmapFromBytes(bytes);
-		Bitmap resizedBitmap = Utility.getResizedImage(bitmap, maxWidth,
-				maxHeight);
-		// Drawable drawable = Utility.getDrawableFromBitmap(context,
-		// resizedBitmap);
-
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		resizedBitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
-		byte[] byteArray = stream.toByteArray();
-		String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
-		return encoded;
-	}
-
-	// -------------------------------------------------------------------------
-
+	/**
+	 * Prompt the user to save the image (currently in the clipboard) to the
+	 * gallery or share it to other apps.
+	 * 
+	 * @param context
+	 *            the context
+	 */
 	public static void promptImageSaveAs(final Context context) {
 		final String copiedText = Utility.pasteFromClipboard(context);
 		if (!(copiedText.startsWith("[img ") && copiedText.endsWith("]"))) {
@@ -2895,106 +2876,20 @@ public class Conversation extends Activity {
 				" Cancel ", new MessageAlertDialog.OnSelectionListener() {
 					public void selected(int button, boolean cancel) {
 						if (button == MessageAlertDialog.BUTTONOK0) {
+							// Save image in gallery
 							String encodedImg = copiedText.substring(5,
 									copiedText.length() - 1);
 							Bitmap bitmap = Utility.loadImageFromBASE64String(
 									context, encodedImg);
-
 							String bitmapPath = Utility.insertImage(
 									context.getContentResolver(), bitmap,
 									"Cryptocator Images", null);
-
-							// String bitmapPath = Images.Media.insertImage(
-							// context.getContentResolver(), bitmap,
-							// "Cryptocator Images", null);
-
-							// // Update date taken
-							// ContentValues values = new ContentValues();
-							// values.put(Images.Media.DATE_TAKEN,
-							// System.currentTimeMillis());
-							// values.put(Images.Media.MIME_TYPE, "image/jpeg");
-							// values.put(MediaStore.MediaColumns.DATA,
-							// bitmapPath);
-							// context.getContentResolver().update(
-							// Images.Media.EXTERNAL_CONTENT_URI,
-							// values,
-							// MediaStore.MediaColumns.DATA + " = "
-							// + bitmapPath, null);
-
-							// File pictureFolder = Environment
-							// .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-							// File imagesFolder = new File(pictureFolder,
-							// "Cryptocator Images");
-							//
-							// ContentValues values = new ContentValues();
-							// values.put(Media.TITLE, "Cryptocator Image");
-							// values.put(Media.DESCRIPTION,
-							// "Cryptocator Image");
-							// values.put(Images.Media.DATE_TAKEN,
-							// System.currentTimeMillis()); // DATE HERE
-							// values.put(Images.Media.MIME_TYPE, "image/jpeg");
-							// values.put(MediaStore.MediaColumns.DATA,
-							// imagesFolder.toString());
-							// Uri bitmapPath2 = context.getContentResolver()
-							// .insert(Media.EXTERNAL_CONTENT_URI, values);
-							// String bitmapPath = bitmapPath2.toString();
-							//
-							// {
-							// FileOutputStream out = null;
-							// try {
-							// out = new FileOutputStream(bitmapPath
-							// .toString());
-							// bitmap.compress(Bitmap.CompressFormat.PNG,
-							// 100, out); // bmp is your Bitmap
-							// // instance
-							// // PNG is a lossless format, the compression
-							// // factor (100) is ignored
-							// } catch (Exception e) {
-							// e.printStackTrace();
-							// } finally {
-							// try {
-							// if (out != null) {
-							// out.close();
-							// }
-							// } catch (Exception e) {
-							// e.printStackTrace();
-							// }
-							// }
-							// }
-
-							MediaScannerConnection
-									.scanFile(
-											context,
-											new String[] { bitmapPath },
-											null,
-											new MediaScannerConnection.OnScanCompletedListener() {
-												public void onScanCompleted(
-														String path, Uri uri) {
-													Log.i("TAG",
-															"Finished scanning "
-																	+ path);
-												}
-											});
-
+							Utility.updateMediaScanner(context, bitmapPath);
 							Utility.showToastAsync(context, "Image saved to "
 									+ bitmapPath);
-							// TODO: create
-
-							// File storageDir = new File(
-							// Environment
-							// .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-							// "Cryptocator Images");
-
-							// Intent mediaScanIntent = new
-							// Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-							// File f = new File(bitmapPath);
-							// Uri contentUri = Uri.fromFile(f);
-							// mediaScanIntent.setData(contentUri);
-							// context.sendBroadcast(mediaScanIntent);
-
 						}
 						if (button == MessageAlertDialog.BUTTONOK1) {
-
+							// Share image to other apps
 							String encodedImg = copiedText.substring(5,
 									copiedText.length() - 1);
 							Bitmap bitmap = Utility.loadImageFromBASE64String(
@@ -3013,12 +2908,296 @@ public class Conversation extends Activity {
 							sendIntent.putExtra(Intent.EXTRA_TEXT,
 									"Cryptocator Image");
 							context.startActivity(Intent.createChooser(
-									sendIntent, "Email:"));
+									sendIntent, "Share"));
 						}
 					}
 				}, null).show();
 	}
 
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Reprocess possible images in text and display them. This is necessary
+	 * after adding such images to the text, e.g. by past or a select action.
+	 * This is achieved by setting the text of the editText which re-triggers
+	 * the image processing. The cursor position is saved before.
+	 * 
+	 * @param editText
+	 *            the edit text
+	 */
+	public static void reprocessPossibleImagesInText(EditText editText) {
+		int selection = editText.getSelectionStart();
+		String messageTextBackup = editText.getText().toString();
+		editText.setText(messageTextBackup);
+		if (selection > -1) {
+			editText.setSelection(selection);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Prompt the image insert dialog
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public void insertImage(Context context, String attachmentPath) {
+		PictureImportActivity
+				.setOnPictureImportListener(new PictureImportActivity.OnPictureImportListener() {
+					public void onImport(String encodedImage) {
+						Utility.smartPaste(messageText, encodedImage, " ", " ",
+								false, false);
+						// reprocessPossibleImagesInText(editText)
+					}
+				});
+		Intent dialogIntent = new Intent(context, PictureImportActivity.class);
+		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		byte[] bytes = Utility.getFile(attachmentPath);
+		Bitmap bitmap = Utility.getBitmapFromBytes(bytes);
+
+		PictureImportActivity.attachmentBitmap = bitmap;
+		context.startActivity(dialogIntent);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Prompt the user to import a picture from gallery or take a fresh photo.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public static void promptImageInsert(final Activity activity) {
+		if (!Setup.isAttachmentsAllowedByServer(activity)) {
+			String title = "Attachments Not Allowed";
+			String text = "Attachments are not allowed by the server and will be removed for Internet messages.\n"
+					+ "You may still send them via SMS but be advised not to send too "
+					+ "large images via SMS.\n\nDo you still want to add an attachment?";
+
+			new MessageAlertDialog(activity, title, text, " Yes ", " No ",
+					" Cancel ", new MessageAlertDialog.OnSelectionListener() {
+						public void selected(int button, boolean cancel) {
+							if (button == MessageAlertDialog.BUTTONOK0) {
+								promptImageInsert2(activity);
+							}
+						}
+					}, null).show();
+
+		} else {
+			promptImageInsert2(activity);
+		}
+
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Prompt the user to import a picture from gallery or take a fresh photo.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public static void promptImageInsert2(final Activity activity) {
+		String title = "Insert Image";
+		String text = "Do you want to import an image from the gallery or take a new photo?";
+
+		new MessageAlertDialog(activity, title, text, null, null, " Cancel ",
+				new MessageAlertDialog.OnSelectionListener() {
+					public void selected(int button, boolean cancel) {
+						// Nothing
+					}
+				}, new MessageAlertDialog.OnInnerViewProvider() {
+
+					public View provide(final MessageAlertDialog dialog) {
+						LinearLayout buttonLayout = new LinearLayout(activity);
+						buttonLayout.setOrientation(LinearLayout.HORIZONTAL);
+						buttonLayout.setGravity(Gravity.CENTER_HORIZONTAL);
+
+						LinearLayout.LayoutParams lpButtons = new LinearLayout.LayoutParams(
+								180, 120);
+						lpButtons.setMargins(20, 20, 20, 20);
+
+						ImageLabelButton galleryButton = new ImageLabelButton(
+								activity);
+						galleryButton.setTextAndImageResource("Gallery",
+								R.drawable.pictureimport);
+						galleryButton.setLayoutParams(lpButtons);
+						galleryButton
+								.setOnClickListener(new View.OnClickListener() {
+									public void onClick(View v) {
+										selectAttachment(activity);
+										dialog.dismiss();
+									}
+								});
+						ImageLabelButton photoButton = new ImageLabelButton(
+								activity);
+						photoButton.setTextAndImageResource("Take Photo",
+								R.drawable.photobtn);
+						photoButton.setLayoutParams(lpButtons);
+						photoButton
+								.setOnClickListener(new View.OnClickListener() {
+									public void onClick(View v) {
+										takePhoto(activity);
+										dialog.dismiss();
+									}
+								});
+						buttonLayout.addView(galleryButton);
+						buttonLayout.addView(photoButton);
+						return buttonLayout;
+					}
+				}).show();
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Take photo.
+	 * 
+	 * @param activity
+	 *            the activity
+	 */
+	private static void takePhoto(Activity activity) {
+		if (!Utility.isCameraAvailable(activity)) {
+			Utility.showToastAsync(activity, "No Camera available.");
+			return;
+		}
+		Intent cameraIntent = new Intent(
+				android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+		activity.startActivityForResult(cameraIntent, TAKE_PHOTO);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Possibly remove image attachments if too large.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param text
+	 *            the text
+	 * @return the string
+	 */
+	public static String possiblyRemoveImageAttachments(Context context,
+			String text) {
+
+		int limit = Setup.getAttachmentServerLimit(context) * 1000;
+		if (text.length() < limit) {
+			// The total text is smaller than the attachment limit, so we do not
+			// need to erase images manually
+			return text;
+		}
+
+		final String STARTTAG = "[img ";
+		final String ENDTAG = "]";
+
+		int start = text.indexOf(STARTTAG);
+
+		if (start < 0) {
+			// No images to remove
+			return text;
+		}
+
+		// The total text is larger than the attachment limit and there are
+		// images included. So we now need to erase these...
+		String strippedText = "";
+		boolean done = false;
+		start = 0;
+		int end = 0;
+		while (!done) {
+			// Search for start tag
+			start = text.indexOf(STARTTAG, end);
+			if (start == -1) {
+				// Not further start Found
+				done = true;
+				// Add last remaining text
+				String textBetween = text.substring(end, text.length());
+				strippedText += textBetween;
+			} else {
+				// Process any text since last end to this start
+				String textBetween = text.substring(end, start);
+				strippedText += textBetween;
+
+				// Found, process this image
+				end = text.indexOf(ENDTAG, start) + 1;
+
+				String textImage = text.substring(start, end);
+
+				int diff = end - start;
+				if (diff <= limit) {
+					// Image small enough, append
+					strippedText += textImage;
+				}
+			}
+		}
+		return strippedText;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Send message or prompt the user if the message is too large for SMS or
+	 * contains too large images for Internet/server limits.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param transport
+	 *            the transport
+	 * @param encrypted
+	 *            the encrypted
+	 * @param promptLargeSMSOrLargeImages
+	 *            the prompt large sms or large images
+	 */
+	private void sendMessageOrPrompt(final Context context,
+			final int transport, final boolean encrypted) {
+		final String messageTextString = messageText.getText().toString()
+				.trim();
+		if (messageTextString.length() > 0) {
+			if (transport == DB.TRANSPORT_INTERNET) {
+				final String messageTextString2 = Conversation
+						.possiblyRemoveImageAttachments(context,
+								messageTextString);
+				if ((messageTextString2.length() != messageTextString.length())) {
+					String title = "WARNING";
+					String text = "This message contains at least one image that exceeded server limits. "
+							+ "It will be removed automatically.\n\nDo you still want to send the message?";
+					new MessageAlertDialog(context, title, text, " Yes ",
+							" No ", " Cancel ",
+							new MessageAlertDialog.OnSelectionListener() {
+								public void selected(int button, boolean cancel) {
+									if (button == MessageAlertDialog.BUTTONOK0) {
+										sendMessage(context, transport,
+												encrypted, messageTextString2);
+									}
+								}
+							}).show();
+					return;
+				}
+			} else {
+				if (messageTextString.length() > Setup.SMS_SIZE_WARNING) {
+					int numSMS = (int) (messageTextString.length() / Setup.SMS_DEFAULT_SIZE);
+					String title = "WARNING";
+					String text = "This is a large message which will need "
+							+ numSMS + " SMS to be sent!\n\nReally send "
+							+ numSMS + " SMS?";
+					new MessageAlertDialog(context, title, text, " Yes ",
+							" No ", " Cancel ",
+							new MessageAlertDialog.OnSelectionListener() {
+								public void selected(int button, boolean cancel) {
+									if (button == MessageAlertDialog.BUTTONOK0) {
+										sendMessage(context, transport,
+												encrypted, messageTextString);
+									}
+								}
+							}).show();
+					return;
+				}
+			}
+			// Message is not too long and not contains too large images
+			sendMessage(context, transport, encrypted, messageTextString);
+		}
+	}
+
+	// ------------------------------------------------------------------------
 
 }

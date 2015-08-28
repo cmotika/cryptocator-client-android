@@ -75,6 +75,8 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Paint;
@@ -84,6 +86,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
+import android.media.MediaScannerConnection;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -1991,28 +1994,58 @@ public class Utility {
 	 * @return the resized image
 	 */
 	public static Bitmap getResizedImage(Bitmap bitmap, int maxWidth,
-			int maxHeight) {
+			int maxHeight, boolean deleteSource) {
 		int bitmapWidth = bitmap.getWidth();
 		int bitmapHeight = bitmap.getHeight();
 		int newWidth = bitmapWidth;
 		int newHeight = bitmapHeight;
-		if (bitmapWidth > maxWidth) {
-			float scale = ((float) bitmapWidth) / ((float) maxWidth);
-			newWidth = maxWidth;
-			newHeight = (int) ((float) bitmapHeight / scale);
-		}
-		if (bitmapHeight > maxHeight) {
-			float scale = ((float) bitmapHeight) / ((float) maxHeight);
-			newHeight = maxHeight;
-			newWidth = (int) ((float) bitmapWidth / scale);
-		}
 
+		// Log.d("communicator", "RESIZE: maxWidth=" + maxWidth + ", maxHeight="
+		// + maxHeight);
+		// Log.d("communicator", "RESIZE: bmpW=" + bitmapWidth + ", bmpH="
+		// + bitmapHeight);
+
+		if (bitmapWidth > bitmapHeight) {
+			// Log.d("communicator", "RESIZE Landscape: bitmapWidth="
+			// + bitmapWidth + " >? " + maxWidth + "=maxWidth");
+			// Landscape
+			if (bitmapWidth > maxWidth) {
+				float scale = ((float) bitmapWidth) / ((float) maxWidth);
+				// Log.d("communicator", "RESIZE: (1) scale=" + scale);
+				newWidth = maxWidth;
+				newHeight = (int) ((float) bitmapHeight / scale);
+			} else if (bitmapHeight > maxHeight) {
+				float scale = ((float) bitmapHeight) / ((float) maxHeight);
+				// Log.d("communicator", "RESIZE: (2) scale=" + scale);
+				newHeight = maxHeight;
+				newWidth = (int) ((float) bitmapWidth / scale);
+			}
+
+		} else {
+			// Log.d("communicator", "RESIZE Portrait: bitmapHeight="
+			// + bitmapHeight + " >? " + maxHeight + "=maxHeight");
+			// Portrait
+			if (bitmapHeight > maxHeight) {
+				float scale = ((float) bitmapHeight) / ((float) maxHeight);
+				// Log.d("communicator", "RESIZE: (3) scale=" + scale);
+				newHeight = maxHeight;
+				newWidth = (int) ((float) bitmapWidth / scale);
+			} else if (bitmapWidth > maxWidth) {
+				float scale = ((float) bitmapWidth) / ((float) maxWidth);
+				// Log.d("communicator", "RESIZE: (4) scale=" + scale);
+				newWidth = maxWidth;
+				newHeight = (int) ((float) bitmapHeight / scale);
+			}
+		}
+		// Log.d("communicator", "RESIZE RESULT: newWidth=" + newWidth + ", "
+		// + newHeight + "=newHeight");
 		Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, newWidth,
 				newHeight, true);
-		bitmap.recycle();
-		bitmap = scaledBitmap;
-		System.gc();
-		return bitmap;
+		if (deleteSource) {
+			bitmap.recycle();
+			System.gc();
+		}
+		return scaledBitmap;
 	}
 
 	// -------------------------------------------------------------------------
@@ -2134,6 +2167,77 @@ public class Utility {
 		return returnValue;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update media scanner so that the image is shown in the gallery without a
+	 * reboot of the device.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param imagePath
+	 *            the image path
+	 */
+	public static void updateMediaScanner(Context context, String imagePath) {
+
+		MediaScannerConnection.scanFile(context, new String[] { imagePath },
+				null, new MediaScannerConnection.OnScanCompletedListener() {
+					public void onScanCompleted(String path, Uri uri) {
+					}
+				});
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Convert the image URI to the direct file system path of the image so that
+	 * it can be loaded.
+	 * 
+	 * @param contentUri
+	 *            the content uri
+	 * @return the real path from uri
+	 */
+	// file
+	@SuppressWarnings("deprecation")
+	public static String getRealPathFromURI(Activity activity, Uri contentUri) {
+		String returnPath = null;
+
+		try {
+			if (Build.VERSION.SDK_INT < 19) {
+				// can post image
+				String[] proj = { MediaStore.Images.Media.DATA };
+				Cursor cursor = activity.managedQuery(contentUri, proj, // Which
+																		// columns
+						// to
+						// return
+						null, // WHERE clause; which rows to return (all rows)
+						null, // WHERE clause selection arguments (none)
+						null); // Order-by clause (ascending by name)
+				int column_index = cursor
+						.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+				cursor.moveToFirst();
+				returnPath = cursor.getString(column_index);
+			} else {
+				returnPath = contentUri.toString();
+			}
+		} catch (Exception e) {
+		}
+		return returnPath;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Checks if a is camera available on the current device.
+	 *
+	 * @param context the context
+	 * @return true, if is camera available
+	 */
+	public static boolean isCameraAvailable(Context context) {
+		PackageManager packageManager = context.getPackageManager();
+		return (packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA));
+	}
+	
 	// -------------------------------------------------------------------------
 
 }

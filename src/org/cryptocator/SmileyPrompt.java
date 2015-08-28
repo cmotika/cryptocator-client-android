@@ -53,14 +53,14 @@ import android.widget.TableRow;
  */
 public class SmileyPrompt {
 
-	/** The smiley selected listener. */
-	OnSmileySelectedListener onSmileySelectedListener = null;
-
 	/** The maximal number of smileys per row in landscape mode. */
 	final int MAXSMILEYCOLUMNSLANDSCAPE = 5;
 
 	/** The maximal number of smileys per row in non-landscape mode. */
 	final int MAXSMILEYCOLUMNSPORTRAIT = 3;
+
+	/** The smiley selected listener. */
+	OnSmileySelectedListener onSmileySelectedListener = null;
 
 	// ------------------------------------------------------------------------
 
