@@ -472,12 +472,12 @@ public class Conversation extends Activity {
 						// + fastScrollView.heights.size() + ", " +
 						// fastScrollView.heightsSum);
 
-						if (percent >= 99) {
+						if (percent >= 98) {
 							scrolledDown = true;
 							scrolledUp = false;
 							fastScrollView
 									.setScrollBackground(FASTSCROLLBACKLOCKEDBACKGROUND);
-						} else if (percent <= 1) {
+						} else if (percent <= 2) {
 							showTitlebarAsync(context);
 							scrolledUp = true;
 							scrolledDown = false;
