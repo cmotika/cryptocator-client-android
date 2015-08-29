@@ -577,9 +577,9 @@ public class Setup extends Activity {
 	 * user!
 	 */
 	public static final int SMS_SIZE_WARNING = 1600;
-	
+
 	/** The standardsmssize. */
-	public static int SMS_DEFAULT_SIZE = 160;	
+	public static int SMS_DEFAULT_SIZE = 160;
 
 	// ------------------------------------------------------------------------
 
@@ -1009,8 +1009,6 @@ public class Setup extends Activity {
 								}
 
 								updateonline();
-								// Utility.saveBooleanSetting(context, "active",
-								// active.isChecked());
 							}
 						});
 			}
@@ -1021,6 +1019,13 @@ public class Setup extends Activity {
 			active.setOnClickListener(new OnClickListener() {
 				public void onClick(View arg0) {
 					setActive(context, active.isChecked());
+					if (active.isChecked()) {
+						// Start the scheduler
+						Scheduler.reschedule(context, false, false, false);
+					} else {
+						// We do not have to end the scheduler, it will end
+						// automatically...
+					}
 				}
 			});
 			tone.setChecked(Utility.loadBooleanSetting(context,

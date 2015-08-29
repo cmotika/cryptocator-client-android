@@ -666,7 +666,8 @@ public class Main extends Activity {
 			for (UidListItem item : fullUidList) {
 				String name = item.name;
 
-				String lastMessage = item.lastMessage;
+				String lastMessage = Conversation.possiblyRemoveImageAttachments(context,
+						item.lastMessage, true, "[ image ]");
 				String lastDate = DB.getDateString(item.lastMessageTimestamp,
 						false);
 				if (lastMessage == null) {
