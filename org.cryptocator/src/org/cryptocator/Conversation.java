@@ -331,12 +331,6 @@ public class Conversation extends Activity {
 				3, 300, false);
 
 		additionbutton = ((ImagePressButton) findViewById(R.id.additionbutton));
-		// LinearLayout additionbuttonparent = (LinearLayout)
-		// findViewById(R.id.additionbuttonparent);
-		// additionbutton.setAdditionalPressWhiteView(additionbuttonparent);
-		// additionbutton.initializePressImageResource(R.drawable.additionbtn,
-		// 0,
-		// 300, true);
 		additionbutton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				// toggle
@@ -387,7 +381,7 @@ public class Conversation extends Activity {
 		});
 		attachmentbutton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				promptImageInsert(context);
+				promptImageInsert(context, hostUid);
 			}
 		});
 
@@ -2811,7 +2805,7 @@ public class Conversation extends Activity {
 			activity.startActivityForResult(intent, SELECT_PICTURE);
 		} else {
 			intent.setType("image/*");
-			intent.setAction(Intent.ACTION_GET_CONTENT);
+			intent.setAction(Intent.ACTION_PICK);
 			activity.startActivityForResult(
 					Intent.createChooser(intent, "Select Attachment"),
 					SELECT_PICTURE);
@@ -2881,6 +2875,64 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Save image in gallery.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param encodedImg
+	 *            the encoded img
+	 */
+	public static void saveImageInGallery(final Context context,
+			String encodedImg) {
+		try {
+			// Save image in gallery
+			Bitmap bitmap = Utility.loadImageFromBASE64String(context,
+					encodedImg);
+			String bitmapPath = Utility.insertImage(
+					context.getContentResolver(), bitmap, "Cryptocator Images",
+					null);
+			Utility.updateMediaScanner(context, bitmapPath);
+			Utility.showToastAsync(context, "Image saved to " + bitmapPath);
+		} catch (Exception e) {
+			Utility.showToastAsync(context, "Error saving image to gallery.");
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Share image.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param encodedImg
+	 *            the encoded img
+	 */
+	public static void shareImage(final Context context, String encodedImg) {
+		// Share image to other apps
+		try {
+			Bitmap bitmap = Utility.loadImageFromBASE64String(context,
+					encodedImg);
+
+			String bitmapPath = Images.Media.insertImage(
+					context.getContentResolver(), bitmap, "Cryptocator Images",
+					null);
+			Uri bitmapUri = Uri.parse(bitmapPath);
+
+			Intent sendIntent = new Intent(Intent.ACTION_SEND);
+			sendIntent.setType("image/*");
+			sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Cryptocator Image");
+			sendIntent.putExtra(Intent.EXTRA_STREAM, bitmapUri);
+			sendIntent.putExtra(Intent.EXTRA_TEXT, "Cryptocator Image");
+			context.startActivity(Intent.createChooser(sendIntent, "Share"));
+		} catch (Exception e) {
+			Utility.showToastAsync(context, "Error sharing image.");
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
 	 * Prompt the user to save the image (currently in the clipboard) to the
 	 * gallery or share it to other apps.
 	 * 
@@ -2908,49 +2960,10 @@ public class Conversation extends Activity {
 				" Cancel ", new MessageAlertDialog.OnSelectionListener() {
 					public void selected(int button, boolean cancel) {
 						if (button == MessageAlertDialog.BUTTONOK0) {
-							try {
-								// Save image in gallery
-								Bitmap bitmap = Utility
-										.loadImageFromBASE64String(context,
-												encodedImg);
-								String bitmapPath = Utility.insertImage(
-										context.getContentResolver(), bitmap,
-										"Cryptocator Images", null);
-								Utility.updateMediaScanner(context, bitmapPath);
-								Utility.showToastAsync(context,
-										"Image saved to " + bitmapPath);
-							} catch (Exception e) {
-								Utility.showToastAsync(context,
-										"Error saving image to gallery.");
-							}
+							saveImageInGallery(context, encodedImg);
 						}
 						if (button == MessageAlertDialog.BUTTONOK1) {
-							// Share image to other apps
-							try {
-								Bitmap bitmap = Utility
-										.loadImageFromBASE64String(context,
-												encodedImg);
-
-								String bitmapPath = Images.Media.insertImage(
-										context.getContentResolver(), bitmap,
-										"Cryptocator Images", null);
-								Uri bitmapUri = Uri.parse(bitmapPath);
-
-								Intent sendIntent = new Intent(
-										Intent.ACTION_SEND);
-								sendIntent.setType("image/*");
-								sendIntent.putExtra(Intent.EXTRA_SUBJECT,
-										"Cryptocator Image");
-								sendIntent.putExtra(Intent.EXTRA_STREAM,
-										bitmapUri);
-								sendIntent.putExtra(Intent.EXTRA_TEXT,
-										"Cryptocator Image");
-								context.startActivity(Intent.createChooser(
-										sendIntent, "Share"));
-							} catch (Exception e) {
-								Utility.showToastAsync(context,
-										"Error sharing image.");
-							}
+							shareImage(context, encodedImg);
 						}
 					}
 				}, null).show();
@@ -3015,7 +3028,7 @@ public class Conversation extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	public static void promptImageInsert(final Activity activity) {
+	public static void promptImageInsert(final Activity activity, int hostUid) {
 		if (hostUid < 0) {
 			// SMS users cannot receive images!
 			promptInfo(
@@ -3070,7 +3083,7 @@ public class Conversation extends Activity {
 						buttonLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 
 						LinearLayout.LayoutParams lpButtons = new LinearLayout.LayoutParams(
-								180, 130);
+								180, 140);
 						lpButtons.setMargins(20, 20, 20, 20);
 
 						ImageLabelButton galleryButton = new ImageLabelButton(

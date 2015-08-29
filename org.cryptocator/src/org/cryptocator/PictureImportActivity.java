@@ -359,6 +359,7 @@ public class PictureImportActivity extends Activity {
 		Utility.setBackground(context, outerLayout, R.drawable.dolphins3light);
 		Utility.setBackground(context, buttonLayout, R.drawable.dolphins4light);
 
+		updateTemporaryResult();
 	}
 
 	// ------------------------------------------------------------------------
@@ -459,27 +460,32 @@ public class PictureImportActivity extends Activity {
 		if (result != null) {
 			result = "[img " + result + "]";
 		}
-		String displayText = "Your image will spend " + lenKB2 + " KB \n("
-				+ sms + " SMS).";
+		String displayText = "Image will need " + lenKB2 + " KB / "
+				+ sms + " SMS.";
+
+		if (pictureImportDialog != null) {
+			pictureImportDialog.setTitle("Insert - " + lenKB2 + " KB / " + sms + " SMS");
+		}
+		
 		sizetextback.setBackgroundColor(BACKALERTOKCOLOR);
 
 		if (sms > (Setup.SMS_SIZE_WARNING / Setup.SMS_DEFAULT_SIZE)) {
 			sizetextback.setBackgroundColor(BACKALERTWARN1COLOR);
 			// This attachment image will produce more SMS than the current
 			// warning limit, so also warn here!
-			displayText += "\n\nYour image will be large and should not be sent via SMS!";
+			displayText += "\n\nLarge image: Should not be sent via SMS!";
 		}
 
 		int limit = Setup.getAttachmentServerLimit(context);
 		if (limit == 0) {
 			sizetextback.setBackgroundColor(BACKALERTWARN2COLOR);
-			displayText += "\n\nATTENTION: The server does not allow any attachments. This image will get removed when sent as Internet message.";
+			displayText += "\n\nServer does not allow any attachments. Image will get removed when sent as Internet message.";
 		}
 		else if (lenKB > limit) {
 			sizetextback.setBackgroundColor(BACKALERTWARN2COLOR);
-			displayText += "\n\nATTENTION: The server permits only attachments up to "
+			displayText += "\n\nServer permits only attachments up to "
 					+ limit
-					+ " KB. This image is too large and will get removed when sent as Internet message.";
+					+ " KB. Image will get removed when sent as Internet message.";
 		}
 		sizetext.setText(displayText);
 	}

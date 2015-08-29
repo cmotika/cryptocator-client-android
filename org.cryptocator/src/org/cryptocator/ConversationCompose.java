@@ -41,6 +41,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
@@ -85,9 +86,6 @@ public class ConversationCompose extends Activity {
 
 	/** The sendspinner. */
 	Spinner sendspinner = null;
-
-	/** The host uid. */
-	private static int hostUid = -1;
 
 	/** The sendbutton. */
 	private ImagePressButton sendbutton;
@@ -232,12 +230,6 @@ public class ConversationCompose extends Activity {
 				3, 300, false);
 
 		additionbutton = ((ImagePressButton) findViewById(R.id.additionbutton));
-		// LinearLayout additionbuttonparent = (LinearLayout)
-		// findViewById(R.id.additionbuttonparent);
-		// additionbutton.setAdditionalPressWhiteView(additionbuttonparent);
-		// additionbutton.initializePressImageResource(R.drawable.additionbtn,
-		// 0,
-		// 300, true);
 		additionbutton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				// toggle
@@ -282,6 +274,11 @@ public class ConversationCompose extends Activity {
 							}
 						});
 				smileyPrompt.promptSmileys(context);
+			}
+		});
+		attachmentbutton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				Conversation.promptImageInsert(context, getCurrentUid(context));
 			}
 		});
 
@@ -337,7 +334,7 @@ public class ConversationCompose extends Activity {
 			public void onClick(View v) {
 				Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 				intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
-				startActivityForResult(intent, 1);
+				startActivityForResult(intent, PICK_CONTACT);
 			}
 		});
 
@@ -748,17 +745,6 @@ public class ConversationCompose extends Activity {
 						return buttonLayout;
 					}
 				}).show();
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Gets the host uid.
-	 * 
-	 * @return the host uid
-	 */
-	public static int getHostUid() {
-		return hostUid;
 	}
 
 	// ------------------------------------------------------------------------
@@ -1203,6 +1189,9 @@ public class ConversationCompose extends Activity {
 	}
 
 	// ------------------------------------------------------------------------
+	private static final int SELECT_PICTURE = 1;
+	private static final int TAKE_PHOTO = 2;
+	private static final int PICK_CONTACT = 3;
 
 	@SuppressWarnings("deprecation")
 	/*
@@ -1215,8 +1204,8 @@ public class ConversationCompose extends Activity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 
-		if (requestCode == 1) {
-			if (resultCode == RESULT_OK) {
+		if (resultCode == RESULT_OK) {
+			if (requestCode == PICK_CONTACT) {
 				Uri contactData = data.getData();
 				Cursor cursor = managedQuery(contactData, null, null, null,
 						null);
@@ -1229,6 +1218,46 @@ public class ConversationCompose extends Activity {
 				// Unmark all potentially marked users
 				markUserRadio(-1, 0);
 				// normalize phone number
+			}
+			if (requestCode == SELECT_PICTURE) {
+				boolean ok = false;
+				String attachmentPath = Utility.getRealPathFromURI(this,
+						data.getData());
+				if (attachmentPath != null) {
+					try {
+						insertImage(this, attachmentPath);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				if (!ok) {
+					Utility.showToastInUIThread(this,
+							"Selected file is not a valid image.");
+				}
+			}
+			if (requestCode == TAKE_PHOTO) {
+				final boolean keyboardWasVisible = keyboardVisible;
+				final Context context = this;
+				PictureImportActivity
+						.setOnPictureImportListener(new PictureImportActivity.OnPictureImportListener() {
+							public void onImport(String encodedImage) {
+								Conversation.lastKeyStroke = DB.getTimestamp()
+										- Setup.TYPING_TIMEOUT_BEFORE_UI_ACTIVITY
+										- 1;
+								Utility.smartPaste(messageText, encodedImage,
+										" ", " ", false, false, true);
+								if (keyboardWasVisible) {
+									potentiallyShowKeyboard(context, true);
+								}
+							}
+						});
+
+				Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+				Intent dialogIntent = new Intent(this,
+						PictureImportActivity.class);
+				dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				PictureImportActivity.attachmentBitmap = bitmap;
+				this.startActivity(dialogIntent);
 			}
 
 			// ALWAYS SHOW KEYBOARD
@@ -1370,5 +1399,34 @@ public class ConversationCompose extends Activity {
 	}
 
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Prompt the image insert dialog
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public void insertImage(final Context context, String attachmentPath) {
+		final boolean keyboardWasVisible = keyboardVisible;
+		PictureImportActivity
+				.setOnPictureImportListener(new PictureImportActivity.OnPictureImportListener() {
+					public void onImport(String encodedImage) {
+						Utility.smartPaste(messageText, encodedImage, " ", " ",
+								false, false, true);
+						if (keyboardWasVisible) {
+							potentiallyShowKeyboard(context, true);
+						}
+					}
+				});
+		Intent dialogIntent = new Intent(context, PictureImportActivity.class);
+		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		byte[] bytes = Utility.getFile(attachmentPath);
+		Bitmap bitmap = Utility.getBitmapFromBytes(bytes);
+
+		PictureImportActivity.attachmentBitmap = bitmap;
+		context.startActivity(dialogIntent);
+	}
+
+	// ------------------------------------------------------------------------
 
 }
