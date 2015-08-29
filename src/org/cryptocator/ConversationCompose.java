@@ -135,17 +135,36 @@ public class ConversationCompose extends Activity {
 		alive = true;
 		final Activity context = this;
 
-		// POSSIBLY RECEIVE SHARED-DATA!
+		// POSSIBLY RECEIVE SHARED- IMAGE AND TEXT DATA!
 		if (getIntent() != null) {
-			Bundle extras = getIntent().getExtras();
-			if (extras != null) {
-				String sharedText = getIntent().getStringExtra(
-						Intent.EXTRA_TEXT);
-				if (sharedText != null) {
-					// save the text as draft (override any old draft!) ... will
-					// be loaded further down
-					Utility.saveStringSetting(context, "cachedraftcompose",
-							sharedText);
+			Intent intent = getIntent();
+			String action = intent.getAction();
+			String type = intent.getType();
+
+			if (Intent.ACTION_SEND.equals(action) && type != null) {
+				if ("text/plain".equals(type)) {
+					String sharedText = getIntent().getStringExtra(
+							Intent.EXTRA_TEXT);
+					if (sharedText != null) {
+						// save the text as draft (override any old draft!) ...
+						// will be loaded further down
+						Utility.saveStringSetting(context, "cachedraftcompose",
+								sharedText);
+					}
+				} else if (type.startsWith("image/")) {
+					Uri imageUri = (Uri) intent
+							.getParcelableExtra(Intent.EXTRA_STREAM);
+					if (imageUri != null) {
+						String attachmentPath = Utility.getRealPathFromURI(
+								this, imageUri);
+						if (attachmentPath != null) {
+							try {
+								insertImage(this, attachmentPath);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					}
 				}
 			}
 		}

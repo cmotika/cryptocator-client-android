@@ -1348,25 +1348,26 @@ public class Communicator {
 
 		Log.d("communicator", "SEND NEXT MESSAGE msgText=" + msgText);
 
-		url = Setup.getBaseURL(context) + "cmd=send&session=" + Utility.urlEncode(session)
-				+ "&host=" +encUid + "&val=" +  Utility.urlEncode(created + "#"
-				+ msgText);
-		
+		url = Setup.getBaseURL(context) + "cmd=send&session="
+				+ Utility.urlEncode(session) + "&host=" + encUid + "&val="
+				+ Utility.urlEncode(created + "#" + msgText);
 
-//		
-//		// TEST GET REQUEST JUST TO COMPARE
-//		final String url2222 = Setup.getBaseURL(context) + "cmd=send&session=" + Utility.encode(session)
-//				+ "&host=" + Utility.encode(encUid) + "&val=" + Utility.encode(created + "#" + msgText);
-//		Log.d("communicator", "SEND NEXT MESSAGE2222: " + url2222);
-//		HttpStringRequest httpStringRequest2222 = (new HttpStringRequest(context,
-//				url2222, false, new HttpStringRequest.OnResponseListener() {
-//					public void response(String response) {
-//						Log.d("communicator",
-//								"SEND NEXT MESSAGE2222 OK!!! " + response);
-//					}
-//		}));
-		
-		
+		//
+		// // TEST GET REQUEST JUST TO COMPARE
+		// final String url2222 = Setup.getBaseURL(context) +
+		// "cmd=send&session=" + Utility.encode(session)
+		// + "&host=" + Utility.encode(encUid) + "&val=" +
+		// Utility.encode(created + "#" + msgText);
+		// Log.d("communicator", "SEND NEXT MESSAGE2222: " + url2222);
+		// HttpStringRequest httpStringRequest2222 = (new
+		// HttpStringRequest(context,
+		// url2222, false, new HttpStringRequest.OnResponseListener() {
+		// public void response(String response) {
+		// Log.d("communicator",
+		// "SEND NEXT MESSAGE2222 OK!!! " + response);
+		// }
+		// }));
+
 		Log.d("communicator", "SEND NEXT MESSAGE: " + url);
 		final String url2 = url;
 		@SuppressWarnings("unused")
@@ -1482,7 +1483,8 @@ public class Communicator {
 	 * @param item
 	 *            the item
 	 */
-	public static void createNotification(Context context, ConversationItem item) {
+	public static void createNotification(final Context context,
+			ConversationItem item) {
 		boolean vibrate = Utility.loadBooleanSetting(context,
 				Setup.OPTION_VIBRATE, Setup.DEFAULT_VIBRATE);
 		if (vibrate) {
@@ -1520,13 +1522,17 @@ public class Communicator {
 		PendingIntent pendingIntent = PendingIntent.getActivity(context, 0,
 				notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
+		String completeMessage = item.text;
+		if (completeMessage == null) {
+			completeMessage = "";
+		}
+		String completeTextWithoutImages = Conversation
+				.possiblyRemoveImageAttachments(context, completeMessage, true,
+						"[ image ]");
+
 		int cnt = getNotificationCount(context, item.from);
 		String title = Main.UID2Name(context, item.from, false);
-		String text = item.text;
-		String completeMessage = item.text;
-		if (text == null) {
-			text = "";
-		}
+		String text = completeTextWithoutImages;
 		if (cnt > 1) {
 			text = cnt + " new messages";
 		}
@@ -1538,7 +1544,7 @@ public class Communicator {
 				context).setSmallIcon(R.drawable.msgsmall24x24)
 				.setPriority(NotificationCompat.PRIORITY_MAX)
 				.setCategory(NotificationCompat.CATEGORY_ALARM)
-				.setTicker(title + ": " + completeMessage).setWhen(0)
+				.setTicker(title + ": " + completeTextWithoutImages).setWhen(0)
 				.setContentTitle(title).setContentText(text)
 				.setContentIntent(pendingIntent)
 				.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);

@@ -958,7 +958,10 @@ public class Conversation extends Activity {
 	private void inviteUserToSMSMode(final Context context) {
 		try {
 			final String titleMessage = "Enable SMS";
-			final String textMessage = "Delphino Cryptocator also allows to send/receive secure encrypted SMS.\n\nFor this, your phone number and your userlist must be stored at the server. Furthermore, to be able to use this option both communication partners have to turn this feature on.\n\nDo you want to enable the secure SMS possibility?";
+			final String textMessage = "Delphino Cryptocator also allows to send/receive secure encrypted SMS.\n\nFor this,"
+					+ " your phone number and your userlist must be stored at the server. Furthermore, to be able to use this"
+					+ " option both communication partners have to turn this feature on.\n\nDo you want to enable the secure"
+					+ " SMS possibility?";
 			new MessageAlertDialog(context, titleMessage, textMessage, " Yes ",
 					" Account ", " Cancel ",
 					new MessageAlertDialog.OnSelectionListener() {
@@ -979,7 +982,8 @@ public class Conversation extends Activity {
 									} else {
 										Utility.showToastAsync(
 												context,
-												"Cannot automatically read required phone number. Please enable SMS option manually in account settings after login/validate!");
+												"Cannot automatically read required phone number. Please enable SMS option"
+														+ " manually in account settings after login/validate!");
 										// Go to account settings
 										Main.startAccount(context);
 									}
@@ -3138,7 +3142,9 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Possibly remove image attachments if too large.
+	 * Possibly remove image attachments if too large. This is a convenience
+	 * method: It will not force to remove all images and it will substitue
+	 * removed images by an empty string.
 	 * 
 	 * @param context
 	 *            the context
@@ -3148,9 +3154,29 @@ public class Conversation extends Activity {
 	 */
 	public static String possiblyRemoveImageAttachments(Context context,
 			String text) {
+		return possiblyRemoveImageAttachments(context, text, false, "");
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Possibly remove image attachments if too large. The forceRemoveAll flag
+	 * may be used to get a version without any images, e.g. for the first line
+	 * or the ticker.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param text
+	 *            the text
+	 * @param forceRemoveAll
+	 *            the force remove all
+	 * @return the string
+	 */
+	public static String possiblyRemoveImageAttachments(Context context,
+			String text, boolean forceRemoveAll, String substitute) {
 
 		int limit = Setup.getAttachmentServerLimit(context) * 1000;
-		if (text.length() < limit) {
+		if (text.length() < limit && !forceRemoveAll) {
 			Log.d("communicator",
 					"total text is smaller than the attachment limit : textlen="
 							+ text.length() + " < " + limit + " (limit)");
@@ -3196,9 +3222,11 @@ public class Conversation extends Activity {
 				String textImage = text.substring(start, end);
 
 				int diff = end - start;
-				if (diff <= limit) {
+				if (diff <= limit && !forceRemoveAll) {
 					// Image small enough, append
 					strippedText += textImage;
+				} else {
+					strippedText += substitute;
 				}
 			}
 		}
