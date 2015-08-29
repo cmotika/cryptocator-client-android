@@ -43,7 +43,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
@@ -136,7 +135,7 @@ public class BackupActivity extends Activity {
 		// -------------
 
 		// Set icon and title of the dialog
-		builder.setIcon(R.drawable.backup);
+		builder.setIcon(R.drawable.btnbackup);
 		activityTitle = "Backup Messages";
 
 		final EditText fromText = (EditText) dialogLayout
@@ -148,6 +147,9 @@ public class BackupActivity extends Activity {
 		final CheckBox last = (CheckBox) dialogLayout.findViewById(R.id.tolast);
 		final CheckBox details = (CheckBox) dialogLayout
 				.findViewById(R.id.details);
+		final CheckBox removeimages = (CheckBox) dialogLayout
+				.findViewById(R.id.removeimages);
+		removeimages.setChecked(true);
 
 		DB.loadConversation(context, hostUid, conversationList, -1);
 
@@ -190,91 +192,23 @@ public class BackupActivity extends Activity {
 
 		buttonBackup.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				// DO BACKUP
-				StringBuilder backupText = new StringBuilder();
-				boolean active = false;
 
 				int fromMid = Utility.parseInt(fromText.getText().toString(),
 						-1);
 				int toMid = Utility.parseInt(toText.getText().toString(), -1);
 
-				for (ConversationItem item : conversationList) {
-
-					if (!active && item.mid >= fromMid) {
-						active = true;
-					}
-
-					if (active) {
-						if (backupText.length() != 0) {
-							backupText.append(System
-									.getProperty("line.separator"));
-							backupText.append(System
-									.getProperty("line.separator"));
-						}
-
-						backupText.append(Main.UID2Name(context, item.from,
-								true));
-						if (details.isChecked()) {
-							backupText.append(System
-									.getProperty("line.separator"));
-							backupText.append("Created: "
-									+ DB.getDateString(item.created, false));
-							backupText.append(System
-									.getProperty("line.separator"));
-							backupText.append("Sent: "
-									+ DB.getDateString(item.sent, false));
-							backupText.append(System
-									.getProperty("line.separator"));
-							backupText.append("Received: "
-									+ DB.getDateString(item.received, false));
-							backupText.append(System
-									.getProperty("line.separator"));
-							backupText.append("Read: "
-									+ DB.getDateString(item.read, false));
-							backupText.append(System
-									.getProperty("line.separator"));
-							backupText.append("Withdrawn: "
-									+ DB.getDateString(item.withdraw, false));
-							backupText.append(System
-									.getProperty("line.separator"));
-							if (item.transport == DB.TRANSPORT_INTERNET) {
-								backupText.append("Transport: Internet");
-							} else {
-								backupText.append("Transport: SMS");
-							}
-							backupText.append(System
-									.getProperty("line.separator"));
-							if (item.encrypted) {
-								backupText.append("Encrypted: Yes");
-							} else {
-								backupText.append("Encrypted: No");
-							}
-							backupText.append(System
-									.getProperty("line.separator"));
-						} else {
-							backupText.append(" @ ");
-							backupText.append(DB
-									.getDateString(item.sent, false));
-						}
-						backupText.append(System.getProperty("line.separator"));
-						backupText.append(item.text);
-					}
-
-					if (active && item.mid >= toMid) {
-						active = false;
-					}
-
+				int fromLocal = DB.getHostLocalIdByMid(context, fromMid,
+						hostUid);
+				if (fromLocal == -1) {
+					fromLocal = fromMid;
+				}
+				int toLocal = DB.getHostLocalIdByMid(context, toMid, hostUid);
+				if (toLocal == -1) {
+					toLocal = toMid;
 				}
 
-				Log.d("communicator", "@@@@ BACKUP : " + backupText.toString());
-
-				Utility.copyToClipboard(context, backupText.toString());
-				if (backupText.toString().length() > 0) {
-					Utility.showToastAsync(context,
-							"Backup of Conversation in Clipboard now.");
-				} else {
-					Utility.showToastAsync(context, "Nothing to backup.");
-				}
+				doBackup(context, fromLocal, toLocal, conversationList,
+						details.isChecked(), removeimages.isChecked());
 
 				activity.finish();
 			}
@@ -311,6 +245,114 @@ public class BackupActivity extends Activity {
 		Utility.setBackground(context, outerLayout, R.drawable.dolphins3light);
 		Utility.setBackground(context, buttonLayout, R.drawable.dolphins4light);
 
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Perform the backup.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param fromLocal
+	 *            the from local
+	 * @param toLocal
+	 *            the to local
+	 * @param conversationList
+	 *            the conversation list
+	 * @param details
+	 *            the details
+	 * @param removeImages
+	 *            the remove images
+	 * @return the int
+	 */
+	public static int doBackup(Context context, int fromLocal, int toLocal,
+			List<ConversationItem> conversationList, boolean details,
+			boolean removeImages) {
+		int numMessages = 0;
+		// DO BACKUP
+		StringBuilder backupText = new StringBuilder();
+		boolean active = false;
+
+		for (ConversationItem item : conversationList) {
+
+			if (!active && item.localid >= fromLocal) {
+				active = true;
+			}
+
+			String itemText = item.text;
+			if (itemText.length() > 30) {
+				itemText = itemText.substring(0, 29);
+			}
+
+			if (active) {
+				numMessages++;
+				if (backupText.length() != 0) {
+					backupText.append(System.getProperty("line.separator"));
+					backupText.append(System.getProperty("line.separator"));
+				}
+
+				backupText.append(Main.UID2Name(context, item.from, true));
+				if (details) {
+					backupText.append(System.getProperty("line.separator"));
+					backupText.append("Created: "
+							+ DB.getDateString(item.created, false));
+					backupText.append(System.getProperty("line.separator"));
+					backupText.append("Sent: "
+							+ DB.getDateString(item.sent, false));
+					backupText.append(System.getProperty("line.separator"));
+					backupText.append("Received: "
+							+ DB.getDateString(item.received, false));
+					backupText.append(System.getProperty("line.separator"));
+					backupText.append("Read: "
+							+ DB.getDateString(item.read, false));
+					backupText.append(System.getProperty("line.separator"));
+					backupText.append("Withdrawn: "
+							+ DB.getDateString(item.withdraw, false));
+					backupText.append(System.getProperty("line.separator"));
+					if (item.transport == DB.TRANSPORT_INTERNET) {
+						backupText.append("Transport: Internet");
+					} else {
+						backupText.append("Transport: SMS");
+					}
+					backupText.append(System.getProperty("line.separator"));
+					if (item.encrypted) {
+						backupText.append("Encrypted: Yes");
+					} else {
+						backupText.append("Encrypted: No");
+					}
+					backupText.append(System.getProperty("line.separator"));
+				} else {
+					backupText.append(" @ ");
+					backupText.append(DB.getDateString(item.sent, false));
+				}
+				backupText.append(System.getProperty("line.separator"));
+
+				if (!removeImages) {
+					backupText.append(item.text);
+				} else {
+					backupText.append(Conversation
+							.possiblyRemoveImageAttachments(context, item.text,
+									true, "[ image ]"));
+				}
+			}
+
+			if (active && item.localid >= toLocal) {
+				active = false;
+				break;
+			}
+
+		}
+
+		Utility.copyToClipboard(context, backupText.toString());
+		if (backupText.toString().length() > 0) {
+			Utility.showToastAsync(context, +numMessages
+					+ " messages backed up to Clipboard.");
+		} else {
+			Utility.showToastAsync(context, "Nothing to backup.");
+		}
+
+		return numMessages;
 	}
 
 	// ------------------------------------------------------------------------

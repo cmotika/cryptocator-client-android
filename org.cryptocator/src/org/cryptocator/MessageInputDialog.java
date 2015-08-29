@@ -38,6 +38,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
@@ -129,6 +130,9 @@ public class MessageInputDialog extends Dialog {
 	/** The input text. */
 	EditText inputText = null;
 
+	/** The input type of the text field. */
+	int inputType = InputType.TYPE_CLASS_TEXT;
+
 	/** The handled. */
 	boolean handled = false;
 
@@ -144,7 +148,7 @@ public class MessageInputDialog extends Dialog {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Instantiates a new message input dialog.
+	 * Instantiates a new message input dialog with input type text.
 	 * 
 	 * @param context
 	 *            the context
@@ -167,6 +171,37 @@ public class MessageInputDialog extends Dialog {
 			String textMessage, String okButton0, String okButton1,
 			String cancelButton, String defaultText,
 			OnSelectionListener selectionListener) {
+		this(context, titleMessage, textMessage, okButton0, okButton1,
+				cancelButton, defaultText, selectionListener,
+				InputType.TYPE_CLASS_TEXT);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Instantiates a new message input dialog with user defined input type.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param titleMessage
+	 *            the title message
+	 * @param textMessage
+	 *            the text message
+	 * @param okButton0
+	 *            the ok button0
+	 * @param okButton1
+	 *            the ok button1
+	 * @param cancelButton
+	 *            the cancel button
+	 * @param defaultText
+	 *            the default text
+	 * @param selectionListener
+	 *            the selection listener
+	 */
+	public MessageInputDialog(Context context, String titleMessage,
+			String textMessage, String okButton0, String okButton1,
+			String cancelButton, String defaultText,
+			OnSelectionListener selectionListener, int inputType) {
 		super(context, R.style.AlertDialogCustom);
 		this.context = context;
 		this.titleMessage = titleMessage;
@@ -176,6 +211,7 @@ public class MessageInputDialog extends Dialog {
 		this.falseButton = cancelButton;
 		this.selectionListener = selectionListener;
 		this.returnText = defaultText;
+		this.inputType = inputType;
 	}
 
 	// -------------------------------------------------------------------------
@@ -242,6 +278,7 @@ public class MessageInputDialog extends Dialog {
 		}
 
 		inputText = new EditText(context);
+		inputText.setInputType(inputType);
 		LinearLayout.LayoutParams lpEditText = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.WRAP_CONTENT);

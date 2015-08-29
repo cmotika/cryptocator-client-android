@@ -69,7 +69,7 @@
         </activity>
         <activity
             android:name="org.cryptocator.BackupActivity"
-            android:icon="@drawable/backup"
+            android:icon="@drawable/btnbackup"
             android:theme="@style/Theme.Transparent" >
         </activity>
         <activity
