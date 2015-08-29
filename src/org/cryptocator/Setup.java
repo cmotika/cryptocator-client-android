@@ -350,6 +350,15 @@ public class Setup extends Activity {
 	/** The Constant HELP_ENCRYPTION. */
 	public static final String HELP_ENCRYPTION = "Use encryption for sending messages. Will only work if your communication partner has also turned on encryption.\n\nIt is strongly advised that you always leave encryption on!";
 
+	/** The Constant OPTION_AUTOSAVE. */
+	public static final String OPTION_AUTOSAVE = "autosaveattachments";
+
+	/** The Constant DEFAULT_AUTOSAVE. */
+	public static final boolean DEFAULT_AUTOSAVE = true;
+
+	/** The Constant HELP_AUTOSAVE. */
+	public static final String HELP_AUTOSAVE = "Image attachments can be automatically saved to your gallery.";
+
 	/** The Constant OPTION_NOREAD. */
 	public static final String OPTION_NOREAD = "noread";
 
@@ -427,6 +436,13 @@ public class Setup extends Activity {
 
 	/** The Constant AESKEY for session keys. */
 	public static final String AESKEY = "aes";
+
+	/**
+	 * The Constant LASTKEYMID for the last mid of a key message sent to a user.
+	 * This should be reset when a new key is send, it should be set by the
+	 * first use of DB.getLastSendKeyMessage().
+	 */
+	public static final String LASTKEYMID = "lastaeskeymid";
 
 	/** The Constant PHONE for other users phone numbers. */
 	public static final String PHONE = "hostphone";
@@ -601,6 +617,9 @@ public class Setup extends Activity {
 	/** The ignore. */
 	private CheckBox ignore;
 
+	/** The autosave. */
+	private CheckBox autosave;
+
 	/** The noread. */
 	private CheckBox noread;
 
@@ -639,6 +658,9 @@ public class Setup extends Activity {
 
 	/** The helpignore. */
 	private ImageView helpignore;
+
+	/** The helpautosave. */
+	private ImageView helpautosave;
 
 	/** The helpnoread. */
 	private ImageView helpnoread;
@@ -957,6 +979,7 @@ public class Setup extends Activity {
 
 		ignore = (CheckBox) findViewById(R.id.ignore);
 		notification = (CheckBox) findViewById(R.id.notification);
+		autosave = (CheckBox) findViewById(R.id.autosave);
 		noread = (CheckBox) findViewById(R.id.noread);
 		chatmode = (CheckBox) findViewById(R.id.chatmode);
 		quicktype = (CheckBox) findViewById(R.id.quicktype);
@@ -1058,6 +1081,14 @@ public class Setup extends Activity {
 				public void onClick(View arg0) {
 					Utility.saveBooleanSetting(context,
 							Setup.OPTION_NOTIFICATION, notification.isChecked());
+				}
+			});
+			autosave.setChecked(Utility.loadBooleanSetting(context,
+					Setup.OPTION_AUTOSAVE, Setup.DEFAULT_AUTOSAVE));
+			autosave.setOnClickListener(new OnClickListener() {
+				public void onClick(View arg0) {
+					Utility.saveBooleanSetting(context, Setup.OPTION_AUTOSAVE,
+							autosave.isChecked());
 				}
 			});
 			noread.setChecked(Utility.loadBooleanSetting(context,
@@ -1163,6 +1194,7 @@ public class Setup extends Activity {
 			helpvibrate = (ImageView) findViewById(R.id.helpvibrate);
 			helpnotification = (ImageView) findViewById(R.id.helpnotification);
 			helpignore = (ImageView) findViewById(R.id.helpignore);
+			helpautosave = (ImageView) findViewById(R.id.helpautosave);
 			helpnoread = (ImageView) findViewById(R.id.helpnoread);
 			helpchatmode = (ImageView) findViewById(R.id.helpchatmode);
 			helpquicktype = (ImageView) findViewById(R.id.helpquicktype);
@@ -1198,6 +1230,11 @@ public class Setup extends Activity {
 			helpignore.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					setErrorInfo(HELP_IGNORE, false);
+				}
+			});
+			helpautosave.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					setErrorInfo(HELP_AUTOSAVE, false);
 				}
 			});
 			helpnoread.setOnClickListener(new OnClickListener() {
@@ -2522,7 +2559,10 @@ public class Setup extends Activity {
 	 * Update SMS option. If turning SMS option on then also backup the current
 	 * userlist to the server (automatic). Send the phone number to the server.
 	 * If disabling turn off automatic backup and clear the phone number from
-	 * the server.
+	 * the server. <BR>
+	 * <BR>
+	 * If SMS option is disabled, also clear all automatically downloaded phone
+	 * numbers!
 	 * 
 	 * @param context
 	 *            the context
@@ -2562,6 +2602,20 @@ public class Setup extends Activity {
 		}
 		if (!enable) {
 			phoneString = "delete";
+		}
+		if (!enable) {
+			// Remove all automatically downloaed phone numbers! Only users that
+			// enable the SMS option themselves are eligable to do an
+			// autoupdate.
+			for (Integer uid : Main.loadUIDList(context)) {
+				if (!Setup.isPhoneModified(context, uid)) {
+					// Only for registered users we will get here
+					// We fake "manual" here because after disabling the SMS
+					// option the user can only manually edit a phone number
+					// anyways.
+					Setup.savePhone(context, uid, null, true);
+				}
+			}
 		}
 
 		// RSA encode
@@ -2827,9 +2881,9 @@ public class Setup extends Activity {
 	 * @return true, if is AES key outdated
 	 */
 	public static boolean isAESKeyOutdated(Context context, int uid,
-			boolean forSending) {
+			boolean forSending, int transport) {
 		long nowTime = DB.getTimestamp();
-		long otherTime = getAESKeyDate(context, uid);
+		long otherTime = getAESKeyDate(context, uid, transport);
 		if (otherTime < 1) {
 			return true;
 		}
@@ -2864,9 +2918,9 @@ public class Setup extends Activity {
 	 *            the uid
 	 * @return the AES key date
 	 */
-	public static long getAESKeyDate(Context context, int uid) {
+	public static long getAESKeyDate(Context context, int uid, int transport) {
 		String keycreated = Utility.loadStringSetting(context, Setup.AESKEY
-				+ "created" + uid, "");
+				+ "created" + transport + "_" + uid, "");
 		if ((keycreated == null || keycreated.length() == 0)) {
 			return 0;
 		}
@@ -2886,9 +2940,10 @@ public class Setup extends Activity {
 	 * @param keycreated
 	 *            the keycreated
 	 */
-	public static void setAESKeyDate(Context context, int uid, String keycreated) {
-		Utility.saveStringSetting(context, Setup.AESKEY + "created" + uid,
-				keycreated);
+	public static void setAESKeyDate(Context context, int uid,
+			String keycreated, int transport) {
+		Utility.saveStringSetting(context, Setup.AESKEY + "created" + transport
+				+ "_" + uid, keycreated);
 	}
 
 	// -------------------------------------------------------------------------
@@ -3365,7 +3420,7 @@ public class Setup extends Activity {
 	}
 
 	/**
-	 * Checks if is phone modified.
+	 * Checks if is phone number was modified by the user manually.
 	 * 
 	 * @param context
 	 *            the context

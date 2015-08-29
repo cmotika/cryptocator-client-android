@@ -1091,7 +1091,8 @@ public class Main extends Activity {
 		Setup.savePhone(context, uid, null, false);
 		Setup.setKeyDate(context, uid, null);
 		Setup.saveAESKey(context, uid, null);
-		Setup.setAESKeyDate(context, uid, null);
+		Setup.setAESKeyDate(context, uid, null, DB.TRANSPORT_INTERNET);
+		Setup.setAESKeyDate(context, uid, null, DB.TRANSPORT_SMS);
 		Utility.saveStringSetting(context, Setup.SETTINGS_USERLISTLASTMESSAGE
 				+ uid, null);
 		Utility.saveLongSetting(context,

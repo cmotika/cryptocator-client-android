@@ -94,6 +94,12 @@ public class UserDetailsActivity extends Activity {
 	/** The name check. */
 	CheckBox nameCheck;
 
+	/**
+	 * The phone check text may inform the user that he has not enabled the SMS
+	 * option.
+	 */
+	TextView phoneCheckText;
+
 	/** The phone check. */
 	CheckBox phoneCheck;
 
@@ -162,7 +168,7 @@ public class UserDetailsActivity extends Activity {
 		detailsName.setText("Display Name: ");
 		name = new EditText(context);
 		nameCheck = new CheckBox(context);
-		nameCheck.setText("Automatically Update");
+		nameCheck.setText("Automatic Update");
 		LinearLayout nameInnerLayout = new LinearLayout(context);
 		nameInnerLayout.setOrientation(LinearLayout.VERTICAL);
 		nameInnerLayout.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -197,14 +203,20 @@ public class UserDetailsActivity extends Activity {
 		phone = new EditText(context);
 		phone.setInputType(InputType.TYPE_CLASS_PHONE);
 		phoneCheck = new CheckBox(context);
-		phoneCheck.setText("Automatically Update");
-
+		phoneCheck.setText("Automatic Update");
+		phoneCheckText = new TextView(context);
+		phoneCheckText.setText("You do NOT have enabled the SMS option. You can only enable downloading" +
+				" other phone numbers automatically if you have enabled the SMS option in your account settings.");
+		phoneCheckText.setVisibility(View.GONE);
+		phoneCheckText.setTextSize(11);
+		
 		LinearLayout phoneInnerLayout = new LinearLayout(context);
 		phoneInnerLayout.setOrientation(LinearLayout.VERTICAL);
 		phoneInnerLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 		phoneInnerLayout.addView(detailsPhone);
 		phoneInnerLayout.addView(phone);
 		phoneInnerLayout.addView(phoneCheck);
+		phoneInnerLayout.addView(phoneCheckText);
 		phoneInnerLayout.setLayoutParams(lpSectionInnerLeft);
 
 		ImageButton updatePhoneButton = new ImageButton(context);
@@ -440,7 +452,17 @@ public class UserDetailsActivity extends Activity {
 
 		if (uid >= 0) {
 			nameCheck.setChecked(Main.isUpdateName(context, uid));
-			phoneCheck.setChecked(Main.isUpdatePhone(context, uid));
+
+			// ONLY if SMS option is enabled, an auto update of phone numbers is allowed!
+			if (Setup.isSMSOptionEnabled(context)) {
+				phoneCheck.setChecked(Main.isUpdatePhone(context, uid));
+			} else {
+				// Inform the user that he has not enabled the SMS option!
+				phoneCheck.setChecked(false);
+				phoneCheck.setEnabled(false);
+				phoneCheckText.setVisibility(View.VISIBLE);
+			}
+			
 		} else {
 			nameCheck.setChecked(false);
 			nameCheck.setEnabled(false);

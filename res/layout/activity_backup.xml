@@ -56,11 +56,10 @@
                             android:layout_marginLeft="5px"
                             android:layout_marginRight="20px"
                             android:layout_marginTop="0px"
+                            android:ems="10"
+                            android:inputType="phone"
                             android:text="delphino [ 3 ]"
-                            android:textSize="16sp"                    
- 						android:ems="10"
-                    android:inputType="phone">
-
+                            android:textSize="16sp" >
                         </EditText>
 
                         <CheckBox
@@ -109,10 +108,10 @@
                             android:layout_marginLeft="5px"
                             android:layout_marginRight="20px"
                             android:layout_marginTop="0px"
+                            android:ems="10"
+                            android:inputType="phone"
                             android:text="delphino [ 3 ]"
-                            android:textSize="16sp"
-                    android:ems="10"
-                    android:inputType="phone">
+                            android:textSize="16sp" >
                         </EditText>
 
                         <CheckBox
@@ -128,31 +127,45 @@
                         </CheckBox>
                     </LinearLayout>
                 </TableRow>
-
             </TableLayout>
-            
-            
-                    <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical|center_horizontal"
-            android:orientation="horizontal" >
-                        
-                                <CheckBox
-                                    android:id="@+id/details"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginBottom="40px"
-                                    android:layout_marginLeft="20px"
-                                    android:layout_marginRight="20px"
-                                    android:layout_marginTop="40px"
-                                    android:text="Include Message Details"
-                                    android:textSize="16sp" >
 
-                    </CheckBox>
-                    
-                    </LinearLayout>
-                                
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical|center_horizontal"
+                android:orientation="horizontal" >
+
+                <CheckBox
+                    android:id="@+id/details"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginLeft="20px"
+                    android:layout_marginRight="20px"
+                    android:layout_marginTop="40px"
+                    android:text="Include Message Details"
+                    android:textSize="16sp" >
+                </CheckBox>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical|center_horizontal"
+                android:orientation="horizontal" >
+
+                <CheckBox
+                    android:id="@+id/removeimages"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="40px"
+                    android:layout_marginLeft="20px"
+                    android:layout_marginRight="20px"
+                    android:layout_marginTop="20px"
+                    android:text="Remove Images"
+                    android:textSize="16sp" >
+                </CheckBox>
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 

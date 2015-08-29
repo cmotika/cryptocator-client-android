@@ -290,7 +290,7 @@ public class Conversation extends Activity {
 					}
 
 					public void onCopy() {
-						promptImageSaveAs(context);
+						promptImageSaveAs(context, "", "Copied from message input text field.");
 					}
 				});
 
@@ -2120,7 +2120,11 @@ public class Conversation extends Activity {
 					}
 
 					public void onCopy() {
-						promptImageSaveAs(context);
+						promptImageSaveAs(
+								context,
+								buildImageTitleAddition(context,
+										conversationItem),
+								buildImageDescription(context, conversationItem));
 					}
 				});
 
@@ -2697,13 +2701,14 @@ public class Conversation extends Activity {
 		new MessageAlertDialog(
 				context,
 				"Clear Conversation",
-				"Clearing the conversation means deleting all messages between you and this user from your local device. Keep in mind that you might not see"
-						+ " all but only the last "
+				"Clearing the conversation means deleting ALL messages between you and this user from your local device. Keep in mind that you might only see"
+						+ " the last "
 						+ Setup.MAX_SHOW_CONVERSATION_MESSAGES
-						+ " messages of the current conversation.\n\n"
-						+ "Do you really want to clear the whole conversation with "
+						+ " messages.\n\n"
+						+ "Alternative: If you long click beside any message you can more selectively clear only parts of the conversation."
+						+ "\n\nDo you really want to clear the ALL messages from the conversation with "
 						+ Main.UID2Name(context, hostUid, false) + " ?",
-				" Clear ", " Abort ", null,
+				"Clear All", null, "Abort",
 				new MessageAlertDialog.OnSelectionListener() {
 					public void selected(int button, boolean cancel) {
 						if (!cancel && button == 0) {
@@ -2721,6 +2726,49 @@ public class Conversation extends Activity {
 					}
 				}).show();
 	}
+
+	// ------------------------------------------------------------------------
+
+	// /**
+	// * Clear conversation but only up to a selected MID. The user is prompted
+	// to
+	// * enter a MID.
+	// *
+	// * @param context
+	// * the context
+	// */
+	// public void clearConversationSelected(final Context context) {
+	// String title = "Selective Clear Conversation";
+	// String text =
+	// "Enter a message id (MID) up to which all previous older messages will be deleted.\n\nATTENTION: If your MID starts with a start (*) then you MUST also enter this here, otherwise wrong/all messages may get deleted!";
+	// new MessageInputDialog(context, title, text, " Clear Messages ", null,
+	// "Abort", "", new MessageInputDialog.OnSelectionListener() {
+	// public void selected(MessageInputDialog dialog, int button,
+	// boolean cancel, String mid) {
+	// if (button == MessageInputDialog.BUTTONOK0 && !cancel) {
+	// int numDeleted = DB.clearSelective(context,
+	// hostUid, mid);
+	// if (numDeleted == -1) {
+	// Utility.showToastAsync(context,
+	// "Clearing failed. Message id " + mid
+	// + " is invalid.");
+	// } else if (numDeleted == -2) {
+	// Utility.showToastAsync(
+	// context,
+	// "Clearing failed. Message "
+	// + mid
+	// + " does not belong to this conversation!");
+	// } else {
+	// Utility.showToastAsync(context, "Cleared "
+	// + numDeleted + " messages up to MID "
+	// + mid);
+	// }
+	// }
+	// dialog.dismiss();
+	// }
+	// }, InputType.TYPE_CLASS_PHONE).show();
+	//
+	// }
 
 	// ------------------------------------------------------------------------
 
@@ -2879,27 +2927,49 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Save image in gallery.
+	 * Save image in gallery. The titleAddition is added to the the title and
+	 * can contain additional information, e.g., the messageid.
 	 * 
 	 * @param context
 	 *            the context
 	 * @param encodedImg
 	 *            the encoded img
+	 * @param silent
+	 *            the silent
+	 * @param titleAddition
+	 *            the title addition
+	 * @return true, if successful
 	 */
-	public static void saveImageInGallery(final Context context,
-			String encodedImg) {
+	public static boolean saveImageInGallery(final Context context,
+			String encodedImg, boolean silent, String titleAddition,
+			String description) {
 		try {
 			// Save image in gallery
 			Bitmap bitmap = Utility.loadImageFromBASE64String(context,
 					encodedImg);
 			String bitmapPath = Utility.insertImage(
-					context.getContentResolver(), bitmap, "Cryptocator Images",
-					null);
-			Utility.updateMediaScanner(context, bitmapPath);
-			Utility.showToastAsync(context, "Image saved to " + bitmapPath);
+					context.getContentResolver(), bitmap, "Cryptocator"
+							+ titleAddition, description);
+			if (bitmapPath != null) {
+				Utility.updateMediaScanner(context, bitmapPath);
+				if (!silent) {
+					Utility.showToastAsync(context, "Image saved to "
+							+ bitmapPath);
+				}
+				return true;
+			} else {
+				if (!silent) {
+					Utility.showToastAsync(context,
+							"Error saving image to gallery. (2)");
+				}
+			}
 		} catch (Exception e) {
-			Utility.showToastAsync(context, "Error saving image to gallery.");
+			if (!silent) {
+				Utility.showToastAsync(context,
+						"Error saving image to gallery. (1)");
+			}
 		}
+		return false;
 	}
 
 	// -------------------------------------------------------------------------
@@ -2943,7 +3013,8 @@ public class Conversation extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	public static void promptImageSaveAs(final Context context) {
+	public static void promptImageSaveAs(final Context context,
+			final String imageTitleAddition, final String imageDescription) {
 		final String copiedText = Utility.pasteFromClipboard(context);
 		int imgStart = copiedText.indexOf("[img ");
 		if (imgStart == -1) {
@@ -2964,7 +3035,8 @@ public class Conversation extends Activity {
 				" Cancel ", new MessageAlertDialog.OnSelectionListener() {
 					public void selected(int button, boolean cancel) {
 						if (button == MessageAlertDialog.BUTTONOK0) {
-							saveImageInGallery(context, encodedImg);
+							saveImageInGallery(context, encodedImg, false,
+									imageTitleAddition, imageDescription);
 						}
 						if (button == MessageAlertDialog.BUTTONOK1) {
 							shareImage(context, encodedImg);
@@ -3131,7 +3203,7 @@ public class Conversation extends Activity {
 	 */
 	private static void takePhoto(Activity activity) {
 		if (!Utility.isCameraAvailable(activity)) {
-			Utility.showToastAsync(activity, "No Camera available.");
+			Utility.showToastAsync(activity, "No camera available.");
 			return;
 		}
 		Intent cameraIntent = new Intent(
@@ -3304,6 +3376,82 @@ public class Conversation extends Activity {
 			// Message is not too long and not contains too large images
 			sendMessage(context, transport, encrypted, messageTextString);
 		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Builds the image title addition for images saved to the gallery.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param conversationItem
+	 *            the conversation item
+	 * @return the string
+	 */
+	public static String buildImageTitleAddition(Context context,
+			ConversationItem conversationItem) {
+		int mid = conversationItem.mid;
+		String SMSorInternet = " [ " + mid + " ] message";
+		if (mid == -1) {
+			SMSorInternet = " [ *" + conversationItem.localid + " ] message";
+		}
+		if (conversationItem.transport == DB.TRANSPORT_SMS) {
+			SMSorInternet = " [ *" + conversationItem.localid + " ] SMS";
+		}
+		String sentReceived = "from "
+				+ Main.UID2Name(context, conversationItem.from, true);
+		if (conversationItem.me(context)) {
+			sentReceived = "to "
+					+ Main.UID2Name(context, conversationItem.to, true);
+		}
+
+		long time = conversationItem.sent;
+		if (time < 0) {
+			time = conversationItem.created;
+		}
+		String date = DB.getDateString(time, false);
+
+		return SMSorInternet + " " + sentReceived + " @ " + date + ".";
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Builds an appropriate image description so that the image can later be
+	 * mapped back to a conversation if the user wonders where the image in the
+	 * gallery came from.
+	 * 
+	 * @param conversationItem
+	 *            the conversation item
+	 * @return the string
+	 */
+	public static String buildImageDescription(Context context,
+			ConversationItem conversationItem) {
+		int mid = conversationItem.mid;
+		String SMSorInternet = "Internet message [ " + mid + " ]";
+		if (mid == -1) {
+			SMSorInternet = "Internet message [ *" + conversationItem.localid
+					+ " ]";
+		}
+		if (conversationItem.transport == DB.TRANSPORT_SMS) {
+			SMSorInternet = "SMS message [ *" + conversationItem.localid + " ]";
+		}
+
+		String sentReceived = "received from "
+				+ Main.UID2Name(context, conversationItem.from, true);
+		if (conversationItem.me(context)) {
+			sentReceived = "sent to "
+					+ Main.UID2Name(context, conversationItem.to, true);
+		}
+
+		long time = conversationItem.sent;
+		if (time < 0) {
+			time = conversationItem.created;
+		}
+		String date = DB.getDateString(time, false);
+
+		return SMSorInternet + " " + sentReceived + " @ " + date + ".";
 	}
 
 	// ------------------------------------------------------------------------

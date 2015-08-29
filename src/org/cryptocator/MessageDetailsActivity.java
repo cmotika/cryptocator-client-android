@@ -33,6 +33,9 @@
  */
 package org.cryptocator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -42,10 +45,10 @@ import android.content.DialogInterface.OnCancelListener;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TableRow;
@@ -94,6 +97,17 @@ public class MessageDetailsActivity extends Activity {
 
 	/** The endtag. */
 	private static final String ENDTAG = "]";
+
+	/**
+	 * The details checkbox for the backup prompt. For every prompt a new one is
+	 * created because it is made available by the listener.
+	 */
+	private CheckBox details;
+	/**
+	 * The removeImages checkbox for the backup prompt. For every prompt a new
+	 * one is created because it is made available by the listener.
+	 */
+	private CheckBox removeImages;
 
 	// ------------------------------------------------------------------------
 
@@ -155,8 +169,10 @@ public class MessageDetailsActivity extends Activity {
 		TableRow keyhashrow = (TableRow) dialogLayout
 				.findViewById(R.id.keyhashrow);
 
-		TableRow attachmentrow = (TableRow) dialogLayout
-				.findViewById(R.id.attachmentsrow);
+		TableRow attachmentrow1 = (TableRow) dialogLayout
+				.findViewById(R.id.attachmentsrow1);
+		TableRow attachmentrow2 = (TableRow) dialogLayout
+				.findViewById(R.id.attachmentsrow2);
 		final Spinner attachmentspinner = (Spinner) dialogLayout
 				.findViewById(R.id.attachmentspinner);
 		Button buttonsave = (Button) dialogLayout.findViewById(R.id.buttonsave);
@@ -166,6 +182,10 @@ public class MessageDetailsActivity extends Activity {
 		// Get updated information about this conversation item
 		final ConversationItem updatedItem = DB.getMessage(context,
 				conversationItem.localid, hostUid);
+		if (updatedItem == null) {
+			activity.finish();
+			return;
+		}
 
 		String msgIdString = " [ " + updatedItem.mid + " ]";
 		if (updatedItem.mid == -1) {
@@ -214,17 +234,27 @@ public class MessageDetailsActivity extends Activity {
 			encrypted.setText("No");
 		}
 
-		int hostUid = updatedItem.from;
-		if (updatedItem.me(context)) {
-			hostUid = updatedItem.to;
+		String forTransport = "";
+		long keyCreatedTSInternet = Setup.getAESKeyDate(context, hostUid,
+				DB.TRANSPORT_INTERNET);
+		long keyCreatedTS = keyCreatedTSInternet;
+		long keyCreatedTSSMS = Setup.getAESKeyDate(context, hostUid,
+				DB.TRANSPORT_SMS);
+		if (keyCreatedTSInternet != 0 && keyCreatedTSSMS != 0) {
+			forTransport = "Internet + SMS";
+		} else if (keyCreatedTSInternet != 0) {
+			forTransport = "Internet";
+		} else if (keyCreatedTSSMS != 0) {
+			forTransport = "SMS";
+			keyCreatedTS = keyCreatedTSSMS;
+		} else {
+			forTransport = "";
 		}
-
-		long keyCreatedTS = Setup.getAESKeyDate(context, hostUid);
 		long keyOutdatedTS = keyCreatedTS + Setup.AES_KEY_TIMEOUT_SENDING;
 		keycreated.setText(DB.getDateString(keyCreatedTS, true));
 		keyexpires.setText(DB.getDateString(keyOutdatedTS, true));
 		String keyhashstring = Setup.getAESKeyHash(context, hostUid);
-		keyhash.setText(keyhashstring + " (current)");
+		keyhash.setText(keyhashstring + " - " + forTransport);
 
 		if (hostUid < 0) {
 			// SMS user only - hide key info, there cannot be any key!
@@ -244,6 +274,10 @@ public class MessageDetailsActivity extends Activity {
 
 		int numImages = getImageAttachmentNumber(context, updatedItem.text);
 		if (numImages > 0) {
+			if (numImages == 1) {
+				// We do not need the spinner, there is just one image
+				attachmentspinner.setVisibility(View.GONE);
+			}
 			String images[] = new String[numImages];
 			for (int i = 0; i < numImages; i++) {
 				images[i] = "Image " + (i + 1);
@@ -258,7 +292,11 @@ public class MessageDetailsActivity extends Activity {
 					int number = attachmentspinner.getSelectedItemPosition();
 					String encodedImg = extractImageAttachment(context,
 							updatedItem.text, number);
-					Conversation.saveImageInGallery(context, encodedImg);
+					Conversation.saveImageInGallery(context, encodedImg, false,
+							Conversation.buildImageTitleAddition(context,
+									updatedItem),
+							Conversation.buildImageDescription(context,
+									updatedItem));
 				}
 			});
 			buttonshare.setOnClickListener(new View.OnClickListener() {
@@ -270,8 +308,104 @@ public class MessageDetailsActivity extends Activity {
 				}
 			});
 		} else {
-			attachmentrow.setVisibility(View.GONE);
+			attachmentrow1.setVisibility(View.GONE);
+			attachmentrow2.setVisibility(View.GONE);
 		}
+
+		int hostUidTmp = updatedItem.from;
+		if (updatedItem.me(context)) {
+			hostUidTmp = updatedItem.to;
+		}
+		final int hostUid = hostUidTmp;
+
+		ImageLabelButton buttonbackup = (ImageLabelButton) dialogLayout
+				.findViewById(R.id.buttonbackup);
+		buttonbackup.setTextAndImageResource("Backup", R.drawable.btnbackup);
+		ImageLabelButton buttonclear = (ImageLabelButton) dialogLayout
+				.findViewById(R.id.buttonclear);
+		buttonclear.setTextAndImageResource("Clear", R.drawable.btnclear);
+
+		buttonbackup.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				new MessageAlertDialog(
+						context,
+						"Backup Messages",
+						"Backup all older messages up to this one to the Clipboard?",
+						"Backup", null, "Abort",
+						new MessageAlertDialog.OnSelectionListener() {
+							public void selected(int button, boolean cancel) {
+								if (!cancel && button == 0) {
+									// Backup all message up & including to this
+									// one
+									List<ConversationItem> conversationList = new ArrayList<ConversationItem>();
+									DB.loadConversation(context, hostUid,
+											conversationList, -1);
+									BackupActivity.doBackup(context, 0,
+											updatedItem.localid,
+											conversationList,
+											details.isChecked(),
+											removeImages.isChecked());
+								}
+							}
+						}, new MessageAlertDialog.OnInnerViewProvider() {
+							public View provide(MessageAlertDialog dialog) {
+								LinearLayout.LayoutParams lpDetails = new LinearLayout.LayoutParams(
+										LayoutParams.WRAP_CONTENT,
+										LayoutParams.WRAP_CONTENT);
+								lpDetails.setMargins(20, 0, 20, 0);
+								LinearLayout.LayoutParams lpRemoveImages = new LinearLayout.LayoutParams(
+										LayoutParams.WRAP_CONTENT,
+										LayoutParams.WRAP_CONTENT);
+								lpRemoveImages.setMargins(20, 0, 20, 20);
+								LinearLayout checkBoxLayout = new LinearLayout(
+										activity);
+								checkBoxLayout
+										.setOrientation(LinearLayout.VERTICAL);
+
+								details = new CheckBox(context);
+								details.setText("Include Message Details");
+								details.setLayoutParams(lpDetails);
+
+								removeImages = new CheckBox(context);
+								removeImages.setText("Remove Images");
+								removeImages.setLayoutParams(lpRemoveImages);
+								removeImages.setChecked(true);
+
+								checkBoxLayout.addView(details);
+								checkBoxLayout.addView(removeImages);
+								return checkBoxLayout;
+							}
+						}).show();
+			}
+		});
+		buttonclear.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				new MessageAlertDialog(
+						context,
+						"Clear Messages",
+						"Really clear all older messages up to and including this one?",
+						"Clear", null, "Abort",
+						new MessageAlertDialog.OnSelectionListener() {
+							public void selected(int button, boolean cancel) {
+								if (!cancel && button == 0) {
+									// Clear message up to & including this one
+									int numCleared = DB.clearSelective(context,
+											hostUid, (-1 * updatedItem.localid)
+													+ "");
+
+									if (numCleared > 0) {
+										Utility.showToastAsync(context,
+												+numCleared
+														+ " messages cleared.");
+									} else {
+										Utility.showToastAsync(context,
+												"Nothing cleared.");
+									}
+								}
+							}
+						}).show();
+			}
+		});
 
 		Button buttonresend = (Button) dialogLayout
 				.findViewById(R.id.buttonresend);
@@ -345,13 +479,13 @@ public class MessageDetailsActivity extends Activity {
 		alertDialog = builder.show();
 
 		// Grab the window of the dialog, and change the width
-		WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-		Window window = alertDialog.getWindow();
-		lp.copyFrom(window.getAttributes());
+		// WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+		// Window window = alertDialog.getWindow();
+		// lp.copyFrom(window.getAttributes());
 		// This makes the dialog take up the full width
-		lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+		// lp.width = WindowManager.LayoutParams.MATCH_PARENT;
 		// lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-		window.setAttributes(lp);
+		// window.setAttributes(lp);
 
 		Utility.setBackground(context, outerLayout, R.drawable.dolphins3light);
 		Utility.setBackground(context, buttonLayout, R.drawable.dolphins4light);
@@ -456,6 +590,42 @@ public class MessageDetailsActivity extends Activity {
 			return 0;
 		}
 		return Math.max(imageParts.length - 1, 0);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Auto save all images of this message and return the number of images
+	 * saved.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param messagText
+	 *            the messag text
+	 * @return the int
+	 */
+	public static int autoSaveAllImages(Context context, String messageText,
+			ConversationItem conversationItem) {
+		int num = getImageAttachmentNumber(context, messageText);
+		int saved = 0;
+		if (num > 0) {
+			for (int curNum = 0; curNum < num; curNum++) {
+				String encodedImg = extractImageAttachment(context,
+						messageText, curNum);
+				if (Conversation.saveImageInGallery(context, encodedImg, true,
+						Conversation.buildImageTitleAddition(context,
+								conversationItem), Conversation
+								.buildImageDescription(context,
+										conversationItem))) {
+					saved++;
+				}
+			}
+		}
+		if (saved > 0) {
+			Utility.showToastAsync(context, "Auto-saved " + saved
+					+ " image attachments to gallery.");
+		}
+		return saved;
 	}
 
 	// ------------------------------------------------------------------------

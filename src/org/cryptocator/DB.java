@@ -591,6 +591,62 @@ public class DB {
 	// ------------------------------------------------------------------------
 
 	/**
+	 * Removes the all previous / older messages based for a user based on an
+	 * mid. If negative or with * than interpret this as local id.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public static int clearSelective(Context context, int uid, String midString) {
+		midString = midString.trim();
+		boolean isLocal = false;
+		if (midString.startsWith("*") || midString.startsWith("-")) {
+			isLocal = true;
+			midString = midString.substring(1);
+		}
+		int messageId = Utility.parseInt(midString, -1);
+		if (messageId == -1) {
+			return -1;
+		}
+
+		String query = "`mid` <= " + messageId;
+		if (isLocal) {
+			query = "`localid` <= " + messageId;
+		}
+
+		int localId = messageId;
+		if (!isLocal) {
+			localId = DB.getHostLocalIdByMid(context, messageId, uid);
+		}
+
+		Log.d("communicator", "@@@@ SELECTIVE CLEAR : localId=" + localId
+				+ ", uid=" + uid + ", query=" + query);
+
+		// First test if the local id belongs to the hostuid...
+		ConversationItem item = getMessage(context, localId, uid);
+		if (item == null) {
+			return -2;
+		}
+
+		int numCleard = 0;
+		SQLiteDatabase db = null;
+		try {
+			db = openDB(context, uid);
+			numCleard = db.delete(TABLE_MESSAGES, query, null);
+			db.close();
+		} catch (Exception e) {
+			if (db != null) {
+				db.close();
+			}
+			rebuildDBSent(context);
+			e.printStackTrace();
+		}
+		return numCleard;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
 	 * Removes the mapping by mid.
 	 * 
 	 * @param context
@@ -1332,6 +1388,55 @@ public class DB {
 					Setup.SETTINGS_LARGEST_TS_RECEIVED, DB.getTimestamp());
 		}
 		return largestTimestampReceived;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the mid of the last sent key message. This is needed for proper
+	 * setting key timestamps of the OTHER transport method that was NOT used to
+	 * send this messages when receiving delivery confirmations. If LASTKEYMID +
+	 * hostUid == -1 this means: Invalidated because of NEW key sent If
+	 * LASTKEYMID + hostUid == -2 this means: We do not await any key
+	 * 
+	 * @param context
+	 *            the context
+	 * @param hostUid
+	 *            the host uid
+	 * @return the last sent key message
+	 */
+	static int getLastSentKeyMessage(Context context, int hostUid) {
+		int returnMid = Utility.loadIntSetting(context, Setup.LASTKEYMID
+				+ hostUid, -1);
+		if (returnMid == -1) {
+			returnMid = -2; // set to non-awaiting...
+			SQLiteDatabase db = openDB(context, hostUid);
+			String QUERY = "SELECT `mid` FROM `"
+					+ TABLE_MESSAGES
+					+ "` WHERE 'received' = '' AND  `priority` = "
+					+ DB.PRIORITY_KEY
+					+ " AND `system` = 1 AND text LIKE '%session key%' ORDER BY `mid` DESC";
+
+			Cursor cursor = db.rawQuery(QUERY, null);
+			if (cursor != null && cursor.moveToFirst()) {
+				if (cursor.getCount() > 0) {
+					// Try again later (-1) if failing to parse Integer
+					returnMid = Utility.parseInt(cursor.getString(0), -1);
+				}
+				cursor.close();
+			}
+			db.close();
+			Log.d("communicator",
+					" KEYUPDATE: getLastSentKeyMessage() SAVED NEW mid="
+							+ returnMid);
+			Utility.saveIntSetting(context, Setup.LASTKEYMID + hostUid,
+					returnMid);
+		} else {
+			Log.d("communicator",
+					" KEYUPDATE: getLastSentKeyMessage() CACHED mid="
+							+ returnMid);
+		}
+		return returnMid;
 	}
 
 	// -------------------------------------------------------------------------

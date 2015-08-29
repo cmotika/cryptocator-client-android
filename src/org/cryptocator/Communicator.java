@@ -58,7 +58,26 @@ import android.util.Log;
 /**
  * The Communicator class handles most of the communication including
  * sending/receiving messages and receive/read confirmations or the update of
- * account and session keys.
+ * account and session keys. <BR>
+ * <BR>
+ * Notes on AES session keys and update strategy. Keys timeout after one hour.
+ * They timeout a little later for receiving than for sending. Keys can be send
+ * via Internet or SMS. <BR>
+ * Scenario: If sending a key via Internet and the other person currently does
+ * not have Internet connection we should not send encrypted SMS because the
+ * other person would be unable to decrypt.<BR>
+ * Solution: Carry two timestamps for the current key. If sending by Internet
+ * only set the Internet timestamp. If sending by SMS only set the SMS
+ * timestamp. Clear the other transport's timestamp when sending a new key! On
+ * receiving a key: Set BOTH timestamps. If receiving delivery confirmation for
+ * an Internet key message set the SMS timestamp. If receiving delivery
+ * confirmation for an SMS key message then set the Internet timstamp. Now: If
+ * sending a message via Internet and the Internet timestamp is not set, re-send
+ * the key message via Internet (if not outdated). If sending a message via SMS
+ * and the SMS timestamp is not set, re-send the key message via SMS (if not
+ * outdated). This way we ensure that the (non-outdated) key is ALWAYS present
+ * at the receipient no matter transport method is chosen and no matter
+ * connectivity permits SMS or Internet receiving or messages!
  * 
  * @author Christian Motika
  * @since 1.2
@@ -140,7 +159,7 @@ public class Communicator {
 
 	/**
 	 * This method should help to save communication, it quickly checks for new
-	 * messages and only if there are messages waiting it triggeres the receive
+	 * messages and only if there are messages waiting it triggers the receive
 	 * next message.
 	 * 
 	 * @param context
@@ -257,6 +276,54 @@ public class Communicator {
 						DB.updateMessageReceived(context, mid, ts, senderUid);
 						updateSentReceivedReadAsync(context, mid, senderUid,
 								false, true, false, false);
+						// If we wait for a key message delivery confirmation in
+						// order to set the other transport's timestamp...
+						// check here:
+						int lastKeyMessageMid = DB.getLastSentKeyMessage(
+								context, senderUid);
+						Log.d("communicator",
+								" KEYUPDATE: handleReadAndReceived() lastKeyMessageMid="
+										+ lastKeyMessageMid + " != -1 ???");
+						if (lastKeyMessageMid > -1) {
+							// -1 means we await in principle but not have a
+							// mid, maybe the key messages is not yet sent
+							// -2 means we do not await such a key message!
+							Log.d("communicator",
+									" KEYUPDATE: handleReadAndReceived() (lastKeyMessageMid == mid) ??? mid="
+											+ mid);
+							if (lastKeyMessageMid == mid) {
+								// Yes... we just received the delivery
+								// confirmation and can NOW use our key for BOTH
+								// transport methods!
+								long timestampInternet = Setup.getAESKeyDate(
+										context, senderUid,
+										DB.TRANSPORT_INTERNET);
+								long timestampSMS = Setup.getAESKeyDate(
+										context, senderUid, DB.TRANSPORT_SMS);
+								Log.d("communicator",
+										" KEYUPDATE: handleReadAndReceived() timestampInternet="
+												+ timestampInternet
+												+ ", timestampSMS="
+												+ timestampSMS);
+								// Do not await any more!
+								Utility.saveIntSetting(context,
+										Setup.LASTKEYMID + senderUid, -2);
+								if (timestampInternet > 0) {
+									Log.d("communicator",
+											" KEYUPDATE: handleReadAndReceived() timestampInternet now also saved for SMS");
+									Setup.setAESKeyDate(context, senderUid,
+											timestampInternet + "",
+											DB.TRANSPORT_SMS);
+								} else {
+									Log.d("communicator",
+											" KEYUPDATE: handleReadAndReceived() timestampSMS now also saved for Internet");
+									Setup.setAESKeyDate(context, senderUid,
+											timestampSMS + "",
+											DB.TRANSPORT_INTERNET);
+								}
+
+							}
+						}
 					}
 				}
 			}
@@ -533,6 +600,18 @@ public class Communicator {
 											success2 = updateUIForReceivedMessage(
 													context, newItem);
 
+											// Auto-save images possibly
+											if (Utility.loadBooleanSetting(
+													context,
+													Setup.OPTION_AUTOSAVE,
+													Setup.DEFAULT_AUTOSAVE)) {
+												MessageDetailsActivity
+														.autoSaveAllImages(
+																context,
+																newItem.text,
+																newItem);
+											}
+
 											if (newItem.text == null
 													|| newItem.text.equals("")) {
 												// No toast or scrolling on
@@ -723,8 +802,13 @@ public class Communicator {
 					// Save as AES key for later decryptying and encrypting
 					// usage
 					Setup.saveAESKey(context, newItem.from, text);
+					// When receiving a key then set update timestamps for both
+					// because we have the current key and could possibly use it
+					// for both transport ways immediately!
 					Setup.setAESKeyDate(context, newItem.from,
-							DB.getTimestampString());
+							DB.getTimestampString(), DB.TRANSPORT_INTERNET);
+					Setup.setAESKeyDate(context, newItem.from,
+							DB.getTimestampString(), DB.TRANSPORT_SMS);
 					keyhash = Setup.getAESKeyHash(context, newItem.from);
 					// Discard the message
 					Utility.showToastAsync(
@@ -930,84 +1014,105 @@ public class Communicator {
 		// c. sent it first in a K ey message
 		// d. use the new key
 
-		boolean outDated = Setup.isAESKeyOutdated(context, uid, forSending);
-		Log.d("communicator", "#### KEY FOR " + uid + " TIMEOUT? " + outDated);
+		boolean outDatedInternet = Setup.isAESKeyOutdated(context, uid,
+				forSending, DB.TRANSPORT_INTERNET);
+		boolean outDatedSMS = Setup.isAESKeyOutdated(context, uid, forSending,
+				DB.TRANSPORT_SMS);
+		Log.d("communicator", "#### KEY FOR " + uid + " TIMEOUT? "
+				+ (outDatedInternet || outDatedSMS));
 
-		if (!outDated && !forceSendingNewKey) {
-			// Key is up-to-date (hopefully the other part has it as well!)
+		boolean outdatedOrNeedsResending = (outDatedInternet && transport == DB.TRANSPORT_INTERNET)
+				|| (outDatedSMS && transport == DB.TRANSPORT_SMS);
+		boolean outdatedBoth = outDatedInternet && outDatedSMS;
+
+		if (!outdatedOrNeedsResending && !forceSendingNewKey) {
+			// Key is up-to-date - AT LEAST for the current transport (hopefully
+			// the other part has it as well!)
 			Key secretKey = Setup.getAESKey(context, uid);
 			Log.d("communicator",
 					"#### KEY RETURNING " + uid + " : "
 							+ Setup.getAESKeyHash(context, uid));
 			return secretKey;
 		} else {
-			// Use the last received message as a random seed
-			String lastMsg = Main.getLastMessage(context, uid);
-			// Log.d("communicator", "###### RANDOM SEED lastMsg " + lastMsg);
-			String randomSeed = lastMsg + "-" + DB.getTimestamp() + "";
-			// Log.d("communicator", "###### RANDOM SEED " + randomSeed);
-			Key newKey = Setup.generateAESKey(randomSeed);
-			String newKeyAsString = Setup.serializeAESKey(newKey);
-			// Save
-			Setup.saveAESKey(context, uid, newKeyAsString);
-			Setup.setAESKeyDate(context, uid, DB.getTimestampString());
+			Key savedOrNewKey = Setup.getAESKey(context, uid);
+			String savedOrNewKeyAsString = null;
+			long keyTimestamp = DB.getTimestamp();
+			
+			// Only generate a new key if outdated or forceupdate.
+			// Otherwise re-send the current key by the current media and
+			// don't forget to set the timestamp for this media.
+			if (outdatedBoth || forceSendingNewKey) {
+				// Okay... really a new key is needed...
+				// Use the last received message as a random seed
+				String lastMsg = Main.getLastMessage(context, uid);
+				// Log.d("communicator", "###### RANDOM SEED lastMsg " +
+				// lastMsg);
+				String randomSeed = lastMsg + "-" + DB.getTimestamp() + "";
+				// Log.d("communicator", "###### RANDOM SEED " + randomSeed);
+				savedOrNewKey = Setup.generateAESKey(randomSeed);
+				savedOrNewKeyAsString = Setup.serializeAESKey(savedOrNewKey);
+				// Save new key
+				Setup.saveAESKey(context, uid, savedOrNewKeyAsString);
+				// Because this is a NEW key now ... we have to
+				// Invalidate key timestamp of OTHER transport method, also
+				// Invalidate DB.getLastKeyMessage() cache set to -1 ==
+				// awaiting!
+				Utility.saveIntSetting(context, Setup.LASTKEYMID + uid, -1);
+				if (transport == DB.TRANSPORT_INTERNET) {
+					Log.d("communicator",
+							" KEYUPDATE: getAESKey() invalidate SMS timestamp");
+					Setup.setAESKeyDate(context, uid, null, DB.TRANSPORT_SMS);
+				} else {
+					Log.d("communicator",
+							" KEYUPDATE: getAESKey() invalidate Internet timestamp");
+					Setup.setAESKeyDate(context, uid, null,
+							DB.TRANSPORT_INTERNET);
+				}
+			} else {
+				// Okay ... we have a key that is not outdated but we sent it
+				// over to the other person using the OTHER transport medium not
+				// the one we would like to use now. So we should resend the
+				// current key over THIS transport medium.
+				savedOrNewKey = Setup.getAESKey(context, uid);
+				savedOrNewKeyAsString = Setup.serializeAESKey(savedOrNewKey);
+				// Do not await any more!
+				Utility.saveIntSetting(context, Setup.LASTKEYMID + uid, -2);
+				// We need to save the older timestamp of the other transport here!
+				if (transport == DB.TRANSPORT_INTERNET) {
+					keyTimestamp = Setup.getAESKeyDate(context, uid, DB.TRANSPORT_SMS); 
+				} else {
+					keyTimestamp = Setup.getAESKeyDate(context, uid, DB.TRANSPORT_INTERNET); 
+				}
+			}
+
+			// Save the timestamp of the CURRENT transport
+			Setup.setAESKeyDate(context, uid, keyTimestamp + "",
+					transport);
+			Log.d("communicator",
+					" KEYUPDATE: getAESKey() SAVE NEW KEY FOR TRANPSORT="
+							+ transport);
+
 			String keyhash = Setup.getAESKeyHash(context, uid);
-
-			Log.d("communicator", "#### KEY CREATING NEW " + uid + " : "
-					+ Setup.getAESKeyHash(context, uid));
-
-			// Encrypt the key
-			// boolean haveKey = Setup.haveKey(context, uid);
-
-			Log.d("communicator", "#### KEY NEW KEY #1");
-
 			// RSA encrypt here
 			PublicKey pubKeyOther = Setup.getKey(context, uid);
-			String encryptedKey = encryptMessage(context, newKeyAsString,
-					pubKeyOther);
-
-			Log.d("communicator", "#### KEY NEW KEY #2");
-
+			String encryptedKey = encryptMessage(context,
+					savedOrNewKeyAsString, pubKeyOther);
 			// Sign the KEY
 			PrivateKey myPrivateKey = Setup.getPrivateKey(context);
-
-			Log.d("communicator", "#### KEY NEW KEY #3");
-
-			String keyHash = Utility.md5(newKeyAsString);
+			String keyHash = Utility.md5(savedOrNewKeyAsString);
 			String signature = encryptMessage(context, keyHash, myPrivateKey);
-
-			Log.d("communicator", "#### KEY NEW KEY #4");
-
 			String separator = KEY_OK_SEPARATOR;
 			if (flagErrorMessageNotification) {
 				// This indicates the error!!!
 				separator = KEY_ERROR_SEPARATOR;
 			}
-
-			Log.d("communicator", "#### KEY NEW KEY #5");
-
 			String msgText = "K" + encryptedKey + separator + signature;
-
-			Log.d("communicator", "#### KEY NEW KEY #6");
-
 			// Sent a KEY-Message via the same transport as the original message
 			// should go!
 			DB.addSendMessage(context, uid, msgText, false, transport, true,
 					DB.PRIORITY_KEY, item);
-
 			Conversation.updateConversationlistAsync(context);
-
-			Log.d("communicator", "#### KEY NEW KEY #7");
-
 			Communicator.sendNewNextMessageAsync(context, transport);
-
-			Log.d("communicator", "#### KEY NEW KEY #8");
-
-			Log.d("communicator", "#### KEY NEW KEY NOW ADDED! RETURNING NULL");
-
-			// SendMessage(context, uid, msgText, DB.getTimestamp() - 1000,
-			// null,
-			// transport);
 			if (transport == DB.TRANSPORT_INTERNET) {
 				Utility.showToastAsync(context, "Sending new session "
 						+ keyhash + " key...");
@@ -1202,7 +1307,7 @@ public class Communicator {
 			// created because order IS important since session keys are also
 			// part of the messages.
 			DB.printDBSending(context);
-			String toastText = "Error sending Message " + itemToSend.sendingid
+			String toastText = "Error sending message " + itemToSend.sendingid
 					+ ". Invalid receipient or creation date.";
 			String text = itemToSend.text;
 			if (text != null) {
@@ -1302,7 +1407,7 @@ public class Communicator {
 					&& itemToSend.sendingid != -1) {
 				Utility.copyToClipboard(context, itemToSend.text);
 				Utility.showToastAsync(context,
-						"Error sending SMS Message, no phone number for user "
+						"Error sending SMS message, no phone number for user "
 								+ Main.UID2Name(context, to, false)
 								+ ". Message text copied to clipboard.");
 			}
@@ -1876,6 +1981,7 @@ public class Communicator {
 	 */
 	public static void updatePhonesFromServer(final Context context,
 			final List<Integer> uidList, final boolean forceUpdate) {
+		Log.d("communicator", "###### REQUEST HAS PHONE #1");
 
 		long lastTime = Utility.loadLongSetting(context,
 				Setup.SETTING_LASTUPDATEPHONES, 0);
@@ -1918,8 +2024,8 @@ public class Communicator {
 		url = Setup.getBaseURL(context) + "cmd=hasphone&session=" + session
 				+ "&val=" + Utility.urlEncode(uidliststring);
 
-		Log.d("communicator", "###### REQUEST HAS PHONE (" + uidliststring
-				+ ") " + url);
+//		Log.d("communicator", "###### REQUEST HAS PHONE (" + uidliststring
+//				+ ") " + url);
 
 		final String url2 = url;
 		@SuppressWarnings("unused")
@@ -1927,9 +2033,9 @@ public class Communicator {
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
 						if (isResponseValid(response)) {
-							// Log.d("communicator",
-							// "###### HAS KEY VALUES RECEIVED!!! "
-							// + response2);
+//							 Log.d("communicator",
+//							 "###### HAS PHONE VALUES RECEIVED!!! response="
+//							 + response);
 							if (isResponsePositive(response)) {
 								String responseContent = getResponseContent(response);
 								List<String> values = Utility
@@ -1959,16 +2065,18 @@ public class Communicator {
 												value = Setup.decText(context,
 														value);
 												if (value != null) {
-													if (Main.isUpdatePhone(
-															context, uid)) {
+													boolean isUpdate = Main.isUpdatePhone(
+															context, uid);
+													if (isUpdate) {
 														Setup.savePhone(
 																context, uid,
 																value, false);
 													}
 												}
 												// Log.d("communicator",
-												// "###### RESPONSE HAS PHONE SAVE ("+uidliststring2+") #4 "
-												// + uid);
+												// "###### RESPONSE HAS PHONE SAVE FOR "+Main.UID2Name(context,
+												// uid, false)+": "
+												// + value);
 											}
 										}
 										index++;
