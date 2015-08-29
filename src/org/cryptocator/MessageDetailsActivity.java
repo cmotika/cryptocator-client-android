@@ -44,8 +44,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TableRow;
 import android.widget.TextView;
 
@@ -86,6 +88,12 @@ public class MessageDetailsActivity extends Activity {
 	 * activity.
 	 */
 	boolean handled = false;
+
+	/** The starttag. */
+	private static final String STARTTAG = "[img ";
+
+	/** The endtag. */
+	private static final String ENDTAG = "]";
 
 	// ------------------------------------------------------------------------
 
@@ -146,6 +154,14 @@ public class MessageDetailsActivity extends Activity {
 				.findViewById(R.id.keyexpiresrow);
 		TableRow keyhashrow = (TableRow) dialogLayout
 				.findViewById(R.id.keyhashrow);
+
+		TableRow attachmentrow = (TableRow) dialogLayout
+				.findViewById(R.id.attachmentsrow);
+		final Spinner attachmentspinner = (Spinner) dialogLayout
+				.findViewById(R.id.attachmentspinner);
+		Button buttonsave = (Button) dialogLayout.findViewById(R.id.buttonsave);
+		Button buttonshare = (Button) dialogLayout
+				.findViewById(R.id.buttonshare);
 
 		// Get updated information about this conversation item
 		final ConversationItem updatedItem = DB.getMessage(context,
@@ -224,6 +240,37 @@ public class MessageDetailsActivity extends Activity {
 			builder.setIcon(R.drawable.msginfo);
 		} else {
 			builder.setIcon(R.drawable.msginfosms);
+		}
+
+		int numImages = getImageAttachmentNumber(context, updatedItem.text);
+		if (numImages > 0) {
+			String images[] = new String[numImages];
+			for (int i = 0; i < numImages; i++) {
+				images[i] = "Image " + (i + 1);
+			}
+			ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(
+					this, android.R.layout.simple_spinner_item, images);
+			spinnerArrayAdapter
+					.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+			attachmentspinner.setAdapter(spinnerArrayAdapter);
+			buttonsave.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					int number = attachmentspinner.getSelectedItemPosition();
+					String encodedImg = extractImageAttachment(context,
+							updatedItem.text, number);
+					Conversation.saveImageInGallery(context, encodedImg);
+				}
+			});
+			buttonshare.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					int number = attachmentspinner.getSelectedItemPosition();
+					String encodedImg = extractImageAttachment(context,
+							updatedItem.text, number);
+					Conversation.shareImage(context, encodedImg);
+				}
+			});
+		} else {
+			attachmentrow.setVisibility(View.GONE);
 		}
 
 		Button buttonresend = (Button) dialogLayout
@@ -390,6 +437,73 @@ public class MessageDetailsActivity extends Activity {
 						}
 					}
 				}).show();
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the number or image attachments in the message text.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param text
+	 *            the text
+	 * @return the image attachment number
+	 */
+	public static int getImageAttachmentNumber(Context context, String text) {
+		String[] imageParts = text.split("\\[img");
+		if (imageParts == null) {
+			return 0;
+		}
+		return Math.max(imageParts.length - 1, 0);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Extract image attachment as BASE64 encoded image.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param text
+	 *            the text
+	 * @param number
+	 *            the number
+	 * @return the string
+	 */
+	public static String extractImageAttachment(Context context, String text,
+			int number) {
+		int start = text.indexOf(STARTTAG);
+
+		if (start < 0) {
+			// No images to remove
+			return null;
+		}
+
+		// The total text is larger than the attachment limit and there are
+		// images included. So we now need to erase these...
+		boolean done = false;
+		start = 0;
+		int end = 0;
+		while (!done) {
+			// Search for start tag
+			start = text.indexOf(STARTTAG, end);
+			if (start == -1) {
+				// Not further start Found
+				done = true;
+			} else {
+				// Found, process this image
+				end = text.indexOf(ENDTAG, start) + 1;
+
+				String textImage = text.substring(start, end);
+				if (number == 0) {
+					return textImage.substring(STARTTAG.length(),
+							textImage.length() - ENDTAG.length());
+				}
+				number--;
+			}
+		}
+		return null;
 	}
 
 	// ------------------------------------------------------------------------

@@ -520,6 +520,62 @@
                         android:textSize="16sp" >
                     </TextView>
                 </TableRow>
+
+                <TableRow
+                    android:id="@+id/attachmentsrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="20px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="Save Images:"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:orientation="vertical" >
+
+                        <Spinner
+                            android:id="@+id/attachmentspinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+
+                                            <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:orientation="horizontal" >
+                        
+                        
+                        <Button
+                            android:id="@+id/buttonsave"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="20px"
+                            android:layout_marginBottom="40px"
+                            android:text="  Save  " />
+                        <Button
+                            android:id="@+id/buttonshare"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="20px"
+                            android:layout_marginBottom="40px"
+                            android:text="  Share  " />
+                        </LinearLayout>
+                        </LinearLayout>
+                </TableRow>
             </TableLayout>
         </LinearLayout>
     </ScrollView>
