@@ -438,6 +438,15 @@ public class Setup extends Activity {
 	public static final String AESKEY = "aes";
 
 	/**
+	 * The Constant KEYEXTRAWAITCOUNTDOWN is a countdown that is set by the
+	 * automated session key sending component for SMS to 10 and for Internet to
+	 * 3. Basically it enforces to delay the sending of the next SMS or Internet
+	 * message a certain amount of time to make it more likely that the new auto
+	 * generated session key has been received before.
+	 */
+	public static final String KEYEXTRAWAITCOUNTDOWN = "keyextrawaitcountdown";
+
+	/**
 	 * The Constant LASTKEYMID for the last mid of a key message sent to a user.
 	 * This should be reset when a new key is send, it should be set by the
 	 * first use of DB.getLastSendKeyMessage().
@@ -4749,6 +4758,46 @@ public class Setup extends Activity {
 	 */
 	public static boolean isAttachmentsAllowedByServer(Context context) {
 		return (getAttachmentServerLimit(context) > 0);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Extra count down to zero. Returns true if sending is permitted, it
+	 * returns false if we need to wait for the next cycle and the count down is
+	 * not yet at zero.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return true, if successful
+	 */
+	public static boolean extraCountDownToZero(Context context) {
+		int cnt = Utility.loadIntSetting(context, Setup.KEYEXTRAWAITCOUNTDOWN,
+				0);
+		if (cnt <= 0) {
+			return true;
+		}
+		cnt = cnt - 1;
+		Utility.saveIntSetting(context, Setup.KEYEXTRAWAITCOUNTDOWN, cnt);
+		return false;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Establish the extra crount down depending on the transport type.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param transport
+	 *            the transport
+	 */
+	public static void extraCrountDownSet(Context context, int transport) {
+		int cnt = 15; // For SMS
+		if (transport == DB.TRANSPORT_INTERNET) {
+			cnt = 5;
+		}
+		Utility.saveIntSetting(context, Setup.KEYEXTRAWAITCOUNTDOWN, cnt);
 	}
 
 	// ------------------------------------------------------------------------

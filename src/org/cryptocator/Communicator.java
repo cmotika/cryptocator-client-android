@@ -249,6 +249,67 @@ public class Communicator {
 	// ----------------------------------------------------------------------------------
 
 	/**
+	 * Process key deliveries. We must set the key timestamp of the other
+	 * transport medium to the value of the one that this key was initially sent
+	 * with. Rationale: After a key is delivered to the other partner it is safe
+	 * to be used for ANY transport medium.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param hostUid
+	 *            the host uid
+	 */
+	public static void processKeyDeliveries(final Context context,
+			int senderUid, int midOrLocalId, boolean processSMS) {
+		// If we wait for a key message delivery confirmation in
+		// order to set the other transport's timestamp...
+		// check here:
+		int lastKeyMessageMid = DB.getLastSentKeyMessage(context, senderUid,
+				processSMS);
+		Log.d("communicator",
+				" KEYUPDATE: handleReadAndReceived() lastKeyMessageMid="
+						+ lastKeyMessageMid + " != -1 ???");
+		if (lastKeyMessageMid > -1) {
+			// -1 means we await in principle but not have a
+			// mid, maybe the key messages is not yet sent
+			// -2 means we do not await such a key message!
+			Log.d("communicator",
+					" KEYUPDATE: handleReadAndReceived() (lastKeyMessageMid == mid) ??? midOrLocalId="
+							+ midOrLocalId);
+			if (lastKeyMessageMid == midOrLocalId) {
+				// Yes... we just received the delivery
+				// confirmation and can NOW use our key for BOTH
+				// transport methods!
+				long timestampInternet = Setup.getAESKeyDate(context,
+						senderUid, DB.TRANSPORT_INTERNET);
+				long timestampSMS = Setup.getAESKeyDate(context, senderUid,
+						DB.TRANSPORT_SMS);
+				Log.d("communicator",
+						" KEYUPDATE: handleReadAndReceived() timestampInternet="
+								+ timestampInternet + ", timestampSMS="
+								+ timestampSMS);
+				// Do not await any more!
+				Utility.saveIntSetting(context, Setup.LASTKEYMID + senderUid,
+						-2);
+				if (timestampInternet > 0) {
+					Log.d("communicator",
+							" KEYUPDATE: handleReadAndReceived() timestampInternet now also saved for SMS");
+					Setup.setAESKeyDate(context, senderUid, timestampInternet
+							+ "", DB.TRANSPORT_SMS);
+				} else {
+					Log.d("communicator",
+							" KEYUPDATE: handleReadAndReceived() timestampSMS now also saved for Internet");
+					Setup.setAESKeyDate(context, senderUid, timestampSMS + "",
+							DB.TRANSPORT_INTERNET);
+				}
+
+			}
+		}
+	}
+
+	// ----------------------------------------------------------------------------------
+
+	/**
 	 * Handle read and received.
 	 * 
 	 * @param context
@@ -273,57 +334,15 @@ public class Communicator {
 					String ts = midAndTs[1];
 					DB.updateLargestTimestampReceived(context, ts);
 					if (mid != -1 && senderUid != -1) {
+						boolean processSMS = false;
+						processKeyDeliveries(context, senderUid, mid,
+								processSMS);
+						// Only do this AFTER previous processing ... otherwise
+						// we cannot find the lastKeyMessageMid!
 						DB.updateMessageReceived(context, mid, ts, senderUid);
 						updateSentReceivedReadAsync(context, mid, senderUid,
 								false, true, false, false);
-						// If we wait for a key message delivery confirmation in
-						// order to set the other transport's timestamp...
-						// check here:
-						int lastKeyMessageMid = DB.getLastSentKeyMessage(
-								context, senderUid);
-						Log.d("communicator",
-								" KEYUPDATE: handleReadAndReceived() lastKeyMessageMid="
-										+ lastKeyMessageMid + " != -1 ???");
-						if (lastKeyMessageMid > -1) {
-							// -1 means we await in principle but not have a
-							// mid, maybe the key messages is not yet sent
-							// -2 means we do not await such a key message!
-							Log.d("communicator",
-									" KEYUPDATE: handleReadAndReceived() (lastKeyMessageMid == mid) ??? mid="
-											+ mid);
-							if (lastKeyMessageMid == mid) {
-								// Yes... we just received the delivery
-								// confirmation and can NOW use our key for BOTH
-								// transport methods!
-								long timestampInternet = Setup.getAESKeyDate(
-										context, senderUid,
-										DB.TRANSPORT_INTERNET);
-								long timestampSMS = Setup.getAESKeyDate(
-										context, senderUid, DB.TRANSPORT_SMS);
-								Log.d("communicator",
-										" KEYUPDATE: handleReadAndReceived() timestampInternet="
-												+ timestampInternet
-												+ ", timestampSMS="
-												+ timestampSMS);
-								// Do not await any more!
-								Utility.saveIntSetting(context,
-										Setup.LASTKEYMID + senderUid, -2);
-								if (timestampInternet > 0) {
-									Log.d("communicator",
-											" KEYUPDATE: handleReadAndReceived() timestampInternet now also saved for SMS");
-									Setup.setAESKeyDate(context, senderUid,
-											timestampInternet + "",
-											DB.TRANSPORT_SMS);
-								} else {
-									Log.d("communicator",
-											" KEYUPDATE: handleReadAndReceived() timestampSMS now also saved for Internet");
-									Setup.setAESKeyDate(context, senderUid,
-											timestampSMS + "",
-											DB.TRANSPORT_INTERNET);
-								}
 
-							}
-						}
 					}
 				}
 			}
@@ -774,13 +793,20 @@ public class Communicator {
 			String notificationMessageAddition = "";
 			if (text.contains(KEY_ERROR_SEPARATOR)) {
 				separator = KEY_ERROR_SEPARATOR;
-				notificationMessageAddition = "\n\nNew key was sent automatically because last message could not be decrypted.\n\nPLEASE RESEND YOUR LAST MESSAGE!";
+				notificationMessageAddition = "\n\nThis new key was sent automatically because last message could not be decrypted.\n\nPLEASE RESEND YOUR LAST MESSAGE!";
 			}
 			// Divide key and signature
 			String[] values = text.split(separator);
-			if (values != null && values.length == 2) {
+			// Be backwoards compatible here! The timestamp values[2] is NEW and
+			// optional for a while!
+			if (values != null && values.length == 2 || values.length == 3) {
 				String encryptedKey = values[0];
 				String signature = values[1];
+				String timestamp = DB.getTimestampString();
+				if (values.length == 3) {
+					timestamp = values[2];
+				}
+
 				// Get encryptedhash from signature
 				PublicKey senderPubKey = Setup.getKey(context, newItem.from);
 				String decryptedKeyHashMustBe = decryptMessage(context,
@@ -799,25 +825,47 @@ public class Communicator {
 				// + decryptedKeyHashMustBe);
 
 				if (decryptedKeyHashIs.equals(decryptedKeyHashMustBe)) {
-					// Save as AES key for later decryptying and encrypting
-					// usage
-					Setup.saveAESKey(context, newItem.from, text);
-					// When receiving a key then set update timestamps for both
-					// because we have the current key and could possibly use it
-					// for both transport ways immediately!
-					Setup.setAESKeyDate(context, newItem.from,
-							DB.getTimestampString(), DB.TRANSPORT_INTERNET);
-					Setup.setAESKeyDate(context, newItem.from,
-							DB.getTimestampString(), DB.TRANSPORT_SMS);
-					keyhash = Setup.getAESKeyHash(context, newItem.from);
-					// Discard the message
-					Utility.showToastAsync(
-							context,
-							"Received new session key "
-									+ keyhash
-									+ " from "
-									+ Main.UID2Name(context, newItem.from,
-											false) + ".");
+					// WAIT... before we save the Key we now test the timestamp
+					// if we already have a newer key received by the other
+					// party
+					long tsInternet = Setup.getAESKeyDate(context, newItem.from, DB.TRANSPORT_INTERNET);
+					long tsSMS = Setup.getAESKeyDate(context, newItem.from, DB.TRANSPORT_SMS);
+					long tsThisKey = Utility.parseLong(timestamp, DB.getTimestamp());
+					if (tsInternet > tsThisKey || tsSMS > tsThisKey) {
+						// Ouuups... it looks like we received an outdated/old key maybe over a transport medium
+						// that was offline for a while. Note that this could be SMS when there is no network or
+						// Internet iff the WLAN is down.
+						// We do *NOT* want to override the current key and discard the outdated one. We state that:
+						possiblyInvalid = "outdated ";
+						Utility.showToastAsync(
+								context,
+								"Received outdated session key"
+										+ " from "
+										+ Main.UID2Name(context, newItem.from,
+												false) + ".");
+					}
+					else {
+						// Okay the timestamp indicates that this is a newer key than we ever had: So take it!
+						// Save as AES key for later decryptying and encrypting
+						// usage
+						Setup.saveAESKey(context, newItem.from, text);
+						// When receiving a key then set update timestamps for both
+						// because we have the current key and could possibly use it
+						// for both transport ways immediately!
+						Setup.setAESKeyDate(context, newItem.from,
+								DB.getTimestampString(), DB.TRANSPORT_INTERNET);
+						Setup.setAESKeyDate(context, newItem.from,
+								DB.getTimestampString(), DB.TRANSPORT_SMS);
+						keyhash = Setup.getAESKeyHash(context, newItem.from) + " ";
+						// Discard the message
+						Utility.showToastAsync(
+								context,
+								"Received new session key "
+										+ keyhash
+										+ " from "
+										+ Main.UID2Name(context, newItem.from,
+												false) + ".");
+					}
 				} else {
 					possiblyInvalid = "invalid ";
 					Utility.showToastAsync(
@@ -831,7 +879,7 @@ public class Communicator {
 			}
 			newItem.isKey = true;
 			text = "[ " + possiblyInvalid + "session key " + keyhash
-					+ " received ]" + notificationMessageAddition;
+					+ "received ]" + notificationMessageAddition;
 			Main.updateLastMessage(context, newItem.from, text, newItem.created);
 		} else if (text.startsWith("U")) {
 			// This is an unencrypted message
@@ -872,7 +920,7 @@ public class Communicator {
 							} catch (InterruptedException e) {
 							}
 							Communicator.getAESKey(context, newItem.from, true,
-									newItem.transport, true, null, false);
+									newItem.transport, true, null, false, true);
 						}
 					})).start();
 				}
@@ -1001,13 +1049,17 @@ public class Communicator {
 	 * @param item
 	 *            the item
 	 * @param forSending
-	 *            the for sending
+	 *            the use of the session key: sending timeout is earlier than
+	 *            the receivig timeout
+	 * @param automatic
+	 *            the automatic if automatic, then extra countdown is
+	 *            established
 	 * @return the AES key
 	 */
 	public static Key getAESKey(Context context, int uid,
 			boolean forceSendingNewKey, int transport,
 			boolean flagErrorMessageNotification, ConversationItem item,
-			boolean forSending) {
+			boolean forSending, boolean automatic) {
 		// 1. Search for AES key, if no key (or outdated), then
 		// a. generate one
 		// b. save it for later use
@@ -1037,7 +1089,7 @@ public class Communicator {
 			Key savedOrNewKey = Setup.getAESKey(context, uid);
 			String savedOrNewKeyAsString = null;
 			long keyTimestamp = DB.getTimestamp();
-			
+
 			// Only generate a new key if outdated or forceupdate.
 			// Otherwise re-send the current key by the current media and
 			// don't forget to set the timestamp for this media.
@@ -1077,17 +1129,26 @@ public class Communicator {
 				savedOrNewKeyAsString = Setup.serializeAESKey(savedOrNewKey);
 				// Do not await any more!
 				Utility.saveIntSetting(context, Setup.LASTKEYMID + uid, -2);
-				// We need to save the older timestamp of the other transport here!
+				// We need to save the older timestamp of the other transport
+				// here!
 				if (transport == DB.TRANSPORT_INTERNET) {
-					keyTimestamp = Setup.getAESKeyDate(context, uid, DB.TRANSPORT_SMS); 
+					keyTimestamp = Setup.getAESKeyDate(context, uid,
+							DB.TRANSPORT_SMS);
 				} else {
-					keyTimestamp = Setup.getAESKeyDate(context, uid, DB.TRANSPORT_INTERNET); 
+					keyTimestamp = Setup.getAESKeyDate(context, uid,
+							DB.TRANSPORT_INTERNET);
 				}
 			}
 
+			if (automatic) {
+				// Set extra count down that prevents immediate sending of
+				// the next message in order to allow the key message to be
+				// received before any next messag!
+				Setup.extraCrountDownSet(context, transport);
+			}
+
 			// Save the timestamp of the CURRENT transport
-			Setup.setAESKeyDate(context, uid, keyTimestamp + "",
-					transport);
+			Setup.setAESKeyDate(context, uid, keyTimestamp + "", transport);
 			Log.d("communicator",
 					" KEYUPDATE: getAESKey() SAVE NEW KEY FOR TRANPSORT="
 							+ transport);
@@ -1106,7 +1167,11 @@ public class Communicator {
 				// This indicates the error!!!
 				separator = KEY_ERROR_SEPARATOR;
 			}
-			String msgText = "K" + encryptedKey + separator + signature;
+			// NEW: Send a timestamp so that we can rule out outdated keys that
+			// we might receive LATER over
+			// the other transport medium that currently might not work!
+			String msgText = "K" + encryptedKey + separator + signature
+					+ separator + DB.getTimestampString();
 			// Sent a KEY-Message via the same transport as the original message
 			// should go!
 			DB.addSendMessage(context, uid, msgText, false, transport, true,
@@ -1219,10 +1284,16 @@ public class Communicator {
 		// Lookup only if we expect something to send
 		final ConversationItem itemToSend = DB.getNextMessage(context,
 				transport);
+
 		// Log.d("communicator",
 		// "SEND NEXT QUERY sendNextMessage(), itemToSend = " + itemToSend);
 
 		if (itemToSend != null) {
+			if (!itemToSend.isKey && !Setup.extraCountDownToZero(context)) {
+				// If extra countdown is established, we only allow key messages to
+				// be sent!
+				return;
+			}
 			Log.d("communicator",
 					"#### sendNextMessage() SEND NEXT QUERY: localid="
 							+ itemToSend.localid + ", to=" + itemToSend.to
@@ -1273,7 +1344,8 @@ public class Communicator {
 				// TODO: check if we additionally ALWAYS want to send a key via
 				// Internet? This is still an open question. 8/23/15
 				Key secretKey = Communicator.getAESKey(context, itemToSend.to,
-						false, itemToSend.transport, false, itemToSend, true);
+						false, itemToSend.transport, false, itemToSend, true,
+						true);
 				if (secretKey == null) {
 					// this indicates that we want to abort sending at this time
 					// because we generated a new key
@@ -2024,8 +2096,8 @@ public class Communicator {
 		url = Setup.getBaseURL(context) + "cmd=hasphone&session=" + session
 				+ "&val=" + Utility.urlEncode(uidliststring);
 
-//		Log.d("communicator", "###### REQUEST HAS PHONE (" + uidliststring
-//				+ ") " + url);
+		// Log.d("communicator", "###### REQUEST HAS PHONE (" + uidliststring
+		// + ") " + url);
 
 		final String url2 = url;
 		@SuppressWarnings("unused")
@@ -2033,9 +2105,9 @@ public class Communicator {
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
 						if (isResponseValid(response)) {
-//							 Log.d("communicator",
-//							 "###### HAS PHONE VALUES RECEIVED!!! response="
-//							 + response);
+							// Log.d("communicator",
+							// "###### HAS PHONE VALUES RECEIVED!!! response="
+							// + response);
 							if (isResponsePositive(response)) {
 								String responseContent = getResponseContent(response);
 								List<String> values = Utility
@@ -2065,8 +2137,10 @@ public class Communicator {
 												value = Setup.decText(context,
 														value);
 												if (value != null) {
-													boolean isUpdate = Main.isUpdatePhone(
-															context, uid);
+													boolean isUpdate = Main
+															.isUpdatePhone(
+																	context,
+																	uid);
 													if (isUpdate) {
 														Setup.savePhone(
 																context, uid,

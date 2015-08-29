@@ -2217,7 +2217,7 @@ public class Conversation extends Activity {
 	public void sendNewSession(Context context, int transport) {
 		// Send new key
 		Communicator.getAESKey(this, Conversation.hostUid, true, transport,
-				false, null, true);
+				false, null, true, false);
 	}
 
 	// ------------------------------------------------------------------------
@@ -2252,7 +2252,7 @@ public class Conversation extends Activity {
 						buttonLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 
 						LinearLayout.LayoutParams lpButtons = new LinearLayout.LayoutParams(
-								180, 120);
+								180, 140);
 						lpButtons.setMargins(20, 20, 20, 20);
 
 						ImageLabelButton internetButton = new ImageLabelButton(
