@@ -43,6 +43,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
@@ -234,12 +235,23 @@ public class MessageDetailsActivity extends Activity {
 			encrypted.setText("No");
 		}
 
+
+		Log.d("communicator", " KEYUPDATE: localid=" + updatedItem.localid);
+
+		int mid = DB.getLastSentKeyMessage(context, hostUid, false);
+		int localid = DB.getLastSentKeyMessage(context, hostUid, true);
+		Log.d("communicator", " KEYUPDATE: getLastSentKeyMessage-mid=" + mid + ", getLastSentKeyMessage-localid=" + localid);
+
 		String forTransport = "";
 		long keyCreatedTSInternet = Setup.getAESKeyDate(context, hostUid,
 				DB.TRANSPORT_INTERNET);
 		long keyCreatedTS = keyCreatedTSInternet;
 		long keyCreatedTSSMS = Setup.getAESKeyDate(context, hostUid,
 				DB.TRANSPORT_SMS);
+		
+		
+		Log.d("communicator", " KEYUPDATE: keyCreatedTSInternet=" + keyCreatedTSInternet + ", keyCreatedTSSMS=" + keyCreatedTSSMS);
+		
 		if (keyCreatedTSInternet != 0 && keyCreatedTSSMS != 0) {
 			forTransport = "Internet + SMS";
 		} else if (keyCreatedTSInternet != 0) {

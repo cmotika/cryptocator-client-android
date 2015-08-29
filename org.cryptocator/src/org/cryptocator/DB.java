@@ -883,11 +883,13 @@ public class DB {
 			Log.d("communicator", "#### KEY NEW KEY #6.5");
 			// Exchange key message text (make it a little bit more readable...
 			// we do not need the
-			// original key message text locally, we allready stored to AES key
+			// original key message text locally, we already stored to AES key
 			// in our device!
 			String keyhash = Setup.getAESKeyHash(context, hostUid);
 			String keyText = "[ session key " + keyhash + " sent ]";
 			messageTextToShow = keyText;
+			// Attention: We further set system message to FALS to be be able to
+			// read it!
 			systemToShow = false;
 		}
 
@@ -1393,11 +1395,13 @@ public class DB {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Gets the mid of the last sent key message. This is needed for proper
-	 * setting key timestamps of the OTHER transport method that was NOT used to
-	 * send this messages when receiving delivery confirmations. If LASTKEYMID +
-	 * hostUid == -1 this means: Invalidated because of NEW key sent If
-	 * LASTKEYMID + hostUid == -2 this means: We do not await any key
+	 * Gets the mid or localid of the last sent key message. This is needed for
+	 * proper setting key timestamps of the OTHER transport method that was NOT
+	 * used to send this messages when receiving delivery confirmations. If
+	 * LASTKEYMID + hostUid == -1 this means: Invalidated because of NEW key
+	 * sent If LASTKEYMID + hostUid == -2 this means: We do not await any key.
+	 * The mid is needed for mapping deliveries of internet messages, the
+	 * localid is needed for mapping deliveries of SMS.
 	 * 
 	 * @param context
 	 *            the context
@@ -1405,38 +1409,52 @@ public class DB {
 	 *            the host uid
 	 * @return the last sent key message
 	 */
-	static int getLastSentKeyMessage(Context context, int hostUid) {
-		int returnMid = Utility.loadIntSetting(context, Setup.LASTKEYMID
+	static int getLastSentKeyMessage(Context context, int hostUid, boolean needLocalIdForSMS) {
+		int returnMidOrLocalId = Utility.loadIntSetting(context, Setup.LASTKEYMID
 				+ hostUid, -1);
-		if (returnMid == -1) {
-			returnMid = -2; // set to non-awaiting...
+		returnMidOrLocalId = -1; // DEBUG ONLY
+		if (returnMidOrLocalId == -1) {
+			returnMidOrLocalId = -2; // set to non-awaiting...
 			SQLiteDatabase db = openDB(context, hostUid);
 			String QUERY = "SELECT `mid` FROM `"
 					+ TABLE_MESSAGES
-					+ "` WHERE 'received' = '' AND  `priority` = "
-					+ DB.PRIORITY_KEY
-					+ " AND `system` = 1 AND text LIKE '%session key%' ORDER BY `mid` DESC";
+					+ "` WHERE `received` < 10 AND `text` LIKE '%session key%' ORDER BY `mid` DESC";
+			if(needLocalIdForSMS) {
+				QUERY = "SELECT `localid` FROM `"
+						+ TABLE_MESSAGES
+						+ "` WHERE `received` < 10 AND `text` LIKE '%session key%' ORDER BY `localid` DESC";
+			}
+			
+			Log.d("communicator",
+					" KEYUPDATE: getLastSentKeyMessage() #1 QUERY=" + QUERY);
 
 			Cursor cursor = db.rawQuery(QUERY, null);
 			if (cursor != null && cursor.moveToFirst()) {
+				Log.d("communicator",
+						" KEYUPDATE: getLastSentKeyMessage() #2 QUERY=" + QUERY);
+
 				if (cursor.getCount() > 0) {
+					Log.d("communicator",
+							" KEYUPDATE: getLastSentKeyMessage() #3 QUERY="
+									+ QUERY);
+
 					// Try again later (-1) if failing to parse Integer
-					returnMid = Utility.parseInt(cursor.getString(0), -1);
+					returnMidOrLocalId = Utility.parseInt(cursor.getString(0), -1);
 				}
 				cursor.close();
 			}
 			db.close();
 			Log.d("communicator",
 					" KEYUPDATE: getLastSentKeyMessage() SAVED NEW mid="
-							+ returnMid);
+							+ returnMidOrLocalId);
 			Utility.saveIntSetting(context, Setup.LASTKEYMID + hostUid,
-					returnMid);
+					returnMidOrLocalId);
 		} else {
 			Log.d("communicator",
 					" KEYUPDATE: getLastSentKeyMessage() CACHED mid="
-							+ returnMid);
+							+ returnMidOrLocalId);
 		}
-		return returnMid;
+		return returnMidOrLocalId;
 	}
 
 	// -------------------------------------------------------------------------

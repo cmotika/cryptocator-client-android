@@ -75,6 +75,10 @@ public class SendSMSDelivered extends BroadcastReceiver {
 				ConversationItem itemToSend = DB.getMessage(context, localId,
 						hostUid);
 				if (itemToSend != null) {
+					boolean processSMS = true;
+					Communicator.processKeyDeliveries(context, hostUid, localId, processSMS);
+					// Only do this AFTER previous processing ... otherwise
+					// we cannot find the lastKeyMessageMid!
 					itemToSend.received = DB.getTimestamp();
 					DB.updateMessage(context, itemToSend, hostUid);
 					// -1 * localId : convention so that mapping lookup will
