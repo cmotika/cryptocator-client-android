@@ -36,8 +36,10 @@ package org.cryptocator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -48,6 +50,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+// TODO: Auto-generated Javadoc
 /**
  * The DB class handles the local data base accesses and is responsible for
  * loading conversations or adding new messages to a conversation.
@@ -62,7 +65,7 @@ public class DB {
 
 	/**
 	 * The database/table TABLE_MESSAGES contains all messages for a specific
-	 * user (UID)
+	 * user (UID).
 	 */
 	public static final String TABLE_MESSAGES = "messages";
 
@@ -111,6 +114,18 @@ public class DB {
 
 	/** The SMS failed. */
 	public static String SMS_FAILED = "FAILED";
+
+	/** The default empty string represents no multipart id. */
+	public static String NO_MULTIPART_ID = "";
+
+	/** The default message part is 0 also for non-multipart messages */
+	public static int DEFAULT_MESSAGEPART = 0;
+
+	/**
+	 * The multipart timeout is used for clearing duplicate incoming parts of
+	 * multipart SMS. Look back 10 min to clear these duplications.
+	 */
+	public static int MULTIPART_TIMEOUT = 10 * 60 * 1000;
 
 	// -----------------------------------------------------------------
 
@@ -369,7 +384,9 @@ public class DB {
 				+ "`localid` INTEGER PRIMARY KEY, `mid` INTEGER , `fromuid` INTEGER , "
 				+ "`touid` INTEGER , `text` VARCHAR( 2000 ) , "
 				+ "`created` VARCHAR( 50 ), "
-				+ "`sent` VARCHAR( 50 ) , `received` VARCHAR( 50 ), `read` VARCHAR( 50 ), `withdraw` VARCHAR( 50 ), `encrypted` VARCHAR( 1 ), `transport` VARCHAR( 1 ), `system` VARCHAR( 1 )  );";
+				+ "`sent` VARCHAR( 50 ) , `received` VARCHAR( 50 ), `read` VARCHAR( 50 ), `withdraw` VARCHAR( 50 ), `encrypted` VARCHAR( 1 ), `transport` VARCHAR( 1 ), `system` VARCHAR( 1 ) , `part` INTEGER DEFAULT "
+				+ DB.DEFAULT_MESSAGEPART
+				+ " , `parts` INTEGER DEFAULT 1, `multipartid` VARCHAR( 5 ) DEFAULT ``);";
 		db.execSQL(CREATE_TABLE_MSGS);
 	}
 
@@ -393,7 +410,7 @@ public class DB {
 				+ "`sendingid` INTEGER PRIMARY KEY, `localid` INTEGER, `fromuid` INTEGER , "
 				+ "`touid` INTEGER , `text` VARCHAR( 2000 ) , "
 				+ "`created` VARCHAR( 50 ), "
-				+ "`sent` VARCHAR( 50 ), `encrypted` VARCHAR( 1 ), `transport` VARCHAR( 1 ), `system` VARCHAR( 1 ), `prio` INTEGER, `smsfailcnt` INTEGER   );";
+				+ "`sent` VARCHAR( 50 ), `encrypted` VARCHAR( 1 ), `transport` VARCHAR( 1 ), `system` VARCHAR( 1 ), `prio` INTEGER, `smsfailcnt` INTEGER, `tries` INTEGER , `lasttry` VARCHAR( 50 ), `part` INTEGER  DEFAULT 0, `parts` INTEGER DEFAULT 1 , `multipartid` VARCHAR( 5 ) DEFAULT `` );";
 		db.execSQL(CREATE_TABLE_MSGS);
 	}
 
@@ -439,15 +456,20 @@ public class DB {
 					handler.postDelayed(new Runnable() {
 						public void run() {
 							final String titleMessage = "Database Corrupt";
-							final String textMessage = "You database seems to be corrupted.\n\nYou may want to try closing the application, restart you device and try it again. If this does not help your messages may be lost and the only fix then is to recreate the database.\n\n"
-									+ " Do you want to erase all messages and recreate the database?";
+							final String textMessage = "You database seems to be corrupted.\n\nYou "
+									+ "may want to try closing the application, restart you device and "
+									+ "try it again.\n\nIf this does not help you may try to repair the DB"
+									+ " if you just updated from an earlier app version.\n\nIf this still "
+									+ "does not help your messages may be lost and the only fix then is to"
+									+ " erase and recreate the database.\n\n"
+									+ "Do you want to erase all messages and recreate the database?";
 							new MessageAlertDialog(
 									context,
 									titleMessage,
 									textMessage,
-									" Erase All ",
-									" Cancel ",
-									null,
+									"Erase All",
+									"Repair",
+									"Cancel",
 									new MessageAlertDialog.OnSelectionListener() {
 										public void selected(int button,
 												boolean cancel) {
@@ -460,6 +482,9 @@ public class DB {
 													initializeDB(context, db);
 													db.close();
 												}
+												if (button == 1) {
+													tryRepairDB(context, uid);
+												}
 											}
 										}
 									}).show();
@@ -471,6 +496,53 @@ public class DB {
 			e.printStackTrace();
 		}
 
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * This method will try to repair a DB from the last version to this current
+	 * version. The difference was that we added 3 columns for supporting
+	 * multipart messages.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 */
+	public static void tryRepairDB(Context context, int uid) {
+		// try repair ---> end exit application afterwards
+		try {
+			// SQLiteDatabase db = openDBSending(context);
+			// if (isTableExists(db, TABLE_SENDING)) {
+			// String REPAIR_QUERY = "ALTER TABLE `" + TABLE_SENDING +
+			// "` ADD COLUMN `part` INTEGER;";
+			// db.execSQL(REPAIR_QUERY);
+			// REPAIR_QUERY = "ALTER TABLE `" + TABLE_SENDING +
+			// "` ADD COLUMN `parts` INTEGER;";
+			// db.execSQL(REPAIR_QUERY);
+			// REPAIR_QUERY = "ALTER TABLE `" + TABLE_SENDING +
+			// "` ADD COLUMN `multipartid` VARCHAR( 5 );";
+			// db.execSQL(REPAIR_QUERY);
+			// }
+			// db.close();
+			SQLiteDatabase db = openDB(context, uid);
+			if (isTableExists(db, TABLE_MESSAGES)) {
+				String REPAIR_QUERY = "ALTER TABLE `" + TABLE_MESSAGES
+						+ "` ADD COLUMN `part` INTEGER DEFAULT 0;";
+				db.execSQL(REPAIR_QUERY);
+				REPAIR_QUERY = "ALTER TABLE `" + TABLE_MESSAGES
+						+ "` ADD COLUMN `parts` INTEGER DEFAULT 1;";
+				db.execSQL(REPAIR_QUERY);
+				REPAIR_QUERY = "ALTER TABLE `" + TABLE_MESSAGES
+						+ "` ADD COLUMN `multipartid` VARCHAR( 5 ) DEFAULT ``;";
+				db.execSQL(REPAIR_QUERY);
+			}
+			db.close();
+			Main.exitApplication(context);
+		} catch (Exception e) {
+			// silent exception if repair fails...
+		}
 	}
 
 	// ------------------------------------------------------------------------
@@ -596,6 +668,11 @@ public class DB {
 	 * 
 	 * @param context
 	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param midString
+	 *            the mid string
+	 * @return the int
 	 */
 	public static int clearSelective(Context context, int uid, String midString) {
 		midString = midString.trim();
@@ -623,7 +700,8 @@ public class DB {
 				+ ", uid=" + uid + ", query=" + query);
 
 		// First test if the local id belongs to the hostuid...
-		ConversationItem item = getMessage(context, localId, uid);
+		ConversationItem item = getMessage(context, localId, uid,
+				DB.DEFAULT_MESSAGEPART);
 		if (item == null) {
 			return -2;
 		}
@@ -722,6 +800,61 @@ public class DB {
 	// --------------------------------------------
 
 	/**
+	 * Gets the position of an unsent message in the sending queue.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param transport
+	 *            the transport
+	 * @param localId
+	 *            the local id
+	 * @return the number of messages to send
+	 */
+	public static int getPositionInSendingQueue(Context context, int transport,
+			int localId) {
+		int positionOfItem = -1;
+		cleanupDBSending(context);
+		SQLiteDatabase db = null;
+		Cursor cursor = null;
+		try {
+			db = openDBSending(context);
+
+			String QUERY = "SELECT `localid` FROM `" + TABLE_SENDING
+					+ "` WHERE `transport` = " + transport
+					+ " ORDER BY `prio` DESC, `created` ASC";
+
+			cursor = db.rawQuery(QUERY, null);
+			if (cursor != null && cursor.moveToFirst()) {
+				int position = 1;
+				Log.d("communicator", "getCount = " + cursor.getCount());
+				for (int c = 0; c < cursor.getCount(); c++) {
+					int vglLocalId = Utility.parseInt(cursor.getString(0), -1);
+					if (vglLocalId == localId) {
+						positionOfItem = position;
+						break;
+					} else {
+						position++;
+						cursor.moveToNext();
+					}
+				}
+				cursor.close();
+			}
+			db.close();
+		} catch (Exception e) {
+			if (cursor != null) {
+				cursor.close();
+			}
+			if (db != null) {
+				db.close();
+			}
+			e.printStackTrace();
+		}
+		return positionOfItem;
+	}
+
+	// --------------------------------------------
+
+	/**
 	 * Gets the host uid for mid.
 	 * 
 	 * @param context
@@ -795,6 +928,25 @@ public class DB {
 	 * 
 	 * @param context
 	 *            the context
+	 * @param localId
+	 *            the local id
+	 * @return true, if successful
+	 */
+	public static boolean removeSentMessageByLocalId(Context context,
+			int localId) {
+		SQLiteDatabase db = openDBSending(context);
+		int i = db.delete(TABLE_SENDING, "`localid` = " + localId, null);
+		db.close();
+		return i > 0;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Removes the sent message.
+	 * 
+	 * @param context
+	 *            the context
 	 * @param sendingId
 	 *            the sending id
 	 * @return true, if successful
@@ -837,6 +989,299 @@ public class DB {
 	// ------------------------------------------------------------------------
 
 	/**
+	 * The Class MultiPartInfo.
+	 */
+	public static class MultiPartInfo {
+
+		/** The mulitpartid. */
+		public String mulitpartid;
+
+		/** The part. */
+		public int part;
+
+		/** The parts. */
+		public int parts;
+
+		/** The text. */
+		public String text = "";
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the list of recent multipartids of completed combined multipart
+	 * messages.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the recent multipart ids
+	 */
+	public static Set<String> getRecentMultipartIds(Context context, int uid) {
+		Set<String> recentMultipartIds = new HashSet<String>();
+		SQLiteDatabase db = null;
+		Cursor cursor = null;
+		try {
+			db = openDB(context, uid);
+			long ts = DB.getTimestamp() - MULTIPART_TIMEOUT;
+			
+			String QUERY = "SELECT `multipartid` FROM `" + TABLE_MESSAGES
+					+ "` WHERE `part` = 0 AND `parts` = 1 AND `received` > "
+					+ ts;
+			
+			cursor = db.rawQuery(QUERY, null);
+			if (cursor != null && cursor.moveToFirst()) {
+
+				// This will increase on receiving from 0 -> totalParts
+				for (int c = 0; c < cursor.getCount(); c++) {
+					String multipartid = cursor.getString(0);
+					if (!multipartid.equals(DB.NO_MULTIPART_ID)) {
+						recentMultipartIds.add(multipartid);
+					}
+					cursor.moveToNext();
+				}
+			}
+			if (cursor != null) {
+				cursor.close();
+			}
+			db.close();
+		} catch (Exception e) {
+			try {
+				if (cursor != null) {
+					cursor.close();
+				}
+			} catch (Exception e2) {
+				e.printStackTrace();
+			}
+			try {
+				if (db != null) {
+					db.close();
+				}
+			} catch (Exception e2) {
+				e.printStackTrace();
+			}
+			e.printStackTrace();
+		}
+		return recentMultipartIds;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Checks if a multipartid was recently already used and already combined.
+	 * In this case we can claim the current SMS a duplicate and skip it.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param multipartid
+	 *            the multipartid
+	 * @return true, if is multipart duplicate
+	 */
+	public static boolean isMultipartDuplicate(Context context, int uid,
+			String multipartid) {
+		Set<String> recentMultipartIds = getRecentMultipartIds(context, uid);
+		return (recentMultipartIds.contains(multipartid));
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Clean multipart duplicates that may arrive when the sending device or the
+	 * network may have caused duplication of SMS which we do not want. We use
+	 * this method after combining.
+	 * 
+	 * @param multipartid
+	 *            the multipartid
+	 */
+	public static void cleanMultipartDuplicates(Context context, int uid) {
+		// Remove all parts
+		SQLiteDatabase db = null;
+		try {
+			db = openDB(context, uid);
+			Set<String> recentMultipartIds = getRecentMultipartIds(context, uid);
+			for (String multipartid : recentMultipartIds) {
+				Log.d("communicator", "MULTIPART cleaning '" + multipartid
+						+ "'");
+			}
+			db.close();
+		} catch (Exception e) {
+			try {
+				if (db != null) {
+					db.close();
+				}
+			} catch (Exception e2) {
+				e.printStackTrace();
+			}
+			e.printStackTrace();
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Combine a multi part message iff all parts of the message have been
+	 * received. If this is not yet the case then
+	 * 
+	 * @param multipartId
+	 *            the multipart id
+	 * @param uid
+	 *            the uid
+	 * @return true, if successful
+	 */
+	public static boolean combineMultiPartMessage(Context context,
+			ConversationItem item) {
+		String multipartId = item.multipartid;
+		int uid = item.from;
+
+		Set<Integer> receivedParts = getReceivedMultiparts(context,
+				multipartId, uid);
+
+		// Log.d("communicator",
+		// "MULTIPART combineMultiPartMessage() receivedParts="
+		// + receivedParts + ", item.parts - receivedParts - 1 = "
+		// + (item.parts - receivedParts - 1) + ", from=" + uid);
+
+		// Add the just received part to see if we have ALL parts (each just
+		// ONCE!)
+		receivedParts.add(item.part);
+
+		if (item.parts - receivedParts.size() == 0) {
+			// This is the last part, we can no go ahead and combine!
+
+			String messageParts[] = new String[item.parts];
+			// The currently received (LAST) part
+			messageParts[item.part] = item.text;
+			// AND all OTHER previously received parts...
+			SQLiteDatabase db = null;
+			Cursor cursor = null;
+			try {
+				db = openDB(context, uid);
+				// 'AND `parts` = " + item.parts;' prevents combining again if
+				// under any circumstance other duplicate parts
+				// may arrive later... we will not touch the alrady combined
+				// message because it has set parts to 1!
+				String QUERY = "SELECT `text`, `part` FROM `" + TABLE_MESSAGES
+						+ "` WHERE `multipartid` = '" + multipartId
+						+ "' AND `parts` = " + item.parts;
+				cursor = db.rawQuery(QUERY, null);
+				if (cursor != null && cursor.moveToFirst()) {
+					// This will increase on receiving from 0 -> totalParts
+					for (int c = 0; c < cursor.getCount(); c++) {
+						int part = Utility.parseInt(cursor.getString(1), -1);
+						if (part != -1) {
+							messageParts[part] = cursor.getString(0);
+						}
+						cursor.moveToNext();
+					}
+					cursor.close();
+				}
+				db.close();
+
+				// Now update the item: ATTENTION, the parts are orderd the
+				// other way round! KEEP THIS IN MIND!
+				item.text = "";
+				for (String messagePart : messageParts) {
+					item.text = messagePart + item.text;
+				}
+
+				Log.d("communicator", "MULTIPART COMBINED TEXT item.text="
+						+ item.text);
+
+				// It is necessary to reset the part to 0, because only
+				// part == 0 items will be displayed in conversations (and
+				// already filtered when conversations are loaded)
+				item.part = DB.DEFAULT_MESSAGEPART;
+				item.parts = 1;
+				// KEEP the item.multipartid because we need to update the UI
+				// conversation list and this is the reference to it!
+
+				// Clean other parts, this is the only call that MUST be made to
+				// this method
+				// even if there are NO duplictations sent. Further calls will
+				// just eliminate
+				// erroneously sent duplications.
+				cleanMultipartDuplicates(context, uid);
+			} catch (Exception e) {
+				if (cursor != null) {
+					cursor.close();
+				}
+				if (db != null) {
+					db.close();
+				}
+				e.printStackTrace();
+			}
+
+			// Tell that we could combine!
+			return true;
+		}
+		// We could not yet combine because parts are missin!
+		return false;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the multi part info or null if no multipart message.
+	 * 
+	 * @param text
+	 *            the text
+	 * @return the multi part info
+	 */
+	public static MultiPartInfo getMultiPartInfo(String text) {
+		// Log.d("communicator",
+		// "MULTIPART getMultiPartInfo() #1");
+		if (!text.startsWith("M")) {
+			return null;
+		}
+		// Log.d("communicator",
+		// "MULTIPART getMultiPartInfo() #2 " + text.length());
+		if (text.length() < 10) {
+			return null;
+		}
+		String parts[] = text.split(":");
+		// Log.d("communicator",
+		// "MULTIPART getMultiPartInfo() #3 " + parts.length);
+		if (parts.length < 3) {
+			return null;
+		}
+		// Log.d("communicator",
+		// "MULTIPART getMultiPartInfo() #4");
+		try {
+			// At this point we a pretty confident that this is a multipart
+			// message. Try to parse it!
+			MultiPartInfo multiPartInfo = new MultiPartInfo();
+			multiPartInfo.mulitpartid = parts[0].substring(1, 6);
+			multiPartInfo.part = Utility.parseInt(
+					parts[0].substring(6, parts[0].length()), -1);
+			if (multiPartInfo.part == -1) {
+				// Log.d("communicator",
+				// "MULTIPART getMultiPartInfo() multiPartInfo.part == -1");
+				return null;
+			}
+			multiPartInfo.parts = Utility.parseInt(parts[1], -1);
+			if (multiPartInfo.parts == -1) {
+				// Log.d("communicator",
+				// "MULTIPART getMultiPartInfo() multiPartInfo.parts == -1");
+				return null;
+			}
+			for (int p = 2; p < parts.length; p++) {
+				multiPartInfo.text += parts[p];
+			}
+			return multiPartInfo;
+		} catch (Exception e) {
+			// Log.d("communicator",
+			// "MULTIPART getMultiPartInfo() #ERROR");
+			// If parsing goes wrong, return the text
+			return null;
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
 	 * Adds the send message. priority 0 == read confirmation, 1 == normal
 	 * messages, 2 == keys.
 	 * 
@@ -862,6 +1307,80 @@ public class DB {
 			String text, boolean encrypted, int transport, boolean system,
 			int priority, ConversationItem item) {
 
+		// AUTOMATED MULTIPART SPLITTING - NOT FOR SYSTEM MESSAGES //
+		if (text.length() > Setup.MULTIPART_MESSAGELIMIT && !system) {
+			// SPLIT UP
+			double textLen = (double) text.length();
+			int parts = (int) Math.ceil(textLen
+					/ (double) Setup.MULTIPART_MESSAGELIMIT);
+			String multipartid = Utility.md5(DB.getTimestampString() + textLen)
+					.substring(0, 5);
+			boolean returnOk = true;
+
+			for (int part = 0; part < parts; part++) {
+				int start = part * Setup.MULTIPART_MESSAGELIMIT;
+				int end = (part + 1) * Setup.MULTIPART_MESSAGELIMIT;
+				if (end > text.length()) {
+					end = text.length();
+				}
+				// The part number is chosen such that the first part gets the
+				// highest number and the last one 0
+				// so that the last one (DEFAULT PART) is updated only if ALL
+				// parts have been sent/received/read!
+				int partNumber = parts - part - 1;
+				String messagePart = text.substring(start, end);
+				String messagePartText = "M" + multipartid + partNumber + ":"
+						+ parts + ":" + messagePart;
+				returnOk = returnOk
+						&& addSendMultipartMessage(context, hostUid,
+								messagePartText, text, encrypted, transport,
+								system, priority, item, partNumber, parts,
+								multipartid);
+			}
+			return returnOk;
+		} else {
+			return addSendMultipartMessage(context, hostUid, text, text,
+					encrypted, transport, system, priority, item,
+					DB.DEFAULT_MESSAGEPART, 1, NO_MULTIPART_ID);
+		}
+
+	}
+
+	/**
+	 * Adds the send multipart message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param hostUid
+	 *            the host uid
+	 * @param text
+	 *            the text
+	 * @param encrypted
+	 *            the encrypted
+	 * @param transport
+	 *            the transport
+	 * @param system
+	 *            the system
+	 * @param priority
+	 *            the priority
+	 * @param item
+	 *            the item
+	 * @param part
+	 *            the part
+	 * @param parts
+	 *            the parts
+	 * @param multipartid
+	 *            the multipartid
+	 * @return true, if successful
+	 */
+	private static boolean addSendMultipartMessage(final Context context,
+			int hostUid, String partText, String totalText, boolean encrypted,
+			int transport, boolean system, int priority, ConversationItem item,
+			int part, int parts, String multipartid) {
+
+		Log.d("communicator", "MULTIPART addSendMultipartMessage() part="
+				+ part + ", parts=" + parts + ", multipartid=" + multipartid);
+
 		Log.d("communicator", "#### KEY NEW KEY #6.1");
 
 		String created = DB.getTimestampString();
@@ -877,7 +1396,7 @@ public class DB {
 
 		Log.d("communicator", "#### KEY NEW KEY #6.4");
 
-		String messageTextToShow = text;
+		String messageTextToShow = totalText;
 		boolean systemToShow = system;
 		if (priority == DB.PRIORITY_KEY) {
 			Log.d("communicator", "#### KEY NEW KEY #6.5");
@@ -888,7 +1407,8 @@ public class DB {
 			String keyhash = Setup.getAESKeyHash(context, hostUid);
 			String keyText = "[ session key " + keyhash + " sent ]";
 			messageTextToShow = keyText;
-			// Attention: We further set system message to FALS to be be able to
+			// Attention: We further set system message to FALSE to be be able
+			// to
 			// read it!
 			systemToShow = false;
 		}
@@ -896,9 +1416,15 @@ public class DB {
 		Log.d("communicator", "#### KEY NEW KEY #6.6");
 
 		// Add the message or real key here
+		if (part != DB.DEFAULT_MESSAGEPART) {
+			// The default message part get the full text for the local DB, the
+			// others get "", the partText is only relevant for SENDING table
+			messageTextToShow = "";
+		}
+
 		int localId = addMessage(context, DB.myUid(context), hostUid,
 				messageTextToShow, created, null, null, null, null, encrypted,
-				transport, systemToShow);
+				transport, systemToShow, part, parts, multipartid);
 
 		Log.d("communicator", "#### KEY NEW KEY #6.7");
 
@@ -933,7 +1459,7 @@ public class DB {
 			values.put("fromuid", DB.myUid(context));
 			values.put("touid", hostUid);
 			values.put("transport", transport);
-			values.put("text", text);
+			values.put("text", partText);
 			if (encrypted) {
 				values.put("encrypted", "E");
 			} else {
@@ -947,6 +1473,10 @@ public class DB {
 			}
 			values.put("prio", priority);
 			values.put("smsfailcnt", 0); // Used for SMS only
+			values.put("tries", 0); // Incremented at each try
+			values.put("part", part);
+			values.put("parts", parts);
+			values.put("multipartid", multipartid);
 			SQLiteDatabase db = null;
 			try {
 				db = openDBSending(context);
@@ -967,6 +1497,251 @@ public class DB {
 		Log.d("communicator", "#### KEY NEW KEY #6.10");
 
 		return insertInSending;
+	}
+
+	// -----------------------------------------------------------------
+
+	/**
+	 * Gets the multipart id from sending queue table by localId of the first
+	 * part.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param localId
+	 *            the local id
+	 * @return the multipart id
+	 */
+	public static String getMultipartIdSending(Context context, int localId) {
+		SQLiteDatabase db = null;
+		Cursor cursor = null;
+		int numberOfMessages = 0;
+		try {
+			db = openDBSending(context);
+
+			String QUERY = "SELECT `multipartid` FROM `" + TABLE_SENDING
+					+ "` WHERE `localid` = " + localId;
+
+			cursor = db.rawQuery(QUERY, null);
+			if (cursor != null && cursor.moveToFirst()) {
+				numberOfMessages = cursor.getCount();
+				if (numberOfMessages > 0) {
+					return cursor.getString(0);
+				}
+				cursor.close();
+			}
+			db.close();
+		} catch (Exception e) {
+			if (cursor != null) {
+				cursor.close();
+			}
+			if (db != null) {
+				db.close();
+			}
+			e.printStackTrace();
+		}
+		// No multipart id
+		return NO_MULTIPART_ID;
+	}
+
+	// -----------------------------------------------------------------
+
+	/**
+	 * Gets the multipart id from messages table by localId of the first part.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param localId
+	 *            the local id
+	 * @param hostUid
+	 *            the host uid
+	 * @return the multipart id
+	 */
+	public static String getMultipartIdReceived(Context context, int localId,
+			int hostUid) {
+		SQLiteDatabase db = null;
+		Cursor cursor = null;
+		int numberOfMessages = 0;
+		try {
+			db = openDB(context, hostUid);
+
+			String QUERY = "SELECT `multipartid` FROM `" + TABLE_MESSAGES
+					+ "` WHERE `localid` = " + localId;
+
+			cursor = db.rawQuery(QUERY, null);
+			if (cursor != null && cursor.moveToFirst()) {
+				numberOfMessages = cursor.getCount();
+				if (numberOfMessages > 0) {
+					return cursor.getString(0);
+				}
+				cursor.close();
+			}
+			db.close();
+		} catch (Exception e) {
+			if (cursor != null) {
+				cursor.close();
+			}
+			if (db != null) {
+				db.close();
+			}
+			e.printStackTrace();
+		}
+		// No multipart id
+		return NO_MULTIPART_ID;
+	}
+
+	// -----------------------------------------------------------------
+
+	// public static int getPercentReceivedComplete(Context context, int
+	// localId,
+	// int senderUid) {
+	// String multipartId = getMultipartIdReceived(context, localId, senderUid);
+	// return getPercentReceivedComplete(context, multipartId, senderUid);
+	// }
+
+	// -----------------------------------------------------------------
+
+	/**
+	 * Get the number of received multi part messages. If no multi part message
+	 * it returns -1.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param multipartId
+	 *            the multipart id
+	 * @param senderUid
+	 *            the sender uid
+	 * @return the int
+	 */
+	public static Set<Integer> getReceivedMultiparts(Context context,
+			String multipartId, int senderUid) {
+		if (!multipartId.equals(NO_MULTIPART_ID)) {
+			// Okay we have a multi part id, so now count the other parts that
+			// we have with the same ID
+			SQLiteDatabase db = null;
+			Cursor cursor = null;
+			Set<Integer> haveConsidered = new HashSet<Integer>();
+			try {
+				db = openDB(context, senderUid);
+
+				String QUERY = "SELECT `part` FROM `" + TABLE_MESSAGES
+						+ "` WHERE `multipartid` = '" + multipartId + "'";
+
+				cursor = db.rawQuery(QUERY, null);
+
+				if (cursor != null && cursor.moveToFirst()) {
+					// This will eliminate duplicates (which we of course still
+					// do not want...)
+
+					for (int c = 0; c < cursor.getCount(); c++) {
+						int part = Utility.parseInt(cursor.getString(0), -1);
+						if (part > -1) {
+							haveConsidered.add(part);
+						}
+						cursor.moveToNext();
+					}
+
+					// This will increase on receiving from 0 -> totalParts
+					// numReceived = haveConsidered.size();
+					cursor.close();
+				}
+				db.close();
+			} catch (Exception e) {
+				if (cursor != null) {
+					cursor.close();
+				}
+				if (db != null) {
+					db.close();
+				}
+				e.printStackTrace();
+			}
+			return haveConsidered;
+		} else {
+			return null;
+		}
+	}
+
+	// -----------------------------------------------------------------
+
+	/**
+	 * Percent complete return 100 for non-multipart messages, return percent
+	 * for multi part messages.
+	 */
+	public static int getPercentReceivedComplete(Context context,
+			String multipartId, int senderUid, int totalParts) {
+		if (!multipartId.equals(NO_MULTIPART_ID)) {
+			// Okay we have a multi part id, so now count the other parts that
+			// we have with the same ID
+			int numReceived = getReceivedMultiparts(context, multipartId,
+					senderUid).size();
+			// int totalParts = Utility.parseInt(cursor.getString(0), 1);
+			int percent = Math.max((numReceived * 100) / totalParts, 0);
+			return percent;
+		} else {
+			// We do not have a multi part id, so retrun 100%
+			return 100;
+		}
+	}
+
+	// -----------------------------------------------------------------
+
+	// public static int getPercentSentComplete(Context context, int localId) {
+	// String multipartId = getMultipartIdSending(context, localId);
+	// return getPercentSentComplete(context, multipartId);
+	// }
+
+	// -----------------------------------------------------------------
+
+	/**
+	 * Percent complete return 100 for non-multipart messages, return percent
+	 * for multi part messages.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param multipartId
+	 *            the multipart id
+	 * @return the int
+	 */
+	public static int getPercentSentComplete(Context context, String multipartId) {
+		if (!multipartId.equals(NO_MULTIPART_ID)) {
+			// Ok we have a multipart id, now count in the sending table how
+			// much we have sent yet
+			SQLiteDatabase db = null;
+			Cursor cursor = null;
+			int percent = 0;
+			try {
+				db = openDBSending(context);
+
+				String QUERY = "SELECT `parts` FROM `" + TABLE_SENDING
+						+ "` WHERE `multipartid` = '" + multipartId + "'";
+
+				cursor = db.rawQuery(QUERY, null);
+				if (cursor != null && cursor.moveToFirst()) {
+					// This will decrease on sending from totalParts -> 0
+					int numnotyetsent = cursor.getCount();
+					int totalParts = Utility.parseInt(cursor.getString(0), 1);
+					int numsent = totalParts - numnotyetsent;
+					percent = Math.max((numsent * 100) / totalParts, 0);
+					Log.d("communicator", "MULTIPART numnotyetsent="
+							+ numnotyetsent + ", totalParts=" + totalParts
+							+ ", numsent=" + numsent + ", percent=" + percent);
+
+					cursor.close();
+				}
+				db.close();
+			} catch (Exception e) {
+				if (cursor != null) {
+					cursor.close();
+				}
+				if (db != null) {
+					db.close();
+				}
+				e.printStackTrace();
+			}
+			return percent;
+		} else {
+			// Ok we do not have a multipart id, return 100%
+			return 100;
+		}
 	}
 
 	// -----------------------------------------------------------------
@@ -999,12 +1774,18 @@ public class DB {
 	 *            the transport
 	 * @param system
 	 *            the system
+	 * @param part
+	 *            the part
+	 * @param parts
+	 *            the parts
+	 * @param multipartid
+	 *            the multipartid
 	 * @return the int
 	 */
 	public static int addMessage(Context context, int from, int to,
 			String text, String created, String sent, String received,
 			String read, String withdraw, boolean encrypted, int transport,
-			boolean system) {
+			boolean system, int part, int parts, String multipartid) {
 		int uid = from;
 		if (to != DB.myUid(context)) {
 			uid = to;
@@ -1050,6 +1831,9 @@ public class DB {
 		} else {
 			values.put("system", "0");
 		}
+		values.put("part", part);
+		values.put("parts", parts);
+		values.put("multipartid", multipartid);
 		try {
 			SQLiteDatabase db = openDB(context, uid);
 			long rowId = db.insert(DB.TABLE_MESSAGES, null, values);
@@ -1188,7 +1972,7 @@ public class DB {
 
 	/**
 	 * Gets the conversation size. Gets the COMPLETE size of all messages in DB.
-	 * This value is cached.
+	 * This value is cached. For multipart messages only the first part counts.
 	 * 
 	 * @param context
 	 *            the context
@@ -1204,7 +1988,7 @@ public class DB {
 			SQLiteDatabase db = openDB(context, hostUid);
 
 			try {
-				String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `withdraw`, `encrypted`, `transport`, `system` FROM `"
+				String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `withdraw`, `encrypted`, `transport`, `system`, `part` FROM `"
 						+ TABLE_MESSAGES
 						+ "` WHERE ((`fromuid` = "
 						+ myUid(context)
@@ -1214,11 +1998,13 @@ public class DB {
 						+ hostUid
 						+ " AND `touid` = "
 						+ myUid(context)
-						+ ")) AND `system` != '1' ORDER BY `created` DESC, `sent` DESC "; // AND
-																							// `system`
-																							// !=
-																							// '1'
-																							// ;
+						+ ")) AND `system` != '1' AND `part` = "
+						+ DB.DEFAULT_MESSAGEPART
+						+ " ORDER BY `created` DESC, `sent` DESC "; // AND
+				// `system`
+				// !=
+				// '1'
+				// ;
 				Cursor cursor = db.rawQuery(QUERY, null);
 				if (cursor != null && cursor.moveToFirst()) {
 					cachedConversationSize = cursor.getCount();
@@ -1237,7 +2023,8 @@ public class DB {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Load conversation. Attention: system messages will NOT be loaded.
+	 * Load conversation. Attention: system messages will NOT be loaded. For
+	 * multipart messages only the first part is loaded (if that exists).
 	 * 
 	 * @param context
 	 *            the context
@@ -1261,7 +2048,7 @@ public class DB {
 		}
 
 		try {
-			String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `withdraw`, `encrypted`, `transport`, `system` FROM `"
+			String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `withdraw`, `encrypted`, `transport`, `system`, `part`, `parts`, `multipartid` FROM `"
 					+ TABLE_MESSAGES
 					+ "` WHERE ((`fromuid` = "
 					+ myUid(context)
@@ -1270,11 +2057,13 @@ public class DB {
 					+ ") OR (`fromuid` = "
 					+ hostUid
 					+ " AND `touid` = "
-					+ myUid(context)
-					+ ")) AND `system` != '1' ORDER BY `created` DESC, `sent` DESC " // AND
-																						// `system`
-																						// !=
-																						// '1'
+					+ myUid(context) + ")) AND `system` != '1' "
+					// AND `part` = "+ DB.DEFAULT_MESSAGEPART
+					// + " GROUP BY `multipartid` HAVING `part` = MIN(`part`)"
+					+ " ORDER BY `created` DESC, `sent` DESC " // AND
+					// `system`
+					// !=
+					// '1'
 					+ LIMIT;
 			Log.d("communicator", "loadConversation() QUERY = " + QUERY);
 
@@ -1312,6 +2101,9 @@ public class DB {
 					if (systemString.equals("1")) {
 						system = true;
 					}
+					int part = Utility.parseInt(cursor.getString(13), 1);
+					int parts = Utility.parseInt(cursor.getString(14), 1);
+					String multipartid = cursor.getString(15);
 
 					if ((from != -1) && (to != -1)) {
 						ConversationItem item = new ConversationItem();
@@ -1329,6 +2121,9 @@ public class DB {
 						item.transport = transport;
 						item.system = system;
 						item.smsfailed = smsfailed;
+						item.part = part;
+						item.parts = parts;
+						item.multipartid = multipartid;
 						// We must add to position 0 (zero) because we have DESC
 						// ordering (for the limit)
 						conversationList.add(0, item);
@@ -1407,11 +2202,14 @@ public class DB {
 	 *            the context
 	 * @param hostUid
 	 *            the host uid
+	 * @param needLocalIdForSMS
+	 *            the need local id for sms
 	 * @return the last sent key message
 	 */
-	static int getLastSentKeyMessage(Context context, int hostUid, boolean needLocalIdForSMS) {
-		int returnMidOrLocalId = Utility.loadIntSetting(context, Setup.LASTKEYMID
-				+ hostUid, -1);
+	static int getLastSentKeyMessage(Context context, int hostUid,
+			boolean needLocalIdForSMS) {
+		int returnMidOrLocalId = Utility.loadIntSetting(context,
+				Setup.LASTKEYMID + hostUid, -1);
 		returnMidOrLocalId = -1; // DEBUG ONLY
 		if (returnMidOrLocalId == -1) {
 			returnMidOrLocalId = -2; // set to non-awaiting...
@@ -1419,12 +2217,12 @@ public class DB {
 			String QUERY = "SELECT `mid` FROM `"
 					+ TABLE_MESSAGES
 					+ "` WHERE `received` < 10 AND `text` LIKE '%session key%' ORDER BY `mid` DESC";
-			if(needLocalIdForSMS) {
+			if (needLocalIdForSMS) {
 				QUERY = "SELECT `localid` FROM `"
 						+ TABLE_MESSAGES
 						+ "` WHERE `received` < 10 AND `text` LIKE '%session key%' ORDER BY `localid` DESC";
 			}
-			
+
 			Log.d("communicator",
 					" KEYUPDATE: getLastSentKeyMessage() #1 QUERY=" + QUERY);
 
@@ -1439,7 +2237,8 @@ public class DB {
 									+ QUERY);
 
 					// Try again later (-1) if failing to parse Integer
-					returnMidOrLocalId = Utility.parseInt(cursor.getString(0), -1);
+					returnMidOrLocalId = Utility.parseInt(cursor.getString(0),
+							-1);
 				}
 				cursor.close();
 			}
@@ -1653,7 +2452,7 @@ public class DB {
 		SQLiteDatabase db = openDBSending(context);
 
 		// For sending
-		String QUERY = "SELECT `sendingid`, `localid`, `fromuid`, `touid`, `text`, `created`, `encrypted`, `transport`, `system`, `smsfailcnt`  FROM `"
+		String QUERY = "SELECT `sendingid`, `localid`, `fromuid`, `touid`, `text`, `created`, `encrypted`, `transport`, `system`, `smsfailcnt`, `tries`, `lasttry`, `part`, `parts`, `multipartid`  FROM `"
 				+ TABLE_SENDING
 				+ "` WHERE `touid` != -1 AND `localid` != -1 AND `smsfailcnt` <= "
 				+ Setup.SMS_FAIL_CNT
@@ -1696,6 +2495,12 @@ public class DB {
 					system = true;
 				}
 
+				int tries = Utility.parseInt(cursor.getString(10), 0);
+				long lasttry = parseTimestamp(cursor.getString(11), -1);
+				int part = Utility.parseInt(cursor.getString(12), 0);
+				int parts = Utility.parseInt(cursor.getString(13), 0);
+				String multipartid = cursor.getString(14);
+
 				if ((from != -1) && (to != -1)) {
 					returnItem.sendingid = sendingid;
 					returnItem.localid = localid;
@@ -1708,6 +2513,11 @@ public class DB {
 					returnItem.system = system;
 					returnItem.smsfailcnt = smsfailcnt;
 					returnItem.isKey = text.startsWith("K");
+					returnItem.tries = tries;
+					returnItem.lasttry = lasttry;
+					returnItem.part = part;
+					returnItem.parts = parts;
+					returnItem.multipartid = multipartid;
 				}
 			}
 			cursor.close();
@@ -1729,16 +2539,22 @@ public class DB {
 	 *            the localid
 	 * @param uid
 	 *            the uid
+	 * @param part
+	 *            the part
 	 * @return the message
 	 */
-	static ConversationItem getMessage(Context context, int localid, int uid) {
+	static ConversationItem getMessage(Context context, int localid, int uid,
+			int part) {
 		ConversationItem returnItem = null;
 
 		SQLiteDatabase db = openDB(context, uid);
 
 		// for display specific message
-		String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `withdraw`, `encrypted`, `transport`, `system` FROM `"
-				+ TABLE_MESSAGES + "` WHERE `localid` = " + localid;
+		String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `withdraw`, `encrypted`, `transport`, `system`, `parts`, `multipartid`  FROM `"
+				+ TABLE_MESSAGES
+				+ "` WHERE `localid` = "
+				+ localid
+				+ " AND `part` = " + part;
 
 		// Log.d("communicator", "GET MESSAGE QUERY = " + QUERY);
 
@@ -1775,6 +2591,13 @@ public class DB {
 				if (systemString.equals("1")) {
 					system = true;
 				}
+				int parts = Utility.parseInt(cursor.getString(13), 1);
+
+				Log.d("communicator",
+						"MULTIPART LOAD MESSAGE cursor.getString(14)="
+								+ cursor.getString(14));
+
+				String multipartid = cursor.getString(14);
 
 				if ((from != -1) && (to != -1)) {
 					returnItem.localid = localid2;
@@ -1792,6 +2615,9 @@ public class DB {
 					returnItem.system = system;
 					returnItem.smsfailed = smsfailed;
 					returnItem.isKey = text.startsWith("K");
+					returnItem.part = part;
+					returnItem.parts = parts;
+					returnItem.multipartid = multipartid;
 				}
 			}
 			cursor.close();
@@ -1860,6 +2686,40 @@ public class DB {
 		}
 		db.close();
 		return localId;
+	}
+
+	// -----------------------------------------------------------------
+
+	/**
+	 * Gets the uid (sender/receipient) by localid from the sending queue.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param localId
+	 *            the local id
+	 * @param receipient
+	 *            the receipient
+	 * @return the host local id by mid
+	 */
+	public static int getUidByMid(Context context, int localId,
+			boolean receipient) {
+		int uid = -1;
+		SQLiteDatabase db = openDBSending(context);
+		String QUERY = "SELECT `fromuid` FROM `" + TABLE_SENDING
+				+ "` WHERE `localid` = " + localId;
+		if (receipient) {
+			QUERY = "SELECT `touid` FROM `" + TABLE_SENDING
+					+ "` WHERE `localid` = " + localId;
+		}
+		Cursor cursor = db.rawQuery(QUERY, null);
+		if (cursor != null && cursor.moveToFirst()) {
+			if (cursor.getCount() > 0) {
+				uid = Utility.parseInt(cursor.getString(0), -1);
+			}
+			cursor.close();
+		}
+		db.close();
+		return uid;
 	}
 
 	// -----------------------------------------------------------------
@@ -2136,12 +2996,10 @@ public class DB {
 	 *            the context
 	 * @param localid
 	 *            the localid
-	 * @param hostUid
-	 *            the host uid
 	 * @return true, if successful
 	 */
-	public static boolean incrementFailed(Context context, int localid,
-			int hostUid) {
+	public static boolean incrementFailed(Context context, int localid) {
+		int hostUid = getUidByMid(context, localid, true);
 		int failcnt = getfailed(context, localid);
 		failcnt++;
 		boolean permamentFailed = false;
@@ -2160,6 +3018,67 @@ public class DB {
 		// If failed too often, then flag as failed in DB_MESSAGES
 		if (failcnt > Setup.SMS_FAIL_CNT) {
 			permamentFailed = updateMessageFailed(context, localid, hostUid);
+		}
+		return permamentFailed;
+	}
+
+	// -----------------------------------------------------------------
+
+	/**
+	 * Gets the tries counter for a localid.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param localid
+	 *            the localid
+	 * @return the failed
+	 */
+	public static int getTries(Context context, int localid) {
+		if (localid == -1) {
+			return -1;
+		}
+		SQLiteDatabase db = openDBSending(context);
+		int returnTries = 0;
+		String QUERY = "SELECT `tries` FROM `" + TABLE_SENDING
+				+ "` WHERE `localid` = " + localid;
+
+		Cursor cursor = db.rawQuery(QUERY, null);
+		if (cursor != null && cursor.moveToFirst()) {
+			if (cursor.getCount() > 0) {
+				returnTries = Utility.parseInt(cursor.getString(0), -1);
+			}
+			cursor.close();
+		}
+		db.close();
+		return returnTries;
+	}
+
+	// -----------------------------------------------------------------
+
+	/**
+	 * Increment failed.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param localid
+	 *            the localid
+	 * @return true, if successful
+	 */
+	public static boolean incrementTries(Context context, int localid) {
+		int triescnt = getTries(context, localid);
+		triescnt++;
+		boolean permamentFailed = false;
+		ContentValues values = new ContentValues();
+		values.put("tries", triescnt);
+		// Update
+		try {
+			SQLiteDatabase db = openDBSending(context);
+			db.update(TABLE_SENDING, values, "localid = " + localid, null);
+			Log.d("communicator", "INCREMENTD FAILED OF localid " + localid
+					+ " to " + triescnt);
+			db.close();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return permamentFailed;
 	}
@@ -2286,6 +3205,9 @@ public class DB {
 		values.put("read", itemToUpdate.read + "");
 		values.put("withdraw", itemToUpdate.withdraw + "");
 		values.put("transport", itemToUpdate.transport + "");
+		values.put("part", itemToUpdate.part);
+		values.put("parts", itemToUpdate.parts);
+		values.put("multipartid", itemToUpdate.multipartid + "");
 		if (itemToUpdate.encrypted) {
 			values.put("encrypted", "E");
 		} else {
@@ -2364,7 +3286,7 @@ public class DB {
 				addMessage(context, item.from, item.to, item.text, item.created
 						+ "", item.sent + "", item.received + "", item.read
 						+ "", item.withdraw + "", item.encrypted,
-						item.transport, item.system);
+						item.transport, item.system, 1, 1, NO_MULTIPART_ID);
 			}
 			success = true;
 		} catch (Exception e) {

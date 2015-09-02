@@ -51,6 +51,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -147,6 +148,10 @@ public class MessageDetailsActivity extends Activity {
 
 		TextView created = (TextView) dialogLayout.findViewById(R.id.created);
 		TextView sent = (TextView) dialogLayout.findViewById(R.id.sent);
+		TextView sendingreceivingtitle = (TextView) dialogLayout.findViewById(R.id.sendingreceivingtitle);
+		TextView sendingreceiving = (TextView) dialogLayout.findViewById(R.id.sendingreceiving);
+		ProgressBar sendingreceivingprogress = (ProgressBar) dialogLayout.findViewById(R.id.sendingreceivingprogess); // progress for sending/receiving
+		TableRow sendingreceivingparent = (TableRow) dialogLayout.findViewById(R.id.sendingreceivingparent);
 		TextView received = (TextView) dialogLayout.findViewById(R.id.received);
 		TextView read = (TextView) dialogLayout.findViewById(R.id.read);
 		TextView withdrawn = (TextView) dialogLayout
@@ -182,7 +187,7 @@ public class MessageDetailsActivity extends Activity {
 
 		// Get updated information about this conversation item
 		final ConversationItem updatedItem = DB.getMessage(context,
-				conversationItem.localid, hostUid);
+				conversationItem.localid, hostUid, DB.DEFAULT_MESSAGEPART);
 		if (updatedItem == null) {
 			activity.finish();
 			return;
@@ -210,8 +215,46 @@ public class MessageDetailsActivity extends Activity {
 		to.setText(Main.UID2Name(context, updatedItem.to, true));
 
 		created.setText(DB.getDateString(updatedItem.created, true));
-
 		sent.setText(DB.getDateString(updatedItem.sent, true));
+
+		if (updatedItem.me(context)) {
+			// We send this item 
+			if (updatedItem.sent > 10) {
+				// If this item is sent, then hide sending/receiving!
+				sendingreceivingparent.setVisibility(View.GONE);
+			}
+			else {
+				// We don't have sent everything, display progress bar!
+				sendingreceivingtitle.setText("Sending:");
+				int percentSent = DB.getPercentSentComplete(context, updatedItem.multipartid);
+				int numTotal = updatedItem.parts;
+				int numSent = (int)Math.ceil(((double)percentSent*(double)numTotal)/100);
+				sendingreceivingprogress.setMax(100);
+				sendingreceivingprogress.setProgress(percentSent);
+				String position = "#"
+				+ DB.getPositionInSendingQueue(context,
+						updatedItem.transport, updatedItem.localid)
+				+ " in Sending Queue";
+				sendingreceiving.setText(position + "\n" + percentSent + "%, " + numSent + " / " + numTotal);
+			}
+		} else {
+			// We receive this item, so now lookup how much percent we have received yet
+			int numReceived = DB.getReceivedMultiparts(context, updatedItem.multipartid, updatedItem.from).size();
+			if (numReceived == -1 || numReceived >= updatedItem.parts) {
+				// We gave received everything, so hide sending/receiving
+				sendingreceivingparent.setVisibility(View.GONE);
+			} else {
+				// We don't have received everythin, display progress bar!
+				sendingreceivingtitle.setText("Receiving:");
+				sendingreceivingprogress.setMax(100);
+				int numTotal = updatedItem.parts;
+				int percentReceived = (numReceived * 100)/numTotal;
+				sendingreceivingprogress.setProgress(percentReceived);
+				sendingreceiving.setText(percentReceived + "%, " + numReceived + " / " + numTotal + " {" + updatedItem.multipartid + "}");
+			}
+		}
+		
+		
 		if (updatedItem.smsfailed) {
 			sent.setText(DB.SMS_FAILED);
 		}
@@ -235,12 +278,12 @@ public class MessageDetailsActivity extends Activity {
 			encrypted.setText("No");
 		}
 
-
 		Log.d("communicator", " KEYUPDATE: localid=" + updatedItem.localid);
 
 		int mid = DB.getLastSentKeyMessage(context, hostUid, false);
 		int localid = DB.getLastSentKeyMessage(context, hostUid, true);
-		Log.d("communicator", " KEYUPDATE: getLastSentKeyMessage-mid=" + mid + ", getLastSentKeyMessage-localid=" + localid);
+		Log.d("communicator", " KEYUPDATE: getLastSentKeyMessage-mid=" + mid
+				+ ", getLastSentKeyMessage-localid=" + localid);
 
 		String forTransport = "";
 		long keyCreatedTSInternet = Setup.getAESKeyDate(context, hostUid,
@@ -248,10 +291,10 @@ public class MessageDetailsActivity extends Activity {
 		long keyCreatedTS = keyCreatedTSInternet;
 		long keyCreatedTSSMS = Setup.getAESKeyDate(context, hostUid,
 				DB.TRANSPORT_SMS);
-		
-		
-		Log.d("communicator", " KEYUPDATE: keyCreatedTSInternet=" + keyCreatedTSInternet + ", keyCreatedTSSMS=" + keyCreatedTSSMS);
-		
+
+		Log.d("communicator", " KEYUPDATE: keyCreatedTSInternet="
+				+ keyCreatedTSInternet + ", keyCreatedTSSMS=" + keyCreatedTSSMS);
+
 		if (keyCreatedTSInternet != 0 && keyCreatedTSSMS != 0) {
 			forTransport = "Internet + SMS";
 		} else if (keyCreatedTSInternet != 0) {

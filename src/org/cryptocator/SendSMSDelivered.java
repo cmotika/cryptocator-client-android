@@ -60,11 +60,21 @@ public class SendSMSDelivered extends BroadcastReceiver {
 	 */
 	public void onReceive(Context context, Intent intent) {
 		int localId = -1;
+		int part = DB.DEFAULT_MESSAGEPART;
+		int parts = 1;
 		int hostUid = -1;
 		if (intent.getExtras() != null) {
 			Object object = intent.getExtras().get("localid");
 			if (object instanceof Integer) {
 				localId = (Integer) object;
+			}
+			object = intent.getExtras().get("part");
+			if (object instanceof Integer) {
+				part = (Integer) object;
+			}
+			object = intent.getExtras().get("parts");
+			if (object instanceof Integer) {
+				parts = (Integer) object;
 			}
 			object = intent.getExtras().get("hostuid");
 			if (object instanceof Integer) {
@@ -72,11 +82,15 @@ public class SendSMSDelivered extends BroadcastReceiver {
 			}
 			int resultCode = getResultCode();
 			if (resultCode == Activity.RESULT_OK) {
+				// For multipart messages, do this for each part!
 				ConversationItem itemToSend = DB.getMessage(context, localId,
-						hostUid);
+						hostUid, part);
 				if (itemToSend != null) {
 					boolean processSMS = true;
-					Communicator.processKeyDeliveries(context, hostUid, localId, processSMS);
+					if (part == parts-1) {
+						// Only for the last part of a multipart message
+						Communicator.processKeyDeliveries(context, hostUid, localId, processSMS);
+					}
 					// Only do this AFTER previous processing ... otherwise
 					// we cannot find the lastKeyMessageMid!
 					itemToSend.received = DB.getTimestamp();

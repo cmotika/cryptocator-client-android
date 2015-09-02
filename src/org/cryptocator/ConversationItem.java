@@ -114,6 +114,30 @@ public class ConversationItem {
 	/** The flag for telling that the SMS permanently failed to be sent. */
 	public boolean smsfailed = false;
 
+	/** The lasttry timestamp. */
+	public long lasttry;
+
+	/** The number of tries for sending this message. */
+	public int tries = 0;
+
+	/**
+	 * The total number of parts. If this is a multipart message this is > 1,
+	 * otherwise it is 1.
+	 */
+	public int parts = 1;
+
+	/**
+	 * The part of this message. If this is a multipart message this can be > 0,
+	 * otherwise it is 0.
+	 */
+	public int part = DB.DEFAULT_MESSAGEPART;
+
+	/**
+	 * The unique id for a multipart message. empty string if no multipart
+	 * message
+	 */
+	public String multipartid = DB.NO_MULTIPART_ID;
+
 	// ------------------------------------------------------------------------
 
 	/**
@@ -165,6 +189,19 @@ public class ConversationItem {
 	public boolean me(Context context) {
 		return (from == DB.myUid(context));
 
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * A conversationitem is ready to be processed if it is NON a multipart
+	 * message or if it is a multipart message that has been combined. Combined
+	 * multipart messages only have set parts == 1.
+	 * 
+	 * @return true, if successful
+	 */
+	public boolean readyToProcess() {
+		return (parts == 1);
 	}
 
 	// ------------------------------------------------------------------------

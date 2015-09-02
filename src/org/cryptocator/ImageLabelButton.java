@@ -250,12 +250,16 @@ public class ImageLabelButton extends ImageButton {
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
 
-		// Draw the Text. The space was created in setImageResourceInternal()
-		// already.
-		float buttonWitdh = this.getWidth();
-		float buttonHeight = this.getHeight();
-		canvas.drawText(this.text, (buttonWitdh - width) / 2, buttonHeight
-				- height - height / 2, paint);
+		try {
+			// Draw the Text. The space was created in setImageResourceInternal()
+			// already.
+			float buttonWitdh = this.getWidth();
+			float buttonHeight = this.getHeight();
+			canvas.drawText(this.text, (buttonWitdh - width) / 2, buttonHeight
+					- height - height / 2, paint);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	// ------------------------------------------------------------------------

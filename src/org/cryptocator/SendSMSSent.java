@@ -62,12 +62,17 @@ public class SendSMSSent extends BroadcastReceiver {
 	 */
 	public void onReceive(Context context, Intent intent) {
 		int localId = -1;
+		int part = -1;
 		int hostUid = -1;
 		int sendingId = -1;
 		if (intent.getExtras() != null) {
 			Object object = intent.getExtras().get("localid");
 			if (object instanceof Integer) {
 				localId = (Integer) object;
+			}
+			object = intent.getExtras().get("part");
+			if (object instanceof Integer) {
+				part = (Integer) object;
 			}
 			object = intent.getExtras().get("hostuid");
 			if (object instanceof Integer) {
@@ -79,8 +84,9 @@ public class SendSMSSent extends BroadcastReceiver {
 			}
 			int resultCode = getResultCode();
 			if (resultCode == Activity.RESULT_OK) {
+				// For multipart messages, do this for the first part only this is the MASTER part
 				ConversationItem itemToSend = DB.getMessage(context, localId,
-						hostUid);
+						hostUid, part);
 				DB.removeSentMessage(context, sendingId);
 				if (itemToSend != null) {
 					itemToSend.sent = DB.getTimestamp();
@@ -94,82 +100,106 @@ public class SendSMSSent extends BroadcastReceiver {
 							false, false);
 				}
 				// Utility.showToastAsync(context, "SMS SENT " + localId);
-				SendSMS.smsSent(localId);
+				SendSMS.smsSent(context, localId);
 			} else if (resultCode == SmsManager.RESULT_ERROR_GENERIC_FAILURE) {
-				// INCREMENT FAIL COUNTER
-				if (DB.incrementFailed(context, localId, hostUid)) {
-					if (DB.removeSentMessage(context, sendingId)) {
-						Utility.showToastAsync(
-								context,
-								"SMS "
-										+ localId
-										+ " to "
-										+ Main.UID2Name(context, hostUid, false)
-										+ " failed to send after "
-										+ Setup.SMS_FAIL_CNT
-										+ " tries. (RESULT_ERROR_GENERIC_FAILURE)");
-						Conversation.setFailedAsync(context, localId);
-					}
-				}
+				SMSFailed(context, localId, sendingId, hostUid,
+						" (RESULT_ERROR_GENERIC_FAILURE)");
 				Log.d("communicator", "#### SMS " + localId
 						+ " NOT SENT (RESULT_ERROR_GENERIC_FAILURE)");
-				SendSMS.smsSent(localId);
+
 			} else if (resultCode == SmsManager.RESULT_ERROR_NO_SERVICE) {
 				Log.d("communicator", "#### SMS " + localId
 						+ " NOT SENT (RESULT_ERROR_NO_SERVICE)");
 				Utility.showToastAsync(context, "SMS " + localId
 						+ " NOT SENT (RESULT_ERROR_NO_SERVICE)");
-				SendSMS.smsSent(localId);
+				SendSMS.smsSent(context, localId);
 			} else if (resultCode == SmsManager.RESULT_ERROR_NULL_PDU) {
 				// INCREMENT FAIL COUNTER
-				if (DB.incrementFailed(context, localId, hostUid)) {
-					if (DB.removeSentMessage(context, sendingId)) {
-						Utility.showToastAsync(
-								context,
-								"SMS "
-										+ localId
-										+ " to "
-										+ Main.UID2Name(context, hostUid, false)
-										+ " failed to send after "
-										+ Setup.SMS_FAIL_CNT
-										+ " tries. (RESULT_ERROR_NULL_PDU)");
-						Conversation.setFailedAsync(context, localId);
-					}
-				}
-				Log.d("communicator", "#### SMS " + localId
-						+ " NOT SENT (RESULT_ERROR_NULL_PDU)");
-				Utility.showToastAsync(context, "SMS " + localId
-						+ " NOT SENT (RESULT_ERROR_NULL_PDU)");
-				SendSMS.smsSent(localId);
+				SMSFailed(context, localId, sendingId, hostUid,
+						"(RESULT_ERROR_NULL_PDU)");
+				// if (DB.incrementFailed(context, localId, hostUid)) {
+				// if (DB.removeSentMessage(context, sendingId)) {
+				// Utility.showToastAsync(
+				// context,
+				// "SMS "
+				// + localId
+				// + " to "
+				// + Main.UID2Name(context, hostUid, false)
+				// + " failed to send after "
+				// + Setup.SMS_FAIL_CNT
+				// + " tries. (RESULT_ERROR_NULL_PDU)");
+				// Conversation.setFailedAsync(context, localId);
+				// }
+				// }
+				// Log.d("communicator", "#### SMS " + localId
+				// + " NOT SENT (RESULT_ERROR_NULL_PDU)");
+				// Utility.showToastAsync(context, "SMS " + localId
+				// + " NOT SENT (RESULT_ERROR_NULL_PDU)");
+				// SendSMS.smsSent(localId);
 			} else if (resultCode == SmsManager.RESULT_ERROR_RADIO_OFF) {
 				Log.d("communicator", "#### SMS " + localId
 						+ " NOT SENT (RESULT_ERROR_RADIO_OFF)");
 				Utility.showToastAsync(context, "SMS " + localId
 						+ " NOT SENT (RESULT_ERROR_RADIO_OFF)");
-				SendSMS.smsSent(localId);
+				SendSMS.smsSent(context, localId);
 				// } else if (resultCode == 133404) {
 			} else {
 				// INCREMENT FAIL COUNTER
-				if (DB.incrementFailed(context, localId, hostUid)) {
-					if (DB.removeSentMessage(context, sendingId)) {
-						Utility.showToastAsync(
-								context,
-								"SMS "
-										+ localId
-										+ " to "
-										+ Main.UID2Name(context, hostUid, false)
-										+ " failed to send after "
-										+ Setup.SMS_FAIL_CNT
-										+ " tries. (error code " + resultCode
-										+ ")");
-						Conversation.setFailedAsync(context, localId);
-					}
-				}
-				Log.d("communicator", "#### SMS " + localId
-						+ " NOT SENT (error code " + resultCode + ")");
-				SendSMS.smsSent(localId);
+				SMSFailed(context, localId, sendingId, hostUid, "(error code "
+						+ resultCode + ")");
+				// if (DB.incrementFailed(context, localId, hostUid)) {
+				// if (DB.removeSentMessage(context, sendingId)) {
+				// Utility.showToastAsync(
+				// context,
+				// "SMS "
+				// + localId
+				// + " to "
+				// + Main.UID2Name(context, hostUid, false)
+				// + " failed to send after "
+				// + Setup.SMS_FAIL_CNT
+				// + " tries. (error code " + resultCode
+				// + ")");
+				// Conversation.setFailedAsync(context, localId);
+				// }
+				// }
+				// Log.d("communicator", "#### SMS " + localId
+				// + " NOT SENT (error code " + resultCode + ")");
+				// SendSMS.smsSent(localId);
 			}
 		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	public static void SMSFailed(Context context, int localId, int sendingId,
+			int hostUid, String infoAddition) {
+		// INCREMENT FAIL COUNTER
+		if (DB.incrementFailed(context, localId)) {
+			if (DB.removeSentMessage(context, sendingId)) {
+				Utility.showToastAsync(context, "SMS " + localId + " to "
+						+ Main.UID2Name(context, hostUid, false)
+						+ " failed to send after " + Setup.SMS_FAIL_CNT
+						+ " tries." + infoAddition);
+				Conversation.setFailedAsync(context, localId);
+			}
+		}
+		SendSMS.smsSent(context, localId);
+	}
+
+	// ------------------------------------------------------------------------
+
+	public static void SMSFailedSimple(Context context, int localId,
+			String infoAddition) {
+		// INCREMENT FAIL COUNTER
+		if (DB.incrementFailed(context, localId)) {
+			if (DB.removeSentMessageByLocalId(context, localId)) {
+				Utility.showToastAsync(context, "SMS " + localId
+						+ " failed to send after " + Setup.SMS_FAIL_CNT
+						+ " tries." + infoAddition);
+				Conversation.setFailedAsync(context, localId);
+			}
+		}
+		SendSMS.smsSent(context, localId);
 	}
 
 	// ------------------------------------------------------------------------

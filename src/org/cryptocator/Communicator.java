@@ -616,14 +616,16 @@ public class Communicator {
 												&& !discardMessageAndSaveLargestMid) {
 											newItem.text = handleReceivedText(
 													context, text, newItem);
-											success2 = updateUIForReceivedMessage(
+											success2 = updateDBForReceivedMessage(
 													context, newItem);
 
-											// Auto-save images possibly
+											// Auto-save images possibly (only
+											// if single message or combined!)
 											if (Utility.loadBooleanSetting(
 													context,
 													Setup.OPTION_AUTOSAVE,
-													Setup.DEFAULT_AUTOSAVE)) {
+													Setup.DEFAULT_AUTOSAVE)
+													&& newItem.readyToProcess()) {
 												MessageDetailsActivity
 														.autoSaveAllImages(
 																context,
@@ -696,7 +698,7 @@ public class Communicator {
 	 *            the new item
 	 * @return true, if successful
 	 */
-	public static boolean updateUIForReceivedMessage(Context context,
+	public static boolean updateDBForReceivedMessage(Context context,
 			ConversationItem newItem) {
 		boolean success2 = false;
 
@@ -721,6 +723,12 @@ public class Communicator {
 		// }
 		// }
 
+		if (DB.isMultipartDuplicate(context, newItem.from, newItem.multipartid)) {
+			Log.d("communicator",
+					"RECEIVED MESSAGE SKIPPED BECAUSE OF DUPLICATE MULTIPARTID!!!");
+			return false;
+		}
+
 		if (DB.updateMessage(context, newItem, newItem.from)) {
 			messageReceived = true;
 			Log.d("communicator", "RECEIVED MESSAGE IN DB NOW!!! from:"
@@ -731,6 +739,10 @@ public class Communicator {
 			// "RECEIVED MESSAGE NOT IN DB :( "
 			// + response2);
 		}
+
+		// Clean up any erroneously received duplicates
+		DB.cleanMultipartDuplicates(context, newItem.from);
+
 		return success2;
 	}
 
@@ -828,14 +840,20 @@ public class Communicator {
 					// WAIT... before we save the Key we now test the timestamp
 					// if we already have a newer key received by the other
 					// party
-					long tsInternet = Setup.getAESKeyDate(context, newItem.from, DB.TRANSPORT_INTERNET);
-					long tsSMS = Setup.getAESKeyDate(context, newItem.from, DB.TRANSPORT_SMS);
-					long tsThisKey = Utility.parseLong(timestamp, DB.getTimestamp());
+					long tsInternet = Setup.getAESKeyDate(context,
+							newItem.from, DB.TRANSPORT_INTERNET);
+					long tsSMS = Setup.getAESKeyDate(context, newItem.from,
+							DB.TRANSPORT_SMS);
+					long tsThisKey = Utility.parseLong(timestamp,
+							DB.getTimestamp());
 					if (tsInternet > tsThisKey || tsSMS > tsThisKey) {
-						// Ouuups... it looks like we received an outdated/old key maybe over a transport medium
-						// that was offline for a while. Note that this could be SMS when there is no network or
+						// Ouuups... it looks like we received an outdated/old
+						// key maybe over a transport medium
+						// that was offline for a while. Note that this could be
+						// SMS when there is no network or
 						// Internet iff the WLAN is down.
-						// We do *NOT* want to override the current key and discard the outdated one. We state that:
+						// We do *NOT* want to override the current key and
+						// discard the outdated one. We state that:
 						possiblyInvalid = "outdated ";
 						Utility.showToastAsync(
 								context,
@@ -843,20 +861,23 @@ public class Communicator {
 										+ " from "
 										+ Main.UID2Name(context, newItem.from,
 												false) + ".");
-					}
-					else {
-						// Okay the timestamp indicates that this is a newer key than we ever had: So take it!
+					} else {
+						// Okay the timestamp indicates that this is a newer key
+						// than we ever had: So take it!
 						// Save as AES key for later decryptying and encrypting
 						// usage
 						Setup.saveAESKey(context, newItem.from, text);
-						// When receiving a key then set update timestamps for both
-						// because we have the current key and could possibly use it
+						// When receiving a key then set update timestamps for
+						// both
+						// because we have the current key and could possibly
+						// use it
 						// for both transport ways immediately!
 						Setup.setAESKeyDate(context, newItem.from,
 								DB.getTimestampString(), DB.TRANSPORT_INTERNET);
 						Setup.setAESKeyDate(context, newItem.from,
 								DB.getTimestampString(), DB.TRANSPORT_SMS);
-						keyhash = Setup.getAESKeyHash(context, newItem.from) + " ";
+						keyhash = Setup.getAESKeyHash(context, newItem.from)
+								+ " ";
 						// Discard the message
 						Utility.showToastAsync(
 								context,
@@ -880,7 +901,6 @@ public class Communicator {
 			newItem.isKey = true;
 			text = "[ " + possiblyInvalid + "session key " + keyhash
 					+ "received ]" + notificationMessageAddition;
-			Main.updateLastMessage(context, newItem.from, text, newItem.created);
 		} else if (text.startsWith("U")) {
 			// This is an unencrypted message
 			newItem.encrypted = false;
@@ -891,7 +911,6 @@ public class Communicator {
 			Log.d("communicator", "QQQQQQ handleReceivedText #1  newItem.from="
 					+ newItem.from + ", newItem.created=" + newItem.created
 					+ ", text=" + text);
-			Main.updateLastMessage(context, newItem.from, text, newItem.created);
 		} else if (text.startsWith("E")) {
 			// This is an AES encrypted message
 			newItem.encrypted = true;
@@ -905,6 +924,7 @@ public class Communicator {
 				int numInvalid = Utility.loadIntSetting(context,
 						"invalidkeycounter" + newItem.from, 0);
 				if (numInvalid == 0) {
+					// TODO: SEND SYSTEM MESSAGE: COULD NOT DECRYPT MID!
 					text = "[ decryption failed ]\n\nAutomatically sending new session key. Other user is asked to resend his last message.";
 					// ONE TIME REQUEST NEW KEY AUTOMATICALLY ... do this only
 					// once because if we have the wrong RSA key this
@@ -924,15 +944,11 @@ public class Communicator {
 						}
 					})).start();
 				}
-				Main.updateLastMessage(context, newItem.from, text,
-						newItem.created);
 			} else {
 				Log.d("communicator",
 						"QQQQQQ handleReceivedText #2  newItem.from="
 								+ newItem.from + ", newItem.created="
 								+ newItem.created + ", text=" + text);
-				Main.updateLastMessage(context, newItem.from, text,
-						newItem.created);
 				// Reset because no error!
 				Utility.saveIntSetting(context, "invalidkeycounter"
 						+ newItem.from, 0);
@@ -943,6 +959,55 @@ public class Communicator {
 			// text = decryptMessage(context, text,
 			// myPrivateKey);
 		}
+
+		Log.d("communicator", "MULTIPART START PROCESSING");
+
+		// MULTIPART PROCESSING //
+		if (text != null) {
+			DB.MultiPartInfo multipartinfo = DB.getMultiPartInfo(text);
+			if (multipartinfo != null) {
+				// This is a part of a multipart message
+				newItem.part = multipartinfo.part;
+				newItem.parts = multipartinfo.parts;
+				newItem.multipartid = multipartinfo.mulitpartid;
+				newItem.text = multipartinfo.text; // text w/o multipart
+													// info
+
+				Log.d("communicator", "MULTIPART INFO part=" + newItem.part
+						+ ", parts" + newItem.parts + ", multipartid"
+						+ newItem.multipartid);
+
+				if (DB.combineMultiPartMessage(context, newItem)) {
+					// On the LAST part of all, combine all parts!
+					// COMBINING MEANS:
+					// - delete all previously received parts
+					// - combine the text of all into this newItem!
+					// => this newItem MUST be added to the database but
+					// will be afterwards as if received completely here!
+					// it has no multipart information any more, except the
+					// multipartid that is necessary to update the right
+					// conversation item!
+					Main.updateLastMessage(context, newItem.from, newItem.text,
+							newItem.created);
+
+					Log.d("communicator", "MULTIPART COMBINED !!! :)");
+				} else {
+					Log.d("communicator", "MULTIPART NOT YET COMBINED :(");
+
+				}
+
+				// The text may have been modified by the combine method...
+				// yes this
+				// is a little tricky :-)
+				text = newItem.text;
+
+			} else {
+				// This a NON-multipart message, normal proceed
+				Main.updateLastMessage(context, newItem.from, text,
+						newItem.created);
+			}
+		}
+
 		return text;
 	}
 
@@ -959,8 +1024,9 @@ public class Communicator {
 	public static void liveUpdateOrNotify(final Context context,
 			final ConversationItem newItem) {
 		Log.d("communicator",
-				"@@@@ liveUpdateOrNotify() POSSIBLY CREATE NOTIFICATION #1 "
-						+ newItem.from);
+				"@@@@ liveUpdateOrNotify() POSSIBLY CREATE NOTIFICATION #1 from="
+						+ newItem.from + ", part=" + newItem.part
+						+ ", multipartid=" + newItem.multipartid);
 
 		final Handler mUIHandler = new Handler(Looper.getMainLooper());
 		mUIHandler.post(new Thread() {
@@ -980,7 +1046,8 @@ public class Communicator {
 							//
 							// ATTENTION: If not scrolled down then send an
 							// additional toast!
-							if (!Conversation.scrolledDown && !newItem.isKey) {
+							if (!Conversation.scrolledDown && !newItem.isKey
+									&& newItem.readyToProcess()) {
 								if (newItem.transport == DB.TRANSPORT_INTERNET) {
 									Utility.showToastShortAsync(context,
 											"New message " + newItem.mid
@@ -990,8 +1057,30 @@ public class Communicator {
 											"New SMS received.");
 								}
 							}
+
+							Log.d("communicator",
+									"@@@@ liveUpdateOrNotify() POSSIBLY CREATE NOTIFICATION #A , part="
+											+ newItem.part
+											+ ", newItem.multipartid="
+											+ newItem.multipartid);
+
+							if (!newItem.multipartid.equals(DB.NO_MULTIPART_ID)) {
+								// This IS a multipart message
+								Conversation.hideMultiparts(context,
+										newItem.multipartid);
+							}
 							Conversation.getInstance().updateConversationlist(
 									context);
+							if (!newItem.multipartid.equals(DB.NO_MULTIPART_ID)) {
+								Conversation.setMultipartProgress(context,
+										newItem.multipartid, DB
+												.getPercentReceivedComplete(
+														context,
+														newItem.multipartid,
+														newItem.from,
+														newItem.parts),
+										newItem.text);
+							}
 						} else {
 							// The conversation is NOT
 							// currently
@@ -1000,7 +1089,7 @@ public class Communicator {
 							Log.d("communicator",
 									"@@@@ liveUpdateOrNotify() POSSIBLY CREATE NOTIFICATION #2 "
 											+ newItem.from);
-							if (!newItem.isKey) {
+							if (!newItem.isKey && newItem.readyToProcess()) {
 								Log.d("communicator",
 										"@@@@ liveUpdateOrNotify() POSSIBLY CREATE NOTIFICATION #3 "
 												+ newItem.from);
@@ -1015,8 +1104,28 @@ public class Communicator {
 								// and scrolledDown was true, then he expects to
 								// see the
 								// last/newest message!
+								if (!newItem.multipartid
+										.equals(DB.NO_MULTIPART_ID)) {
+									// This IS a multipart message
+									Conversation.hideMultiparts(context,
+											newItem.multipartid);
+								}
 								Conversation.getInstance()
 										.updateConversationlist(context);
+								if (!newItem.multipartid
+										.equals(DB.NO_MULTIPART_ID)) {
+									Conversation
+											.setMultipartProgress(
+													context,
+													newItem.multipartid,
+													DB.getPercentReceivedComplete(
+															context,
+															newItem.multipartid,
+															newItem.from,
+															newItem.parts),
+													newItem.text);
+								}
+
 							}
 						}
 
@@ -1140,10 +1249,10 @@ public class Communicator {
 				}
 			}
 
-			if (automatic) {
+			if (automatic || true) {
 				// Set extra count down that prevents immediate sending of
 				// the next message in order to allow the key message to be
-				// received before any next messag!
+				// received before any next message!
 				Setup.extraCrountDownSet(context, transport);
 			}
 
@@ -1290,10 +1399,14 @@ public class Communicator {
 
 		if (itemToSend != null) {
 			if (!itemToSend.isKey && !Setup.extraCountDownToZero(context)) {
-				// If extra countdown is established, we only allow key messages to
+				// If extra countdown is established, we only allow key messages
+				// to
 				// be sent!
 				return;
 			}
+			// Increment the number of tries for this item
+			DB.incrementTries(context, itemToSend.localid);
+
 			Log.d("communicator",
 					"#### sendNextMessage() SEND NEXT QUERY: localid="
 							+ itemToSend.localid + ", to=" + itemToSend.to
@@ -1460,18 +1573,21 @@ public class Communicator {
 			int localId = -1;
 			int hostUid = -1;
 			int sendingId = -1;
-			boolean encrypted = false;
+			int part = DB.DEFAULT_MESSAGEPART;
+			int parts = 1;
 			if (itemToSend != null) {
 				localId = itemToSend.localid;
 				hostUid = itemToSend.to;
-				encrypted = itemToSend.encrypted;
 				sendingId = itemToSend.sendingid;
+				part = itemToSend.part;
+				parts = itemToSend.parts;
 			}
 			// Utility.showToastAsync(context, "Sending SMS Message "
 			// +localId+" to " + phone);
+			boolean registeredReceipient = to >= 0;
 			Log.d("communicator", "#### sendMessageSMS() #3 ");
 			SendSMS.sendSMS(context, phone, messageTextString, localId,
-					hostUid, sendingId, encrypted);
+					hostUid, sendingId, part, parts, registeredReceipient);
 		} else {
 			// MUST eliminate message because otherwise next messages will get
 			// stuck...

@@ -36,6 +36,9 @@ package org.cryptocator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
+
+import org.cryptocator.ImageContextMenu.ImageContextMenuProvider;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -57,7 +60,6 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
@@ -71,6 +73,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout.LayoutParams;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -106,8 +109,8 @@ public class Conversation extends Activity {
 	/** The sendspinner. */
 	Spinner sendspinner = null;
 
-	/** The failed color as background for failed SMS. */
-	private static int FAILEDCOLOR = Color.parseColor("#6DB0FD");
+	// /** The failed color as background for failed SMS. */
+	// private static int FAILEDCOLOR = Color.parseColor("#6DB0FD");
 
 	/** The mapping. */
 	@SuppressLint("UseSparseArrays")
@@ -176,6 +179,9 @@ public class Conversation extends Activity {
 	 */
 	final int FASTSCROLLBACKLOCKEDBACKGROUND = Color.parseColor("#00555555");
 
+	/** The image context menu provider for the main menu. */
+	private ImageContextMenuProvider imageContextMenuProvider = null;
+
 	// ------------------------------------------------------------------------
 
 	/**
@@ -183,6 +189,15 @@ public class Conversation extends Activity {
 	 * conversation in order to update, e.g., e state icons.
 	 */
 	private class Mapping {
+
+		/** The parent view speech containint everything. */
+		View parent = null;
+
+		/** The multipartid. */
+		String multipartid = "";
+
+		/** The progress. */
+		ProgressBar progress;
 
 		/** The speech. */
 		ImageView speech;
@@ -290,7 +305,8 @@ public class Conversation extends Activity {
 					}
 
 					public void onCopy() {
-						promptImageSaveAs(context, "", "Copied from message input text field.");
+						promptImageSaveAs(context, "",
+								"Copied from message input text field.");
 					}
 				});
 
@@ -1790,10 +1806,13 @@ public class Conversation extends Activity {
 	 *            the oneline
 	 * @param speech
 	 *            the speech
+	 * @param progress
+	 *            the progress
 	 */
 	private void addMapping(int mid, int localid, ImageView sent,
 			ImageView received, ImageView read, EditText text,
-			LinearLayout oneline, ImageView speech) {
+			LinearLayout oneline, ImageView speech, ProgressBar progress,
+			String multipartid, View parent) {
 		Mapping mappingItem = new Mapping();
 		mappingItem.read = read;
 		mappingItem.received = received;
@@ -1801,6 +1820,9 @@ public class Conversation extends Activity {
 		mappingItem.text = text;
 		mappingItem.oneline = oneline;
 		mappingItem.speech = speech;
+		mappingItem.progress = progress;
+		mappingItem.multipartid = multipartid;
+		mappingItem.parent = parent;
 		int insertId = mid;
 		if (insertId == -1) {
 			// Convention: use local id instead as a placeholder
@@ -1818,6 +1840,30 @@ public class Conversation extends Activity {
 	private void resetMapping() {
 		mapping.clear();
 	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the mapping by multipartid.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param multipartid
+	 *            the multipartid
+	 * @return the mapping
+	 */
+	public List<Mapping> getMapping(Context context, String multipartid) {
+		List<Mapping> returnList = new ArrayList<Mapping>();
+		for (Entry<Integer, Mapping> entry : mapping.entrySet()) {
+			Mapping mappingItem = entry.getValue();
+			if (mappingItem.multipartid.equals(multipartid)) {
+				returnList.add(mappingItem);
+			}
+		}
+		return returnList;
+	}
+
+	// ------------------------------------------------------------------------
 
 	/**
 	 * Gets the mapping. If mid is negative by convention we look for a local id
@@ -1888,6 +1934,65 @@ public class Conversation extends Activity {
 					mappingItem.sent.setVisibility(View.VISIBLE);
 					mappingItem.received.setVisibility(View.GONE);
 					mappingItem.read.setVisibility(View.GONE);
+				}
+			}
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Hides all multiparts that may be displayed already. We are about to add
+	 * another multipart and only want to see this new one.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param multipartid
+	 *            the multipartid
+	 * @param percent
+	 *            the percent
+	 * @param fullText
+	 *            the full text
+	 */
+	public static void hideMultiparts(Context context, String multipartid) {
+		Conversation conversation = Conversation.getInstance();
+		if (Conversation.isAlive()) {
+			List<Mapping> mappingItems = conversation.getMapping(context,
+					multipartid);
+			for (Mapping mappingItem : mappingItems) {
+				mappingItem.parent.setVisibility(View.GONE);
+			}
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sets the multipart progress bar if the progress is less than 100%.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param multipartid
+	 *            the multipartid
+	 * @param percent
+	 *            the percent
+	 * @param fullText
+	 *            the full text
+	 */
+	public static void setMultipartProgress(Context context,
+			String multipartid, int percent, String fullText) {
+		Conversation conversation = Conversation.getInstance();
+		if (Conversation.isAlive()) {
+			List<Mapping> mappingItems = conversation.getMapping(context,
+					multipartid);
+			for (Mapping mappingItem : mappingItems) {
+				if (percent < 100) {
+					if (mappingItem.progress != null) {
+						mappingItem.progress.setVisibility(View.VISIBLE);
+						mappingItem.progress.setMax(100);
+						mappingItem.progress.setProgress(percent);
+					}
+					mappingItem.text.setVisibility(View.GONE);
 				}
 			}
 		}
@@ -1973,7 +2078,9 @@ public class Conversation extends Activity {
 			Mapping mappingItem = conversation
 					.getMapping(context, -1 * localid);
 			if (mappingItem != null) {
-				mappingItem.oneline.setBackgroundColor(FAILEDCOLOR);
+				// Rounded corners failed
+				mappingItem.oneline
+						.setBackgroundResource(R.drawable.rounded_cornersme_failed);
 				mappingItem.speech.setImageResource(R.drawable.speechmefailed);
 			}
 		}
@@ -2060,9 +2167,15 @@ public class Conversation extends Activity {
 			ImageView speech = (ImageView) conversationlistitem
 					.findViewById(R.id.msgspeech);
 
+			ProgressBar progress = (ProgressBar) conversationlistitem
+					.findViewById(R.id.conversationprogress);
+			// Hide per default, only used for multi part receiving
+			progress.setVisibility(View.GONE);
+
 			// Create a mapping for later async update
 			addMapping(conversationItem.mid, conversationItem.localid, null,
-					null, null, conversationText, oneline, speech);
+					null, null, conversationText, oneline, speech, progress,
+					conversationItem.multipartid, conversationlistitem);
 		} else {
 			conversationlistitem = inflater.inflate(
 					R.layout.conversationitemme, null);
@@ -2085,7 +2198,8 @@ public class Conversation extends Activity {
 
 			// Create a mapping for later async update
 			addMapping(conversationItem.mid, conversationItem.localid, sent,
-					received, read, conversationText, oneline, speech);
+					received, read, conversationText, oneline, speech, null,
+					DB.NO_MULTIPART_ID, conversationlistitem);
 
 			if (conversationItem.read > 0
 					&& !Utility.loadBooleanSetting(context,
@@ -2106,7 +2220,8 @@ public class Conversation extends Activity {
 			}
 
 			if (conversationItem.smsfailed) {
-				oneline.setBackgroundColor(FAILEDCOLOR);
+				// Rounded corners failed
+				oneline.setBackgroundResource(R.drawable.rounded_cornersme_failed);
 				speech.setImageResource(R.drawable.speechmefailed);
 			}
 		}
@@ -2351,12 +2466,25 @@ public class Conversation extends Activity {
 		for (ConversationItem itemNew : conversationListNew) {
 			boolean found = false;
 			for (ConversationItem item : conversationList) {
-				if (item.localid == itemNew.localid) {
+				// && item.text.equals(itemNew.text) : Be SURE that we can stop
+				// here...
+				// if we combine multipart messages this might NOT be the case
+				// for SMS
+				// if we just test the localid's because when combining, we
+				// delete all other parts
+				// and then we somehow "reuse" the localid for the combined
+				// message (unfortunately)
+				if (item.localid == itemNew.localid
+						&& item.text.equals(itemNew.text)
+						&& item.parts == itemNew.parts) {
 					found = true;
 					break;
 				}
 			}
 			if (!found) {
+				Log.d("communicator", "MULTIPART conversationListDiff: part="
+						+ itemNew.part + ", parts=" + itemNew.parts + ", text="
+						+ itemNew.text);
 				conversationListDiff.add(itemNew);
 			}
 		}
@@ -2415,6 +2543,124 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Creates the context menu for the conversation activity.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private ImageContextMenuProvider createContextMenu(final Activity context) {
+		if (imageContextMenuProvider == null) {
+			imageContextMenuProvider = new ImageContextMenuProvider(context,
+					null, null);
+			imageContextMenuProvider.addEntry("Show All Messages",
+					R.drawable.menushowall,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							maxScrollMessageItems = Setup.SHOW_ALL;
+							updateConversationlist(context);
+							rebuildConversationlist(context);
+							onRestart();
+							onStart();
+							onResume();
+							return true;
+						}
+					});
+			imageContextMenuProvider.addEntry("Clear Conversation",
+					R.drawable.menudelete,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							clearConversation(context);
+							return true;
+						}
+					});
+			imageContextMenuProvider.addEntry("Backup...",
+					R.drawable.menubackup,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							backup(context);
+							return true;
+						}
+					});
+			imageContextMenuProvider.addEntry("New Session Key",
+					R.drawable.menukey,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							possiblePromptNewSession(context);
+							return true;
+						}
+					});
+			imageContextMenuProvider.addEntry("Search...",
+					R.drawable.menusearch,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							promptSearch(context);
+							return true;
+						}
+					});
+			imageContextMenuProvider.addEntry("Attach Image...",
+					R.drawable.menuattachment,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							promptImageInsert(context, hostUid);
+							return true;
+						}
+					});
+			imageContextMenuProvider.addEntry("Refresh",
+					R.drawable.menurefresh,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							doRefresh(context);
+							return true;
+						}
+					});
+		}
+		return imageContextMenuProvider;
+	}
+
+	// ------------------------------------------------------------------------
+
+	// /*
+	// * (non-Javadoc)
+	// *
+	// * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+	// */
+	// public boolean onOptionsItemSelected(MenuItem item) {
+	// // The context menu implementation
+	// switch (item.getItemId()) {
+	// case android.R.id.home:
+	// goBack(this);
+	// return true;
+	// case R.id.item2:
+	// maxScrollMessageItems = Setup.SHOW_ALL;
+	// updateConversationlist(this);
+	// rebuildConversationlist(this);
+	// onRestart();
+	// onStart();
+	// onResume();
+	// return true;
+	// case R.id.item3:
+	// clearConversation(this);
+	// return true;
+	// case R.id.item4:
+	// backup(this);
+	// return true;
+	// case R.id.itemsearch:
+	// promptSearch(this);
+	// return true;
+	// case R.id.item6:
+	// possiblePromptNewSession(this);
+	// return true;
+	// case R.id.menu_settings:
+	// doRefresh(this);
+	// return true;
+	// default:
+	// return super.onOptionsItemSelected(item);
+	// }
+	// }
+
+	// ------------------------------------------------------------------------
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -2423,8 +2669,11 @@ public class Conversation extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// This is necessary to enable a context menu
-		getMenuInflater().inflate(R.menu.activity_conversation, menu);
-		return true;
+		// getMenuInflater().inflate(R.menu.activity_main, menu);
+
+		ImageContextMenu.show(instance, createContextMenu(instance));
+
+		return false;
 	}
 
 	// ------------------------------------------------------------------------
@@ -2443,47 +2692,6 @@ public class Conversation extends Activity {
 		}
 		return super.onKeyDown(keyCode, event);
 
-	}
-
-	// ------------------------------------------------------------------------
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
-	 */
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// The context menu implementation
-		switch (item.getItemId()) {
-		case android.R.id.home:
-			goBack(this);
-			return true;
-		case R.id.item2:
-			maxScrollMessageItems = Setup.SHOW_ALL;
-			updateConversationlist(this);
-			rebuildConversationlist(this);
-			onRestart();
-			onStart();
-			onResume();
-			return true;
-		case R.id.item3:
-			clearConversation(this);
-			return true;
-		case R.id.item4:
-			backup(this);
-			return true;
-		case R.id.itemsearch:
-			promptSearch(this);
-			return true;
-		case R.id.item6:
-			possiblePromptNewSession(this);
-			return true;
-		case R.id.menu_settings:
-			doRefresh(this);
-			return true;
-		default:
-			return super.onOptionsItemSelected(item);
-		}
 	}
 
 	// ------------------------------------------------------------------------

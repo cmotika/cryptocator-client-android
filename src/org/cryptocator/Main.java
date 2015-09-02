@@ -36,6 +36,8 @@ package org.cryptocator;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.cryptocator.ImageContextMenu.ImageContextMenuProvider;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -54,7 +56,6 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -111,6 +112,9 @@ public class Main extends Activity {
 	/** The context. */
 	private Activity context = this;
 
+	/** The image context menu provider for the main menu. */
+	private ImageContextMenuProvider imageContextMenuProvider = null;
+
 	// ------------------------------------------------------------------------
 
 	/**
@@ -149,6 +153,9 @@ public class Main extends Activity {
 		Main.visible = true;
 		instance = this;
 		context = this;
+
+		// Possibly create the context menu
+		createContextMenu(context);
 
 		// Do this as early as possible
 		Setup.updateServerkey(context);
@@ -319,6 +326,96 @@ public class Main extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Creates the context menu for the main activity.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private ImageContextMenuProvider createContextMenu(final Context context) {
+		if (imageContextMenuProvider == null) {
+			imageContextMenuProvider = new ImageContextMenuProvider(context,
+					null, null);
+			imageContextMenuProvider.addEntry("Compose",
+					R.drawable.menucompose,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							composeMessage(context, null, null);
+							return true;
+						}
+					});
+			imageContextMenuProvider.addEntry("Add User",
+					R.drawable.menuadduser,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							if (possiblyPromptUserIfNoAccount(context, mainBackground)) {
+								 showHideAddUser(context, true);
+							}
+							return true;
+						}
+					});
+			imageContextMenuProvider.addEntry("Add SMS User",
+					R.drawable.menuadduserext,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							addExternalSMSUser(context);
+							return true;
+						}
+					});
+			imageContextMenuProvider.addEntry("Account",
+					R.drawable.menuaccount,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							startAccount(context);
+							return true;
+						}
+					});
+			imageContextMenuProvider.addEntry("Settings",
+					R.drawable.menusettings,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							startSettings(context);
+							return true;
+						}
+					});
+		}
+		return imageContextMenuProvider;
+	}
+
+	// ------------------------------------------------------------------------
+
+	// /*
+	// * (non-Javadoc)
+	// *
+	// * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+	// */
+	// public boolean onOptionsItemSelected(MenuItem item) {
+	// // The context menu implementation
+	// switch (item.getItemId()) {
+	// case android.R.id.home:
+	// composeMessage(context, null, null);
+	// return true;
+	// case R.id.item1:
+	// startAccount(this);
+	// return true;
+	// case R.id.item2:
+	// startSettings(this);
+	// return true;
+	// case R.id.item3b:
+	// addExternalSMSUser(this);
+	// return true;
+	// case R.id.item3:
+	// if (possiblyPromptUserIfNoAccount(this, mainBackground)) {
+	// showHideAddUser(this, true);
+	// }
+	// return true;
+	// default:
+	// return super.onOptionsItemSelected(item);
+	// }
+	// }
+
+	// ------------------------------------------------------------------------
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -327,8 +424,11 @@ public class Main extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// This is necessary to enable a context menu
-		getMenuInflater().inflate(R.menu.activity_main, menu);
-		return true;
+		// getMenuInflater().inflate(R.menu.activity_main, menu);
+
+		ImageContextMenu.show(context, createContextMenu(context));
+
+		return false;
 	}
 
 	// ------------------------------------------------------------------------
@@ -361,38 +461,6 @@ public class Main extends Activity {
 	}
 
 	// ------------------------------------------------------------------------
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
-	 */
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// The context menu implementation
-		switch (item.getItemId()) {
-		case android.R.id.home:
-			composeMessage(context, null, null);
-			return true;
-		case R.id.item1:
-			startAccount(this);
-			return true;
-		case R.id.item2:
-			startSettings(this);
-			return true;
-		case R.id.item3b:
-			addExternalSMSUser(this);
-			return true;
-		case R.id.item3:
-			if (possiblyPromptUserIfNoAccount(this, mainBackground)) {
-				showHideAddUser(this, true);
-			}
-			return true;
-		default:
-			return super.onOptionsItemSelected(item);
-		}
-	}
-
-	// ------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
 
 	/**
@@ -409,7 +477,7 @@ public class Main extends Activity {
 		Communicator.haveNewMessagesAndReceive(context);
 		Communicator.receiveNextMessage(context);
 		Setup.updateAttachmentServerLimit(context, true);
-		
+
 		Utility.showToastAsync(context, "Refreshing....");
 		if (Main.isAlive()) {
 			Main.getInstance().mainBackground.postDelayed(new Runnable() {
@@ -666,8 +734,9 @@ public class Main extends Activity {
 			for (UidListItem item : fullUidList) {
 				String name = item.name;
 
-				String lastMessage = Conversation.possiblyRemoveImageAttachments(context,
-						item.lastMessage, true, "[ image ]");
+				String lastMessage = Conversation
+						.possiblyRemoveImageAttachments(context,
+								item.lastMessage, true, "[ image ]");
 				String lastDate = DB.getDateString(item.lastMessageTimestamp,
 						false);
 				if (lastMessage == null) {

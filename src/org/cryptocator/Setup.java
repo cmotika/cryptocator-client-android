@@ -568,7 +568,7 @@ public class Setup extends Activity {
 	 * failed (ONLY counting unknown errors, NO network errors!). If the network
 	 * is down the SMS should wait until it is up again and NOT fail.
 	 */
-	public static final int SMS_FAIL_CNT = 3;
+	public static final int SMS_FAIL_CNT = 2;
 
 	/**
 	 * The Constant SERVER_ATTACHMENT_LIMIT. Must be acquired by the server on
@@ -605,6 +605,9 @@ public class Setup extends Activity {
 
 	/** The standardsmssize. */
 	public static int SMS_DEFAULT_SIZE = 160;
+	
+	/** Split a message if the part size is larger than this constant */
+	public static final int MULTIPART_MESSAGELIMIT = 100;
 
 	// ------------------------------------------------------------------------
 
