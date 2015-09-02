@@ -1424,11 +1424,6 @@ public class Communicator {
 		}
 
 		if (itemToSend != null && itemToSend.created > 0 && itemToSend.to != -1) {
-			if (!itemToSend.system) {
-				Main.updateLastMessage(context, itemToSend.to, itemToSend.text,
-						itemToSend.created);
-			}
-
 			Log.d("communicator",
 					"#### sendNextMessage() NOW ABOUT TO SEND ... #1");
 
@@ -1706,6 +1701,10 @@ public class Communicator {
 												+ itemToSend.mid + ", "
 												+ isSentKeyMessage);
 
+										// Be careful here! The sending table may have a different 
+										// msg than the msg DB because we might have a multipart
+										// message. => DO NOT UPDATE THE TEXT!
+										itemToSend.text = null;
 										DB.updateMessage(context, itemToSend,
 												itemToSend.to, isSentKeyMessage);
 										updateSentReceivedReadAsync(context,

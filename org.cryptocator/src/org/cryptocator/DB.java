@@ -1025,11 +1025,11 @@ public class DB {
 		try {
 			db = openDB(context, uid);
 			long ts = DB.getTimestamp() - MULTIPART_TIMEOUT;
-			
+
 			String QUERY = "SELECT `multipartid` FROM `" + TABLE_MESSAGES
 					+ "` WHERE `part` = 0 AND `parts` = 1 AND `received` > "
 					+ ts;
-			
+
 			cursor = db.rawQuery(QUERY, null);
 			if (cursor != null && cursor.moveToFirst()) {
 
@@ -1307,6 +1307,11 @@ public class DB {
 			String text, boolean encrypted, int transport, boolean system,
 			int priority, ConversationItem item) {
 
+		if (!system) {
+			// Do this only for part = 0 (the last part of a multi part message)
+			Main.updateLastMessage(context, hostUid, text, DB.getTimestamp());
+		}
+
 		// AUTOMATED MULTIPART SPLITTING - NOT FOR SYSTEM MESSAGES //
 		if (text.length() > Setup.MULTIPART_MESSAGELIMIT && !system) {
 			// SPLIT UP
@@ -1345,6 +1350,8 @@ public class DB {
 		}
 
 	}
+
+	// ------------------------------------------------------------------------
 
 	/**
 	 * Adds the send multipart message.
@@ -1841,7 +1848,7 @@ public class DB {
 				// Valid insert
 				String QUERY = "SELECT `localid`  FROM `" + TABLE_MESSAGES
 						+ "` WHERE ROWID = " + rowId;
-				// Log.d("communicator", "QUERY = " + QUERY);
+				// Log.d("communicator", "addMessage() QUERY = " + QUERY);
 				Cursor cursor = db.rawQuery(QUERY, null);
 				if (cursor != null && cursor.moveToFirst()) {
 					localId = Utility.parseInt(cursor.getString(0), -1);
@@ -3192,7 +3199,9 @@ public class DB {
 		values.put("fromuid", itemToUpdate.from);
 		values.put("touid", itemToUpdate.to);
 		if (!isSentKeyMessage) {
-			values.put("text", itemToUpdate.text);
+			if (itemToUpdate.text != null) {
+				values.put("text", itemToUpdate.text);
+			}
 			if (itemToUpdate.system) {
 				values.put("system", "1");
 			} else {

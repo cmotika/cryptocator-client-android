@@ -257,6 +257,7 @@ public class MessageDetailsActivity extends Activity {
 		
 		if (updatedItem.smsfailed) {
 			sent.setText(DB.SMS_FAILED);
+			sendingreceivingparent.setVisibility(View.GONE);
 		}
 
 		received.setText(DB.getDateString(updatedItem.received, true));
