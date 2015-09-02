@@ -60,8 +60,11 @@ public class ReceiveSMS extends BroadcastReceiver {
 
 	// ------------------------------------------------------------------------
 
-	/* (non-Javadoc)
-	 * @see android.content.BroadcastReceiver#onReceive(android.content.Context, android.content.Intent)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.content.BroadcastReceiver#onReceive(android.content.Context,
+	 * android.content.Intent)
 	 */
 	@SuppressLint("UseSparseArrays")
 	public void onReceive(Context context, Intent intent) {
@@ -103,7 +106,8 @@ public class ReceiveSMS extends BroadcastReceiver {
 							+ phoneHash);
 					boolean secureSMS = message
 							.startsWith(SendSMS.SECURESMS_ID);
-					// abortBroadcast() only works for preKitkat Androids! See below.
+					// abortBroadcast() only works for preKitkat Androids! See
+					// below.
 					if (secureSMS || receiveAllSMS
 							|| messages.containsKey(phone)
 							|| messages.containsKey(phoneHash)) {
@@ -190,10 +194,13 @@ public class ReceiveSMS extends BroadcastReceiver {
 
 	/**
 	 * Gets the uid by phone or create a new user.
-	 *
-	 * @param context the context
-	 * @param phone the phone
-	 * @param createUserIfNotExists the create user if not exists
+	 * 
+	 * @param context
+	 *            the context
+	 * @param phone
+	 *            the phone
+	 * @param createUserIfNotExists
+	 *            the create user if not exists
 	 * @return the uid by phone or create user
 	 */
 	public static int getUidByPhoneOrCreateUser(Context context, String phone,
@@ -224,10 +231,13 @@ public class ReceiveSMS extends BroadcastReceiver {
 
 	/**
 	 * Handle SMS message.
-	 *
-	 * @param context the context
-	 * @param phone the phone
-	 * @param message the message
+	 * 
+	 * @param context
+	 *            the context
+	 * @param phone
+	 *            the phone
+	 * @param message
+	 *            the message
 	 * @return true, if successful
 	 */
 	private boolean handleMessage(Context context, String phone, String message) {
@@ -246,8 +256,8 @@ public class ReceiveSMS extends BroadcastReceiver {
 					+ " internally UID=" + uid + " the following text: '"
 					+ message + "'");
 
-			// This should be an encrypted sms, sent by delphino
-			// cryptocator
+			// This should be an encrypted sms, sent by Delphino
+			// Cryptocator
 			if (uid != -1) {
 				// Only allow sms messages from known users
 				// HANDLE
@@ -265,18 +275,12 @@ public class ReceiveSMS extends BroadcastReceiver {
 					newItem.read = DB.getTimestamp();
 				}
 				newItem.text = message;
-				if (secureSMS) {
-					newItem.text = Communicator.handleReceivedText(context,
-							message, newItem);
-				} else {
-					// This is a normal SMS, unenrcypted, just put it as is in
-					// the database
-					Main.updateLastMessage(context, newItem.from,
-							newItem.text.trim(), newItem.created);
-				}
+				// WE HANDLE ALL TEXT BECAUSE OF (POSSIBLE) MULTIPART SMS //
+				newItem.text = Communicator.handleReceivedText(context,
+						message, newItem);
 
-				boolean success2 = Communicator.updateUIForReceivedMessage(
-						context, newItem);
+				boolean success2 = Communicator
+						.updateDBForReceivedMessage(context, newItem);
 
 				if (newItem.text.contains("[ invalid session key ]")
 						|| newItem.text.contains("[ decryption failed ]")) {

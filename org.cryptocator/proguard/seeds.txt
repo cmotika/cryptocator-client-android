@@ -112,11 +112,6 @@ android.support.v4.widget.SwipeRefreshLayout: void setColorSchemeResources(int[]
 android.support.v4.widget.SwipeRefreshLayout: void setColorSchemeColors(int[])
 android.support.v4.widget.SwipeRefreshLayout: void setDistanceToTriggerSync(int)
 android.support.v4.widget.SwipeRefreshLayout: int getProgressCircleDiameter()
-org.cryptocator.AddUserEditText
-org.cryptocator.AddUserEditText: void setKeyListener(org.cryptocator.AddUserEditText$AddUserEditTextKeyListener)
-org.cryptocator.AddUserEditText: AddUserEditText(android.content.Context)
-org.cryptocator.AddUserEditText: AddUserEditText(android.content.Context,android.util.AttributeSet)
-org.cryptocator.AddUserEditText: AddUserEditText(android.content.Context,android.util.AttributeSet,int)
 org.cryptocator.BackupActivity
 org.cryptocator.BackupActivity: BackupActivity()
 org.cryptocator.BootReceiver
@@ -131,9 +126,8 @@ org.cryptocator.FastScrollBar: void setSnapDown(int)
 org.cryptocator.FastScrollBar: void setSnapUp(int)
 org.cryptocator.FastScrollBar: void setProgress(int)
 org.cryptocator.FastScrollBar: long getTimestamp()
+org.cryptocator.FastScrollBar: int getCurrentProgress()
 org.cryptocator.FastScrollView
-org.cryptocator.FastScrollView: void setSnapDown(int)
-org.cryptocator.FastScrollView: void setSnapUp(int)
 org.cryptocator.FastScrollView: void setOnLayoutDoneListener(org.cryptocator.FastScrollView$OnLayoutDoneListener)
 org.cryptocator.FastScrollView: void setOnScrollListener(org.cryptocator.FastScrollView$OnScrollListener)
 org.cryptocator.FastScrollView: void setOnSizeChangeListener(org.cryptocator.FastScrollView$OnSizeChangeListener)
@@ -144,9 +138,14 @@ org.cryptocator.FastScrollView: int getMaxPosition()
 org.cryptocator.FastScrollView: int getMaxHeight()
 org.cryptocator.FastScrollView: int getVisibleHeight()
 org.cryptocator.FastScrollView: void setScrollBackground(int)
+org.cryptocator.FastScrollView: void setSnapDown(int)
+org.cryptocator.FastScrollView: void setSnapUp(int)
 org.cryptocator.HeadlessSmsSendService
 org.cryptocator.HeadlessSmsSendService: HeadlessSmsSendService()
-org.cryptocator.ImageLabelButton: void setTextSize(int)
+org.cryptocator.ImageLabelButton
+org.cryptocator.ImageLabelButton: ImageLabelButton(android.content.Context)
+org.cryptocator.ImageLabelButton: ImageLabelButton(android.content.Context,android.util.AttributeSet)
+org.cryptocator.ImageLabelButton: ImageLabelButton(android.content.Context,android.util.AttributeSet,int)
 org.cryptocator.ImageLabelButton: void setTextColor(int)
 org.cryptocator.ImageLabelButton: void setImageURI(android.net.Uri)
 org.cryptocator.ImageLabelButton: void setImageResource(int)
@@ -158,18 +157,34 @@ org.cryptocator.ImagePressButton: ImagePressButton(android.content.Context,andro
 org.cryptocator.ImagePressButton: void setImageResource(int)
 org.cryptocator.ImagePressButton: void setImagePressResource(int)
 org.cryptocator.ImagePressButton: void setAdditionalPressWhiteView(android.view.View)
+org.cryptocator.ImageSmileyEditText
+org.cryptocator.ImageSmileyEditText: void setOnCutCopyPasteListener(org.cryptocator.ImageSmileyEditText$OnCutCopyPasteListener)
+org.cryptocator.ImageSmileyEditText: ImageSmileyEditText(android.content.Context,android.util.AttributeSet,int)
+org.cryptocator.ImageSmileyEditText: ImageSmileyEditText(android.content.Context,android.util.AttributeSet)
+org.cryptocator.ImageSmileyEditText: ImageSmileyEditText(android.content.Context)
+org.cryptocator.KeyEventEditText
+org.cryptocator.KeyEventEditText: void setKeyListener(org.cryptocator.KeyEventEditText$KeyEventEditTextEditTextKeyListener)
+org.cryptocator.KeyEventEditText: KeyEventEditText(android.content.Context)
+org.cryptocator.KeyEventEditText: KeyEventEditText(android.content.Context,android.util.AttributeSet)
+org.cryptocator.KeyEventEditText: KeyEventEditText(android.content.Context,android.util.AttributeSet,int)
 org.cryptocator.Main
 org.cryptocator.Main: Main()
-org.cryptocator.MessagedetailsActivity
-org.cryptocator.MessagedetailsActivity: MessagedetailsActivity()
+org.cryptocator.MessageDetailsActivity
+org.cryptocator.MessageDetailsActivity: MessageDetailsActivity()
 org.cryptocator.MmsReceiver
 org.cryptocator.MmsReceiver: MmsReceiver()
+org.cryptocator.PictureImportActivity
+org.cryptocator.PictureImportActivity: PictureImportActivity()
 org.cryptocator.R$color: int gray
 org.cryptocator.R$color: int invisible
-org.cryptocator.R$drawable: int backup
+org.cryptocator.R$drawable: int additionbtn
+org.cryptocator.R$drawable: int additionbtnback
+org.cryptocator.R$drawable: int attachmentbtn
 org.cryptocator.R$drawable: int btnaccount
 org.cryptocator.R$drawable: int btnadduser
 org.cryptocator.R$drawable: int btnback
+org.cryptocator.R$drawable: int btnbackup
+org.cryptocator.R$drawable: int btnclear
 org.cryptocator.R$drawable: int btncompose
 org.cryptocator.R$drawable: int btnkey
 org.cryptocator.R$drawable: int btnmenu
@@ -217,10 +232,27 @@ org.cryptocator.R$drawable: int personsmssmall
 org.cryptocator.R$drawable: int phone
 org.cryptocator.R$drawable: int phoneneutral
 org.cryptocator.R$drawable: int phonesms
+org.cryptocator.R$drawable: int photobtn
+org.cryptocator.R$drawable: int pictureimport
 org.cryptocator.R$drawable: int rounded_corners
 org.cryptocator.R$drawable: int rounded_corners_shaddow
 org.cryptocator.R$drawable: int rounded_cornersme
 org.cryptocator.R$drawable: int rounded_cornersme_shaddow
+org.cryptocator.R$drawable: int s0
+org.cryptocator.R$drawable: int s1
+org.cryptocator.R$drawable: int s10
+org.cryptocator.R$drawable: int s11
+org.cryptocator.R$drawable: int s12
+org.cryptocator.R$drawable: int s13
+org.cryptocator.R$drawable: int s14
+org.cryptocator.R$drawable: int s2
+org.cryptocator.R$drawable: int s3
+org.cryptocator.R$drawable: int s4
+org.cryptocator.R$drawable: int s5
+org.cryptocator.R$drawable: int s6
+org.cryptocator.R$drawable: int s7
+org.cryptocator.R$drawable: int s8
+org.cryptocator.R$drawable: int s9
 org.cryptocator.R$drawable: int scrollbarhandle4
 org.cryptocator.R$drawable: int send
 org.cryptocator.R$drawable: int senddisabled
@@ -228,6 +260,7 @@ org.cryptocator.R$drawable: int sendlock
 org.cryptocator.R$drawable: int sendsms
 org.cryptocator.R$drawable: int sendsmslock
 org.cryptocator.R$drawable: int server
+org.cryptocator.R$drawable: int smileybtn
 org.cryptocator.R$drawable: int sms
 org.cryptocator.R$drawable: int sms2
 org.cryptocator.R$drawable: int speech
@@ -239,11 +272,20 @@ org.cryptocator.R$id: int accountexisting
 org.cryptocator.R$id: int accountnew
 org.cryptocator.R$id: int accountonline
 org.cryptocator.R$id: int active
+org.cryptocator.R$id: int additionbutton
+org.cryptocator.R$id: int additionbuttonparent
+org.cryptocator.R$id: int additions
 org.cryptocator.R$id: int adduser_button
 org.cryptocator.R$id: int adduser_name
 org.cryptocator.R$id: int adduser_text
 org.cryptocator.R$id: int adduseritem
 org.cryptocator.R$id: int advancedsettings
+org.cryptocator.R$id: int attachmentbutton
+org.cryptocator.R$id: int attachmentbuttonparent
+org.cryptocator.R$id: int attachmentspinner
+org.cryptocator.R$id: int attachmentsrow1
+org.cryptocator.R$id: int attachmentsrow2
+org.cryptocator.R$id: int autosave
 org.cryptocator.R$id: int backup
 org.cryptocator.R$id: int backupbuttons
 org.cryptocator.R$id: int backupmain
@@ -267,12 +309,16 @@ org.cryptocator.R$id: int btnsearch
 org.cryptocator.R$id: int btnsearchparent
 org.cryptocator.R$id: int buttonbackup
 org.cryptocator.R$id: int buttoncancel
+org.cryptocator.R$id: int buttonclear
 org.cryptocator.R$id: int buttonclearsending
 org.cryptocator.R$id: int buttoncopy
 org.cryptocator.R$id: int buttondebugprint
 org.cryptocator.R$id: int buttondeletedatabase
+org.cryptocator.R$id: int buttonpictureimport
 org.cryptocator.R$id: int buttonresend
 org.cryptocator.R$id: int buttonrespond
+org.cryptocator.R$id: int buttonsave
+org.cryptocator.R$id: int buttonshare
 org.cryptocator.R$id: int buttonwithdraw
 org.cryptocator.R$id: int chatmode
 org.cryptocator.R$id: int conversationRootView
@@ -296,6 +342,7 @@ org.cryptocator.R$id: int fromfirst
 org.cryptocator.R$id: int fromid
 org.cryptocator.R$id: int fromkey
 org.cryptocator.R$id: int helpactive
+org.cryptocator.R$id: int helpautosave
 org.cryptocator.R$id: int helpchatmode
 org.cryptocator.R$id: int helpencryption
 org.cryptocator.R$id: int helpignore
@@ -305,6 +352,7 @@ org.cryptocator.R$id: int helpnotification
 org.cryptocator.R$id: int helppowersave
 org.cryptocator.R$id: int helpquicktype
 org.cryptocator.R$id: int helpreceiveallsms
+org.cryptocator.R$id: int helpsmileys
 org.cryptocator.R$id: int helptone
 org.cryptocator.R$id: int helpvibrate
 org.cryptocator.R$id: int ignore
@@ -322,8 +370,11 @@ org.cryptocator.R$id: int item4
 org.cryptocator.R$id: int item6
 org.cryptocator.R$id: int itemsearch
 org.cryptocator.R$id: int keycreated
+org.cryptocator.R$id: int keycreatedrow
 org.cryptocator.R$id: int keyexpires
+org.cryptocator.R$id: int keyexpiresrow
 org.cryptocator.R$id: int keyhash
+org.cryptocator.R$id: int keyhashrow
 org.cryptocator.R$id: int login
 org.cryptocator.R$id: int mainbackground
 org.cryptocator.R$id: int maininnerview
@@ -348,14 +399,20 @@ org.cryptocator.R$id: int oneline
 org.cryptocator.R$id: int personIcon
 org.cryptocator.R$id: int phone
 org.cryptocator.R$id: int phonebutton
+org.cryptocator.R$id: int pictureimportbuttons
+org.cryptocator.R$id: int pictureimportmain
+org.cryptocator.R$id: int pictureimportscrollview
 org.cryptocator.R$id: int powersave
 org.cryptocator.R$id: int pwd
 org.cryptocator.R$id: int pwdchange
 org.cryptocator.R$id: int pwdnew
+org.cryptocator.R$id: int quality
+org.cryptocator.R$id: int qualitytext
 org.cryptocator.R$id: int quicktype
 org.cryptocator.R$id: int read
 org.cryptocator.R$id: int receiveallsms
 org.cryptocator.R$id: int received
+org.cryptocator.R$id: int removeimages
 org.cryptocator.R$id: int restore
 org.cryptocator.R$id: int sendbutton
 org.cryptocator.R$id: int sendbuttonparent
@@ -363,6 +420,18 @@ org.cryptocator.R$id: int sendspinner
 org.cryptocator.R$id: int sent
 org.cryptocator.R$id: int settingsbackground
 org.cryptocator.R$id: int settingssection
+org.cryptocator.R$id: int size
+org.cryptocator.R$id: int size0
+org.cryptocator.R$id: int size0highlight
+org.cryptocator.R$id: int size1
+org.cryptocator.R$id: int size1highlight
+org.cryptocator.R$id: int size2
+org.cryptocator.R$id: int size2highlight
+org.cryptocator.R$id: int sizetext
+org.cryptocator.R$id: int sizetextback
+org.cryptocator.R$id: int smileybutton
+org.cryptocator.R$id: int smileybuttonparent
+org.cryptocator.R$id: int smileys
 org.cryptocator.R$id: int tableLayout1
 org.cryptocator.R$id: int textexisting2
 org.cryptocator.R$id: int textexisting22
@@ -402,6 +471,7 @@ org.cryptocator.R$layout: int activity_conversation
 org.cryptocator.R$layout: int activity_conversation_compose
 org.cryptocator.R$layout: int activity_main
 org.cryptocator.R$layout: int activity_messagedetails
+org.cryptocator.R$layout: int activity_pictureimport
 org.cryptocator.R$layout: int activity_setup
 org.cryptocator.R$layout: int adduserlistitem
 org.cryptocator.R$layout: int conversationitem
@@ -440,11 +510,9 @@ org.cryptocator.SendSMSSent
 org.cryptocator.SendSMSSent: SendSMSSent()
 org.cryptocator.Setup
 org.cryptocator.Setup: Setup()
-org.cryptocator.SetupAccount
-org.cryptocator.SetupAccount: SetupAccount()
 org.cryptocator.TransitActivity
 org.cryptocator.TransitActivity: TransitActivity()
+org.cryptocator.UserDetailsActivity
+org.cryptocator.UserDetailsActivity: UserDetailsActivity()
 org.cryptocator.UserPresentReceiver
 org.cryptocator.UserPresentReceiver: UserPresentReceiver()
-org.cryptocator.UserdetailsActivity
-org.cryptocator.UserdetailsActivity: UserdetailsActivity()

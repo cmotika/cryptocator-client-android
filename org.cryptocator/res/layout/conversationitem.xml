@@ -37,6 +37,15 @@
         android:gravity="right"
         android:orientation="vertical" >
 
+               <ProgressBar
+            android:id="@+id/conversationprogress"
+                        style="?android:attr/progressBarStyleHorizontal"
+		                android:layout_marginTop="15px"
+                        android:layout_marginBottom="5px"
+			            android:layout_marginLeft="20px"
+                        android:layout_marginRight="20px"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />                    
 
         <org.cryptocator.ImageSmileyEditText
             android:id="@+id/conversationtext"

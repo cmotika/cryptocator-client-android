@@ -34,7 +34,6 @@
 package org.cryptocator;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
@@ -62,29 +61,44 @@ import android.util.Log;
 @SuppressLint("UseSparseArrays")
 public class SendSMS {
 
-	public static final int SMS_SENDING_TIMEOUT = 60 * 1000; // AFTER 60
+	/**
+	 * The Constant SMS_PART_LIMIT. If sms message does not fit into
+	 * SMS_PART_LIMIT SMS then split them on application level.
+	 */
+	public static final int SMS_PART_LIMIT = 3;
+
+	/** The Constant SMS_SENDING_TIMEOUT. */
+	public static final int SMS_SENDING_TIMEOUT = 120 * 1000; // AFTER 60
 																// Seconds, if
 																// NO new part
 																// was sent, we
 																// may try
 																// again!
 
+	/** The Constant SECURESMS_ID. */
 	public static final String SECURESMS_ID = "###CRYPTOCATOR###";
 
+	/** The Constant SECURESMSSENT. */
 	public static final String SECURESMSSENT = "SECURESMSSENT";
+
+	/** The Constant SECURESMSDELIVERED. */
 	public static final String SECURESMSDELIVERED = "SECURESMSDELIVERED";
 
-	/** The currently sending sms for counting down sent SMS parts. */
-	private static HashMap<Integer, Integer> currentlySending = new HashMap<Integer, Integer>();
-
-	/** The currently sending timestamp for detecting timeouts. */
-	private static HashMap<Integer, Long> currentlySendingTimestamp = new HashMap<Integer, Long>();
-
-	/**
-	 * The currently sending threads for having a handle to the thread sending a
-	 * particular SMS.
-	 */
-	private static HashMap<Integer, SMSSendThread> currentlySendingThreads = new HashMap<Integer, SMSSendThread>();
+	// /** The currently sending sms for counting down sent SMS parts. */
+	// private static HashMap<Integer, Integer> currentlySending = new
+	// HashMap<Integer, Integer>();
+	//
+	// /** The currently sending timestamp for detecting timeouts. */
+	// private static HashMap<Integer, Long> currentlySendingTimestamp = new
+	// HashMap<Integer, Long>();
+	//
+	// /**
+	// * The currently sending threads for having a handle to the thread sending
+	// a
+	// * particular SMS.
+	// */
+	// private static HashMap<Integer, SMSSendThread> currentlySendingThreads =
+	// new HashMap<Integer, SMSSendThread>();
 
 	/** The in service means we are registered to network. */
 	public static boolean inService = false;
@@ -154,37 +168,37 @@ public class SendSMS {
 						public void onServiceStateChanged(
 								ServiceState serviceState) {
 							super.onServiceStateChanged(serviceState);
-							//String phonestate;
+							// String phonestate;
 
 							switch (serviceState.getState()) {
 							case ServiceState.STATE_EMERGENCY_ONLY:
 								Log.d("communicator",
 										"#### phoneStateListener --- EMERGENCY ONLU ");
-								//phonestate = "STATE_EMERGENCY_ONLY";
+								// phonestate = "STATE_EMERGENCY_ONLY";
 								inService = false;
 								break;
 							case ServiceState.STATE_IN_SERVICE:
 								Log.d("communicator",
 										"#### phoneStateListener --- IN SERVICE ");
-								//phonestate = "STATE_IN_SERVICE";
+								// phonestate = "STATE_IN_SERVICE";
 								inService = true;
 								break;
 							case ServiceState.STATE_OUT_OF_SERVICE:
 								Log.d("communicator",
 										"#### phoneStateListener --- OUT OF SERVICE ");
-								//phonestate = "STATE_OUT_OF_SERVICE";
+								// phonestate = "STATE_OUT_OF_SERVICE";
 								inService = false;
 								break;
 							case ServiceState.STATE_POWER_OFF:
 								Log.d("communicator",
 										"#### phoneStateListener --- POWER OFF ");
-								//phonestate = "STATE_POWER_OFF";
+								// phonestate = "STATE_POWER_OFF";
 								inService = false;
 								break;
 							default:
 								Log.d("communicator",
 										"#### phoneStateListener --- UNKNOWN ");
-								//phonestate = "Unknown";
+								// phonestate = "Unknown";
 								inService = false;
 								break;
 							}
@@ -220,12 +234,12 @@ public class SendSMS {
 	 * @param sendingThread
 	 *            the sending thread
 	 */
-	public static synchronized void startSendingTimestamp(int localId,
-			int numParts, SMSSendThread sendingThread) {
-		currentlySending.put(localId, numParts);
-		currentlySendingTimestamp.put(localId, DB.getTimestamp());
-		currentlySendingThreads.put(localId, sendingThread);
-
+	public static synchronized void startSendingTimestamp(Context context,
+			int localId, int smsParts, SMSSendThread sendingThread) {
+		Utility.saveIntSetting(context, "currentsending", localId);
+		Utility.saveIntSetting(context, "currentsendingsmsparts", smsParts);
+		Utility.saveLongSetting(context, "currentsendingtime",
+				DB.getTimestamp());
 	}
 
 	// ------------------------------------------------------------------------
@@ -236,8 +250,10 @@ public class SendSMS {
 	 * @param localId
 	 *            the local id
 	 */
-	public static synchronized void updateSendingTimestamp(int localId) {
-		currentlySendingTimestamp.put(localId, DB.getTimestamp());
+	public static synchronized void updateSendingTimestamp(Context context,
+			int localId) {
+		Utility.saveLongSetting(context, "currentsendingtime",
+				DB.getTimestamp());
 	}
 
 	// ------------------------------------------------------------------------
@@ -250,27 +266,32 @@ public class SendSMS {
 	 * @param localId
 	 *            the local id
 	 */
-	public static synchronized void smsSent(int localId) {
-		if (currentlySending != null && localId != -1) {
-			if (currentlySending.containsKey(localId)) {
-				updateSendingTimestamp(localId);
-				int countDown = currentlySending.get(localId);
-				countDown--;
-				if (countDown == 0) {
-					currentlySending.remove(localId);
-					currentlySendingTimestamp.remove(localId);
-					SMSSendThread thread = currentlySendingThreads.get(localId);
-					if (thread != null) {
-						Log.d("communicator",
-								"#### smsSending aborting thread ("
-										+ thread.hashCode()
-										+ ") on successfull sent for localid="
-										+ localId);
-						thread.cancel();
-					}
-				} else {
-					currentlySending.put(localId, countDown);
-				}
+	public static synchronized void smsSent(Context context, int localId) {
+		int currentlySending = Utility.loadIntSetting(context,
+				"currentsending", -1);
+
+		if (currentlySending != -1 && localId != -1
+				&& currentlySending == localId) {
+			int countDown = Utility.loadIntSetting(context,
+					"currentsendingsmsparts", 1);
+			countDown--;
+			if (countDown == 0) {
+				Log.d("communicator", "#### smsSent() SMS sending of currentlySending="
+						+ currentlySending + " countDown == 0 !!!");
+
+				// Make SMS sending free for the next
+				Utility.saveIntSetting(context, "currentsending", -1);
+				Utility.saveIntSetting(context, "currentsendingsmsparts", -1);
+				Utility.saveLongSetting(context, "currentsendingtime", 0);
+			} else {
+				Log.d("communicator", "#### smsSent() SMS sending of currentlySending="
+						+ currentlySending + " countDown == " + countDown);
+				// Update the ts to prevent a timeout
+				Utility.saveLongSetting(context, "currentsendingtime",
+						DB.getTimestamp());
+				// Update the counter
+				Utility.saveIntSetting(context, "currentsendingsmsparts",
+						countDown);
 			}
 		}
 	}
@@ -278,45 +299,44 @@ public class SendSMS {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Tell if an SMS with the local id is still sending. Sending may take a
-	 * while for all parts to be sent.
+	 * Tell if an SMS is still sending. Sending may take a while for all parts
+	 * to be sent.
 	 * 
+	 * @param context
+	 *            the context
 	 * @param localId
 	 *            the local id
 	 * @return true, if successful
 	 */
-	public static synchronized boolean smsSending(int localId) {
-		if (localId == -1) {
-			return false;
-		}
-		if (currentlySendingTimestamp.containsKey(localId)) {
-			long ts = currentlySendingTimestamp.get(localId);
-			if ((DB.getTimestamp() - ts) > SMS_SENDING_TIMEOUT) {
-				Log.d("communicator", "#### sendSMS() SMS sending of localid="
-						+ localId + " timed out!!!!");
-				// sending timed out, remove, so that we can try again later!!!
-				currentlySending.remove(localId);
-				currentlySendingTimestamp.remove(localId);
-				SMSSendThread thread = currentlySendingThreads.get(localId);
-				if (thread != null) {
-					Log.d("communicator",
-							"#### smsSending()? aborting thread ("
-									+ thread.hashCode()
-									+ ") on timeout for localid=" + localId);
-					thread.cancel();
+	public static synchronized boolean isSmsSending(Context context) {
+		int sendingLocalId = Utility.loadIntSetting(context, "currentsending",
+				-1);
+		if (sendingLocalId != -1) {
+			// Ok there is an SMS currently sending... tell if the timeout has
+			// been reached
+			// in which case we allow a re-sending of this or other messages!
+			double lastSentPart = Utility.loadDoubleSetting(context,
+					"currentsendingtime", 0);
+			if ((DB.getTimestamp() - lastSentPart) > SMS_SENDING_TIMEOUT) {
+				if (lastSentPart > 10) {
+					// Ok timeout reached
+					Log.d("communicator", "#### sendSMS() SMS sending of localid="
+							+ sendingLocalId + " timed out!!!!");
+					SendSMSSent.SMSFailedSimple(context, sendingLocalId,
+							"(timeout while sending)");
 				}
+				// Make SMS sending free for the next
+				Utility.saveIntSetting(context, "currentsending", -1);
+				Utility.saveIntSetting(context, "currentsendingsmsparts", -1);
+				Utility.saveLongSetting(context, "currentsendingtime", 0);
+				// Available
 				return false;
-			} else {
-				Log.d("communicator",
-						"#### smsSending()? SMS still sending localid="
-								+ localId + " ... wait!!!");
 			}
-		} else {
-			Log.d("communicator",
-					"#### smsSending()? SMS not yet sending localid=" + localId
-							+ " ... sending NOW!");
+			// NOT available
+			return true;
 		}
-		return currentlySendingTimestamp.containsKey(localId);
+		// Available
+		return false;
 	}
 
 	// ------------------------------------------------------------------------
@@ -342,22 +362,22 @@ public class SendSMS {
 	 */
 	public static void sendSMS(final Context context, final String number,
 			final String text, final int localId, final int hostUid,
-			final int sendingId, final boolean encrypted) {
+			final int sendingId, final int part, final int parts,
+			final boolean registeredReceipient) {
 		// Ensure signal strength listener is active
 		ensurePhoneStateListener(context);
 
-		if (smsSending(localId)) {
+		if (isSmsSending(context)) {
 			Log.d("communicator",
 					"#### sendSMS() STILL SENDING THIS ALREADY ... ABORT");
-			// Utility.showToastAsync(context, "SMS " + localId
-			// + " still sending... not sending again!");
 			return;
 		}
+
 		Log.d("communicator",
-				"#### sendSMS() STILL NOT SENDING THIS BUT SENDING ...  NOW ");
+				"#### sendSMS() NOT YET SENDING THIS BUT SENDING ...  NOW ");
 
 		SMSSendThread thread = new SMSSendThread(context, number, localId,
-				hostUid, sendingId, text, encrypted);
+				hostUid, sendingId, part, parts, text, registeredReceipient);
 		(new Thread(thread)).start();
 
 	}
@@ -380,53 +400,85 @@ public class SendSMS {
 
 	/**
 	 * The internal class SMSSendThread is able to send an SMS. If there is no
-	 * signal or we are not registered to a network then this thread waits until
-	 * it is possible to try sending. Then it sends parts if this SMS is too
-	 * long (which most encrypted SMS will be).
+	 * signal it will fail
 	 */
 	static class SMSSendThread implements Runnable {
 
-		boolean cancel = false;
-
+		/** The context. */
 		Context context;
+
+		/** The number. */
 		String number;
+
+		/** The local id. */
 		int localId;
+
+		/** The host uid. */
 		int hostUid;
+
+		/** The sending id. */
 		int sendingId;
+
+		/** The part of a multipart message. */
+		int part;
+
+		/** The parts of a multipart message. */
+		int parts;
+
+		/** The text. */
 		String text;
-		boolean encrypted;
+
+		/** The registeredReceipient. */
+		boolean registeredReceipient;
 
 		// --------------------------------------------------------------------
 
+		/**
+		 * Instantiates a new SMS send thread.
+		 * 
+		 * @param context
+		 *            the context
+		 * @param number
+		 *            the number
+		 * @param localId
+		 *            the local id
+		 * @param hostUid
+		 *            the host uid
+		 * @param sendingId
+		 *            the sending id
+		 * @param text
+		 *            the text
+		 * @param encrypted
+		 *            the encrypted
+		 */
 		public SMSSendThread(Context context, String number, int localId,
-				int hostUid, int sendingId, String text, boolean encrypted) {
+				int hostUid, int sendingId, int part, int parts, String text,
+				boolean registeredReceipient) {
 			this.context = context;
 			this.number = number;
 			this.localId = localId;
 			this.hostUid = hostUid;
 			this.sendingId = sendingId;
+			this.part = part;
+			this.parts = parts;
 			this.text = text;
-			this.encrypted = encrypted;
+			this.registeredReceipient = registeredReceipient;
 		}
 
 		// --------------------------------------------------------------------
 
-		public void cancel() {
-			Log.d("communicator", "#### sendSMSThread(" + this.hashCode()
-					+ ") CANCEL localid=" + localId);
-			cancel = true;
-		}
-
-		// --------------------------------------------------------------------
-
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.lang.Runnable#run()
+		 */
 		public void run() {
-			Log.d("communicator", "#### sendSMSThread(" + this.hashCode()
-					+ ") STILL NOT SENDING THIS BUT SENDING " + localId
-					+ " ...  NOW RUN #1");
-
+			if (!hasSignal()) {
+				Log.d("communicator", "#### sendSMS() NO SIGNAL ... ABORT");
+				return;
+			}
+			
 			SmsManager smsManager = SmsManager.getDefault();
-			boolean smsDone = false;
-			boolean extraWaitForSignal = false;
 
 			Intent intentSent = new Intent(SECURESMSSENT);
 			Intent intentDelivered = new Intent(SECURESMSDELIVERED);
@@ -435,6 +487,10 @@ public class SendSMS {
 			intentSent.putExtra("sendingid", sendingId); // for deleting the
 															// msg from
 															// sending DB
+			intentSent.putExtra("part", part);
+			intentSent.putExtra("parts", parts);
+			intentDelivered.putExtra("part", part);
+			intentDelivered.putExtra("parts", parts);
 			intentDelivered.putExtra("localid", localId);
 			intentDelivered.putExtra("hostuid", hostUid);
 			// FLAG_ACTIVITY_NEW_TASK VERY VERY important!!! Otherwise the
@@ -442,7 +498,7 @@ public class SendSMS {
 
 			String sendingText = text;
 			// if encrypted message or KEY message
-			if (encrypted || sendingText.startsWith("K")) {
+			if (registeredReceipient || sendingText.startsWith("K")) {
 				sendingText = SECURESMS_ID + sendingText; // Utility.convertStringToBASE64(sendingText);
 			} else {
 				// remove leading "U"
@@ -451,21 +507,13 @@ public class SendSMS {
 				}
 			}
 
-			Log.d("communicator", "#### sendSMSThread(" + this.hashCode()
-					+ ") STILL NOT SENDING THIS BUT SENDING " + localId
-					+ " ...  NOW RUN #2");
-
 			ArrayList<String> parts = smsManager.divideMessage(sendingText);
 			int numParts = parts.size();
 			ArrayList<PendingIntent> sentIntents = new ArrayList<PendingIntent>();
 			ArrayList<PendingIntent> deliveryIntents = new ArrayList<PendingIntent>();
 
 			// Try to send SMS
-			startSendingTimestamp(localId, numParts, this);
-
-			Log.d("communicator", "#### sendSMSThread(" + this.hashCode()
-					+ ") STILL NOT SENDING THIS BUT SENDING " + localId
-					+ " ...  NOW RUN #3");
+			startSendingTimestamp(context, localId, numParts, this);
 
 			for (int i = 0; i < numParts; i++) {
 				PendingIntent pendingIntentSent = PendingIntent.getBroadcast(
@@ -477,87 +525,24 @@ public class SendSMS {
 				deliveryIntents.add(pendingIntentDelivered);
 			}
 
-			Log.d("communicator", "#### sendSMSThread(" + this.hashCode()
-					+ ") STILL NOT SENDING THIS BUT SENDING " + localId
-					+ " ...  NOW RUN #4");
+			Log.d("communicator", "sendSMS() SMS Send " + parts
+					+ " part msg to " + number + " the following text: '"
+					+ sendingText + "'");
 
-			while (!smsDone) {
-				try {
-					if (cancel) {
-						Log.d("communicator",
-								"#### sendSMSThread(" + this.hashCode()
-										+ ") CANCEL SENDING " + localId
-										+ " ...  AND RETURN");
-						return;
-					}
-					Log.d("communicator",
-							"#### sendSMSThread(" + this.hashCode()
-									+ ") STILL NOT SENDING THIS BUT SENDING "
-									+ localId + " ...  NOW ");
-					if (hasSignal()) {
-						Log.d("communicator",
-								"#### sendSMSThread(" + this.hashCode()
-										+ ") HAVE SIGNAL ");
-						if (extraWaitForSignal) {
-							Thread.sleep(5000);
-						}
-
-						Log.d("communicator", "sendSMS() SMS Send " + parts
-								+ " part msg to " + number
-								+ " the following text: '" + sendingText + "'");
-
-						try {
-							// Try to send (multipart) SMS
-							smsManager.sendMultipartTextMessage(number, null,
-									parts, sentIntents, deliveryIntents);
-						} catch (Exception ee) {
-							ee.printStackTrace();
-
-							// INCREMENT FAIL COUNTER
-							if (DB.incrementFailed(context, localId, hostUid)) {
-								if (DB.removeSentMessage(context, sendingId)) {
-									Utility.showToastAsync(
-											context,
-											"SMS "
-													+ localId
-													+ " to "
-													+ Main.UID2Name(context,
-															hostUid, false)
-													+ " failed to send after "
-													+ Setup.SMS_FAIL_CNT
-													+ " tries. (RESULT_ERROR_GENERIC_FAILURE)");
-									Conversation.setFailedAsync(context,
-											localId);
-								}
-							}
-							Log.d("communicator",
-									"#### SMS "
-											+ localId
-											+ " NOT SENT (RESULT_ERROR_GENERIC_FAILURE)");
-							SendSMS.smsSent(localId);
-						}
-
-						Log.d("communicator",
-								"sendSMSThread(" + this.hashCode()
-										+ ") SMS Send " + localId + " DONE");
-
-						// smsManager.sendTextMessage(number, null,
-						// sendingText,
-						// pendingIntentSent, pendingIntentDelivered);
-						smsDone = true;
-					} else {
-						Log.d("communicator",
-								"#### sendSMSThread(" + this.hashCode()
-										+ ") WAIT FOR SIGNAL ");
-						extraWaitForSignal = true;
-						Thread.sleep(2000);
-						// possibly timeout myself...
-						smsSending(localId);
-					}
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+			try {
+				// Try to send (multipart) SMS
+				smsManager.sendMultipartTextMessage(number, null, parts,
+						sentIntents, deliveryIntents);
+			} catch (Exception ee) {
+				ee.printStackTrace();
+				// INCREMENT FAIL COUNTER
+				SendSMSSent.SMSFailed(context, localId, sendingId, hostUid,
+						" (RESULT_ERROR_GENERIC_FAILURE)");
 			}
+
+			Log.d("communicator", "sendSMSThread(" + this.hashCode()
+					+ ") SMS Send " + localId + " DONE");
+
 		}
 
 	}
