@@ -115,6 +115,13 @@ public class Main extends Activity {
 	/** The image context menu provider for the main menu. */
 	private ImageContextMenuProvider imageContextMenuProvider = null;
 
+	/**
+	 * The skips ONE resume. Necessary for the add user context menu call
+	 * because we do not want to rebuild the user list if we show the add user
+	 * section.
+	 */
+	public static boolean skipResume = false;
+
 	// ------------------------------------------------------------------------
 
 	/**
@@ -346,10 +353,16 @@ public class Main extends Activity {
 					});
 			imageContextMenuProvider.addEntry("Add User",
 					R.drawable.menuadduser,
+					// We must skip resume on finish, otherwise the userlist
+					// will be rebuild
+					// skipResume is reset by Main.onResume() itself for the
+					// next time
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
-							if (possiblyPromptUserIfNoAccount(context, mainBackground)) {
-								 showHideAddUser(context, true);
+							Main.skipResume = true;
+							if (possiblyPromptUserIfNoAccount(context,
+									mainBackground)) {
+								showHideAddUser(context, true);
 							}
 							return true;
 						}
@@ -425,9 +438,7 @@ public class Main extends Activity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// This is necessary to enable a context menu
 		// getMenuInflater().inflate(R.menu.activity_main, menu);
-
 		ImageContextMenu.show(context, createContextMenu(context));
-
 		return false;
 	}
 
@@ -689,7 +700,7 @@ public class Main extends Activity {
 							if (keyCode == KeyEvent.KEYCODE_BACK
 									&& event.getAction() == KeyEvent.ACTION_UP) {
 								showHideAddUser(context, false);
-								return false;
+								return true;
 							}
 							return true;
 						}
@@ -1907,6 +1918,8 @@ public class Main extends Activity {
 	/** The visible. */
 	private static boolean visible = false;
 
+	// ------------------------------------------------------------------------
+
 	/**
 	 * Gets the single instance of Main.
 	 * 
@@ -1916,6 +1929,8 @@ public class Main extends Activity {
 		return instance;
 	}
 
+	// ------------------------------------------------------------------------
+
 	/**
 	 * Checks if this activity is currently visible.
 	 * 
@@ -1924,6 +1939,8 @@ public class Main extends Activity {
 	public static boolean isVisible() {
 		return (visible && instance != null);
 	}
+
+	// ------------------------------------------------------------------------
 
 	/**
 	 * Checks if this activity is alive (and may be visible later). UI updates
@@ -1935,6 +1952,8 @@ public class Main extends Activity {
 	public static boolean isAlive() {
 		return (instance != null && uidList != null);
 	}
+
+	// ------------------------------------------------------------------------
 
 	/*
 	 * (non-Javadoc)
@@ -1962,6 +1981,8 @@ public class Main extends Activity {
 		Main.visible = false;
 	}
 
+	// ------------------------------------------------------------------------
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -1972,6 +1993,8 @@ public class Main extends Activity {
 		super.onStop();
 		Main.visible = false;
 	}
+
+	// ------------------------------------------------------------------------
 
 	/*
 	 * (non-Javadoc)
@@ -1986,6 +2009,13 @@ public class Main extends Activity {
 			finish();
 		}
 		Main.visible = true;
+
+		// Only ONCE skip the resume after context menu closure
+		if (skipResume) {
+			skipResume = false;
+			return;
+
+		}
 
 		// Do the following NOT in the UI thread
 		final Context context = this;
@@ -2011,6 +2041,8 @@ public class Main extends Activity {
 		Scheduler.reschedule(context, false, false, true);
 	}
 
+	// ------------------------------------------------------------------------
+
 	/**
 	 * Exits application completely. This triggers onCreate to kill the process.
 	 * Only call this if this is really necessary, e.g., when the user changes
@@ -2027,6 +2059,23 @@ public class Main extends Activity {
 		System.gc();
 	}
 
+	// ------------------------------------------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onKeyDown(int, android.view.KeyEvent)
+	 */
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		// Prevent closure when addUser text field is visible
+		if ((keyCode == KeyEvent.KEYCODE_BACK)
+				&& (adduseritem.getVisibility() == View.VISIBLE)) {
+			return true;
+		} else {
+			return super.onKeyDown(keyCode, event);
+		}
+	}
 	// ------------------------------------------------------------------------
 
 }

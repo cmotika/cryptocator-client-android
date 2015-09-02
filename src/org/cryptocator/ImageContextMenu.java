@@ -46,18 +46,21 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 /**
- * The ImageContextMenu is a polished nice version of a context menu. Do not forget to add this activity in the AndroidManifest.xml<BR>
- *         <activity
- *            android:name="org.cryptocator.ImageContextMenu"
- *          android:theme="@style/Theme.Transparent" >
- *       </activity>
+ * The ImageContextMenu is a polished nice version of a context menu. Do not
+ * forget to add this activity in the AndroidManifest.xml<BR>
+ * <activity android:name="org.cryptocator.ImageContextMenu"
+ * android:theme="@style/Theme.Transparent" > </activity>
  * 
  * @author Christian Motika
  * @since 1.2
@@ -65,6 +68,9 @@ import android.widget.TextView;
  */
 @SuppressLint("UseSparseArrays")
 public class ImageContextMenu extends Activity {
+
+	/** The background color. */
+	public static int BACKGROUND = Color.parseColor("#44444444");
 
 	/** The clicked color. */
 	public static int CLICKED_COLOR = Color.parseColor("#33FFFFFF");
@@ -91,13 +97,16 @@ public class ImageContextMenu extends Activity {
 	boolean handled = false;
 
 	/** The current instance. */
-	ImageContextMenu instance = null;
+	static ImageContextMenu instance = null;
 
 	/**
 	 * The image context menu provider containing the concrete instance of this
 	 * context menu.
 	 */
 	private static ImageContextMenuProvider imageContextMenuProvider = null;
+
+	/** The show time when the dialog is shown to be reactive to menu button a little bit later. */
+	private long showTime = 0;
 
 	// ------------------------------------------------------------------------
 
@@ -150,10 +159,10 @@ public class ImageContextMenu extends Activity {
 
 		/** The icon. */
 		private Drawable icon = null;
-		
+
 		/** The context. */
 		private Context context;
-
+		
 		// ---------------------------------------------------------------------
 
 		/**
@@ -164,7 +173,8 @@ public class ImageContextMenu extends Activity {
 		 * @param icon
 		 *            the icon of the context menu or null
 		 */
-		public ImageContextMenuProvider(Context context, String title, Drawable icon) {
+		public ImageContextMenuProvider(Context context, String title,
+				Drawable icon) {
 			this.context = context;
 			this.title = title;
 			this.icon = icon;
@@ -197,7 +207,7 @@ public class ImageContextMenu extends Activity {
 			entryEnabled.put(handle, true);
 			return handle;
 		}
-		
+
 		// ---------------------------------------------------------------------
 
 		/**
@@ -344,6 +354,68 @@ public class ImageContextMenu extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Closes the context menu if it is visible.
+	 */
+	public static void close() {
+		if (visible()) {
+			instance.finish();
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Tells if the context menu is visible.
+	 * 
+	 * @return true, if successful
+	 */
+	public static boolean visible() {
+		return (instance != null);
+	}
+
+	// --------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onDestroy()
+	 */
+	@Override
+	public void onDestroy() {
+		instance = null;
+		super.onDestroy();
+	}
+
+	// --------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onStop()
+	 */
+	@Override
+	public void onStop() {
+		instance = null;
+		super.onStop();
+	}
+	
+	// --------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
+	 */
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, v, menuInfo);
+		finish();
+	}
+
+
+	// ------------------------------------------------------------------------
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -383,10 +455,9 @@ public class ImageContextMenu extends Activity {
 				LinearLayout.LayoutParams.MATCH_PARENT, 2);
 		lpCaption.setMargins(10, 12, 15, 12);
 
-		LinearLayout.LayoutParams lpIcon = new LinearLayout.LayoutParams(
-				70,
+		LinearLayout.LayoutParams lpIcon = new LinearLayout.LayoutParams(70,
 				LinearLayout.LayoutParams.WRAP_CONTENT, 1);
-		lpIcon.setMargins(25, 12, 10 , 12);
+		lpIcon.setMargins(25, 12, 10, 12);
 
 		LinearLayout outerLayout = new LinearLayout(context);
 		outerLayout.setOrientation(LinearLayout.VERTICAL);
@@ -394,6 +465,10 @@ public class ImageContextMenu extends Activity {
 
 		int max = imageContextMenuProvider.captions.size();
 		for (int i = 0; i < max; i++) {
+			if (!imageContextMenuProvider.isVisible(i)) {
+				continue;
+			}
+			
 			String caption = imageContextMenuProvider.getCaption(i);
 			Drawable icon = imageContextMenuProvider.getIcon(i);
 			final ImageContextMenuSelectionListener listener = imageContextMenuProvider.imageContextMenuSelectionListeners
@@ -403,24 +478,6 @@ public class ImageContextMenu extends Activity {
 			entryLayout.setOrientation(LinearLayout.HORIZONTAL);
 			entryLayout.setGravity(Gravity.LEFT);
 
-			// Click selection listener
-			entryLayout.setClickable(true);
-			entryLayout.setOnClickListener(new View.OnClickListener() {
-				public void onClick(View v) {
-					entryLayout.setBackgroundColor(CLICKED_COLOR);
-					final boolean shouldClose = listener.onSelection(instance);
-					entryLayout.postDelayed(new Runnable() {
-						public void run() {
-							entryLayout.setBackgroundColor(NOTCLICKED_COLOR);
-							if (shouldClose) {
-								//alertDialog.dismiss();
-								finish();
-							}
-						}
-					}, CLICKDURATION);
-				}
-			});
-
 			// Caption
 			TextView text = new TextView(context);
 			text.setText(caption);
@@ -428,6 +485,28 @@ public class ImageContextMenu extends Activity {
 			text.setTextSize(20);
 			text.setTextColor(Color.WHITE);
 			text.setGravity(Gravity.CENTER_VERTICAL);
+
+			if (imageContextMenuProvider.isEnabled(i)) {
+				// Click selection listener
+				entryLayout.setClickable(true);
+				entryLayout.setOnClickListener(new View.OnClickListener() {
+					public void onClick(View v) {
+						entryLayout.setBackgroundColor(CLICKED_COLOR);
+						final boolean shouldClose = listener.onSelection(instance);
+						entryLayout.postDelayed(new Runnable() {
+							public void run() {
+								entryLayout.setBackgroundColor(NOTCLICKED_COLOR);
+								if (shouldClose) {
+									// alertDialog.dismiss();
+									finish();
+								}
+							}
+						}, CLICKDURATION);
+					}
+				});
+			} else {
+				text.setTextColor(Color.GRAY);
+			}
 
 			// Icon
 			ImageView img = new ImageView(context);
@@ -437,8 +516,10 @@ public class ImageContextMenu extends Activity {
 			entryLayout.addView(img);
 			entryLayout.addView(text);
 
+			outerLayout.setBackgroundColor(BACKGROUND);
+
 			outerLayout.addView(entryLayout);
-			
+
 			if (i < max - 1) {
 				// Divider between useritems
 				LinearLayout.LayoutParams lpDiv1 = new LinearLayout.LayoutParams(
@@ -453,21 +534,40 @@ public class ImageContextMenu extends Activity {
 						.getLayoutParams();
 				params.height = 1;
 			}
-			
+
 		}
 
-		builder.setView(outerLayout);
-		
+		LinearLayout.LayoutParams lpScrollView = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.MATCH_PARENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		ScrollView scrollView = new ScrollView(context);
+		scrollView.setLayoutParams(lpScrollView);
+		scrollView.addView(outerLayout);
+
+		builder.setView(scrollView);
+
 		// Show the dialog and populate the alertDialog variable that will be
 		// passed to the click listener
 		alertDialog = builder.show();
+		showTime = System.currentTimeMillis(); 
+		
+		alertDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+				if (keyCode == KeyEvent.KEYCODE_MENU) {
+					if (System.currentTimeMillis() - showTime > 200) {
+						finish();
+					}
+				}
+				return false;
+			}
+		});
 
 		alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
 			public void onCancel(DialogInterface dialog) {
 				finish();
 			}
 		});
-		
+
 	}
 
 	// ------------------------------------------------------------------------

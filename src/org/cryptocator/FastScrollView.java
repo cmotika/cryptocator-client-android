@@ -87,11 +87,12 @@ public class FastScrollView extends LinearLayout {
 	 */
 	int lockedPos = -1;
 
-	/** The scroll bar visibility was set. The default is false on creation. */
-	private boolean scrollBarVisibilitySet = false;
-
-	/** The scroll bar is visible. */
-	private boolean scrollBarVisible = false;
+	// /** The scroll bar visibility was set. The default is false on creation.
+	// */
+	// private boolean scrollBarVisibilitySet = false;
+	//
+	// /** The scroll bar is visible. */
+	// private boolean scrollBarVisible = true;
 
 	/** The cached heights of the children. */
 	public List<Integer> heights = new ArrayList<Integer>();
@@ -556,20 +557,32 @@ public class FastScrollView extends LinearLayout {
 	 * shown.
 	 */
 	private void updateScrollBar() {
-		Log.d("communicator", "PPPPPP FastScrollView.onSizeChanged()");
-		if (getMaxPosition() > 0 && getMaxPosition() <= getVisibleHeight()
-				&& (scrollBarVisible || !scrollBarVisibilitySet)) {
-			scrollBarVisibilitySet = true;
-			scrollBarVisible = false;
-			scrollBar.setVisibility(View.GONE);
-			heightsInvalidate = true;
-		} else if (getMaxPosition() > getVisibleHeight()
-				&& (!scrollBarVisible || !scrollBarVisibilitySet)) {
-			scrollBar.setVisibility(View.VISIBLE);
-			scrollBarVisibilitySet = true;
-			scrollBarVisible = true;
-			heightsInvalidate = true;
-		}
+		// TODO: SOMEHOW THE FOLLING CODE IS BUGGY .. DO WE NEED THIS FUNCTIONALITY?!
+
+		// Log.d("communicator",
+		// "PPPPPP FastScrollView.updateScrollBar() getMaxPosition()="
+		// + getMaxPosition() + ", getVisibleHeight()="
+		// + getVisibleHeight());
+		// if (getVisibleHeight() == 0) {
+		// // getVisibleHeight() > 0 to be sure to have valid values!
+		// return;
+		// }
+		// if ((scrollBarVisible || !scrollBarVisibilitySet)
+		// && getMaxPosition() <= getVisibleHeight()
+		// && getMaxPosition() > 0) {
+		// scrollBarVisibilitySet = true;
+		// scrollBarVisible = false;
+		// // scrollBar.setEnabled(false);
+		// scrollBar.setVisibility(View.GONE);
+		// heightsInvalidate = true;
+		// } else if ( (!scrollBarVisible || !scrollBarVisibilitySet)
+		// && getMaxPosition() > getVisibleHeight()) {
+		// scrollBar.setVisibility(View.VISIBLE);
+		// // scrollBar.setEnabled(true);
+		// scrollBarVisibilitySet = true;
+		// scrollBarVisible = true;
+		// heightsInvalidate = true;
+		// }
 	}
 
 	// -------------------------------------------------------------------------
@@ -662,8 +675,9 @@ public class FastScrollView extends LinearLayout {
 	 * scroll bar now, at a later time (when this method is called). This method
 	 * should only be called if user for example is not currently typing fast/
 	 */
-	public void potentiallyRefreshState() {
-		if (deferredScrolling != -1) {
+	public void potentiallyRefreshState(boolean force) {
+		if (deferredScrolling != -1 || force) {
+			updateScrollBar();
 			int percent = getPosToPercent(deferredScrolling);
 			updateFastScrollBar(percent, false);
 			deferredScrolling = -1;
@@ -682,7 +696,6 @@ public class FastScrollView extends LinearLayout {
 		super.onLayout(changed, l, t, r, b);
 		Log.d("communicator", "PPPPPP FastScrollView.onLayout()");
 		if (!isNoHangNeeded()) {
-			Log.d("communicator", "PPPPPP FastScrollView.onLayout() : UPDATING SCROLL BAR....");
 			updateScrollBar();
 			if (layoutDoneListener != null) {
 				layoutDoneListener.doneLayout();
@@ -702,10 +715,12 @@ public class FastScrollView extends LinearLayout {
 	 */
 	private void measureHeights() {
 		if (!heightsInvalidate) {
-			Log.d("communicator", "PPPPPP FastScrollView.onLayout()->measureHeights() : SKIPPED");
+			Log.d("communicator",
+					"PPPPPP FastScrollView.onLayout()->measureHeights() : SKIPPED");
 			return;
 		} else {
-			Log.d("communicator", "PPPPPP FastScrollView.onLayout()->measureHeights() : MEASURING...");
+			Log.d("communicator",
+					"PPPPPP FastScrollView.onLayout()->measureHeights() : MEASURING...");
 		}
 		heightsInvalidate = false;
 		heights.clear();
@@ -714,12 +729,16 @@ public class FastScrollView extends LinearLayout {
 			int h = 0;
 			try {
 				h = layout.getMeasuredHeight();
-			} catch(Exception e){
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			heights.add(h);
 			heightsSum += h;
 		}
+		Log.d("communicator",
+				"PPPPPP FastScrollView.onLayout() : UPDATING SCROLL BAR....");
+		updateScrollBar();
+
 	}
 
 	// ------------------------------------------------------------------------

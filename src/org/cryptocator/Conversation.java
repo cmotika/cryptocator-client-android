@@ -67,8 +67,6 @@ import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -181,6 +179,15 @@ public class Conversation extends Activity {
 
 	/** The image context menu provider for the main menu. */
 	private ImageContextMenuProvider imageContextMenuProvider = null;
+
+	/** The image context menu provider for the send menu. */
+	private ImageContextMenuProvider imageSendMenuProvider = null;
+
+	/**
+	 * The skips ONE resume. Necessary for the send context menu call
+	 * because we do not want to typical resume there.
+	 */
+	public static boolean skipResume = false;
 
 	// ------------------------------------------------------------------------
 
@@ -409,7 +416,8 @@ public class Conversation extends Activity {
 		sendbutton.setLongClickable(true);
 		sendbutton.setOnLongClickListener(new OnLongClickListener() {
 			public boolean onLongClick(View v) {
-				sendspinner.performClick();
+				//sendspinner.performClick();
+				ImageContextMenu.show(instance, createSendMenu(instance));
 				return false;
 			}
 		});
@@ -604,6 +612,11 @@ public class Conversation extends Activity {
 						// titleconversation.setVisibility(View.VISIBLE);
 						// }
 
+						// Implicit allow scrollbar to update itself after
+						// changing orientation
+						// lastKeyStroke = 0;
+						fastScrollView.potentiallyRefreshState(true);
+
 						boolean showKeyboard = false;
 						if (Utility
 								.loadBooleanSetting(context,
@@ -633,180 +646,191 @@ public class Conversation extends Activity {
 	@Override
 	protected void onStart() {
 		super.onStart();
-		final Context context = this;
+//		final Context context = this;
 
-		// SET SENDSPINNER
-		sendspinner = (Spinner) findViewById(R.id.sendspinner);
+		// // SET SENDSPINNER
+		// sendspinner = (Spinner) findViewById(R.id.sendspinner);
+		//
+		// // NOT DISPLAYED BY DATA ADAPTER!!!
+		// final String OPTION0 = "SELECT AN OPTIONS";
+		//
+		// final String OPTIONCHATON = "  Enable Chat Mode";
+		// final String OPTIONCHATOFF = "  Disable Chat Mode";
+		// final String OPTIONSMSON = "  Enable SMS Mode";
+		// final String OPTIONSMSOFF = "  Disable SMS Mode";
+		// final String OPTIONUSECMSG = "  Send Unsecure Message";
+		// final String OPTIONSECMSG = "  Send Secure Message";
+		// final String OPTIONUSECSMS = "  Send Unsecure SMS";
+		// final String OPTIONSECSMS = "  Send Secure SMS";
+		//
+		// String[] spinnerTitles = { OPTION0, OPTIONCHATON, OPTIONSMSON,
+		// OPTIONUSECSMS, OPTIONSECSMS, OPTIONUSECMSG };
+		// String[] spinnerTitlesChat = { OPTION0, OPTIONCHATOFF, OPTIONSMSON,
+		// OPTIONUSECSMS, OPTIONSECSMS, OPTIONUSECMSG };
+		//
+		// String[] spinnerTitlesSMS = { OPTION0, OPTIONCHATON, OPTIONSMSOFF,
+		// OPTIONUSECMSG, OPTIONSECMSG, OPTIONUSECSMS };
+		// String[] spinnerTitlesSMSChat = { OPTION0, OPTIONCHATOFF,
+		// OPTIONSMSOFF,
+		// OPTIONUSECMSG, OPTIONSECMSG, OPTIONUSECSMS };
+		//
+		// String[] spinnerTitlesNOSMS = { OPTION0, OPTIONCHATON, OPTIONSMSON,
+		// OPTIONUSECMSG };
+		// String[] spinnerTitlesNOSMSChat = { OPTION0, OPTIONCHATOFF,
+		// OPTIONSMSON, OPTIONUSECMSG };
+		//
+		// String[] spinnerTitlesONLYSMS = { OPTION0, OPTIONCHATON, OPTIONSECSMS
+		// };
+		// String[] spinnerTitlesONLYSMSChat = { OPTION0, OPTIONCHATOFF,
+		// OPTIONSECSMS };
+		//
+		// // Populate the spinner using a customized ArrayAdapter that hides
+		// the
+		// // first (dummy) entry
+		// final ArrayAdapter<String> dataAdapter =
+		// getMyDataAdapter(spinnerTitles);
+		// final ArrayAdapter<String> dataAdapterChat =
+		// getMyDataAdapter(spinnerTitlesChat);
+		// final ArrayAdapter<String> dataAdapterSMS =
+		// getMyDataAdapter(spinnerTitlesSMS);
+		// final ArrayAdapter<String> dataAdapterChatSMS =
+		// getMyDataAdapter(spinnerTitlesSMSChat);
+		// final ArrayAdapter<String> dataAdapterNOSMS =
+		// getMyDataAdapter(spinnerTitlesNOSMS);
+		// final ArrayAdapter<String> dataAdapterNOSMSChat =
+		// getMyDataAdapter(spinnerTitlesNOSMSChat);
+		// final ArrayAdapter<String> dataAdapterONLYSMS =
+		// getMyDataAdapter(spinnerTitlesONLYSMS);
+		// final ArrayAdapter<String> dataAdapterONLYSMSChat =
+		// getMyDataAdapter(spinnerTitlesONLYSMSChat);
+		//
+		// updateSendspinner(context, dataAdapter, dataAdapterChat,
+		// dataAdapterSMS, dataAdapterChatSMS, dataAdapterNOSMS,
+		// dataAdapterNOSMSChat, dataAdapterONLYSMS,
+		// dataAdapterONLYSMSChat);
 
-		// NOT DISPLAYED BY DATA ADAPTER!!!
-		final String OPTION0 = "SELECT AN OPTIONS";
-
-		final String OPTIONCHATON = "  Enable Chat Mode";
-		final String OPTIONCHATOFF = "  Disable Chat Mode";
-		final String OPTIONSMSON = "  Enable SMS Mode";
-		final String OPTIONSMSOFF = "  Disable SMS Mode";
-		final String OPTIONUSECMSG = "  Send Unsecure Message";
-		final String OPTIONSECMSG = "  Send Secure Message";
-		final String OPTIONUSECSMS = "  Send Unsecure SMS";
-		final String OPTIONSECSMS = "  Send Secure SMS";
-
-		String[] spinnerTitles = { OPTION0, OPTIONCHATON, OPTIONSMSON,
-				OPTIONUSECSMS, OPTIONSECSMS, OPTIONUSECMSG };
-		String[] spinnerTitlesChat = { OPTION0, OPTIONCHATOFF, OPTIONSMSON,
-				OPTIONUSECSMS, OPTIONSECSMS, OPTIONUSECMSG };
-
-		String[] spinnerTitlesSMS = { OPTION0, OPTIONCHATON, OPTIONSMSOFF,
-				OPTIONUSECMSG, OPTIONSECMSG, OPTIONUSECSMS };
-		String[] spinnerTitlesSMSChat = { OPTION0, OPTIONCHATOFF, OPTIONSMSOFF,
-				OPTIONUSECMSG, OPTIONSECMSG, OPTIONUSECSMS };
-
-		String[] spinnerTitlesNOSMS = { OPTION0, OPTIONCHATON, OPTIONSMSON,
-				OPTIONUSECMSG };
-		String[] spinnerTitlesNOSMSChat = { OPTION0, OPTIONCHATOFF,
-				OPTIONSMSON, OPTIONUSECMSG };
-
-		String[] spinnerTitlesONLYSMS = { OPTION0, OPTIONCHATON, OPTIONSECSMS };
-		String[] spinnerTitlesONLYSMSChat = { OPTION0, OPTIONCHATOFF,
-				OPTIONSECSMS };
-
-		// Populate the spinner using a customized ArrayAdapter that hides the
-		// first (dummy) entry
-		final ArrayAdapter<String> dataAdapter = getMyDataAdapter(spinnerTitles);
-		final ArrayAdapter<String> dataAdapterChat = getMyDataAdapter(spinnerTitlesChat);
-		final ArrayAdapter<String> dataAdapterSMS = getMyDataAdapter(spinnerTitlesSMS);
-		final ArrayAdapter<String> dataAdapterChatSMS = getMyDataAdapter(spinnerTitlesSMSChat);
-		final ArrayAdapter<String> dataAdapterNOSMS = getMyDataAdapter(spinnerTitlesNOSMS);
-		final ArrayAdapter<String> dataAdapterNOSMSChat = getMyDataAdapter(spinnerTitlesNOSMSChat);
-		final ArrayAdapter<String> dataAdapterONLYSMS = getMyDataAdapter(spinnerTitlesONLYSMS);
-		final ArrayAdapter<String> dataAdapterONLYSMSChat = getMyDataAdapter(spinnerTitlesONLYSMSChat);
-
-		updateSendspinner(context, dataAdapter, dataAdapterChat,
-				dataAdapterSMS, dataAdapterChatSMS, dataAdapterNOSMS,
-				dataAdapterNOSMSChat, dataAdapterONLYSMS,
-				dataAdapterONLYSMSChat);
-
-		sendspinner.setOnItemSelectedListener(new OnItemSelectedListener() {
-			public void onItemSelected(AdapterView<?> arg0, View arg1,
-					int arg2, long arg3) {
-				Object object = sendspinner.getSelectedItem();
-				if (object instanceof String) {
-					String option = (String) object;
-					if (option.equals(OPTIONCHATON)
-							|| (option.equals(OPTIONCHATOFF))) {
-						boolean chatmodeOn = Utility.loadBooleanSetting(
-								context, Setup.OPTION_CHATMODE,
-								Setup.DEFAULT_CHATMODE);
-						chatmodeOn = !chatmodeOn;
-						Utility.saveBooleanSetting(context,
-								Setup.OPTION_CHATMODE, chatmodeOn);
-						updateSendspinner(context, dataAdapter,
-								dataAdapterChat, dataAdapterSMS,
-								dataAdapterChatSMS, dataAdapterNOSMS,
-								dataAdapterNOSMSChat, dataAdapterONLYSMS,
-								dataAdapterONLYSMSChat);
-						if (chatmodeOn) {
-							Utility.showToastAsync(context,
-									"Chat mode enabled.");
-						} else {
-							Utility.showToastAsync(context,
-									"Chat mode disabled.");
-						}
-					} else if (option.equals(OPTIONSMSON)
-							|| (option.equals(OPTIONSMSOFF))) {
-						boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
-						boolean haveTelephoneNumber = Setup.havePhone(context,
-								hostUid);
-						if (!smsmodeOn && !haveTelephoneNumber) {
-							if (Setup.isSMSOptionEnabled(context)) {
-								inviteOtherUserToSMSMode(context);
-							} else {
-								inviteUserToSMSMode(context);
-							}
-						} else {
-							// normal toggle mode
-							smsmodeOn = !smsmodeOn;
-							Utility.saveBooleanSetting(context,
-									Setup.OPTION_SMSMODE + hostUid, smsmodeOn);
-							updateSendspinner(context, dataAdapter,
-									dataAdapterChat, dataAdapterSMS,
-									dataAdapterChatSMS, dataAdapterNOSMS,
-									dataAdapterNOSMSChat, dataAdapterONLYSMS,
-									dataAdapterONLYSMSChat);
-							if (smsmodeOn) {
-								Utility.showToastAsync(
-										context,
-										"SMS mode for "
-												+ Main.UID2Name(context,
-														hostUid, false)
-												+ " enabled.");
-							} else {
-								Utility.showToastAsync(
-										context,
-										"SMS mode for "
-												+ Main.UID2Name(context,
-														hostUid, false)
-												+ " disabled.");
-							}
-						}
-						// COPY AND PASTE FEATURES ARE CURRENTLY DISABLED FOR A
-						// CLEANER UI
-						//
-						// } else if (option.equals(OPTIONCOPY)) {
-						// String text = messageText.getText().toString();
-						// Utility.copyToClipboard(context, text);
-						// messageText.selectAll();
-						// } else if (option.equals(OPTIONPASTE)) {
-						// String text = Utility.pasteFromClipboard(context);
-						// int i = messageText.getSelectionStart();
-						// if (text != null) {
-						// String prevText = messageText.getText().toString();
-						// if (i < 0) {
-						// // default fallback is concatenation
-						// messageText.setText(prevText + text);
-						// } else {
-						// // otherwise try to fill in the text
-						// messageText.setText(prevText.substring(0, i)
-						// + text + prevText.substring(i));
-						// }
-						// messageText.setSelection(text.length()
-						// + prevText.length());
-						// }
-					} else if (option.equals(OPTIONSECSMS)) {
-						if (hostUid >= 0) {
-							sendMessageOrPrompt(context, DB.TRANSPORT_SMS, true);
-						} else {
-							promptInfo(
-									context,
-									"No Registered User",
-									"In order to send secure encrypted SMS or messages, your communication partner needs to be registered.");
-						}
-					} else if (option.equals(OPTIONSECMSG)) {
-						if (Setup.haveKey(context, hostUid)) {
-							sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET,
-									true);
-						} else {
-							promptInfo(
-									context,
-									"No Encryption Possible",
-									"In order to send secure encrypted messages or SMS, your communication partner needs to enable encryption.");
-
-						}
-					} else if (option.equals(OPTIONUSECMSG)) {
-						sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET,
-								false);
-					} else if (option.equals(OPTIONUSECSMS)) {
-						sendMessageOrPrompt(context, DB.TRANSPORT_SMS, false);
-					}
-				}
-				sendspinner.setSelection(0);
-			}
-
-			public void onNothingSelected(AdapterView<?> arg0) {
-				//
-			}
-		});
-		sendspinner.setSelection(0);
-		// END SET SENDSPINNER
+//		sendspinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+//			public void onItemSelected(AdapterView<?> arg0, View arg1,
+//					int arg2, long arg3) {
+//				Object object = sendspinner.getSelectedItem();
+//				if (object instanceof String) {
+//					String option = (String) object;
+//					if (option.equals(OPTIONCHATON)
+//							|| (option.equals(OPTIONCHATOFF))) {
+//						boolean chatmodeOn = Utility.loadBooleanSetting(
+//								context, Setup.OPTION_CHATMODE,
+//								Setup.DEFAULT_CHATMODE);
+//						chatmodeOn = !chatmodeOn;
+//						Utility.saveBooleanSetting(context,
+//								Setup.OPTION_CHATMODE, chatmodeOn);
+//						updateSendspinner(context, dataAdapter,
+//								dataAdapterChat, dataAdapterSMS,
+//								dataAdapterChatSMS, dataAdapterNOSMS,
+//								dataAdapterNOSMSChat, dataAdapterONLYSMS,
+//								dataAdapterONLYSMSChat);
+//						if (chatmodeOn) {
+//							Utility.showToastAsync(context,
+//									"Chat mode enabled.");
+//						} else {
+//							Utility.showToastAsync(context,
+//									"Chat mode disabled.");
+//						}
+//					} else if (option.equals(OPTIONSMSON)
+//							|| (option.equals(OPTIONSMSOFF))) {
+//						boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
+//						boolean haveTelephoneNumber = Setup.havePhone(context,
+//								hostUid);
+//						if (!smsmodeOn && !haveTelephoneNumber) {
+//							if (Setup.isSMSOptionEnabled(context)) {
+//								inviteOtherUserToSMSMode(context);
+//							} else {
+//								inviteUserToSMSMode(context);
+//							}
+//						} else {
+//							// normal toggle mode
+//							smsmodeOn = !smsmodeOn;
+//							Utility.saveBooleanSetting(context,
+//									Setup.OPTION_SMSMODE + hostUid, smsmodeOn);
+//							updateSendspinner(context, dataAdapter,
+//									dataAdapterChat, dataAdapterSMS,
+//									dataAdapterChatSMS, dataAdapterNOSMS,
+//									dataAdapterNOSMSChat, dataAdapterONLYSMS,
+//									dataAdapterONLYSMSChat);
+//							if (smsmodeOn) {
+//								Utility.showToastAsync(
+//										context,
+//										"SMS mode for "
+//												+ Main.UID2Name(context,
+//														hostUid, false)
+//												+ " enabled.");
+//							} else {
+//								Utility.showToastAsync(
+//										context,
+//										"SMS mode for "
+//												+ Main.UID2Name(context,
+//														hostUid, false)
+//												+ " disabled.");
+//							}
+//						}
+//						// COPY AND PASTE FEATURES ARE CURRENTLY DISABLED FOR A
+//						// CLEANER UI
+//						//
+//						// } else if (option.equals(OPTIONCOPY)) {
+//						// String text = messageText.getText().toString();
+//						// Utility.copyToClipboard(context, text);
+//						// messageText.selectAll();
+//						// } else if (option.equals(OPTIONPASTE)) {
+//						// String text = Utility.pasteFromClipboard(context);
+//						// int i = messageText.getSelectionStart();
+//						// if (text != null) {
+//						// String prevText = messageText.getText().toString();
+//						// if (i < 0) {
+//						// // default fallback is concatenation
+//						// messageText.setText(prevText + text);
+//						// } else {
+//						// // otherwise try to fill in the text
+//						// messageText.setText(prevText.substring(0, i)
+//						// + text + prevText.substring(i));
+//						// }
+//						// messageText.setSelection(text.length()
+//						// + prevText.length());
+//						// }
+//					} else if (option.equals(OPTIONSECSMS)) {
+//						if (hostUid >= 0) {
+//							sendMessageOrPrompt(context, DB.TRANSPORT_SMS, true);
+//						} else {
+//							promptInfo(
+//									context,
+//									"No Registered User",
+//									"In order to send secure encrypted SMS or messages, your communication partner needs to be registered.");
+//						}
+//					} else if (option.equals(OPTIONSECMSG)) {
+//						if (Setup.haveKey(context, hostUid)) {
+//							sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET,
+//									true);
+//						} else {
+//							promptInfo(
+//									context,
+//									"No Encryption Possible",
+//									"In order to send secure encrypted messages or SMS, your communication partner needs to enable encryption.");
+//
+//						}
+//					} else if (option.equals(OPTIONUSECMSG)) {
+//						sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET,
+//								false);
+//					} else if (option.equals(OPTIONUSECSMS)) {
+//						sendMessageOrPrompt(context, DB.TRANSPORT_SMS, false);
+//					}
+//				}
+//				sendspinner.setSelection(0);
+//			}
+//
+//			public void onNothingSelected(AdapterView<?> arg0) {
+//				//
+//			}
+//		});
+//		sendspinner.setSelection(0);
+//		// END SET SENDSPINNER
 
 	}
 
@@ -823,77 +847,77 @@ public class Conversation extends Activity {
 
 	// ------------------------------------------------------------------------
 
-	/**
-	 * Update send spinner (context menu for the send button).
-	 * 
-	 * @param context
-	 *            the context
-	 * @param dataAdapter
-	 *            the data adapter
-	 * @param dataAdapterChat
-	 *            the data adapter chat
-	 * @param dataAdapterSMS
-	 *            the data adapter sms
-	 * @param dataAdapterChatSMS
-	 *            the data adapter chat sms
-	 * @param dataAdapterNOSMS
-	 *            the data adapter nosms
-	 * @param dataAdapterNOSMSChat
-	 *            the data adapter nosms chat
-	 * @param dataAdapterONLYSMS
-	 *            the data adapter onlysms
-	 * @param dataAdapterONLYSMSChat
-	 *            the data adapter onlysms chat
-	 */
-	private void updateSendspinner(Context context,
-			ArrayAdapter<String> dataAdapter,
-			ArrayAdapter<String> dataAdapterChat,
-			ArrayAdapter<String> dataAdapterSMS,
-			ArrayAdapter<String> dataAdapterChatSMS,
-			ArrayAdapter<String> dataAdapterNOSMS,
-			ArrayAdapter<String> dataAdapterNOSMSChat,
-			ArrayAdapter<String> dataAdapterONLYSMS,
-			ArrayAdapter<String> dataAdapterONLYSMSChat) {
-		boolean chatmodeOn = Utility.loadBooleanSetting(context,
-				Setup.OPTION_CHATMODE, Setup.DEFAULT_CHATMODE);
-		boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
-		boolean havephonenumber = Setup.havePhone(context, hostUid);
-		boolean onlySMS = hostUid < 0;
-
-		if (onlySMS) {
-			// only SMS mode available
-			if (chatmodeOn) {
-				sendspinner.setAdapter(dataAdapterONLYSMSChat);
-			} else {
-				sendspinner.setAdapter(dataAdapterONLYSMS);
-			}
-		} else if (!havephonenumber) {
-			// no SMS mode available
-			if (chatmodeOn) {
-				sendspinner.setAdapter(dataAdapterNOSMSChat);
-			} else {
-				sendspinner.setAdapter(dataAdapterNOSMS);
-			}
-		} else {
-			// sms mode available
-			if (smsmodeOn) {
-				// sms mode on
-				if (chatmodeOn) {
-					sendspinner.setAdapter(dataAdapterChatSMS);
-				} else {
-					sendspinner.setAdapter(dataAdapterSMS);
-				}
-			} else {
-				// normal : sms mode off
-				if (chatmodeOn) {
-					sendspinner.setAdapter(dataAdapterChat);
-				} else {
-					sendspinner.setAdapter(dataAdapter);
-				}
-			}
-		}
-		updateSendButtonImage(context);
-	}
+	// /**
+	// * Update send spinner (context menu for the send button).
+	// *
+	// * @param context
+	// * the context
+	// * @param dataAdapter
+	// * the data adapter
+	// * @param dataAdapterChat
+	// * the data adapter chat
+	// * @param dataAdapterSMS
+	// * the data adapter sms
+	// * @param dataAdapterChatSMS
+	// * the data adapter chat sms
+	// * @param dataAdapterNOSMS
+	// * the data adapter nosms
+	// * @param dataAdapterNOSMSChat
+	// * the data adapter nosms chat
+	// * @param dataAdapterONLYSMS
+	// * the data adapter onlysms
+	// * @param dataAdapterONLYSMSChat
+	// * the data adapter onlysms chat
+	// */
+	// private void updateSendspinner(Context context,
+	// ArrayAdapter<String> dataAdapter,
+	// ArrayAdapter<String> dataAdapterChat,
+	// ArrayAdapter<String> dataAdapterSMS,
+	// ArrayAdapter<String> dataAdapterChatSMS,
+	// ArrayAdapter<String> dataAdapterNOSMS,
+	// ArrayAdapter<String> dataAdapterNOSMSChat,
+	// ArrayAdapter<String> dataAdapterONLYSMS,
+	// ArrayAdapter<String> dataAdapterONLYSMSChat) {
+	// boolean chatmodeOn = Utility.loadBooleanSetting(context,
+	// Setup.OPTION_CHATMODE, Setup.DEFAULT_CHATMODE);
+	// boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
+	// boolean havephonenumber = Setup.havePhone(context, hostUid);
+	// boolean onlySMS = hostUid < 0;
+	//
+	// if (onlySMS) {
+	// // only SMS mode available
+	// if (chatmodeOn) {
+	// sendspinner.setAdapter(dataAdapterONLYSMSChat);
+	// } else {
+	// sendspinner.setAdapter(dataAdapterONLYSMS);
+	// }
+	// } else if (!havephonenumber) {
+	// // no SMS mode available
+	// if (chatmodeOn) {
+	// sendspinner.setAdapter(dataAdapterNOSMSChat);
+	// } else {
+	// sendspinner.setAdapter(dataAdapterNOSMS);
+	// }
+	// } else {
+	// // sms mode available
+	// if (smsmodeOn) {
+	// // sms mode on
+	// if (chatmodeOn) {
+	// sendspinner.setAdapter(dataAdapterChatSMS);
+	// } else {
+	// sendspinner.setAdapter(dataAdapterSMS);
+	// }
+	// } else {
+	// // normal : sms mode off
+	// if (chatmodeOn) {
+	// sendspinner.setAdapter(dataAdapterChat);
+	// } else {
+	// sendspinner.setAdapter(dataAdapter);
+	// }
+	// }
+	// }
+	// updateSendButtonImage(context);
+	// }
 
 	// -------------------------------
 
@@ -1377,6 +1401,14 @@ public class Conversation extends Activity {
 			this.finish();
 		} else {
 			Conversation.visible = true;
+			
+			// Only ONCE skip the resume after context menu closure
+			if (skipResume) {
+				skipResume = false;
+				return;
+
+			}
+			
 			// Reset error claims
 			Setup.setErrorUpdateInterval(this, false);
 			Scheduler.reschedule(this, false, false, true);
@@ -1505,15 +1537,15 @@ public class Conversation extends Activity {
 		Log.d("communicator", "@@@@ foceScrollDown() -> keyboardVisible="
 				+ keyboardVisible);
 
+		// Fake a keyboard entry for convenience: If the user immediately
+		// wants to start typing - he just can and will not be interrupted!
+		// :-)
+		lastKeyStroke = DB.getTimestamp();
+
 		// If keyboard is visible, then set cursor to text field!
 		if (keyboardVisible) {
-			// Fake a keyboard entry for convenience: If the user immediately
-			// wants to start typing - he just can and will not be interrupted!
-			// :-)
-			lastKeyStroke = DB.getTimestamp();
 			messageText.postDelayed(new Runnable() {
 				public void run() {
-					// Fake a keyboard entry for convenience
 					lastKeyStroke = DB.getTimestamp();
 					messageText.requestFocus();
 					Utility.showKeyboardExplicit(messageText);
@@ -1659,7 +1691,7 @@ public class Conversation extends Activity {
 			final boolean showKeyboard, final int delay) {
 		// we should update the scroll view height here because it was
 		// blocked/skipped during fast typing!
-		fastScrollView.potentiallyRefreshState();
+		fastScrollView.potentiallyRefreshState(false);
 		// Otherwise we can scroll immediately if the user already rests!
 		// and is not typing
 		fastScrollView.postDelayed(new Runnable() {
@@ -2543,6 +2575,329 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
 
+	// if (option.equals(OPTIONCHATON)
+	// || (option.equals(OPTIONCHATOFF))) {
+	// boolean chatmodeOn = Utility.loadBooleanSetting(
+	// context, Setup.OPTION_CHATMODE,
+	// Setup.DEFAULT_CHATMODE);
+	// chatmodeOn = !chatmodeOn;
+	// Utility.saveBooleanSetting(context,
+	// Setup.OPTION_CHATMODE, chatmodeOn);
+	// updateSendspinner(context, dataAdapter,
+	// dataAdapterChat, dataAdapterSMS,
+	// dataAdapterChatSMS, dataAdapterNOSMS,
+	// dataAdapterNOSMSChat, dataAdapterONLYSMS,
+	// dataAdapterONLYSMSChat);
+	// if (chatmodeOn) {
+	// Utility.showToastAsync(context,
+	// "Chat mode enabled.");
+	// } else {
+	// Utility.showToastAsync(context,
+	// "Chat mode disabled.");
+	// }
+	// } else if (option.equals(OPTIONSMSON)
+	// || (option.equals(OPTIONSMSOFF))) {
+	// boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
+	// boolean haveTelephoneNumber = Setup.havePhone(context,
+	// hostUid);
+	// if (!smsmodeOn && !haveTelephoneNumber) {
+	// if (Setup.isSMSOptionEnabled(context)) {
+	// inviteOtherUserToSMSMode(context);
+	// } else {
+	// inviteUserToSMSMode(context);
+	// }
+	// } else {
+	// // normal toggle mode
+	// smsmodeOn = !smsmodeOn;
+	// Utility.saveBooleanSetting(context,
+	// Setup.OPTION_SMSMODE + hostUid, smsmodeOn);
+	// updateSendspinner(context, dataAdapter,
+	// dataAdapterChat, dataAdapterSMS,
+	// dataAdapterChatSMS, dataAdapterNOSMS,
+	// dataAdapterNOSMSChat, dataAdapterONLYSMS,
+	// dataAdapterONLYSMSChat);
+	// if (smsmodeOn) {
+	// Utility.showToastAsync(
+	// context,
+	// "SMS mode for "
+	// + Main.UID2Name(context,
+	// hostUid, false)
+	// + " enabled.");
+	// } else {
+	// Utility.showToastAsync(
+	// context,
+	// "SMS mode for "
+	// + Main.UID2Name(context,
+	// hostUid, false)
+	// + " disabled.");
+	// }
+	// }
+	// // COPY AND PASTE FEATURES ARE CURRENTLY DISABLED FOR A
+	// // CLEANER UI
+	// //
+	// // } else if (option.equals(OPTIONCOPY)) {
+	// // String text = messageText.getText().toString();
+	// // Utility.copyToClipboard(context, text);
+	// // messageText.selectAll();
+	// // } else if (option.equals(OPTIONPASTE)) {
+	// // String text = Utility.pasteFromClipboard(context);
+	// // int i = messageText.getSelectionStart();
+	// // if (text != null) {
+	// // String prevText = messageText.getText().toString();
+	// // if (i < 0) {
+	// // // default fallback is concatenation
+	// // messageText.setText(prevText + text);
+	// // } else {
+	// // // otherwise try to fill in the text
+	// // messageText.setText(prevText.substring(0, i)
+	// // + text + prevText.substring(i));
+	// // }
+	// // messageText.setSelection(text.length()
+	// // + prevText.length());
+	// // }
+	// } else if (option.equals(OPTIONSECSMS)) {
+	// if (hostUid >= 0) {
+	// sendMessageOrPrompt(context, DB.TRANSPORT_SMS, true);
+	// } else {
+	// promptInfo(
+	// context,
+	// "No Registered User",
+	// "In order to send secure encrypted SMS or messages, your communication partner needs to be registered.");
+	// }
+	// } else if (option.equals(OPTIONSECMSG)) {
+	// if (Setup.haveKey(context, hostUid)) {
+	// sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET,
+	// true);
+	// } else {
+	// promptInfo(
+	// context,
+	// "No Encryption Possible",
+	// "In order to send secure encrypted messages or SMS, your communication partner needs to enable encryption.");
+	//
+	// }
+	// } else if (option.equals(OPTIONUSECMSG)) {
+	// sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET,
+	// false);
+	// } else if (option.equals(OPTIONUSECSMS)) {
+	// sendMessageOrPrompt(context, DB.TRANSPORT_SMS, false);
+	// }
+	//
+
+	// ------------------------------------------------------------------------
+
+	private int menuEnableChat = -1;
+	private int menuDisableChat = -1;
+	private int menuEnableSMS = -1;
+	private int menuDisableSMS = -1;
+	private int menuSndSMSSec = -1;
+	private int menuSndSMS = -1;
+	private int menuSndMsgSec = -1;
+	private int menuSndMsg = -1;
+
+	private void updateSendMenu(Context context) {
+		boolean chatmodeOn = Utility.loadBooleanSetting(context,
+				Setup.OPTION_CHATMODE, Setup.DEFAULT_CHATMODE);
+		boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
+		boolean havephonenumber = Setup.havePhone(context, hostUid);
+		boolean onlySMS = hostUid < 0;
+
+		if (onlySMS) {
+			// only SMS mode available
+			imageSendMenuProvider.setVisible(menuSndMsg, false);
+			imageSendMenuProvider.setVisible(menuSndMsgSec, false);
+			imageSendMenuProvider.setVisible(menuSndSMSSec, true);
+			imageSendMenuProvider.setVisible(menuSndSMS, true); // this is the
+																// default
+
+			imageSendMenuProvider.setVisible(menuDisableSMS, false);
+			imageSendMenuProvider.setVisible(menuEnableSMS, false);
+		} else if (!havephonenumber) {
+			// no SMS mode available
+			imageSendMenuProvider.setVisible(menuSndMsg, true);
+			imageSendMenuProvider.setVisible(menuSndMsgSec, true); // this is
+																	// the
+																	// default
+			imageSendMenuProvider.setVisible(menuSndSMSSec, false);
+			imageSendMenuProvider.setVisible(menuSndSMS, false);
+
+			imageSendMenuProvider.setVisible(menuDisableSMS, false);
+			imageSendMenuProvider.setVisible(menuEnableSMS, true);
+		} else {
+			// sms mode available
+			imageSendMenuProvider.setVisible(menuSndMsg, true);
+			imageSendMenuProvider.setVisible(menuSndMsgSec, true); // this is
+																	// the
+																	// default
+			imageSendMenuProvider.setVisible(menuSndSMSSec, true);
+			imageSendMenuProvider.setVisible(menuSndSMS, true);
+			if (smsmodeOn) {
+				// sms mode on
+				imageSendMenuProvider.setVisible(menuDisableSMS, true);
+				imageSendMenuProvider.setVisible(menuEnableSMS, false);
+			} else {
+				// normal : sms mode off
+				imageSendMenuProvider.setVisible(menuDisableSMS, false);
+				imageSendMenuProvider.setVisible(menuEnableSMS, true);
+			}
+		}
+
+		// Update chat mode
+		if (chatmodeOn) {
+			imageSendMenuProvider.setVisible(menuEnableChat, false);
+			imageSendMenuProvider.setVisible(menuDisableChat, true);
+		} else {
+			imageSendMenuProvider.setVisible(menuEnableChat, true);
+			imageSendMenuProvider.setVisible(menuDisableChat, false);
+		}
+		updateSendButtonImage(context);
+	}
+	
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Creates the send menu.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private ImageContextMenuProvider createSendMenu(final Activity context) {
+		if (imageSendMenuProvider == null) {
+			imageSendMenuProvider = new ImageContextMenuProvider(context, null,
+					null);
+			menuEnableChat =imageSendMenuProvider.addEntry("Enable Chat Mode",
+					R.drawable.menuchaton,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							skipResume = true;
+							Utility.saveBooleanSetting(context,
+									Setup.OPTION_CHATMODE, true);
+							updateSendMenu(context);
+							Utility.showToastAsync(context,
+									"Chat mode enabled.");
+							return true;
+						}
+					});
+			menuDisableChat = imageSendMenuProvider.addEntry("Disable Chat Mode",
+					R.drawable.menuchatoff,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							skipResume = true;
+							Utility.saveBooleanSetting(context,
+									Setup.OPTION_CHATMODE, false);
+							updateSendMenu(context);
+							Utility.showToastAsync(context,
+									"Chat mode disabled.");
+							return true;
+						}
+					});
+			menuEnableSMS = imageSendMenuProvider.addEntry("Enable SMS Mode",
+					R.drawable.menusmson,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							skipResume = true;
+							boolean smsmodeOn = Setup.isSMSModeOn(context,
+									hostUid);
+							boolean haveTelephoneNumber = Setup.havePhone(
+									context, hostUid);
+							if (!smsmodeOn && !haveTelephoneNumber) {
+								if (Setup.isSMSOptionEnabled(context)) {
+									inviteOtherUserToSMSMode(context);
+								} else {
+									inviteUserToSMSMode(context);
+								}
+							} else {
+								// enable
+								Utility.saveBooleanSetting(context,
+										Setup.OPTION_SMSMODE + hostUid, true);
+								updateSendMenu(context);
+								Utility.showToastAsync(
+										context,
+										"SMS mode for "
+												+ Main.UID2Name(context,
+														hostUid, false)
+												+ " enabled.");
+							}
+							return true;
+						}
+					});
+			menuDisableSMS = imageSendMenuProvider.addEntry("Disable SMS Mode",
+					R.drawable.menusmsoff,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							skipResume = true;
+							// disable
+							Utility.saveBooleanSetting(context,
+									Setup.OPTION_SMSMODE + hostUid, false);
+							updateSendMenu(context);
+							Utility.showToastAsync(context, "SMS mode for "
+									+ Main.UID2Name(context, hostUid, false)
+									+ " disabled.");
+							return true;
+						}
+					});
+			menuSndSMS = imageSendMenuProvider.addEntry("Send Unsecure SMS",
+					R.drawable.menusmsunsec,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							skipResume = true;
+							sendMessageOrPrompt(context, DB.TRANSPORT_SMS,
+									false);
+							return true;
+						}
+					});
+			menuSndSMSSec = imageSendMenuProvider.addEntry("Send Secure SMS",
+					R.drawable.menusmssec,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							skipResume = true;
+							if (hostUid >= 0) {
+								sendMessageOrPrompt(context, DB.TRANSPORT_SMS,
+										true);
+							} else {
+								promptInfo(
+										context,
+										"No Registered User",
+										"In order to send secure encrypted SMS or messages, your communication partner needs to be registered.");
+							}
+							return true;
+						}
+					});
+			menuSndMsg = imageSendMenuProvider.addEntry("Send Unsecure Message",
+					R.drawable.menumsgunsec,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							skipResume = true;
+							sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET,
+									false);
+							return true;
+						}
+					});
+			menuSndMsgSec = imageSendMenuProvider.addEntry("Send Secure Message",
+					R.drawable.menumsgsec,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							skipResume = true;
+							if (Setup.haveKey(context, hostUid)) {
+								sendMessageOrPrompt(context,
+										DB.TRANSPORT_INTERNET, true);
+							} else {
+								promptInfo(
+										context,
+										"No Encryption Possible",
+										"In order to send secure encrypted messages or SMS, your communication partner needs to enable encryption.");
+
+							}
+							return true;
+						}
+					});
+		}
+		// Initially update
+		updateSendMenu(context);
+		return imageSendMenuProvider;
+	}
+
+	// ------------------------------------------------------------------------
+
 	/**
 	 * Creates the context menu for the conversation activity.
 	 * 
@@ -2660,7 +3015,7 @@ public class Conversation extends Activity {
 	// }
 
 	// ------------------------------------------------------------------------
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -2670,9 +3025,7 @@ public class Conversation extends Activity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// This is necessary to enable a context menu
 		// getMenuInflater().inflate(R.menu.activity_main, menu);
-
 		ImageContextMenu.show(instance, createContextMenu(instance));
-
 		return false;
 	}
 
