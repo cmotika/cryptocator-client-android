@@ -95,6 +95,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Vibrator;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
 import android.provider.Settings.Secure;
@@ -2227,6 +2228,7 @@ public class Utility {
 	 *            the content uri
 	 * @return the real path from uri
 	 */
+	@SuppressLint("NewApi")
 	// file
 	@SuppressWarnings("deprecation")
 	public static String getRealPathFromURI(Activity activity, Uri contentUri) {
@@ -2247,6 +2249,19 @@ public class Utility {
 						.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
 				cursor.moveToFirst();
 				returnPath = cursor.getString(column_index);
+			} else if (Build.VERSION.SDK_INT > 19) {
+				String[] projection = { MediaStore.Images.Media.DATA };
+				String wholeID = DocumentsContract.getDocumentId(contentUri);
+				String id = wholeID.split(":")[1];
+				String sel = MediaStore.Images.Media._ID + "=?";
+				Cursor cursor = activity.getContentResolver().query(
+						MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+						projection, sel, new String[] { id }, null);
+				int column_index = cursor
+						.getColumnIndex(MediaStore.Images.Media.DATA);
+				cursor.moveToFirst();
+				returnPath = cursor.getString(column_index).toString();
+				cursor.close();
 			} else {
 				returnPath = contentUri.toString();
 			}
@@ -2280,7 +2295,7 @@ public class Utility {
 	 */
 	public static String getKB(int lengthInBytes) {
 		int lenKB = (int) Math.ceil(((double) lengthInBytes) / 100);
-		float lenKB2 = ((float)lenKB) / 10;
+		float lenKB2 = ((float) lenKB) / 10;
 		return lenKB2 + "";
 	}
 

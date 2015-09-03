@@ -604,10 +604,16 @@ public class Setup extends Activity {
 	public static final int SMS_SIZE_WARNING = 1600;
 
 	/** The standardsmssize. */
-	public static int SMS_DEFAULT_SIZE = 160;
-	
+	public static int SMS_DEFAULT_SIZE = 160; // standard one sms
+
+	/** The standardsmssize. */
+	public static int SMS_DEFAULT_SIZE_MULTIPART = 153; // standard multipart sms
+
+	/** The standardsmssize. */
+	public static int SMS_DEFAULT_SIZE_ENCRYPTED = 80; // ~ roughly 100% blow up
+
 	/** Split a message if the part size is larger than this constant */
-	public static final int MULTIPART_MESSAGELIMIT = 100;
+	public static final int MULTIPART_MESSAGELIMIT = 450;
 
 	// ------------------------------------------------------------------------
 

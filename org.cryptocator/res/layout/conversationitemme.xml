@@ -38,7 +38,7 @@
         <org.cryptocator.ImageSmileyEditText
             android:id="@+id/conversationtext"
             style="?android:attr/textViewStyle"
-            android:layout_width="wrap_content"
+            android:layout_width="320px"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20px"
             android:layout_marginRight="20px"

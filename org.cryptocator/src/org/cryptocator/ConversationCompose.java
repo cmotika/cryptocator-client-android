@@ -56,9 +56,9 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnLongClickListener;
-import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.WindowManager.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -199,6 +199,7 @@ public class ConversationCompose extends Activity {
 		toList.setSnapUp(20);
 
 		messageText = ((ImageSmileyEditText) findViewById(R.id.messageText));
+		messageText.setInputTextField(true);
 
 		messageText
 				.setOnCutCopyPasteListener(new ImageSmileyEditText.OnCutCopyPasteListener() {

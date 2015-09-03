@@ -240,11 +240,11 @@ public class MessageDetailsActivity extends Activity {
 		} else {
 			// We receive this item, so now lookup how much percent we have received yet
 			int numReceived = DB.getReceivedMultiparts(context, updatedItem.multipartid, updatedItem.from).size();
-			if (numReceived == -1 || numReceived >= updatedItem.parts) {
-				// We gave received everything, so hide sending/receiving
+			if (numReceived == 0 || numReceived >= updatedItem.parts) {
+				// This is no multipart message or we have received everything, so hide sending/receiving
 				sendingreceivingparent.setVisibility(View.GONE);
 			} else {
-				// We don't have received everythin, display progress bar!
+				// We don't have received everything, display progress bar!
 				sendingreceivingtitle.setText("Receiving:");
 				sendingreceivingprogress.setMax(100);
 				int numTotal = updatedItem.parts;
