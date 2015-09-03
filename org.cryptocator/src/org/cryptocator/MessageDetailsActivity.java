@@ -241,8 +241,13 @@ public class MessageDetailsActivity extends Activity {
 						+ DB.getPositionInSendingQueue(context,
 								updatedItem.transport, updatedItem.localid)
 						+ " in Sending Queue";
-				sendingreceiving.setText(position + "\n" + percentSent + "%, "
-						+ numSent + " / " + numTotal);
+				if (numTotal > 1) {
+					sendingreceiving.setText(position + "\n" + percentSent + "%, "
+							+ numSent + " / " + numTotal);
+				} else {
+					sendingreceiving.setText(position);
+					sendingreceivingprogress.setVisibility(View.GONE);
+				}
 			}
 		} else {
 			// We receive this item, so now lookup how much percent we have
@@ -259,10 +264,14 @@ public class MessageDetailsActivity extends Activity {
 				sendingreceivingprogress.setMax(100);
 				int numTotal = updatedItem.parts;
 				int percentReceived = (numReceived * 100) / numTotal;
-				sendingreceivingprogress.setProgress(percentReceived);
-				sendingreceiving.setText(percentReceived + "%, " + numReceived
-						+ " / " + numTotal + " {" + updatedItem.multipartid
-						+ "}");
+				if (numTotal > 1) {
+					sendingreceivingprogress.setProgress(percentReceived);
+					sendingreceiving.setText(percentReceived + "%, " + numReceived
+							+ " / " + numTotal + " {" + updatedItem.multipartid
+							+ "}");
+				} else {
+					sendingreceivingprogress.setVisibility(View.GONE);
+				}
 			}
 		}
 
@@ -528,7 +537,7 @@ public class MessageDetailsActivity extends Activity {
 			public void onClick(View v) {
 				// ask withdraw
 				askWithdraw(context, updatedItem.mid, updatedItem.localid,
-						updatedItem.to);
+						updatedItem.to, activity);
 			}
 		});
 		buttonCopy.setOnClickListener(new View.OnClickListener() {
@@ -642,8 +651,7 @@ public class MessageDetailsActivity extends Activity {
 	 *            the to host uid
 	 */
 	public void askWithdraw(final Context context, final int mid,
-			final int localid, final int toHostUid) {
-		final Activity activity = this;
+			final int localid, final int toHostUid, final Activity activity) {
 		String titleMessage = "Withdraw Message " + mid;
 		if (mid == -1) {
 			titleMessage = "Withdraw Message *" + localid;
@@ -667,6 +675,7 @@ public class MessageDetailsActivity extends Activity {
 								// now really try to withdraw
 								DB.tryToWithdrawMessage(context, mid, localid,
 										DB.getTimestampString(), toHostUid);
+								alertDialog.dismiss();
 								activity.finish();
 							}
 						}

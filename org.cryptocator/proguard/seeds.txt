@@ -187,6 +187,7 @@ org.cryptocator.R$drawable: int btnaccount
 org.cryptocator.R$drawable: int btnadduser
 org.cryptocator.R$drawable: int btnback
 org.cryptocator.R$drawable: int btnbackup
+org.cryptocator.R$drawable: int btnbackupsm
 org.cryptocator.R$drawable: int btnclear
 org.cryptocator.R$drawable: int btncompose
 org.cryptocator.R$drawable: int btnkey
