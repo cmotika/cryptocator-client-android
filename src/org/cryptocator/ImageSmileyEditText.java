@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable;
 import android.text.Spannable;
 import android.text.style.ImageSpan;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.EditText;
 
 /**
@@ -42,6 +43,12 @@ public class ImageSmileyEditText extends EditText {
 	// "^^",
 	// ":)", ":P", ";)" };
 
+	/**
+	 * The is input text field then reduce images to tumbnails and doe not
+	 * resize!
+	 */
+	private boolean isInputTextField = false;
+
 	/** The cut/copy/paste listener. */
 	OnCutCopyPasteListener onCutCopyPasteListener = null;
 
@@ -62,6 +69,17 @@ public class ImageSmileyEditText extends EditText {
 	/** The constant spannableFactory. */
 	private static final Spannable.Factory spannableFactory = Spannable.Factory
 			.getInstance();
+
+	/** The max withd of the text field. */
+	private int maxWidth = 100;
+
+	/**
+	 * The contains images flag is needed to recompute layout only in this case
+	 * if orientation (=width) changed.
+	 */
+	private boolean containsImages = false;
+
+	// ------------------------------------------------------------------------
 
 	/**
 	 * The constant for mapping regexp parsing rules from smiley index number.
@@ -111,14 +129,15 @@ public class ImageSmileyEditText extends EditText {
 
 	/**
 	 * Sets the cut/copy/paste listener.
-	 *
-	 * @param onCutCopyPasteListener the new on cut copy paste listener
+	 * 
+	 * @param onCutCopyPasteListener
+	 *            the new on cut copy paste listener
 	 */
 	public void setOnCutCopyPasteListener(
 			OnCutCopyPasteListener onCutCopyPasteListener) {
 		this.onCutCopyPasteListener = onCutCopyPasteListener;
 	}
-	
+
 	// ------------------------------------------------------------------------
 
 	/**
@@ -163,6 +182,42 @@ public class ImageSmileyEditText extends EditText {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Update max width.
+	 * 
+	 * @param maxWidth
+	 *            the max width
+	 */
+	public void updateMaxWidth(int width) {
+		if (!isInputTextField) { // && containsImages) {
+			int newMaxWidth = (width * 60) / 100;
+			if (newMaxWidth < 100) {
+				newMaxWidth = 100;
+			}
+
+			String text = this.getText().toString();
+			if (text.length() > 20) {
+				text = text.substring(0, 20) + "...";
+			}
+
+			Log.d("communicator", "IMAGESMILEY updateMaxWidth(" + text
+					+ ")  maxWidth=" + maxWidth + ", newMaxWidth="
+					+ newMaxWidth + ", containsImages=" + containsImages);
+
+			if (newMaxWidth != maxWidth) {
+				maxWidth = newMaxWidth;
+				Log.d("communicator", "IMAGESMILEY REDRAW!!!");
+
+				// Only in this case recompute layout
+				this.setText(this.getText().toString());
+			}
+		} else {
+			maxWidth = 100;
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -171,10 +226,27 @@ public class ImageSmileyEditText extends EditText {
 	 */
 	@Override
 	public void setText(CharSequence text, BufferType type) {
-		// We instantiate the spannable with the height of a line
-		Spannable spannable = getTextWithImages(getContext(), text,
-				this.getLineHeight(), this);
-		super.setText(spannable, BufferType.SPANNABLE);
+		try {
+			// We instantiate the spannable with the height of a line
+			Spannable spannable = getTextWithImages(getContext(), text,
+					this.getLineHeight(), this, isInputTextField);
+			super.setText(spannable, BufferType.SPANNABLE);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	// ------------------------------------------------------------------------
+
+	@Override
+	protected void onLayout(boolean changed, int l, int t, int r, int b) {
+
+		if (Conversation.isTypingFast() && !isInputTextField) {
+			return;
+		}
+
+		super.onLayout(changed, l, t, r, b);
 	}
 
 	// ------------------------------------------------------------------------
@@ -191,7 +263,9 @@ public class ImageSmileyEditText extends EditText {
 	 * @return true, if successful
 	 */
 	private static boolean addImages(Context context, Spannable spannable,
-			float textHeight, ImageSmileyEditText editText) {
+			float textHeight, ImageSmileyEditText editText,
+			boolean isInputTextField) {
+		editText.containsImages = false;
 
 		// Taken from the acknowledged article:
 		//
@@ -246,6 +320,7 @@ public class ImageSmileyEditText extends EditText {
 		Matcher matcher = refImg.matcher(spannable);
 		while (matcher.find()) {
 			boolean set = true;
+			editText.containsImages = true;
 			for (ImageSpan span : spannable.getSpans(matcher.start(),
 					matcher.end(), ImageSpan.class)) {
 				if (spannable.getSpanStart(span) >= matcher.start()
@@ -260,8 +335,8 @@ public class ImageSmileyEditText extends EditText {
 					.subSequence(matcher.start(1), matcher.end(1)).toString()
 					.trim();
 
-			//Log.d("communicator", "IMAGE1:" + spannable.toString());
-			//Log.d("communicator", "IMAGE2:" + encodedImg);
+			// Log.d("communicator", "IMAGE1:" + spannable.toString());
+			// Log.d("communicator", "IMAGE2:" + encodedImg);
 
 			Bitmap bitmap = null;
 			Drawable drawable = null;
@@ -270,7 +345,18 @@ public class ImageSmileyEditText extends EditText {
 				drawable = Utility.getDrawableFromBitmap(context, bitmap);
 				int h = bitmap.getHeight();
 				int w = bitmap.getWidth();
-				//Log.d("communicator", "IMAGE3: h=" + h + ", w=" + w);
+
+				Log.d("communicator", "IMAGESMILEY addImages()  maxWidth="
+						+ editText.maxWidth);
+
+				if (w > editText.maxWidth) {
+					float scale = ((float) w) / ((float) editText.maxWidth);
+					// Log.d("communicator", "RESIZE: (1) scale=" + scale);
+					w = editText.maxWidth;
+					h = (int) ((float) h / scale);
+				}
+
+				// Log.d("communicator", "IMAGE3: h=" + h + ", w=" + w);
 				// Must set the original bytes, otherwise NPE
 				drawable.setBounds(0, 0, w, h);
 			} catch (Exception e) {
@@ -281,7 +367,8 @@ public class ImageSmileyEditText extends EditText {
 				hasChanges = true;
 				int start = matcher.start();
 				int end = matcher.end();
-				//Log.d("communicator", "IMAGE4: start=" + start + ", end=" + end);
+				// Log.d("communicator", "IMAGE4: start=" + start + ", end=" +
+				// end);
 				spannable.setSpan(new ImageSpan(drawable), start, end,
 						Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			}
@@ -303,19 +390,26 @@ public class ImageSmileyEditText extends EditText {
 	 * @return the text with images
 	 */
 	private static Spannable getTextWithImages(Context context,
-			CharSequence text, float textHeight, ImageSmileyEditText editText) {
+			CharSequence text, float textHeight, ImageSmileyEditText editText,
+			boolean isInputTextField) {
 		Spannable spannable = spannableFactory.newSpannable(text);
-		addImages(context, spannable, textHeight, editText);
+		Log.d("communicator", "TEXTEDIT getTextWithImages()");
+		// if (!Conversation.isTypingFast() || isInputTextField) {
+		addImages(context, spannable, textHeight, editText, isInputTextField);
+		// }
 		return spannable;
 	}
 
 	// ------------------------------------------------------------------------
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see android.widget.TextView#onTextContextMenuItem(int)
 	 */
 	@Override
 	public boolean onTextContextMenuItem(int id) {
+		Log.d("communicator", "TEXTEDIT onTextContextMenuItem()");
 		boolean consumed = super.onTextContextMenuItem(id);
 		switch (id) {
 		case android.R.id.cut:
@@ -334,6 +428,19 @@ public class ImageSmileyEditText extends EditText {
 			break;
 		}
 		return consumed;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sets the input text field to true or false. If set to true the text field
+	 * will not redraw itself and show thumbnail images of width 100 only.
+	 * 
+	 * @param isInputTextField
+	 *            the new input text field
+	 */
+	public void setInputTextField(boolean isInputTextField) {
+		this.isInputTextField = isInputTextField;
 	}
 
 	// ------------------------------------------------------------------------

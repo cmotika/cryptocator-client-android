@@ -100,6 +100,13 @@ public class FastScrollView extends LinearLayout {
 	/** The cached heights sum of all children. */
 	public int heightsSum = 0;
 
+	/**
+	 * The allow one layout pass which overrides no layout requests. This can be
+	 * used from outside to flag that one re-layout is made SURE to be allowed
+	 * e.g. when changing orientation of the screen.
+	 */
+	public static int allowOneLayoutOverride = 0;
+
 	// -------------------------------------------------------------------------
 
 	/** The layout done listener. */
@@ -557,7 +564,8 @@ public class FastScrollView extends LinearLayout {
 	 * shown.
 	 */
 	private void updateScrollBar() {
-		// TODO: SOMEHOW THE FOLLING CODE IS BUGGY .. DO WE NEED THIS FUNCTIONALITY?!
+		// TODO: SOMEHOW THE FOLLING CODE IS BUGGY .. DO WE NEED THIS
+		// FUNCTIONALITY?!
 
 		// Log.d("communicator",
 		// "PPPPPP FastScrollView.updateScrollBar() getMaxPosition()="
@@ -646,6 +654,9 @@ public class FastScrollView extends LinearLayout {
 	 *            the view
 	 */
 	public void addChild(View view) {
+		// Allow the next layout pass!
+		FastScrollView.allowOneLayoutOverride = 3;
+
 		childList.add(view);
 		innerChilds.addView(view);
 		heightsInvalidate = true;
@@ -693,17 +704,18 @@ public class FastScrollView extends LinearLayout {
 	 */
 	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
-		super.onLayout(changed, l, t, r, b);
 		Log.d("communicator", "PPPPPP FastScrollView.onLayout()");
-		if (!isNoHangNeeded()) {
+		if (!isNoHangNeeded() || allowOneLayoutOverride > 0) {
+			allowOneLayoutOverride--;
+			super.onLayout(changed, l, t, r, b);
 			updateScrollBar();
 			if (layoutDoneListener != null) {
 				layoutDoneListener.doneLayout();
 			}
+			// IT SEEMS TO BE NECESSARY TO STILL UPDATE THE MEASUREMENTS!!!
+			// This should not be deferred like the scrolling
+			measureHeights();
 		}
-		// IT SEEMS TO BE NECESSARY TO STILL UPDATE THE MEASUREMENTS!!!
-		// This should not be deferred like the scrolling
-		measureHeights();
 		changed = false;
 	}
 

@@ -76,7 +76,7 @@ public class PictureImportActivity extends Activity {
 
 	/** The picture import dialog. */
 	AlertDialog pictureImportDialog = null;
-	
+
 	/** The sizetextback background. */
 	private LinearLayout sizetextback = null;
 
@@ -235,7 +235,7 @@ public class PictureImportActivity extends Activity {
 				.findViewById(R.id.pictureimportbuttons);
 
 		// -------------
-		
+
 		sizetextback = (LinearLayout) dialogLayout
 				.findViewById(R.id.sizetextback);
 
@@ -460,13 +460,14 @@ public class PictureImportActivity extends Activity {
 		if (result != null) {
 			result = "[img " + result + "]";
 		}
-		String displayText = "Image will need " + lenKB2 + " KB / "
-				+ sms + " SMS.";
+		String displayText = "Image will need " + lenKB2 + " KB / " + sms
+				+ " SMS.";
 
 		if (pictureImportDialog != null) {
-			pictureImportDialog.setTitle("Insert - " + lenKB2 + " KB / " + sms + " SMS");
+			pictureImportDialog.setTitle("Insert - " + lenKB2 + " KB / " + sms
+					+ " SMS");
 		}
-		
+
 		sizetextback.setBackgroundColor(BACKALERTOKCOLOR);
 
 		if (sms > (Setup.SMS_SIZE_WARNING / Setup.SMS_DEFAULT_SIZE)) {
@@ -480,8 +481,7 @@ public class PictureImportActivity extends Activity {
 		if (limit == 0) {
 			sizetextback.setBackgroundColor(BACKALERTWARN2COLOR);
 			displayText += "\n\nServer does not allow any attachments. Image will get removed when sent as Internet message.";
-		}
-		else if (lenKB > limit) {
+		} else if (lenKB > limit) {
 			sizetextback.setBackgroundColor(BACKALERTWARN2COLOR);
 			displayText += "\n\nServer permits only attachments up to "
 					+ limit
@@ -499,12 +499,12 @@ public class PictureImportActivity extends Activity {
 	 *            the rating
 	 */
 	private void updateQuality(float rating) {
-		final int QUALITY0 = 5; 
-		final int QUALITY1 = 10; 
-		final int QUALITY2 = 20; 
-		final int QUALITY3 = 40; 
-		final int QUALITY4 = 60; 
-		final int QUALITY5 = 80; 
+		final int QUALITY0 = 5;
+		final int QUALITY1 = 10;
+		final int QUALITY2 = 20;
+		final int QUALITY3 = 40;
+		final int QUALITY4 = 60;
+		final int QUALITY5 = 80;
 
 		if (rating <= 1) {
 			selectedQuality = QUALITY0;

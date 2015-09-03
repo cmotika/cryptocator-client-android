@@ -64,10 +64,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnLongClickListener;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -88,6 +86,9 @@ import android.widget.TextView;
  */
 @SuppressLint("InflateParams")
 public class Conversation extends Activity {
+
+	/** The fixed inset for conversation items. */
+	private final int FIXED_INSET = 180;
 
 	/** The fast scroll view. */
 	FastScrollView fastScrollView;
@@ -166,6 +167,15 @@ public class Conversation extends Activity {
 	 */
 	int lastHeight = 0;
 
+	/** The last messag text line count. */
+	int lastMessagTextLineCount = 1;
+
+	/** The current screen width. */
+	public static int currentScreenWidth = 300;
+
+	/** The screen width changed. */
+	boolean screenWidthChanged = false;
+
 	/**
 	 * The color of the fast scroll background when scrolling and not scroll
 	 * locked down.
@@ -184,10 +194,22 @@ public class Conversation extends Activity {
 	private ImageContextMenuProvider imageSendMenuProvider = null;
 
 	/**
-	 * The skips ONE resume. Necessary for the send context menu call
-	 * because we do not want to typical resume there.
+	 * The skips ONE resume. Necessary for the send context menu call because we
+	 * do not want to typical resume there.
 	 */
 	public static boolean skipResume = false;
+
+	/**
+	 * The list of all text views in order to update their with when screen
+	 * orientation changes.
+	 */
+	private List<ImageSmileyEditText> textViews = new ArrayList<ImageSmileyEditText>();
+
+	/** Tells if sms mode is on. */
+	private boolean isSMSModeOn = false;
+
+	/** The is encryption on. */
+	private boolean isEncryptionOn = false;
 
 	// ------------------------------------------------------------------------
 
@@ -299,6 +321,7 @@ public class Conversation extends Activity {
 				});
 
 		messageText = ((ImageSmileyEditText) findViewById(R.id.messageText));
+		messageText.setInputTextField(true);
 		// fastscrollbar = (FastScrollBar) findViewById(R.id.fastscrollbar);
 
 		messageText
@@ -325,6 +348,30 @@ public class Conversation extends Activity {
 				// fast as System.nanoTime(). However 29ns is going to be much
 				// shorter than anything else you'd be measuring anyhow.
 				lastKeyStroke = System.currentTimeMillis();
+
+				int newLineCount = messageText.getLineCount();
+				if (lastMessagTextLineCount != newLineCount) {
+					lastMessagTextLineCount = newLineCount;
+					// Allow reLayout
+					FastScrollView.allowOneLayoutOverride = 3;
+				}
+
+				if (isSMSModeOn && keyboardVisible) {
+					// In SMS mode and with keyboard visible, show the remaining
+					// text and the number of multipart SMS in the title
+					int smsSize = Setup.SMS_DEFAULT_SIZE;
+					int textLen = messageText.length();
+					if (isEncryptionOn) {
+						smsSize = Setup.SMS_DEFAULT_SIZE_ENCRYPTED;
+					} else if (textLen > smsSize) {
+						smsSize = Setup.SMS_DEFAULT_SIZE_MULTIPART;
+					}
+					int numSMS = (int) Math.ceil((double) textLen
+							/ (double) smsSize);
+					int remainingUntilNextSMS = (numSMS * smsSize) - textLen;
+					setTitle(remainingUntilNextSMS + " / " + numSMS);
+				}
+
 			}
 
 			public void beforeTextChanged(CharSequence s, int start, int count,
@@ -416,7 +463,7 @@ public class Conversation extends Activity {
 		sendbutton.setLongClickable(true);
 		sendbutton.setOnLongClickListener(new OnLongClickListener() {
 			public boolean onLongClick(View v) {
-				//sendspinner.performClick();
+				// sendspinner.performClick();
 				ImageContextMenu.show(instance, createSendMenu(instance));
 				return false;
 			}
@@ -553,6 +600,10 @@ public class Conversation extends Activity {
 		fastScrollView
 				.setOnSizeChangeListener(new FastScrollView.OnSizeChangeListener() {
 					public void onSizeChange(int w, int h, int oldw, int oldh) {
+						if (currentScreenWidth != w) {
+							screenWidthChanged = true;
+						}
+						currentScreenWidth = w;
 						// Log.d("communicator", "######## SCROLL CHANGED X");
 						// if the keyboard pops up and scrolledDown == true,
 						// then scroll down manually!
@@ -612,6 +663,19 @@ public class Conversation extends Activity {
 						// titleconversation.setVisibility(View.VISIBLE);
 						// }
 
+						if (screenWidthChanged) {
+							screenWidthChanged = false;
+
+							Log.d("communicator",
+									"@@@@ onGlobalLayout() screenWidthChanged -> SET NEW WIDTH TO ALL ELEMENTS! "
+											+ currentScreenWidth);
+
+							updateTextViewsWidth(currentScreenWidth);
+						}
+
+						// Allow the next layout pass!
+						FastScrollView.allowOneLayoutOverride = 3;
+
 						// Implicit allow scrollbar to update itself after
 						// changing orientation
 						// lastKeyStroke = 0;
@@ -646,192 +710,6 @@ public class Conversation extends Activity {
 	@Override
 	protected void onStart() {
 		super.onStart();
-//		final Context context = this;
-
-		// // SET SENDSPINNER
-		// sendspinner = (Spinner) findViewById(R.id.sendspinner);
-		//
-		// // NOT DISPLAYED BY DATA ADAPTER!!!
-		// final String OPTION0 = "SELECT AN OPTIONS";
-		//
-		// final String OPTIONCHATON = "  Enable Chat Mode";
-		// final String OPTIONCHATOFF = "  Disable Chat Mode";
-		// final String OPTIONSMSON = "  Enable SMS Mode";
-		// final String OPTIONSMSOFF = "  Disable SMS Mode";
-		// final String OPTIONUSECMSG = "  Send Unsecure Message";
-		// final String OPTIONSECMSG = "  Send Secure Message";
-		// final String OPTIONUSECSMS = "  Send Unsecure SMS";
-		// final String OPTIONSECSMS = "  Send Secure SMS";
-		//
-		// String[] spinnerTitles = { OPTION0, OPTIONCHATON, OPTIONSMSON,
-		// OPTIONUSECSMS, OPTIONSECSMS, OPTIONUSECMSG };
-		// String[] spinnerTitlesChat = { OPTION0, OPTIONCHATOFF, OPTIONSMSON,
-		// OPTIONUSECSMS, OPTIONSECSMS, OPTIONUSECMSG };
-		//
-		// String[] spinnerTitlesSMS = { OPTION0, OPTIONCHATON, OPTIONSMSOFF,
-		// OPTIONUSECMSG, OPTIONSECMSG, OPTIONUSECSMS };
-		// String[] spinnerTitlesSMSChat = { OPTION0, OPTIONCHATOFF,
-		// OPTIONSMSOFF,
-		// OPTIONUSECMSG, OPTIONSECMSG, OPTIONUSECSMS };
-		//
-		// String[] spinnerTitlesNOSMS = { OPTION0, OPTIONCHATON, OPTIONSMSON,
-		// OPTIONUSECMSG };
-		// String[] spinnerTitlesNOSMSChat = { OPTION0, OPTIONCHATOFF,
-		// OPTIONSMSON, OPTIONUSECMSG };
-		//
-		// String[] spinnerTitlesONLYSMS = { OPTION0, OPTIONCHATON, OPTIONSECSMS
-		// };
-		// String[] spinnerTitlesONLYSMSChat = { OPTION0, OPTIONCHATOFF,
-		// OPTIONSECSMS };
-		//
-		// // Populate the spinner using a customized ArrayAdapter that hides
-		// the
-		// // first (dummy) entry
-		// final ArrayAdapter<String> dataAdapter =
-		// getMyDataAdapter(spinnerTitles);
-		// final ArrayAdapter<String> dataAdapterChat =
-		// getMyDataAdapter(spinnerTitlesChat);
-		// final ArrayAdapter<String> dataAdapterSMS =
-		// getMyDataAdapter(spinnerTitlesSMS);
-		// final ArrayAdapter<String> dataAdapterChatSMS =
-		// getMyDataAdapter(spinnerTitlesSMSChat);
-		// final ArrayAdapter<String> dataAdapterNOSMS =
-		// getMyDataAdapter(spinnerTitlesNOSMS);
-		// final ArrayAdapter<String> dataAdapterNOSMSChat =
-		// getMyDataAdapter(spinnerTitlesNOSMSChat);
-		// final ArrayAdapter<String> dataAdapterONLYSMS =
-		// getMyDataAdapter(spinnerTitlesONLYSMS);
-		// final ArrayAdapter<String> dataAdapterONLYSMSChat =
-		// getMyDataAdapter(spinnerTitlesONLYSMSChat);
-		//
-		// updateSendspinner(context, dataAdapter, dataAdapterChat,
-		// dataAdapterSMS, dataAdapterChatSMS, dataAdapterNOSMS,
-		// dataAdapterNOSMSChat, dataAdapterONLYSMS,
-		// dataAdapterONLYSMSChat);
-
-//		sendspinner.setOnItemSelectedListener(new OnItemSelectedListener() {
-//			public void onItemSelected(AdapterView<?> arg0, View arg1,
-//					int arg2, long arg3) {
-//				Object object = sendspinner.getSelectedItem();
-//				if (object instanceof String) {
-//					String option = (String) object;
-//					if (option.equals(OPTIONCHATON)
-//							|| (option.equals(OPTIONCHATOFF))) {
-//						boolean chatmodeOn = Utility.loadBooleanSetting(
-//								context, Setup.OPTION_CHATMODE,
-//								Setup.DEFAULT_CHATMODE);
-//						chatmodeOn = !chatmodeOn;
-//						Utility.saveBooleanSetting(context,
-//								Setup.OPTION_CHATMODE, chatmodeOn);
-//						updateSendspinner(context, dataAdapter,
-//								dataAdapterChat, dataAdapterSMS,
-//								dataAdapterChatSMS, dataAdapterNOSMS,
-//								dataAdapterNOSMSChat, dataAdapterONLYSMS,
-//								dataAdapterONLYSMSChat);
-//						if (chatmodeOn) {
-//							Utility.showToastAsync(context,
-//									"Chat mode enabled.");
-//						} else {
-//							Utility.showToastAsync(context,
-//									"Chat mode disabled.");
-//						}
-//					} else if (option.equals(OPTIONSMSON)
-//							|| (option.equals(OPTIONSMSOFF))) {
-//						boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
-//						boolean haveTelephoneNumber = Setup.havePhone(context,
-//								hostUid);
-//						if (!smsmodeOn && !haveTelephoneNumber) {
-//							if (Setup.isSMSOptionEnabled(context)) {
-//								inviteOtherUserToSMSMode(context);
-//							} else {
-//								inviteUserToSMSMode(context);
-//							}
-//						} else {
-//							// normal toggle mode
-//							smsmodeOn = !smsmodeOn;
-//							Utility.saveBooleanSetting(context,
-//									Setup.OPTION_SMSMODE + hostUid, smsmodeOn);
-//							updateSendspinner(context, dataAdapter,
-//									dataAdapterChat, dataAdapterSMS,
-//									dataAdapterChatSMS, dataAdapterNOSMS,
-//									dataAdapterNOSMSChat, dataAdapterONLYSMS,
-//									dataAdapterONLYSMSChat);
-//							if (smsmodeOn) {
-//								Utility.showToastAsync(
-//										context,
-//										"SMS mode for "
-//												+ Main.UID2Name(context,
-//														hostUid, false)
-//												+ " enabled.");
-//							} else {
-//								Utility.showToastAsync(
-//										context,
-//										"SMS mode for "
-//												+ Main.UID2Name(context,
-//														hostUid, false)
-//												+ " disabled.");
-//							}
-//						}
-//						// COPY AND PASTE FEATURES ARE CURRENTLY DISABLED FOR A
-//						// CLEANER UI
-//						//
-//						// } else if (option.equals(OPTIONCOPY)) {
-//						// String text = messageText.getText().toString();
-//						// Utility.copyToClipboard(context, text);
-//						// messageText.selectAll();
-//						// } else if (option.equals(OPTIONPASTE)) {
-//						// String text = Utility.pasteFromClipboard(context);
-//						// int i = messageText.getSelectionStart();
-//						// if (text != null) {
-//						// String prevText = messageText.getText().toString();
-//						// if (i < 0) {
-//						// // default fallback is concatenation
-//						// messageText.setText(prevText + text);
-//						// } else {
-//						// // otherwise try to fill in the text
-//						// messageText.setText(prevText.substring(0, i)
-//						// + text + prevText.substring(i));
-//						// }
-//						// messageText.setSelection(text.length()
-//						// + prevText.length());
-//						// }
-//					} else if (option.equals(OPTIONSECSMS)) {
-//						if (hostUid >= 0) {
-//							sendMessageOrPrompt(context, DB.TRANSPORT_SMS, true);
-//						} else {
-//							promptInfo(
-//									context,
-//									"No Registered User",
-//									"In order to send secure encrypted SMS or messages, your communication partner needs to be registered.");
-//						}
-//					} else if (option.equals(OPTIONSECMSG)) {
-//						if (Setup.haveKey(context, hostUid)) {
-//							sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET,
-//									true);
-//						} else {
-//							promptInfo(
-//									context,
-//									"No Encryption Possible",
-//									"In order to send secure encrypted messages or SMS, your communication partner needs to enable encryption.");
-//
-//						}
-//					} else if (option.equals(OPTIONUSECMSG)) {
-//						sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET,
-//								false);
-//					} else if (option.equals(OPTIONUSECSMS)) {
-//						sendMessageOrPrompt(context, DB.TRANSPORT_SMS, false);
-//					}
-//				}
-//				sendspinner.setSelection(0);
-//			}
-//
-//			public void onNothingSelected(AdapterView<?> arg0) {
-//				//
-//			}
-//		});
-//		sendspinner.setSelection(0);
-//		// END SET SENDSPINNER
-
 	}
 
 	// ------------------------------------------------------------------------
@@ -847,114 +725,30 @@ public class Conversation extends Activity {
 
 	// ------------------------------------------------------------------------
 
-	// /**
-	// * Update send spinner (context menu for the send button).
-	// *
-	// * @param context
-	// * the context
-	// * @param dataAdapter
-	// * the data adapter
-	// * @param dataAdapterChat
-	// * the data adapter chat
-	// * @param dataAdapterSMS
-	// * the data adapter sms
-	// * @param dataAdapterChatSMS
-	// * the data adapter chat sms
-	// * @param dataAdapterNOSMS
-	// * the data adapter nosms
-	// * @param dataAdapterNOSMSChat
-	// * the data adapter nosms chat
-	// * @param dataAdapterONLYSMS
-	// * the data adapter onlysms
-	// * @param dataAdapterONLYSMSChat
-	// * the data adapter onlysms chat
-	// */
-	// private void updateSendspinner(Context context,
-	// ArrayAdapter<String> dataAdapter,
-	// ArrayAdapter<String> dataAdapterChat,
-	// ArrayAdapter<String> dataAdapterSMS,
-	// ArrayAdapter<String> dataAdapterChatSMS,
-	// ArrayAdapter<String> dataAdapterNOSMS,
-	// ArrayAdapter<String> dataAdapterNOSMSChat,
-	// ArrayAdapter<String> dataAdapterONLYSMS,
-	// ArrayAdapter<String> dataAdapterONLYSMSChat) {
-	// boolean chatmodeOn = Utility.loadBooleanSetting(context,
-	// Setup.OPTION_CHATMODE, Setup.DEFAULT_CHATMODE);
-	// boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
-	// boolean havephonenumber = Setup.havePhone(context, hostUid);
-	// boolean onlySMS = hostUid < 0;
-	//
-	// if (onlySMS) {
-	// // only SMS mode available
-	// if (chatmodeOn) {
-	// sendspinner.setAdapter(dataAdapterONLYSMSChat);
-	// } else {
-	// sendspinner.setAdapter(dataAdapterONLYSMS);
-	// }
-	// } else if (!havephonenumber) {
-	// // no SMS mode available
-	// if (chatmodeOn) {
-	// sendspinner.setAdapter(dataAdapterNOSMSChat);
-	// } else {
-	// sendspinner.setAdapter(dataAdapterNOSMS);
-	// }
-	// } else {
-	// // sms mode available
-	// if (smsmodeOn) {
-	// // sms mode on
-	// if (chatmodeOn) {
-	// sendspinner.setAdapter(dataAdapterChatSMS);
-	// } else {
-	// sendspinner.setAdapter(dataAdapterSMS);
-	// }
-	// } else {
-	// // normal : sms mode off
-	// if (chatmodeOn) {
-	// sendspinner.setAdapter(dataAdapterChat);
-	// } else {
-	// sendspinner.setAdapter(dataAdapter);
-	// }
-	// }
-	// }
-	// updateSendButtonImage(context);
-	// }
+	/**
+	 * Update all conversation text views widths.
+	 * 
+	 * @param width
+	 *            the width
+	 */
+	private void updateTextViewWidth(ImageSmileyEditText textView, int width) {
+		android.view.ViewGroup.LayoutParams lp = textView.getLayoutParams();
+		lp.width = width - FIXED_INSET;
+		textView.updateMaxWidth(width);
+	}
 
-	// -------------------------------
+	// ------------------------------------------------------------------------
 
 	/**
-	 * Gets the my data adapter for the send spinner.
+	 * Update all conversation text views widths.
 	 * 
-	 * @param titles
-	 *            the titles
-	 * @return the my data adapter
+	 * @param width
+	 *            the width
 	 */
-	ArrayAdapter<String> getMyDataAdapter(String[] titles) {
-		final ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
-				android.R.layout.simple_spinner_dropdown_item, titles) {
-			@Override
-			public View getDropDownView(int position, View convertView,
-					ViewGroup parent) {
-				View v = null;
-
-				// If this is the initial dummy entry, make it hidden
-				if (position == 0) {
-					TextView tv = new TextView(getContext());
-					tv.setHeight(0);
-					tv.setVisibility(View.GONE);
-					v = tv;
-				} else {
-					// Pass convertView as null to prevent reuse of special case
-					// views
-					v = super.getDropDownView(position, null, parent);
-				}
-
-				// Hide scroll bar because it appears sometimes unnecessarily,
-				// this does not prevent scrolling
-				parent.setVerticalScrollBarEnabled(false);
-				return v;
-			}
-		};
-		return dataAdapter;
+	private void updateTextViewsWidth(int width) {
+		for (ImageSmileyEditText textView : textViews) {
+			updateTextViewWidth(textView, width);
+		}
 	}
 
 	// ------------------------------------------------------------------------
@@ -1220,12 +1014,15 @@ public class Conversation extends Activity {
 	 *            the context
 	 */
 	private void updateSendButtonImage(Context context) {
+		isSMSModeOn = isSMSModeAvailableAndOn(context);
+		isEncryptionOn = false;
 		if (hostUid < 0) {
 			sendbutton.setImageResource(R.drawable.sendsms);
 			sendbutton.initializePressImageResource(R.drawable.sendsms, false);
 			// sendbutton.setImageResource(R.drawable.sendsms);
-		} else if (isSMSModeAvailableAndOn(context)) {
+		} else if (isSMSModeOn) {
 			if (Setup.isEncryptionAvailable(context, hostUid)) {
+				isEncryptionOn = true;
 				sendbutton.setImageResource(R.drawable.sendsmslock);
 				sendbutton.initializePressImageResource(R.drawable.sendsmslock,
 						false);
@@ -1235,6 +1032,7 @@ public class Conversation extends Activity {
 						false);
 			}
 		} else if (Setup.isEncryptionAvailable(context, hostUid)) {
+			isEncryptionOn = true;
 			sendbutton.setImageResource(R.drawable.sendlock);
 			sendbutton.initializePressImageResource(R.drawable.sendlock, false);
 		} else {
@@ -1401,14 +1199,14 @@ public class Conversation extends Activity {
 			this.finish();
 		} else {
 			Conversation.visible = true;
-			
+
 			// Only ONCE skip the resume after context menu closure
 			if (skipResume) {
 				skipResume = false;
 				return;
 
 			}
-			
+
 			// Reset error claims
 			Setup.setErrorUpdateInterval(this, false);
 			Scheduler.reschedule(this, false, false, true);
@@ -1548,6 +1346,8 @@ public class Conversation extends Activity {
 				public void run() {
 					lastKeyStroke = DB.getTimestamp();
 					messageText.requestFocus();
+					// Allow the next layout pass!
+					FastScrollView.allowOneLayoutOverride = 3;
 					Utility.showKeyboardExplicit(messageText);
 					messageText.requestFocus();
 				}
@@ -1714,6 +1514,8 @@ public class Conversation extends Activity {
 	private void rebuildConversationlist(final Context context) {
 		fastScrollView.clearChilds();
 		resetMapping();
+		textViews.clear();
+		conversationSize = 0;
 
 		loadConversationList(context, hostUid, maxScrollMessageItems);
 		try {
@@ -2258,6 +2060,11 @@ public class Conversation extends Activity {
 			}
 		}
 
+		// Add this to this list in order to later adjust the width
+		textViews.add(conversationText);
+		// Set the current width
+		updateTextViewWidth(conversationText, currentScreenWidth);
+
 		conversationText
 				.setOnCutCopyPasteListener(new ImageSmileyEditText.OnCutCopyPasteListener() {
 					public void onPaste() {
@@ -2751,7 +2558,7 @@ public class Conversation extends Activity {
 		}
 		updateSendButtonImage(context);
 	}
-	
+
 	// ------------------------------------------------------------------------
 
 	/**
@@ -2764,7 +2571,7 @@ public class Conversation extends Activity {
 		if (imageSendMenuProvider == null) {
 			imageSendMenuProvider = new ImageContextMenuProvider(context, null,
 					null);
-			menuEnableChat =imageSendMenuProvider.addEntry("Enable Chat Mode",
+			menuEnableChat = imageSendMenuProvider.addEntry("Enable Chat Mode",
 					R.drawable.menuchaton,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
@@ -2777,8 +2584,8 @@ public class Conversation extends Activity {
 							return true;
 						}
 					});
-			menuDisableChat = imageSendMenuProvider.addEntry("Disable Chat Mode",
-					R.drawable.menuchatoff,
+			menuDisableChat = imageSendMenuProvider.addEntry(
+					"Disable Chat Mode", R.drawable.menuchatoff,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
 							skipResume = true;
@@ -2862,8 +2669,8 @@ public class Conversation extends Activity {
 							return true;
 						}
 					});
-			menuSndMsg = imageSendMenuProvider.addEntry("Send Unsecure Message",
-					R.drawable.menumsgunsec,
+			menuSndMsg = imageSendMenuProvider.addEntry(
+					"Send Unsecure Message", R.drawable.menumsgunsec,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
 							skipResume = true;
@@ -2872,8 +2679,8 @@ public class Conversation extends Activity {
 							return true;
 						}
 					});
-			menuSndMsgSec = imageSendMenuProvider.addEntry("Send Secure Message",
-					R.drawable.menumsgsec,
+			menuSndMsgSec = imageSendMenuProvider.addEntry(
+					"Send Secure Message", R.drawable.menumsgsec,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
 							skipResume = true;
@@ -3015,7 +2822,7 @@ public class Conversation extends Activity {
 	// }
 
 	// ------------------------------------------------------------------------
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -3412,10 +3219,12 @@ public class Conversation extends Activity {
 		Intent intent = new Intent();
 
 		if (Build.VERSION.SDK_INT >= 19) {
-			intent = new Intent(
-					Intent.ACTION_PICK,
-					android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-			activity.startActivityForResult(intent, SELECT_PICTURE);
+			intent.setType("image/*");
+			intent.setAction(Intent.ACTION_GET_CONTENT);
+			activity.startActivityForResult(
+					Intent.createChooser(intent, "Select Attachment"),
+					SELECT_PICTURE);
+
 		} else {
 			intent.setType("image/*");
 			intent.setAction(Intent.ACTION_PICK);
@@ -3653,8 +3462,12 @@ public class Conversation extends Activity {
 		byte[] bytes = Utility.getFile(attachmentPath);
 		Bitmap bitmap = Utility.getBitmapFromBytes(bytes);
 
-		PictureImportActivity.attachmentBitmap = bitmap;
-		context.startActivity(dialogIntent);
+		if (bitmap != null) {
+			PictureImportActivity.attachmentBitmap = bitmap;
+			context.startActivity(dialogIntent);
+		} else {
+			Utility.showToastAsync(context, "Image error.");
+		}
 	}
 
 	// ------------------------------------------------------------------------

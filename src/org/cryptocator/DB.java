@@ -1312,8 +1312,8 @@ public class DB {
 			Main.updateLastMessage(context, hostUid, text, DB.getTimestamp());
 		}
 
-		// AUTOMATED MULTIPART SPLITTING - NOT FOR SYSTEM MESSAGES //
-		if (text.length() > Setup.MULTIPART_MESSAGELIMIT && !system) {
+		// AUTOMATED MULTIPART SPLITTING - NOT FOR SYSTEM SMS MESSAGES //
+		if (transport == DB.TRANSPORT_SMS && text.length() > Setup.MULTIPART_MESSAGELIMIT && !system) {
 			// SPLIT UP
 			double textLen = (double) text.length();
 			int parts = (int) Math.ceil(textLen
@@ -1609,7 +1609,7 @@ public class DB {
 
 	/**
 	 * Get the number of received multi part messages. If no multi part message
-	 * it returns -1.
+	 * it returns the empty list.
 	 * 
 	 * @param context
 	 *            the context
@@ -1621,7 +1621,7 @@ public class DB {
 	 */
 	public static Set<Integer> getReceivedMultiparts(Context context,
 			String multipartId, int senderUid) {
-		if (!multipartId.equals(NO_MULTIPART_ID)) {
+		if (multipartId != null && !multipartId.equals(NO_MULTIPART_ID)) {
 			// Okay we have a multi part id, so now count the other parts that
 			// we have with the same ID
 			SQLiteDatabase db = null;
@@ -1663,7 +1663,7 @@ public class DB {
 			}
 			return haveConsidered;
 		} else {
-			return null;
+			return new HashSet<Integer>();
 		}
 	}
 
@@ -1924,6 +1924,10 @@ public class DB {
 				for (int cc = 0; cc < columns; cc++) {
 					String name = cursor.getColumnName(cc);
 					String val = cursor.getString(cc);
+					if (val != null) {
+						val = val.replace("\n", "").replace("\r", "");
+					}
+					
 					entry += name + "=" + val + ", ";
 				}
 				Log.d("communicator", "DBTABLE [" + uid + "] " + entry);
@@ -2064,7 +2068,9 @@ public class DB {
 					+ ") OR (`fromuid` = "
 					+ hostUid
 					+ " AND `touid` = "
-					+ myUid(context) + ")) AND `system` != '1' "
+					+ myUid(context) + ")) " 
+					+ " AND `fromuid` != -1 AND `touid` != -1 AND `text` != '' AND (`system` != '1' OR `mid` = '-1')"
+//					"AND `system` != 1 "
 					// AND `part` = "+ DB.DEFAULT_MESSAGEPART
 					// + " GROUP BY `multipartid` HAVING `part` = MIN(`part`)"
 					+ " ORDER BY `created` DESC, `sent` DESC " // AND
@@ -2072,12 +2078,13 @@ public class DB {
 					// !=
 					// '1'
 					+ LIMIT;
-			Log.d("communicator", "loadConversation() QUERY = " + QUERY);
+					;
+			Log.d("communicator", "loadConversation() -2255 QUERY = " + QUERY);
 
 			Cursor cursor = db.rawQuery(QUERY, null);
 			if (cursor != null && cursor.moveToFirst()) {
 				Log.d("communicator",
-						"loadConversation() getCount = " + cursor.getCount());
+						"loadConversation() -2255 getCount = " + cursor.getCount());
 
 				for (int c = 0; c < cursor.getCount(); c++) {
 
@@ -2087,6 +2094,10 @@ public class DB {
 					int to = Utility.parseInt(cursor.getString(3), -1);
 					String text = cursor.getString(4);
 
+					Log.d("communicator",
+							"loadConversation() -2255 text["+cursor.getString(1)+"] = " + text);
+
+					
 					long created = parseTimestamp(cursor.getString(5), -1);
 					long sent = parseTimestamp(cursor.getString(6), -1);
 
