@@ -148,10 +148,15 @@ public class MessageDetailsActivity extends Activity {
 
 		TextView created = (TextView) dialogLayout.findViewById(R.id.created);
 		TextView sent = (TextView) dialogLayout.findViewById(R.id.sent);
-		TextView sendingreceivingtitle = (TextView) dialogLayout.findViewById(R.id.sendingreceivingtitle);
-		TextView sendingreceiving = (TextView) dialogLayout.findViewById(R.id.sendingreceiving);
-		ProgressBar sendingreceivingprogress = (ProgressBar) dialogLayout.findViewById(R.id.sendingreceivingprogess); // progress for sending/receiving
-		TableRow sendingreceivingparent = (TableRow) dialogLayout.findViewById(R.id.sendingreceivingparent);
+		TextView sendingreceivingtitle = (TextView) dialogLayout
+				.findViewById(R.id.sendingreceivingtitle);
+		TextView sendingreceiving = (TextView) dialogLayout
+				.findViewById(R.id.sendingreceiving);
+		ProgressBar sendingreceivingprogress = (ProgressBar) dialogLayout
+				.findViewById(R.id.sendingreceivingprogess); // progress for
+																// sending/receiving
+		TableRow sendingreceivingparent = (TableRow) dialogLayout
+				.findViewById(R.id.sendingreceivingparent);
 		TextView received = (TextView) dialogLayout.findViewById(R.id.received);
 		TextView read = (TextView) dialogLayout.findViewById(R.id.read);
 		TextView withdrawn = (TextView) dialogLayout
@@ -218,43 +223,49 @@ public class MessageDetailsActivity extends Activity {
 		sent.setText(DB.getDateString(updatedItem.sent, true));
 
 		if (updatedItem.me(context)) {
-			// We send this item 
+			// We send this item
 			if (updatedItem.sent > 10) {
 				// If this item is sent, then hide sending/receiving!
 				sendingreceivingparent.setVisibility(View.GONE);
-			}
-			else {
+			} else {
 				// We don't have sent everything, display progress bar!
 				sendingreceivingtitle.setText("Sending:");
-				int percentSent = DB.getPercentSentComplete(context, updatedItem.multipartid);
+				int percentSent = DB.getPercentSentComplete(context,
+						updatedItem.multipartid);
 				int numTotal = updatedItem.parts;
-				int numSent = (int)Math.ceil(((double)percentSent*(double)numTotal)/100);
+				int numSent = (int) Math
+						.ceil(((double) percentSent * (double) numTotal) / 100);
 				sendingreceivingprogress.setMax(100);
 				sendingreceivingprogress.setProgress(percentSent);
 				String position = "#"
-				+ DB.getPositionInSendingQueue(context,
-						updatedItem.transport, updatedItem.localid)
-				+ " in Sending Queue";
-				sendingreceiving.setText(position + "\n" + percentSent + "%, " + numSent + " / " + numTotal);
+						+ DB.getPositionInSendingQueue(context,
+								updatedItem.transport, updatedItem.localid)
+						+ " in Sending Queue";
+				sendingreceiving.setText(position + "\n" + percentSent + "%, "
+						+ numSent + " / " + numTotal);
 			}
 		} else {
-			// We receive this item, so now lookup how much percent we have received yet
-			int numReceived = DB.getReceivedMultiparts(context, updatedItem.multipartid, updatedItem.from).size();
+			// We receive this item, so now lookup how much percent we have
+			// received yet
+			int numReceived = DB.getReceivedMultiparts(context,
+					updatedItem.multipartid, updatedItem.from).size();
 			if (numReceived == 0 || numReceived >= updatedItem.parts) {
-				// This is no multipart message or we have received everything, so hide sending/receiving
+				// This is no multipart message or we have received everything,
+				// so hide sending/receiving
 				sendingreceivingparent.setVisibility(View.GONE);
 			} else {
 				// We don't have received everything, display progress bar!
 				sendingreceivingtitle.setText("Receiving:");
 				sendingreceivingprogress.setMax(100);
 				int numTotal = updatedItem.parts;
-				int percentReceived = (numReceived * 100)/numTotal;
+				int percentReceived = (numReceived * 100) / numTotal;
 				sendingreceivingprogress.setProgress(percentReceived);
-				sendingreceiving.setText(percentReceived + "%, " + numReceived + " / " + numTotal + " {" + updatedItem.multipartid + "}");
+				sendingreceiving.setText(percentReceived + "%, " + numReceived
+						+ " / " + numTotal + " {" + updatedItem.multipartid
+						+ "}");
 			}
 		}
-		
-		
+
 		if (updatedItem.smsfailed) {
 			sent.setText(DB.SMS_FAILED);
 			sendingreceivingparent.setVisibility(View.GONE);
@@ -376,26 +387,38 @@ public class MessageDetailsActivity extends Activity {
 
 		ImageLabelButton buttonbackup = (ImageLabelButton) dialogLayout
 				.findViewById(R.id.buttonbackup);
-		buttonbackup.setTextAndImageResource("Backup", R.drawable.btnbackup);
+		buttonbackup.setTextAndImageResource("Backup", R.drawable.btnbackupsm);
 		ImageLabelButton buttonclear = (ImageLabelButton) dialogLayout
 				.findViewById(R.id.buttonclear);
 		buttonclear.setTextAndImageResource("Clear", R.drawable.btnclear);
 
 		buttonbackup.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
+				final List<ConversationItem> conversationList = new ArrayList<ConversationItem>();
+				DB.loadConversation(context, hostUid, conversationList, -1);
+
+				DB.loadConversation(context, hostUid, conversationList, -1);
+				int messagesToBackup = 0;
+				for (messagesToBackup = 0; messagesToBackup < conversationList
+						.size(); messagesToBackup++) {
+					if (conversationList.get(messagesToBackup).localid == updatedItem.localid) {
+						messagesToBackup++;
+						break;
+					}
+				}
+
 				new MessageAlertDialog(
 						context,
 						"Backup Messages",
-						"Backup all older messages up to this one to the Clipboard?",
+						"Backup all "
+								+ messagesToBackup
+								+ " older messages up to this one to the Clipboard?",
 						"Backup", null, "Abort",
 						new MessageAlertDialog.OnSelectionListener() {
 							public void selected(int button, boolean cancel) {
 								if (!cancel && button == 0) {
 									// Backup all message up & including to this
 									// one
-									List<ConversationItem> conversationList = new ArrayList<ConversationItem>();
-									DB.loadConversation(context, hostUid,
-											conversationList, -1);
 									BackupActivity.doBackup(context, 0,
 											updatedItem.localid,
 											conversationList,
@@ -436,10 +459,24 @@ public class MessageDetailsActivity extends Activity {
 		});
 		buttonclear.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
+
+				final List<ConversationItem> conversationList = new ArrayList<ConversationItem>();
+				DB.loadConversation(context, hostUid, conversationList, -1);
+				int messagesToDelete = 0;
+				for (messagesToDelete = 0; messagesToDelete < conversationList
+						.size(); messagesToDelete++) {
+					if (conversationList.get(messagesToDelete).localid == updatedItem.localid) {
+						messagesToDelete++;
+						break;
+					}
+				}
+
 				new MessageAlertDialog(
 						context,
 						"Clear Messages",
-						"Really clear all older messages up to and including this one?",
+						"Really clear all "
+								+ messagesToDelete
+								+ " older messages up to and including this one?",
 						"Clear", null, "Abort",
 						new MessageAlertDialog.OnSelectionListener() {
 							public void selected(int button, boolean cancel) {
@@ -453,6 +490,14 @@ public class MessageDetailsActivity extends Activity {
 										Utility.showToastAsync(context,
 												+numCleared
 														+ " messages cleared.");
+										// We close and have to refresh, because
+										// this message has been gone now!
+										if (Conversation.isAlive()) {
+											Conversation.getInstance()
+													.rebuildConversation(
+															context, 200);
+										}
+										activity.finish();
 									} else {
 										Utility.showToastAsync(context,
 												"Nothing cleared.");
