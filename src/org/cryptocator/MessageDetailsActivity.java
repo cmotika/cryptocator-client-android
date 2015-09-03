@@ -194,6 +194,7 @@ public class MessageDetailsActivity extends Activity {
 		final ConversationItem updatedItem = DB.getMessage(context,
 				conversationItem.localid, hostUid, DB.DEFAULT_MESSAGEPART);
 		if (updatedItem == null) {
+			alertDialog.dismiss();
 			activity.finish();
 			return;
 		}
@@ -506,6 +507,7 @@ public class MessageDetailsActivity extends Activity {
 													.rebuildConversation(
 															context, 200);
 										}
+										alertDialog.dismiss();
 										activity.finish();
 									} else {
 										Utility.showToastAsync(context,
@@ -528,6 +530,7 @@ public class MessageDetailsActivity extends Activity {
 		buttonresend.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				if (resendMessage(conversationItem)) {
+					alertDialog.dismiss();
 					activity.finish();
 				}
 			}
@@ -543,6 +546,7 @@ public class MessageDetailsActivity extends Activity {
 		buttonCopy.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				Utility.copyToClipboard(context, conversationItem.text);
+				alertDialog.dismiss();
 				activity.finish();
 			}
 		});
@@ -562,6 +566,7 @@ public class MessageDetailsActivity extends Activity {
 							}
 						}, 200); // 400ms important because after 200ms the
 									// resume() will hid the keyboard
+				alertDialog.dismiss();
 				activity.finish();
 			}
 		});
@@ -573,6 +578,7 @@ public class MessageDetailsActivity extends Activity {
 		outerLayout.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				// dialog.dismiss();
+				alertDialog.dismiss();
 				activity.finish();
 			}
 		});
@@ -582,6 +588,7 @@ public class MessageDetailsActivity extends Activity {
 		builder.setOnCancelListener(new OnCancelListener() {
 			public void onCancel(DialogInterface dialog) {
 				// dialog.dismiss();
+				alertDialog.dismiss();
 				activity.finish();
 			}
 		});
