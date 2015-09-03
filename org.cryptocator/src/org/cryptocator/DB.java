@@ -1312,8 +1312,8 @@ public class DB {
 			Main.updateLastMessage(context, hostUid, text, DB.getTimestamp());
 		}
 
-		// AUTOMATED MULTIPART SPLITTING - NOT FOR SYSTEM SMS MESSAGES //
-		if (transport == DB.TRANSPORT_SMS && text.length() > Setup.MULTIPART_MESSAGELIMIT && !system) {
+		// AUTOMATED MULTIPART SPLITTING - NOT FOR SYSTEM SMS MESSAGES NOT FOR EXTERNAL USER! //
+		if (transport == DB.TRANSPORT_SMS && hostUid >= 0 && text.length() > Setup.MULTIPART_MESSAGELIMIT && !system) {
 			// SPLIT UP
 			double textLen = (double) text.length();
 			int parts = (int) Math.ceil(textLen
