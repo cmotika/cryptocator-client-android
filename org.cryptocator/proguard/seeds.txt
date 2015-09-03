@@ -142,6 +142,8 @@ org.cryptocator.FastScrollView: void setSnapDown(int)
 org.cryptocator.FastScrollView: void setSnapUp(int)
 org.cryptocator.HeadlessSmsSendService
 org.cryptocator.HeadlessSmsSendService: HeadlessSmsSendService()
+org.cryptocator.ImageContextMenu
+org.cryptocator.ImageContextMenu: ImageContextMenu()
 org.cryptocator.ImageLabelButton
 org.cryptocator.ImageLabelButton: ImageLabelButton(android.content.Context)
 org.cryptocator.ImageLabelButton: ImageLabelButton(android.content.Context,android.util.AttributeSet)
@@ -162,6 +164,7 @@ org.cryptocator.ImageSmileyEditText: void setOnCutCopyPasteListener(org.cryptoca
 org.cryptocator.ImageSmileyEditText: ImageSmileyEditText(android.content.Context,android.util.AttributeSet,int)
 org.cryptocator.ImageSmileyEditText: ImageSmileyEditText(android.content.Context,android.util.AttributeSet)
 org.cryptocator.ImageSmileyEditText: ImageSmileyEditText(android.content.Context)
+org.cryptocator.ImageSmileyEditText: void setInputTextField(boolean)
 org.cryptocator.KeyEventEditText
 org.cryptocator.KeyEventEditText: void setKeyListener(org.cryptocator.KeyEventEditText$KeyEventEditTextEditTextKeyListener)
 org.cryptocator.KeyEventEditText: KeyEventEditText(android.content.Context)
@@ -210,6 +213,26 @@ org.cryptocator.R$drawable: int ic_launcher
 org.cryptocator.R$drawable: int lightback
 org.cryptocator.R$drawable: int lighterback
 org.cryptocator.R$drawable: int lightestback
+org.cryptocator.R$drawable: int menuaccount
+org.cryptocator.R$drawable: int menuadduser
+org.cryptocator.R$drawable: int menuadduserext
+org.cryptocator.R$drawable: int menuattachment
+org.cryptocator.R$drawable: int menubackup
+org.cryptocator.R$drawable: int menuchatoff
+org.cryptocator.R$drawable: int menuchaton
+org.cryptocator.R$drawable: int menucompose
+org.cryptocator.R$drawable: int menudelete
+org.cryptocator.R$drawable: int menukey
+org.cryptocator.R$drawable: int menumsgsec
+org.cryptocator.R$drawable: int menumsgunsec
+org.cryptocator.R$drawable: int menurefresh
+org.cryptocator.R$drawable: int menusearch
+org.cryptocator.R$drawable: int menusettings
+org.cryptocator.R$drawable: int menushowall
+org.cryptocator.R$drawable: int menusmsoff
+org.cryptocator.R$drawable: int menusmson
+org.cryptocator.R$drawable: int menusmssec
+org.cryptocator.R$drawable: int menusmsunsec
 org.cryptocator.R$drawable: int msg
 org.cryptocator.R$drawable: int msgerror
 org.cryptocator.R$drawable: int msginfo
@@ -237,6 +260,7 @@ org.cryptocator.R$drawable: int pictureimport
 org.cryptocator.R$drawable: int rounded_corners
 org.cryptocator.R$drawable: int rounded_corners_shaddow
 org.cryptocator.R$drawable: int rounded_cornersme
+org.cryptocator.R$drawable: int rounded_cornersme_failed
 org.cryptocator.R$drawable: int rounded_cornersme_shaddow
 org.cryptocator.R$drawable: int s0
 org.cryptocator.R$drawable: int s1
@@ -322,6 +346,7 @@ org.cryptocator.R$id: int buttonshare
 org.cryptocator.R$id: int buttonwithdraw
 org.cryptocator.R$id: int chatmode
 org.cryptocator.R$id: int conversationRootView
+org.cryptocator.R$id: int conversationprogress
 org.cryptocator.R$id: int conversationtext
 org.cryptocator.R$id: int conversationtime
 org.cryptocator.R$id: int create
@@ -362,13 +387,6 @@ org.cryptocator.R$id: int infolistitem
 org.cryptocator.R$id: int infolistitemtext
 org.cryptocator.R$id: int inputlayout
 org.cryptocator.R$id: int inputlayout2
-org.cryptocator.R$id: int item1
-org.cryptocator.R$id: int item2
-org.cryptocator.R$id: int item3
-org.cryptocator.R$id: int item3b
-org.cryptocator.R$id: int item4
-org.cryptocator.R$id: int item6
-org.cryptocator.R$id: int itemsearch
 org.cryptocator.R$id: int keycreated
 org.cryptocator.R$id: int keycreatedrow
 org.cryptocator.R$id: int keyexpires
@@ -380,7 +398,6 @@ org.cryptocator.R$id: int mainbackground
 org.cryptocator.R$id: int maininnerview
 org.cryptocator.R$id: int mainscrollview
 org.cryptocator.R$id: int mainsettingsinnerlayout
-org.cryptocator.R$id: int menu_settings
 org.cryptocator.R$id: int messageText
 org.cryptocator.R$id: int messagedetailsbuttons
 org.cryptocator.R$id: int messagedetailscrollview
@@ -416,6 +433,10 @@ org.cryptocator.R$id: int removeimages
 org.cryptocator.R$id: int restore
 org.cryptocator.R$id: int sendbutton
 org.cryptocator.R$id: int sendbuttonparent
+org.cryptocator.R$id: int sendingreceiving
+org.cryptocator.R$id: int sendingreceivingparent
+org.cryptocator.R$id: int sendingreceivingprogess
+org.cryptocator.R$id: int sendingreceivingtitle
 org.cryptocator.R$id: int sendspinner
 org.cryptocator.R$id: int sent
 org.cryptocator.R$id: int settingsbackground
@@ -485,8 +506,6 @@ org.cryptocator.R$layout: int userlistitem
 org.cryptocator.R$layout: int userlistitemlock
 org.cryptocator.R$layout: int userlistitemlockmsg
 org.cryptocator.R$layout: int userlistitemmsg
-org.cryptocator.R$menu: int activity_conversation
-org.cryptocator.R$menu: int activity_main
 org.cryptocator.R$string: int app_name
 org.cryptocator.R$style: int AlertDialogCustom
 org.cryptocator.R$style: int AlertDialogCustomOther

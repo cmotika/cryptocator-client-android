@@ -2926,31 +2926,39 @@ org.cryptocator.ConversationCompose:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
     private static final int PICK_CONTACT
-    934:934:public static org.cryptocator.ConversationCompose getInstance()
-    944:944:public static boolean isVisible()
+    935:935:public static org.cryptocator.ConversationCompose getInstance()
+    945:945:public static boolean isVisible()
 org.cryptocator.ConversationItem:
-    144:153:public ConversationItem(java.lang.String,boolean)
+    168:177:public ConversationItem(java.lang.String,boolean)
 org.cryptocator.DB:
     public static final java.lang.String TABLE_MESSAGES
     public static final java.lang.String TABLE_SENDING
     public static final java.lang.String TABLE_SENT
-    61:61:public DB()
-    1102:1108:public static void cleanupDB(android.content.Context,int)
-    2064:2064:public static boolean isMessageFailed(java.lang.String)
+    64:64:public DB()
+    1522:1550:public static java.lang.String getMultipartIdSending(android.content.Context,int)
+    1568:1596:public static java.lang.String getMultipartIdReceived(android.content.Context,int,int)
+    1893:1899:public static void cleanupDB(android.content.Context,int)
+    2942:2942:public static boolean isMessageFailed(java.lang.String)
 org.cryptocator.FastScrollBar:
     static final int LOCKTIMEOUT
     154:155:public FastScrollBar(android.content.Context,android.util.AttributeSet,int)
     168:169:public FastScrollBar(android.content.Context,android.util.AttributeSet)
 org.cryptocator.HttpStringRequest:
     107:108:public void setOnResponseListener(org.cryptocator.HttpStringRequest$OnResponseListener)
+org.cryptocator.ImageContextMenu:
+    361:364:public static void close()
+    374:374:public static boolean visible()
+org.cryptocator.ImageContextMenu$ImageContextMenuProvider:
+    228:235:public int addEntry(java.lang.String,android.graphics.drawable.Drawable,org.cryptocator.ImageContextMenu$ImageContextMenuSelectionListener)
+    261:262:public void setEnabled(int,boolean)
 org.cryptocator.ImagePressButton:
     203:205:public void initializePressImageResourceWhite(int)
     262:263:public void initializePressImageResource(int,int,int)
     300:301:public void activatePressImageResourceWhite()
 org.cryptocator.Main:
     private static final java.lang.String DEFAULTTEXT
-    1055:1075:public void askToDelete(android.content.Context,int)
-org.cryptocator.Main$18
+    1135:1155:public void askToDelete(android.content.Context,int)
+org.cryptocator.Main$23
 org.cryptocator.MessageDetailsActivity:
     private static final java.lang.String STARTTAG
     private static final java.lang.String ENDTAG
@@ -2962,7 +2970,6 @@ org.cryptocator.R$color
 org.cryptocator.R$drawable
 org.cryptocator.R$id
 org.cryptocator.R$layout
-org.cryptocator.R$menu
 org.cryptocator.R$string
 org.cryptocator.R$style
 org.cryptocator.Scheduler:
@@ -2975,11 +2982,13 @@ org.cryptocator.ScrollViewEx:
     307:310:public void stopWatchDogThread()
 org.cryptocator.ScrollViewEx$1
 org.cryptocator.SendSMS:
+    public static final int SMS_PART_LIMIT
     public static final int SMS_SENDING_TIMEOUT
     public static final java.lang.String SECURESMS_ID
     public static final java.lang.String SECURESMSSENT
     public static final java.lang.String SECURESMSDELIVERED
-    63:63:public SendSMS()
+    62:62:public SendSMS()
+    255:257:public static synchronized void updateSendingTimestamp(android.content.Context,int)
 org.cryptocator.Setup:
     public static final int ADVANCEDSETUPCOUNTDOWNSTART
     public static final java.lang.String SETTINGS_BASEURL
@@ -3087,34 +3096,33 @@ org.cryptocator.Setup:
     public static final int UPDATE_SERVER_ATTACHMENT_LIMIT_MINIMAL_INTERVAL
     public static final java.lang.String LASTUPDATE_SERVER_ATTACHMENT_LIMIT
     public static final int SMS_SIZE_WARNING
-    2986:2991:public static boolean haveAESKey(android.content.Context,int)
-    3307:3323:public static java.security.PublicKey getPublicKey(android.content.Context)
-    4377:4397:public static java.lang.String encText(android.content.Context,java.lang.String)
+    public static final int MULTIPART_MESSAGELIMIT
+    2995:3000:public static boolean haveAESKey(android.content.Context,int)
+    3316:3332:public static java.security.PublicKey getPublicKey(android.content.Context)
+    4386:4406:public static java.lang.String encText(android.content.Context,java.lang.String)
 org.cryptocator.Utility:
     public static final java.lang.String PREFERENCESURI
-    126:126:public Utility()
-    151:157:public static void hideSoftkeys(android.app.Activity)
-    236:246:public static java.util.HashMap buildSettingsMap(java.lang.String)
-    399:401:public static double loadDoubleSetting(android.content.Context,java.lang.String,double)
-    583:584:public static void saveDoubleSetting(android.content.Context,java.lang.String,double)
-    714:719:public static double parseDouble(java.lang.String,double)
-    778:790:public static java.lang.String getData(android.content.Context,java.lang.String)
-    806:830:public static java.lang.String getContentAsString(org.apache.http.HttpResponse)
-    845:851:public static java.lang.String reencodeISO(java.lang.String)
-    864:870:public static java.lang.String convertToUTF8(java.lang.String)
-    883:889:public static java.lang.String convertFromUTF8(java.lang.String)
-    919:934:public static java.lang.String getTileNumber(double,double,int)
-    955:984:public static void updateTile(android.content.Context,android.widget.ImageView,int,double,double)
-    1099:1104:public static java.lang.String getSeconds(long)
-    1120:1125:public static java.lang.String getMilliSeconds(long)
-    1276:1287:public static void forceOverflowMenuButtons(android.content.Context)
-    1428:1436:public static java.util.List getListFromString(java.lang.String,java.lang.String,int)
-    1539:1542:public static int getScreenHeight(android.content.Context)
-    1603:1614:public static void errorVibrate(android.content.Context)
-    1626:1626:public static java.lang.String convertBASE64ToString(java.lang.String)
-    1640:1640:public static java.lang.String convertStringToBASE64(java.lang.String)
-    1782:1783:public static void killOwnProcess()
-    1882:1889:public static java.lang.String getEncodedFile(java.lang.String)
-    1982:1988:public static android.graphics.drawable.Drawable loadDrawableFromBASE64String(java.lang.String)
+    127:127:public Utility()
+    152:158:public static void hideSoftkeys(android.app.Activity)
+    237:247:public static java.util.HashMap buildSettingsMap(java.lang.String)
+    584:585:public static void saveDoubleSetting(android.content.Context,java.lang.String,double)
+    779:791:public static java.lang.String getData(android.content.Context,java.lang.String)
+    807:831:public static java.lang.String getContentAsString(org.apache.http.HttpResponse)
+    846:852:public static java.lang.String reencodeISO(java.lang.String)
+    865:871:public static java.lang.String convertToUTF8(java.lang.String)
+    884:890:public static java.lang.String convertFromUTF8(java.lang.String)
+    920:935:public static java.lang.String getTileNumber(double,double,int)
+    956:985:public static void updateTile(android.content.Context,android.widget.ImageView,int,double,double)
+    1100:1105:public static java.lang.String getSeconds(long)
+    1121:1126:public static java.lang.String getMilliSeconds(long)
+    1277:1288:public static void forceOverflowMenuButtons(android.content.Context)
+    1429:1437:public static java.util.List getListFromString(java.lang.String,java.lang.String,int)
+    1540:1543:public static int getScreenHeight(android.content.Context)
+    1604:1615:public static void errorVibrate(android.content.Context)
+    1627:1627:public static java.lang.String convertBASE64ToString(java.lang.String)
+    1641:1641:public static java.lang.String convertStringToBASE64(java.lang.String)
+    1783:1784:public static void killOwnProcess()
+    1883:1890:public static java.lang.String getEncodedFile(java.lang.String)
+    1983:1989:public static android.graphics.drawable.Drawable loadDrawableFromBASE64String(java.lang.String)
 org.cryptocator.Utility$1
 org.cryptocator.Utility$1$1

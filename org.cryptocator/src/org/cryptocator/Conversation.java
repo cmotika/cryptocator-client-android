@@ -1511,7 +1511,7 @@ public class Conversation extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	private void rebuildConversationlist(final Context context) {
+	public void rebuildConversationlist(final Context context) {
 		fastScrollView.clearChilds();
 		resetMapping();
 		textViews.clear();
@@ -2720,11 +2720,7 @@ public class Conversation extends Activity {
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
 							maxScrollMessageItems = Setup.SHOW_ALL;
-							updateConversationlist(context);
-							rebuildConversationlist(context);
-							onRestart();
-							onStart();
-							onResume();
+							rebuildConversation(context, 200);
 							return true;
 						}
 					});
@@ -2779,47 +2775,6 @@ public class Conversation extends Activity {
 		}
 		return imageContextMenuProvider;
 	}
-
-	// ------------------------------------------------------------------------
-
-	// /*
-	// * (non-Javadoc)
-	// *
-	// * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
-	// */
-	// public boolean onOptionsItemSelected(MenuItem item) {
-	// // The context menu implementation
-	// switch (item.getItemId()) {
-	// case android.R.id.home:
-	// goBack(this);
-	// return true;
-	// case R.id.item2:
-	// maxScrollMessageItems = Setup.SHOW_ALL;
-	// updateConversationlist(this);
-	// rebuildConversationlist(this);
-	// onRestart();
-	// onStart();
-	// onResume();
-	// return true;
-	// case R.id.item3:
-	// clearConversation(this);
-	// return true;
-	// case R.id.item4:
-	// backup(this);
-	// return true;
-	// case R.id.itemsearch:
-	// promptSearch(this);
-	// return true;
-	// case R.id.item6:
-	// possiblePromptNewSession(this);
-	// return true;
-	// case R.id.menu_settings:
-	// doRefresh(this);
-	// return true;
-	// default:
-	// return super.onOptionsItemSelected(item);
-	// }
-	// }
 
 	// ------------------------------------------------------------------------
 
@@ -2883,6 +2838,27 @@ public class Conversation extends Activity {
 		Utility.showToastShortAsync(this, "Refreshing...");
 	}
 
+	// ------------------------------------------------------------------------
+	
+	/**
+	 * Rebuild the conversation after some delay.
+	 *
+	 * @param context the context
+	 * @param delay the delay
+	 */
+	public void rebuildConversation(final Context context, final int delay) {
+		final Handler mUIHandler = new Handler(Looper.getMainLooper());
+		mUIHandler.postDelayed(new Thread() {
+			@Override
+			public void run() {
+				super.run();
+				rebuildConversationlist(context);
+				onStart();
+				onResume();
+			}
+		}, delay);
+	}
+	
 	// ------------------------------------------------------------------------
 
 	/**
@@ -3094,49 +3070,6 @@ public class Conversation extends Activity {
 					}
 				}).show();
 	}
-
-	// ------------------------------------------------------------------------
-
-	// /**
-	// * Clear conversation but only up to a selected MID. The user is prompted
-	// to
-	// * enter a MID.
-	// *
-	// * @param context
-	// * the context
-	// */
-	// public void clearConversationSelected(final Context context) {
-	// String title = "Selective Clear Conversation";
-	// String text =
-	// "Enter a message id (MID) up to which all previous older messages will be deleted.\n\nATTENTION: If your MID starts with a start (*) then you MUST also enter this here, otherwise wrong/all messages may get deleted!";
-	// new MessageInputDialog(context, title, text, " Clear Messages ", null,
-	// "Abort", "", new MessageInputDialog.OnSelectionListener() {
-	// public void selected(MessageInputDialog dialog, int button,
-	// boolean cancel, String mid) {
-	// if (button == MessageInputDialog.BUTTONOK0 && !cancel) {
-	// int numDeleted = DB.clearSelective(context,
-	// hostUid, mid);
-	// if (numDeleted == -1) {
-	// Utility.showToastAsync(context,
-	// "Clearing failed. Message id " + mid
-	// + " is invalid.");
-	// } else if (numDeleted == -2) {
-	// Utility.showToastAsync(
-	// context,
-	// "Clearing failed. Message "
-	// + mid
-	// + " does not belong to this conversation!");
-	// } else {
-	// Utility.showToastAsync(context, "Cleared "
-	// + numDeleted + " messages up to MID "
-	// + mid);
-	// }
-	// }
-	// dialog.dismiss();
-	// }
-	// }, InputType.TYPE_CLASS_PHONE).show();
-	//
-	// }
 
 	// ------------------------------------------------------------------------
 
