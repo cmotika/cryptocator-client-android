@@ -607,7 +607,8 @@ public class Setup extends Activity {
 	public static int SMS_DEFAULT_SIZE = 160; // standard one sms
 
 	/** The standardsmssize. */
-	public static int SMS_DEFAULT_SIZE_MULTIPART = 153; // standard multipart sms
+	public static int SMS_DEFAULT_SIZE_MULTIPART = 153; // standard multipart
+														// sms
 
 	/** The standardsmssize. */
 	public static int SMS_DEFAULT_SIZE_ENCRYPTED = 80; // ~ roughly 100% blow up
@@ -1677,7 +1678,7 @@ public class Setup extends Activity {
 			}
 			uid.requestFocus();
 			Utility.hideKeyboardExplicit(uid);
-			//mainscrollview.scrollTo(0, 0);
+			// mainscrollview.scrollTo(0, 0);
 		}
 	}
 
@@ -2262,7 +2263,9 @@ public class Setup extends Activity {
 										Main.exitApplication(context);
 
 									} else {
-										if (response2.equals("-2")) {
+										if (response2.equals("-17")) {
+											setErrorInfo("This server currently allows no new registrations.");
+										} else if (response2.equals("-2")) {
 											setErrorInfo("Email address already taken.\n\nHave you activated your account already? If not go to your email account and follow the activation link we sent you.\n\nIf this is your address and you cannot find the activation email then reset the password, otherwise use a different address.\n\nTo reset the password click here:\n"
 													+ reseturl2);
 										} else if (response2.equals("-12")) {
