@@ -262,7 +262,7 @@ public class Main extends Activity {
 
 		// If we click on the background, hide the adduser panel and open the
 		// context menu
-		mainBackground.setOnClickListener(new OnClickListener() {
+		main.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				showHideAddUser(context, false);
 				// show context menu
