@@ -1677,7 +1677,7 @@ public class Setup extends Activity {
 			}
 			uid.requestFocus();
 			Utility.hideKeyboardExplicit(uid);
-			mainscrollview.scrollTo(0, 0);
+			//mainscrollview.scrollTo(0, 0);
 		}
 	}
 
