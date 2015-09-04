@@ -2946,11 +2946,11 @@ org.cryptocator.FastScrollBar:
 org.cryptocator.HttpStringRequest:
     107:108:public void setOnResponseListener(org.cryptocator.HttpStringRequest$OnResponseListener)
 org.cryptocator.ImageContextMenu:
-    361:364:public static void close()
-    374:374:public static boolean visible()
+    364:367:public static void close()
+    377:377:public static boolean visible()
 org.cryptocator.ImageContextMenu$ImageContextMenuProvider:
-    228:235:public int addEntry(java.lang.String,android.graphics.drawable.Drawable,org.cryptocator.ImageContextMenu$ImageContextMenuSelectionListener)
-    261:262:public void setEnabled(int,boolean)
+    231:238:public int addEntry(java.lang.String,android.graphics.drawable.Drawable,org.cryptocator.ImageContextMenu$ImageContextMenuSelectionListener)
+    264:265:public void setEnabled(int,boolean)
 org.cryptocator.ImagePressButton:
     203:205:public void initializePressImageResourceWhite(int)
     262:263:public void initializePressImageResource(int,int,int)
@@ -3097,9 +3097,9 @@ org.cryptocator.Setup:
     public static final java.lang.String LASTUPDATE_SERVER_ATTACHMENT_LIMIT
     public static final int SMS_SIZE_WARNING
     public static final int MULTIPART_MESSAGELIMIT
-    2995:3000:public static boolean haveAESKey(android.content.Context,int)
-    3316:3332:public static java.security.PublicKey getPublicKey(android.content.Context)
-    4386:4406:public static java.lang.String encText(android.content.Context,java.lang.String)
+    2998:3003:public static boolean haveAESKey(android.content.Context,int)
+    3319:3335:public static java.security.PublicKey getPublicKey(android.content.Context)
+    4389:4409:public static java.lang.String encText(android.content.Context,java.lang.String)
 org.cryptocator.Utility:
     public static final java.lang.String PREFERENCESURI
     127:127:public Utility()

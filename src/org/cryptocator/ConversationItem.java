@@ -180,15 +180,16 @@ public class ConversationItem {
 
 	/**
 	 * Me tells if the sender of this conversation item is the current user of
-	 * the device.
+	 * the device. This is a new convention since Version 1.3. Do not save a
+	 * "real" uid for "me" any more because for several servers we could have
+	 * different uids which makes it hard to compare.
 	 * 
 	 * @param context
 	 *            the context
 	 * @return true, if successful
 	 */
-	public boolean me(Context context) {
-		return (from == DB.myUid(context));
-
+	public boolean me() {
+		return (from == DB.DEFAULT_MYSELF_UID);
 	}
 
 	// ------------------------------------------------------------------------

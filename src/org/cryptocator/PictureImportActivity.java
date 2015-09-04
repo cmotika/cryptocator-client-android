@@ -163,6 +163,9 @@ public class PictureImportActivity extends Activity {
 
 	/** The alert color if attachment size is too large for Internet message. */
 	private static int BACKALERTWARN2COLOR = Color.parseColor("#88FF0000");
+	
+	/** The host uid. */
+	public static int hostUid = -1;
 
 	// ------------------------------------------------------------------------
 
@@ -476,8 +479,10 @@ public class PictureImportActivity extends Activity {
 			// warning limit, so also warn here!
 			displayText += "\n\nLarge image: Should not be sent via SMS!";
 		}
+		
+		int serverId = Setup.getServerId(context, hostUid);
 
-		int limit = Setup.getAttachmentServerLimit(context);
+		int limit = Setup.getAttachmentServerLimit(context, serverId);
 		if (limit == 0) {
 			sizetextback.setBackgroundColor(BACKALERTWARN2COLOR);
 			displayText += "\n\nServer does not allow any attachments. Image will get removed when sent as Internet message.";

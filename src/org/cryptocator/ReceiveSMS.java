@@ -265,7 +265,7 @@ public class ReceiveSMS extends BroadcastReceiver {
 				newItem.mid = DB.SMS_MID; // this is an SMS, we will not
 				// have an mid for it, set it to -1
 				newItem.from = uid;
-				newItem.to = DB.myUid(context);
+				newItem.to = DB.DEFAULT_MYSELF_UID;
 				newItem.created = DB.getTimestamp();
 				newItem.sent = DB.getTimestamp();
 				newItem.received = DB.getTimestamp();
@@ -277,7 +277,7 @@ public class ReceiveSMS extends BroadcastReceiver {
 				newItem.text = message;
 				// WE HANDLE ALL TEXT BECAUSE OF (POSSIBLE) MULTIPART SMS //
 				newItem.text = Communicator.handleReceivedText(context,
-						message, newItem);
+						message, newItem, -1);
 
 				boolean success2 = Communicator
 						.updateDBForReceivedMessage(context, newItem);
@@ -285,8 +285,12 @@ public class ReceiveSMS extends BroadcastReceiver {
 				if (newItem.text.contains("[ invalid session key ]")
 						|| newItem.text.contains("[ decryption failed ]")) {
 					// We should try to update the public rsa key of this user
-					Communicator.updateKeysFromServer(context,
-							Main.loadUIDList(context), true, null);
+					if (uid >= 0) {
+						// Only for registered users!
+						int serverId = Setup.getServerId(context, uid);
+						Communicator.updateKeysFromServer(context,
+								Main.loadUIDList(context), true, null, serverId);
+					}
 				}
 
 				if (success2) {

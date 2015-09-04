@@ -165,27 +165,28 @@ public class Communicator {
 	 * @param context
 	 *            the context
 	 */
-	public static void haveNewMessagesAndReceive(final Context context) {
+	public static void haveNewMessagesAndReceive(final Context context,
+			final int serverId) {
 		if (haveNewMessages) {
 			// If we already know we have new messages, we not need to run the
 			// light-weight have-request!
-			receiveNextMessage(context);
+			receiveNextMessage(context, serverId);
 			return;
 		}
 
 		// Largest timestamp received
-		final int largestMid = DB.getLargestMid(context);
+		final int largestMid = DB.getLargestMid(context, serverId);
 
-		String sessionid = Setup.getSessionID(context);
+		String sessionid = Setup.getSessionID(context, serverId);
 
 		String url = null;
-		url = Setup.getBaseURL(context)
+		url = Setup.getBaseURL(context, serverId)
 				+ "cmd=have&session="
 				+ sessionid
 				+ "&val="
 				+ Utility.urlEncode(largestMid + "#"
-						+ DB.getLargestTimestampReceived(context) + "#"
-						+ DB.getLargestTimestampRead(context));
+						+ DB.getLargestTimestampReceived(context, serverId)
+						+ "#" + DB.getLargestTimestampRead(context, serverId));
 
 		Log.d("communicator", "REQUEST HAVE: " + url);
 		final String url2 = url;
@@ -204,12 +205,17 @@ public class Communicator {
 							if (response.equals("-1")) {
 								// enforce new session if this happens
 								// twice
-								Setup.possiblyInvalidateSession(context, false);
+								Setup.possiblyInvalidateSession(context, false,
+										serverId);
 							} else if (response2.startsWith("2#")) {
-								Setup.possiblyInvalidateSession(context, true); // reset
-																				// (everythin
-																				// ok/normal)
-								// largestMid too high, reduce!
+								Setup.possiblyInvalidateSession(context, true,
+										serverId); // reset
+								// (everythin
+								// ok/normal)
+								// largestMid too high, reduce! - typically this
+								// can only
+								// happen if the msg database on the server is
+								// reset
 								String content = Communicator
 										.getResponseContent(response2);
 								if (content != null && content.length() > 0) {
@@ -218,7 +224,8 @@ public class Communicator {
 									Log.d("communicator",
 											"RESPONSE HAVE SET - TOO HIGH MID: "
 													+ midFromServer);
-									DB.resetLargestMid(context, midFromServer);
+									DB.resetLargestMid(context, midFromServer,
+											serverId);
 								}
 							} else {
 								// NORMAL PROCESSING - 0##...##... or
@@ -227,15 +234,17 @@ public class Communicator {
 								Log.d("communicator",
 										"RESPONSE HAVE PROCESS TAIL: "
 												+ responseTail);
-								handleReadAndReceived(context, responseTail);
+								handleReadAndReceived(context, responseTail,
+										serverId);
 								if (response2.startsWith("1##")) {
 									Setup.possiblyInvalidateSession(context,
-											true); // reset (everythin
-													// ok/normal)
+											true, serverId); // reset
+																// (everything
+									// ok/normal)
 									haveNewMessages = true;
 									if (!(Conversation.isVisible() && Conversation
 											.isTyping())) {
-										receiveNextMessage(context);
+										receiveNextMessage(context, serverId);
 									}
 								}
 							}
@@ -318,7 +327,7 @@ public class Communicator {
 	 *            the response
 	 */
 	private static void handleReadAndReceived(final Context context,
-			String response) {
+			String response, int serverId) {
 
 		String[] values = response.split("##");
 		if (values.length == 2) {
@@ -332,7 +341,7 @@ public class Communicator {
 					int mid = Utility.parseInt(midAndTs[0], -1);
 					int senderUid = DB.getHostUidForMid(context, mid);
 					String ts = midAndTs[1];
-					DB.updateLargestTimestampReceived(context, ts);
+					DB.updateLargestTimestampReceived(context, ts, serverId);
 					if (mid != -1 && senderUid != -1) {
 						boolean processSMS = false;
 						processKeyDeliveries(context, senderUid, mid,
@@ -355,7 +364,7 @@ public class Communicator {
 					int senderUid = DB.getHostUidForMid(context, mid);
 					DB.removeMappingByMid(context, mid);
 					String ts = midAndTs[1];
-					DB.updateLargestTimestampRead(context, ts);
+					DB.updateLargestTimestampRead(context, ts, serverId);
 					if (mid != -1 && senderUid != -1) {
 						DB.updateMessageRead(context, mid, ts, senderUid);
 						// FIXME: THIS SEEMS ULTRA-WRONG???? OLD CODE???
@@ -459,22 +468,23 @@ public class Communicator {
 	 * @param context
 	 *            the context
 	 */
-	public synchronized static void receiveNextMessage(final Context context) {
+	public synchronized static void receiveNextMessage(final Context context,
+			final int serverId) {
 		messageReceived = false;
 
-		final int largestMid = DB.getLargestMid(context);
+		final int largestMid = DB.getLargestMid(context, serverId);
 		// This should be the case for an empty database only!
 		final boolean discardMessageAndSaveLargestMid = (largestMid == -1);
 
-		String session = Setup.getTmpLoginEncoded(context);
+		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			// Error resume is automatically done by getTmpLogin, not logged in
 			return;
 		}
 
 		String url = null;
-		url = Setup.getBaseURL(context) + "cmd=receive&session=" + session
-				+ "&val=" + largestMid;
+		url = Setup.getBaseURL(context, serverId) + "cmd=receive&session="
+				+ session + "&val=" + largestMid;
 		Log.d("communicator", "RECEIVE NEXT MESSAGE: " + url);
 		final String url2 = url;
 		@SuppressWarnings("unused")
@@ -509,7 +519,7 @@ public class Communicator {
 									// A message was received
 									String mid = responseArray[1];
 									String from = Setup.decUid(context,
-											responseArray[2]) + "";
+											responseArray[2], serverId) + "";
 
 									Log.d("communicator",
 											"RECEIVE NEXT MESSAGE DECODED UIDS: "
@@ -521,7 +531,7 @@ public class Communicator {
 										wronglyDencoded = true; // we want fast
 																// retry
 										Setup.possiblyInvalidateSession(
-												context, false);
+												context, false, serverId);
 									}
 
 									if (!from.equals("-2")) {
@@ -529,13 +539,15 @@ public class Communicator {
 										// decoding because we want to later try
 										// again!
 										DB.updateLargestMid(context,
-												Utility.parseInt(mid, 0));
+												Utility.parseInt(mid, 0),
+												serverId);
 									}
 
 									if (from.equals("-1")) {
 										// Invalid users
 										// update cache
-										DB.lastReceivedMid = newItem.mid;
+										DB.lastReceivedMid.put(serverId,
+												newItem.mid);
 										Utility.saveIntSetting(context,
 												Setup.SETTINGS_DEFAULTMID,
 												newItem.mid);
@@ -545,7 +557,7 @@ public class Communicator {
 									if (!from.equals("-2")
 											&& !from.equals("-1")) {
 										Setup.possiblyInvalidateSession(
-												context, true); // reset
+												context, true, serverId); // reset
 										success1 = true;
 										// Uids could be recovered/decrypted
 										String created = responseArray[3];
@@ -555,7 +567,12 @@ public class Communicator {
 										newItem.mid = Utility.parseInt(mid, -1);
 										newItem.from = Utility.parseInt(from,
 												-1);
-										newItem.to = DB.myUid(context);
+										// NEW: recalculate uid from suid got
+										// from server
+										newItem.from = Setup.getUid(context,
+												newItem.from, serverId);
+
+										newItem.to = DB.myUid();
 										newItem.created = DB
 												.parseTimestamp(created);
 										newItem.sent = DB.parseTimestamp(sent);
@@ -563,10 +580,11 @@ public class Communicator {
 										newItem.transport = DB.TRANSPORT_INTERNET;
 
 										// Update cache
-										DB.lastReceivedMid = newItem.mid;
-										Utility.saveIntSetting(context,
-												Setup.SETTINGS_DEFAULTMID,
+										DB.lastReceivedMid.put(serverId,
 												newItem.mid);
+										Utility.saveIntSetting(context,
+												Setup.SETTINGS_DEFAULTMID
+														+ serverId, newItem.mid);
 
 										if (Conversation.isVisible()
 												&& Conversation.getHostUid() == newItem.from) {
@@ -615,7 +633,8 @@ public class Communicator {
 												&& !alreadyInDB
 												&& !discardMessageAndSaveLargestMid) {
 											newItem.text = handleReceivedText(
-													context, text, newItem);
+													context, text, newItem,
+													serverId);
 											success2 = updateDBForReceivedMessage(
 													context, newItem);
 
@@ -650,7 +669,7 @@ public class Communicator {
 												Communicator.updateKeysFromServer(
 														context,
 														Main.loadUIDList(context),
-														true, null);
+														true, null, serverId);
 											}
 										} else {
 											// Discard means no live update
@@ -661,7 +680,7 @@ public class Communicator {
 								}
 							} else {
 								// Invalidate right away
-								Setup.invalidateTmpLogin(context);
+								Setup.invalidateTmpLogin(context, serverId);
 								loginOk = false;
 								Log.d("communicator",
 										"RECEIVE NEXT MESSAGE - LOGIN ERROR!!! "
@@ -760,7 +779,7 @@ public class Communicator {
 	 * @return the string
 	 */
 	public static String handleReceivedText(final Context context, String text,
-			final ConversationItem newItem) {
+			final ConversationItem newItem, int serverId) {
 		if (text.startsWith("W")) {
 			// W == withdraw
 			// this is a withdraw message followed my the mid to withdraw
@@ -787,7 +806,7 @@ public class Communicator {
 					// in order to
 					// know if we are the sender
 					int senderUid = DB.getSenderUidByMid(context, mid, hostUid);
-					if (senderUid == DB.myUid(context)) {
+					if (senderUid == DB.myUid()) {
 						senderUid = -1;
 					}
 					updateSentReceivedReadAsync(context, mid, senderUid, false,
@@ -1621,14 +1640,17 @@ public class Communicator {
 			final ConversationItem itemToSend) {
 		messageSent = false;
 
-		String session = Setup.getTmpLogin(context);
+		final int serverId = Setup.getServerId(context, to);
+
+		String session = Setup.getTmpLogin(context, serverId);
 		if (session == null) {
 			// Error resume is automatically done by getTmpLogin, not logged in
 			return;
 		}
 
 		String url = null;
-		String encUid = Setup.encUid(context, to);
+		int toSUid = Setup.getSUid(context, to);
+		String encUid = Setup.encUid(context, toSUid, serverId);
 		if (encUid == null) {
 			// Secret may be not set yet, try again later!
 			return;
@@ -1636,7 +1658,7 @@ public class Communicator {
 
 		Log.d("communicator", "SEND NEXT MESSAGE msgText=" + msgText);
 
-		url = Setup.getBaseURL(context) + "cmd=send&session="
+		url = Setup.getBaseURL(context, serverId) + "cmd=send&session="
 				+ Utility.urlEncode(session) + "&host=" + encUid + "&val="
 				+ Utility.urlEncode(created + "#" + msgText);
 
@@ -1694,15 +1716,16 @@ public class Communicator {
 												itemToSend.to);
 
 										boolean isSentKeyMessage = itemToSend
-												.me(context)
-												&& itemToSend.isKey;
+												.me() && itemToSend.isKey;
 
 										Log.d("communicator", "KEYMESSAGE "
 												+ itemToSend.mid + ", "
 												+ isSentKeyMessage);
 
-										// Be careful here! The sending table may have a different 
-										// msg than the msg DB because we might have a multipart
+										// Be careful here! The sending table
+										// may have a different
+										// msg than the msg DB because we might
+										// have a multipart
 										// message. => DO NOT UPDATE THE TEXT!
 										itemToSend.text = null;
 										DB.updateMessage(context, itemToSend,
@@ -1742,18 +1765,19 @@ public class Communicator {
 									// Something may be wrong with our
 									// session...
 									Setup.possiblyInvalidateSession(context,
-											false);
+											false, serverId);
 									// Setup.invalidateTmpLogin(context);
 								} else {
 									Setup.possiblyInvalidateSession(context,
-											false);
+											false, serverId);
 								}
 							}
 						}
 
 						if (success) {
 							// Clear errors and super fast reschedule
-							Setup.possiblyInvalidateSession(context, true); // reset
+							Setup.possiblyInvalidateSession(context, true,
+									serverId); // reset
 							Setup.setErrorUpdateInterval(context, false);
 							Scheduler.reschedule(context, false, false, true);
 						} else {
@@ -1919,10 +1943,8 @@ public class Communicator {
 	 *            the keyhash
 	 */
 	public static void sendKeyToServer(final Context context, final String key,
-			final String keyhash) {
-		final String uidString = Utility.loadStringSetting(context, "uid", "");
-
-		String session = Setup.getTmpLoginEncoded(context);
+			final String keyhash, final int serverId) {
+		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			// Error resume is automatically done by getTmpLogin, not logged in
 			Utility.showToastAsync(context, "Error sending account key "
@@ -1935,8 +1957,8 @@ public class Communicator {
 		}
 
 		String url = null;
-		url = Setup.getBaseURL(context) + "cmd=sendkey&session=" + session
-				+ "&val=" + Utility.urlEncode(key);
+		url = Setup.getBaseURL(context, serverId) + "cmd=sendkey&session="
+				+ session + "&val=" + Utility.urlEncode(key);
 
 		Log.d("communicator", "###### SEND KEY TO SERVER " + url);
 		final String url2 = url;
@@ -1953,9 +1975,6 @@ public class Communicator {
 						if (success) {
 							Utility.showToastAsync(context, "New account key "
 									+ keyhash + " sent to server.");
-							Utility.saveBooleanSetting(context,
-									Setup.SETTINGS_HAVESENTRSAKEYYET
-											+ uidString, true);
 						} else {
 							Utility.showToastAsync(context,
 									"Error sending account " + keyhash
@@ -1984,8 +2003,8 @@ public class Communicator {
 	 *            the keyhash
 	 */
 	public static void clearKeyFromServer(final Context context,
-			final String keyhash) {
-		String session = Setup.getTmpLoginEncoded(context);
+			final String keyhash, final int serverId) {
+		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			// Error resume is automatically done by getTmpLogin, not logged in
 			Utility.showToastAsync(context, "Error clearing account " + keyhash
@@ -1994,7 +2013,8 @@ public class Communicator {
 		}
 
 		String url = null;
-		url = Setup.getBaseURL(context) + "cmd=clearkey&session=" + session;
+		url = Setup.getBaseURL(context, serverId) + "cmd=clearkey&session="
+				+ session;
 
 		// Log.d("communicator", "###### CLEAR KEY FROM SERVER " + url);
 		final String url2 = url;
@@ -2026,6 +2046,30 @@ public class Communicator {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Update keys from ALL servers. This should be done on manual refresh or if
+	 * encryption failed for a registered users!
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uidList
+	 *            the uid list
+	 * @param forceUpdate
+	 *            the force update
+	 * @param updateListener
+	 *            the update listener
+	 */
+	public static void updateKeysFromAllServers(final Context context,
+			final List<Integer> uidList, final boolean forceUpdate,
+			final Main.UpdateListener updateListener) {
+		for (int serverId : Setup.getServerIds(context)) {
+			updateKeysFromServer(context, uidList, forceUpdate, updateListener,
+					serverId);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
 	 * Update keys from server.
 	 * 
 	 * @param context
@@ -2039,41 +2083,44 @@ public class Communicator {
 	 */
 	public static void updateKeysFromServer(final Context context,
 			final List<Integer> uidList, final boolean forceUpdate,
-			final Main.UpdateListener updateListener) {
+			final Main.UpdateListener updateListener, final int serverId) {
 
 		long lastTime = Utility.loadLongSetting(context,
-				Setup.SETTING_LASTUPDATEKEYS, 0);
+				Setup.SETTING_LASTUPDATEKEYS + serverId, 0);
 		long currentTime = DB.getTimestamp();
 		if (!forceUpdate
-				&& (lastTime + Setup.UPDATE_KEYS_MIN_INTERVAL > currentTime)) {
+				&& (lastTime + Setup.UPDATE_KEYS_MIN_INTERVAL + serverId > currentTime)) {
 			// Do not do this more frequently
 			return;
 		}
-		Utility.saveLongSetting(context, Setup.SETTING_LASTUPDATEKEYS,
-				currentTime);
+		Utility.saveLongSetting(context, Setup.SETTING_LASTUPDATEKEYS
+				+ serverId, currentTime);
 
 		String uidliststring = "";
 		final ArrayList<Integer> sentList = new ArrayList<Integer>();
 		for (int uid : uidList) {
-			// not do this of fake UIDs (sms-only users!)
+			// not do this of fake UIDs (sms-only users!) or if the user is not
+			// from THIS server!
 			if (uid > 0) {
-				sentList.add(uid);
-				if (uidliststring.length() != 0) {
-					uidliststring += "#";
+				if (Setup.getServerId(context, uid) == serverId) {
+					sentList.add(uid);
+					if (uidliststring.length() != 0) {
+						uidliststring += "#";
+					}
+					uidliststring += Setup.encUid(context, uid, serverId);
 				}
-				uidliststring += Setup.encUid(context, uid);
 			}
 		}
 
-		String session = Setup.getTmpLoginEncoded(context);
+		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			// error resume is automatically done by getTmpLogin, not logged in
 			return;
 		}
 
 		String url = null;
-		url = Setup.getBaseURL(context) + "cmd=haskey&session=" + session
-				+ "&val=" + Utility.urlEncode(uidliststring);
+		url = Setup.getBaseURL(context, serverId) + "cmd=haskey&session="
+				+ session + "&val=" + Utility.urlEncode(uidliststring);
 
 		Log.d("communicator", "###### REQUEST HAS KEY " + url);
 		final String url2 = url;
@@ -2133,7 +2180,9 @@ public class Communicator {
 													Setup.setKeyDate(context,
 															uid, null);
 													getKeyFromServer(context,
-															uid, updateListener);
+															uid,
+															updateListener,
+															serverId);
 												} else {
 													// Log.d("communicator",
 													// "###### KEY UP TO DATE "
@@ -2157,6 +2206,26 @@ public class Communicator {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Update phones from ALL servers. This should only be used on start up or
+	 * manual refresh.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uidList
+	 *            the uid list
+	 * @param forceUpdate
+	 *            the force update
+	 */
+	public static void updatePhonesFromAllServers(final Context context,
+			final List<Integer> uidList, final boolean forceUpdate) {
+		for (int serverId : Setup.getServerIds(context)) {
+			updatePhonesFromServer(context, uidList, forceUpdate, serverId);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
 	 * Update phones from server.
 	 * 
 	 * @param context
@@ -2167,49 +2236,53 @@ public class Communicator {
 	 *            the force update
 	 */
 	public static void updatePhonesFromServer(final Context context,
-			final List<Integer> uidList, final boolean forceUpdate) {
+			final List<Integer> uidList, final boolean forceUpdate,
+			final int serverId) {
 		Log.d("communicator", "###### REQUEST HAS PHONE #1");
 
 		long lastTime = Utility.loadLongSetting(context,
-				Setup.SETTING_LASTUPDATEPHONES, 0);
+				Setup.SETTING_LASTUPDATEPHONES + serverId, 0);
 		long currentTime = DB.getTimestamp();
-		if (!Setup.isSMSOptionEnabled(context)) {
+		if (!Setup.isSMSOptionEnabled(context, serverId)) {
 			// if no sms option is enabled, then do not retrieve keys!
 			return;
 		}
 		if (!forceUpdate
-				&& (lastTime + Setup.UPDATE_PHONES_MIN_INTERVAL > currentTime)) {
+				&& (lastTime + Setup.UPDATE_PHONES_MIN_INTERVAL + serverId > currentTime)) {
 			// Do not do this more frequently
 			return;
 		}
-		Utility.saveLongSetting(context, Setup.SETTING_LASTUPDATEPHONES,
-				currentTime);
+		Utility.saveLongSetting(context, Setup.SETTING_LASTUPDATEPHONES
+				+ serverId, currentTime);
 
 		String uidliststring = "";
 		final ArrayList<Integer> uidListUsed = new ArrayList<Integer>();
 		for (int uid : uidList) {
-			// not do this of fake UIDs (sms-only users!)
+			// not do this of fake UIDs (sms-only users!) or if this user is not
+			// from THIS server
 			if (uid > 0) {
-				uidListUsed.add(uid);
-				if (uidliststring.length() != 0) {
-					uidliststring += "#";
+				if (Setup.getServerId(context, uid) == serverId) {
+					uidListUsed.add(uid);
+					if (uidliststring.length() != 0) {
+						uidliststring += "#";
+					}
+					uidliststring += Setup.encUid(context, uid, serverId);
 				}
-				uidliststring += Setup.encUid(context, uid);
 			}
 		}
 		if (uidliststring.equals("")) {
 			return;
 		}
 
-		String session = Setup.getTmpLoginEncoded(context);
+		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			// error resume is automatically done by getTmpLogin, not logged in
 			return;
 		}
 
 		String url = null;
-		url = Setup.getBaseURL(context) + "cmd=hasphone&session=" + session
-				+ "&val=" + Utility.urlEncode(uidliststring);
+		url = Setup.getBaseURL(context, serverId) + "cmd=hasphone&session="
+				+ session + "&val=" + Utility.urlEncode(uidliststring);
 
 		// Log.d("communicator", "###### REQUEST HAS PHONE (" + uidliststring
 		// + ") " + url);
@@ -2250,7 +2323,7 @@ public class Communicator {
 												// we are allowed to add this
 												// telephone number locally
 												value = Setup.decText(context,
-														value);
+														value, serverId);
 												if (value != null) {
 													boolean isUpdate = Main
 															.isUpdatePhone(
@@ -2291,22 +2364,23 @@ public class Communicator {
 	 * @return the key from server
 	 */
 	public static void getKeyFromServer(final Context context, final int uid,
-			final Main.UpdateListener updateListener) {
+			final Main.UpdateListener updateListener, final int serverId) {
 
 		if (uid < 0) {
 			// Do not request keys for SMS/external users!
 			return;
 		}
 
-		String session = Setup.getTmpLoginEncoded(context);
+		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			// error resume is automatically done by getTmpLogin, not logged in
 			return;
 		}
 
 		String url = null;
-		url = Setup.getBaseURL(context) + "cmd=getkey&session=" + session
-				+ "&val=" + Setup.encUid(context, uid);
+		int sUid = Setup.getSUid(context, uid);
+		url = Setup.getBaseURL(context, serverId) + "cmd=getkey&session="
+				+ session + "&val=" + Setup.encUid(context, sUid, serverId);
 
 		Log.d("communicator", "###### REQUEST KEY FOR UID " + uid
 				+ " FROM SERVER " + url);

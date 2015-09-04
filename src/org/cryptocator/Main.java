@@ -69,7 +69,15 @@ import android.widget.TextView;
 /**
  * This is the main activity for Delphino Cryptocator. It is responsible showing
  * the main screen with the user list. Some of the data is hold static because
- * there should always only be one instance of this activity.
+ * there should always only be one instance of this activity.<BR>
+ * <BR>
+ * With version 1.3 Delphino Cryptocator will support multiple message servers
+ * which allows for a user to be part of multiple closed user groups, e.g., (1)
+ * family, (2) work, (3) hobby. The message servers can be activated an
+ * deactivated, e.g., on holiday one may want to disable the (2) work-message
+ * server. As old style UIDs are only unique throughout ONE server these will
+ * now be called SUIDs (server=uids). The combination of an SUID and a serverId
+ * will bring us to the new UIDs that will now be used.
  * 
  * @author Christian Motika
  * @date 08/23/2015
@@ -165,7 +173,7 @@ public class Main extends Activity {
 		createContextMenu(context);
 
 		// Do this as early as possible
-		Setup.updateServerkey(context);
+		Setup.updateAllServerkeys(context);
 
 		if (Utility.loadBooleanSetting(context, Setup.OPTION_NOSCREENSHOTS,
 				Setup.DEFAULT_NOSCREENSHOTS)) {
@@ -249,10 +257,10 @@ public class Main extends Activity {
 		DB.ensureDBInitialized(context, uidList);
 
 		// Refresh current RSA keys from server (in the background if necessary)
-		Communicator.updateKeysFromServer(context, uidList, false, null);
-		Communicator.updatePhonesFromServer(this, uidList, false);
+		Communicator.updateKeysFromAllServers(context, uidList, false, null);
+		Communicator.updatePhonesFromAllServers(this, uidList, false);
 		// Refresh server attachment limit (if needed)
-		Setup.updateAttachmentServerLimit(context, false);
+		Setup.updateAttachmentAllServerLimits(context, false);
 
 		// Set the backgrounds
 		Utility.setBackground(this, titlemain, R.drawable.dolphins3blue);
@@ -482,20 +490,23 @@ public class Main extends Activity {
 	 */
 	public static void doRefresh(final Context context) {
 		Main.getInstance().updateInfoMessageBlockAsync(context);
-		Communicator.updateKeysFromServer(context, uidList, true, null);
-		Communicator.updatePhonesFromServer(context, uidList, true);
+		Communicator.updateKeysFromAllServers(context, uidList, true, null);
+		Communicator.updatePhonesFromAllServers(context, uidList, true);
 		// Force check Internet and account login information
-		Communicator.haveNewMessagesAndReceive(context);
-		Communicator.receiveNextMessage(context);
-		Setup.updateAttachmentServerLimit(context, true);
+		int serverId = Setup.getServerId(Setup.getNextServer(context));
+		Communicator.haveNewMessagesAndReceive(context, serverId);
+		Communicator.receiveNextMessage(context, serverId);
+		Setup.updateAttachmentAllServerLimits(context, true);
 
 		Utility.showToastAsync(context, "Refreshing....");
 		if (Main.isAlive()) {
 			Main.getInstance().mainBackground.postDelayed(new Runnable() {
 				public void run() {
-					updateUID2Name(context, uidList);
+					for (int serverId : Setup.getServerIds(context)) {
+						updateUID2Name(context, uidList, serverId);
+					}
 					if (Main.isAlive()) {
-						// we have just resolved the UIDs one line before
+						// We have just resolved the UIDs one line before
 						Main.getInstance().rebuildUserlist(context, false);
 					}
 				}
@@ -608,7 +619,8 @@ public class Main extends Activity {
 	/**
 	 * Rebuild userlist. resolveUIDs MUST be false if this method is called from
 	 * the response of UID2Name! Otherwise this can generate a loop if names
-	 * cannot be resolved!
+	 * cannot be resolved! As Cryptocator now supports multiple servers but we
+	 * can only display one account name, we take the first server!
 	 * 
 	 * @param context
 	 *            the context
@@ -618,14 +630,17 @@ public class Main extends Activity {
 	public void rebuildUserlist(final Context context,
 			final boolean resolveNames) {
 		try {
-			final int myUid = DB.myUid(context);
+			int serverDefaultId = Setup.getServerDefaultId(context);
+			final int myUid = DB.myUid(context, serverDefaultId);
 			String myName = Main.UID2Name(context, myUid, true, resolveNames);
 			if (!(myName.equals("no active account"))) {
 				setTitle(myName);
 			} else {
 				setTitle("User " + myUid + "");
 				// In case we have no name yet, try a login/validate!
-				Setup.login(context);
+				if (serverDefaultId != -1) {
+					Setup.login(context, serverDefaultId);
+				}
 				final Handler mUIHandler = new Handler(Looper.getMainLooper());
 				mUIHandler.postDelayed(new Runnable() {
 					public void run() {
@@ -1165,6 +1180,7 @@ public class Main extends Activity {
 	 *            the uid
 	 */
 	public static void deleteUser(Context context, int uid) {
+		int serverId = Setup.getServerId(context, uid);
 		DB.removeMappingByHostUid(context, uid);
 		DB.deleteUser(context, uid);
 		Setup.saveKey(context, uid, null);
@@ -1190,9 +1206,10 @@ public class Main extends Activity {
 			index++;
 		}
 		saveUIDList(context, uidListTmp);
+
 		// Do backup to server iff SMS option is on!
-		if (Setup.isSMSOptionEnabled(context)) {
-			Setup.backup(context, true, false);
+		if (Setup.isSMSOptionEnabled(context, serverId)) {
+			Setup.backup(context, true, false, serverId);
 		}
 		if (Main.isAlive()) {
 			Main.getInstance().deleteUserFromCurrentList(context, uid);
@@ -1253,16 +1270,18 @@ public class Main extends Activity {
 	 * @param uid the uid
 	 */
 	public void addUser(final Context context, final int uid) {
+		final int serverId = Setup.getServerId(context, uid);
+		final int suid = Setup.getSUid(context, uid);
 
-		String session = Setup.getTmpLoginEncoded(context);
+		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			// Error resume is automatically done by getTmpLogin, not logged in
 			return;
 		}
 
 		String url = null;
-		url = Setup.getBaseURL(context) + "cmd=getuser&session=" + session
-				+ "&val=" + Setup.encUid(context, uid);
+		url = Setup.getBaseURL(context, serverId) + "cmd=getuser&session="
+				+ session + "&val=" + Setup.encUid(context, suid, serverId);
 		final String url2 = url;
 		// Log.d("communicator", "XXXX REQUEST addUser :" + url2);
 		@SuppressWarnings("unused")
@@ -1278,18 +1297,18 @@ public class Main extends Activity {
 								String responseContent = Communicator
 										.getResponseContent(response);
 								String responseName = Setup.decText(context,
-										responseContent);
+										responseContent, serverId);
 								if (responseContent.equals("-1")
 										|| responseName == null) {
 									Utility.showToastAsync(context, "User "
-											+ uid + " not found.");
+											+ suid + " not found.");
 								} else {
 									internalAddUserAndRefreshUserlist(context,
 											uid, responseName);
 								}
 							} else {
 								Utility.showToastAsync(context,
-										"Cannot add user " + uid
+										"Cannot add user " + suid
 												+ ". Login failed.");
 							}
 						} else {
@@ -1314,6 +1333,7 @@ public class Main extends Activity {
 	 */
 	private static void internalAddUserAndRefreshUserlist(
 			final Context context, int uid, String name) {
+		final int serverId = Setup.getServerId(context, uid);
 		saveUID2Name(context, uid, name);
 		List<Integer> tmpUidList;
 		if (Main.isAlive()) {
@@ -1325,16 +1345,17 @@ public class Main extends Activity {
 		DB.ensureDBInitialized(context, uidList);
 		saveUIDList(context, tmpUidList);
 
-		Communicator.updateKeysFromServer(context, uidList, true, null);
-		Communicator.updatePhonesFromServer(context, uidList, true);
+		Communicator.updateKeysFromServer(context, uidList, true, null,
+				serverId);
+		Communicator.updatePhonesFromServer(context, uidList, true, serverId);
 
 		// Do backup to server iff SMS option is on!
 		// this is for privacy/security: the server otherwise would not
 		// allow this new added person to download YOUR phone number!
 		// but if you have switched on sms option you want to allow exactly
 		// this.
-		if (Setup.isSMSOptionEnabled(context)) {
-			Setup.backup(context, true, false);
+		if (Setup.isSMSOptionEnabled(context, serverId)) {
+			Setup.backup(context, true, false, serverId);
 		}
 		possiblyRebuildUserlistAsync(context, true);
 	}
@@ -1465,11 +1486,13 @@ public class Main extends Activity {
 	 */
 	public static String UID2Name(Context context, int uid,
 			boolean fullNameWithUID, boolean resolve) {
-		String myName = Utility.loadStringSetting(context, "username", "");
+		int serverDefaultId = Setup.getServerDefaultId(context);
+		String myName = Utility.loadStringSetting(context, Setup.SERVER_USERNAME + serverDefaultId, "");
 		int myUid = Utility.parseInt(
-				Utility.loadStringSetting(context, "uid", ""), -1);
+				Utility.loadStringSetting(context, Setup.SERVER_UID + serverDefaultId, ""), -1);
 
 		String name = Utility.loadStringSetting(context, "uid2name" + uid, "");
+		final int suid = Setup.getSUid(context, uid);
 
 		if (uid == myUid) {
 			if (myUid == -1 || name == null || name.equals("")) {
@@ -1480,7 +1503,7 @@ public class Main extends Activity {
 				return myName;
 			}
 		}
-		if (uid == 0) {
+		if (uid == 0 || suid == 0) {
 			return "System";
 		}
 		if (Utility.parseInt(name, 0) < 0) {
@@ -1499,7 +1522,7 @@ public class Main extends Activity {
 			return "User " + uid + "";
 		} else {
 			if (fullNameWithUID) {
-				return name + "  [ " + uid + " ]";
+				return name + "  [ " + suid + " ]";
 			} else {
 				return name;
 			}
@@ -1521,7 +1544,8 @@ public class Main extends Activity {
 	public static void updateUID2Name(final Context context, final int uid,
 			final UpdateListener updateListener) {
 		if (uid >= 0) {
-			updateUID2Name(context, uid, null, null, updateListener);
+			int serverId = Setup.getServerId(context, uid);
+			updateUID2Name(context, uid, null, null, updateListener, serverId);
 		}
 	}
 
@@ -1534,13 +1558,18 @@ public class Main extends Activity {
 	 *            the uids
 	 */
 	public static void updateUID2Name(final Context context,
-			final List<Integer> uids) {
+			final List<Integer> uids, int serverId) {
 		ArrayList<String> encUids = new ArrayList<String>();
+		ArrayList<Integer> requestedUids = new ArrayList<Integer>();
 		for (int uid : uids) {
-			encUids.add(Setup.encUid(context, uid));
+			if (uid >= 0 && Setup.getServerId(context, uid) == serverId) {
+				requestedUids.add(uid);
+				final int suid = Setup.getSUid(context, uid);
+				encUids.add(Setup.encUid(context, suid, serverId));
+			}
 		}
 		updateUID2Name(context, -1, Utility.getListAsString(encUids, "#"),
-				uids, null);
+				requestedUids, null, serverId);
 	}
 
 	/**
@@ -1559,7 +1588,8 @@ public class Main extends Activity {
 	 */
 	private static void updateUID2Name(final Context context,
 			final int uidSingleLookup, final String uidListAsString,
-			final List<Integer> uidList, final UpdateListener updateListener) {
+			final List<Integer> uidList, final UpdateListener updateListener,
+			final int serverId) {
 		if ((uidListAsString == null || uidListAsString.length() == 0)
 				&& (uidSingleLookup == -1)) {
 			// nobody in the list, nobody to look up
@@ -1570,19 +1600,20 @@ public class Main extends Activity {
 		if (uidListAsString != null) {
 			uidListAsStringEncoded = Utility.urlEncode(uidListAsString);
 		} else {
-			uidListAsStringEncoded = Setup.encUid(context, uidSingleLookup)
-					+ "";
+			final int suid = Setup.getSUid(context, uidSingleLookup);
+			uidListAsStringEncoded = Setup.encUid(context, suid,
+					serverId) + "";
 		}
 
-		String session = Setup.getTmpLoginEncoded(context);
+		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			// error resume is automatically done by getTmpLogin, not logged in
 			return;
 		}
 
 		String url = null;
-		url = Setup.getBaseURL(context) + "cmd=getuser&session=" + session
-				+ "&val=" + uidListAsStringEncoded;
+		url = Setup.getBaseURL(context, serverId) + "cmd=getuser&session="
+				+ session + "&val=" + uidListAsStringEncoded;
 		final String url2 = url;
 		Log.d("communicator", "REQUEST USERNAMES: " + url);
 		@SuppressWarnings("unused")
@@ -1598,7 +1629,7 @@ public class Main extends Activity {
 								if (uidList == null && uidSingleLookup != -1) {
 									// SINGLE LOOKUP
 									String newName = Setup.decText(context,
-											responseContent);
+											responseContent, serverId);
 									if (Main.isUpdateName(context,
 											uidSingleLookup) && newName != null) {
 										saveUID2Name(context, uidSingleLookup,
@@ -1623,7 +1654,7 @@ public class Main extends Activity {
 									for (int i = 0; i < names.size(); i++) {
 										String name = names.get(i);
 										String newName = Setup.decText(context,
-												name);
+												name, serverId);
 										int uid = uidList.get(i);
 										if (Main.isUpdateName(context, uid)
 												&& newName != null) {
@@ -2022,10 +2053,10 @@ public class Main extends Activity {
 		new Thread(new Runnable() {
 			public void run() {
 				try {
-					Communicator.updateKeysFromServer(context, uidList, false,
-							null);
-					Communicator
-							.updatePhonesFromServer(context, uidList, false);
+					Communicator.updateKeysFromAllServers(context, uidList,
+							false, null);
+					Communicator.updatePhonesFromAllServers(context, uidList,
+							false);
 				} catch (Exception e) {
 				}
 			}
