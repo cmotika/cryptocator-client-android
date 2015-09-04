@@ -332,7 +332,8 @@ public class Scheduler extends BroadcastReceiver {
 							+ ", Communicator.messagesToSend="
 							+ Communicator.messagesToSend);
 
-					if (Communicator.messageSent || Communicator.messagesToSend) {
+					if (Communicator.messageSent || Communicator.messagesToSend
+							|| Communicator.SMSToSend) {
 						if (!onlyReceive) {
 							Communicator.sendNextMessage(context);
 						}
