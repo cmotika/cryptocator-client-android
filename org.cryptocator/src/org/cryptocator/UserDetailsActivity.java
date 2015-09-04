@@ -453,8 +453,10 @@ public class UserDetailsActivity extends Activity {
 		if (uid >= 0) {
 			nameCheck.setChecked(Main.isUpdateName(context, uid));
 
+			int serverId = Setup.getServerId(context, uid);
+			
 			// ONLY if SMS option is enabled, an auto update of phone numbers is allowed!
-			if (Setup.isSMSOptionEnabled(context)) {
+			if (Setup.isSMSOptionEnabled(context, serverId)) {
 				phoneCheck.setChecked(Main.isUpdatePhone(context, uid));
 			} else {
 				// Inform the user that he has not enabled the SMS option!
@@ -524,6 +526,7 @@ public class UserDetailsActivity extends Activity {
 	 */
 	private void updateKey() {
 		key.setText("Updating...");
+		int serverId = Setup.getServerId(context, uid);
 		Communicator.getKeyFromServer(this, uid, new Main.UpdateListener() {
 			public void onUpdate(final String data) {
 				final Handler mUIHandler = new Handler(Looper.getMainLooper());
@@ -536,7 +539,7 @@ public class UserDetailsActivity extends Activity {
 					}
 				});
 			}
-		});
+		}, serverId);
 	}
 
 	// ------------------------------------------------------------------------

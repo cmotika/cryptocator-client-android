@@ -205,7 +205,7 @@ public class MessageDetailsActivity extends Activity {
 		}
 		activityTitle = "Message Details" + msgIdString;
 
-		if (updatedItem.me(context)) {
+		if (updatedItem.me()) {
 			// from me
 			fromkey.setText("Account Key: " + Setup.getPublicKeyHash(context));
 			tokey.setText("Account Key: "
@@ -223,7 +223,7 @@ public class MessageDetailsActivity extends Activity {
 		created.setText(DB.getDateString(updatedItem.created, true));
 		sent.setText(DB.getDateString(updatedItem.sent, true));
 
-		if (updatedItem.me(context)) {
+		if (updatedItem.me()) {
 			// We send this item
 			if (updatedItem.sent > 10) {
 				// If this item is sent, then hide sending/receiving!
@@ -390,7 +390,7 @@ public class MessageDetailsActivity extends Activity {
 		}
 
 		int hostUidTmp = updatedItem.from;
-		if (updatedItem.me(context)) {
+		if (updatedItem.me()) {
 			hostUidTmp = updatedItem.to;
 		}
 		final int hostUid = hostUidTmp;
@@ -607,7 +607,7 @@ public class MessageDetailsActivity extends Activity {
 		Utility.setBackground(context, outerLayout, R.drawable.dolphins3light);
 		Utility.setBackground(context, buttonLayout, R.drawable.dolphins4light);
 
-		if ((!conversationItem.me(context))
+		if ((!conversationItem.me())
 				|| conversationItem.transport == DB.TRANSPORT_SMS
 				|| conversationItem.withdraw > 10) {
 			buttonWithdraw.setEnabled(false);

@@ -759,11 +759,11 @@ public class Conversation extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	private void inviteOtherUserToSMSMode(final Context context) {
+	private void inviteOtherUserToSMSMode(final Context context, int serverId) {
 		// Possibly read other ones telephone number
 		// at this point
 		Communicator.updatePhonesFromServer(context, Main.loadUIDList(context),
-				true);
+				true, serverId);
 
 		final String titleMessage = "Enable SMS";
 		String partner = Main.UID2Name(context, hostUid, false);
@@ -806,13 +806,17 @@ public class Conversation extends Activity {
 									String phone = Utility
 											.getPhoneNumber(context);
 									if (phone != null && phone.length() > 0) {
-										Setup.updateSMSOption(context, true);
-										Setup.backup(context, true, false);
+										int serverId = Setup.getServerId(
+												context, hostUid);
+										Setup.updateSMSOption(context, true,
+												serverId);
+										Setup.backup(context, true, false,
+												serverId);
 										// Possibly read other ones telephone
 										// number at this poiint
 										Communicator.updatePhonesFromServer(
 												context,
-												Main.loadUIDList(context), true);
+												Main.loadUIDList(context), true, serverId);
 									} else {
 										Utility.showToastAsync(
 												context,
@@ -983,7 +987,8 @@ public class Conversation extends Activity {
 	 * @return true, if is SMS mode available
 	 */
 	private boolean isSMSModeAvailable(Context context) {
-		boolean smsOptionOn = Setup.isSMSOptionEnabled(context);
+		int serverId = Setup.getServerId(context, hostUid);
+		boolean smsOptionOn = Setup.isSMSOptionEnabled(context, serverId);
 		boolean haveTelephoneNumber = Setup.havePhone(context, hostUid);
 		return (haveTelephoneNumber && smsOptionOn);
 	}
@@ -1986,9 +1991,9 @@ public class Conversation extends Activity {
 
 		View conversationlistitem = null;
 		ImageSmileyEditText conversationText = null;
-
+		
 		// Inflate other XMLs for me or for my conversation partner
-		if (!conversationItem.me(context)) {
+		if (!conversationItem.me()) {
 			conversationlistitem = inflater.inflate(R.layout.conversationitem,
 					null);
 			conversationText = (ImageSmileyEditText) conversationlistitem
@@ -2607,8 +2612,10 @@ public class Conversation extends Activity {
 							boolean haveTelephoneNumber = Setup.havePhone(
 									context, hostUid);
 							if (!smsmodeOn && !haveTelephoneNumber) {
-								if (Setup.isSMSOptionEnabled(context)) {
-									inviteOtherUserToSMSMode(context);
+								int serverId = Setup.getServerId(context,
+										hostUid);
+								if (Setup.isSMSOptionEnabled(context, serverId)) {
+									inviteOtherUserToSMSMode(context, serverId);
 								} else {
 									inviteUserToSMSMode(context);
 								}
@@ -2834,17 +2841,20 @@ public class Conversation extends Activity {
 	 */
 	public void doRefresh(final Context context) {
 		Communicator.sendNextMessage(this);
-		Communicator.haveNewMessagesAndReceive(this);
+		int serverId = Setup.getServerId(context, hostUid);
+		Communicator.haveNewMessagesAndReceive(this, serverId);
 		Utility.showToastShortAsync(this, "Refreshing...");
 	}
 
 	// ------------------------------------------------------------------------
-	
+
 	/**
 	 * Rebuild the conversation after some delay.
-	 *
-	 * @param context the context
-	 * @param delay the delay
+	 * 
+	 * @param context
+	 *            the context
+	 * @param delay
+	 *            the delay
 	 */
 	public void rebuildConversation(final Context context, final int delay) {
 		final Handler mUIHandler = new Handler(Looper.getMainLooper());
@@ -2858,7 +2868,7 @@ public class Conversation extends Activity {
 			}
 		}, delay);
 	}
-	
+
 	// ------------------------------------------------------------------------
 
 	/**
@@ -3201,6 +3211,7 @@ public class Conversation extends Activity {
 				final boolean keyboardWasVisible = keyboardVisible;
 				final boolean wasScrolledDown = scrolledDown;
 				final Context context = this;
+				PictureImportActivity.hostUid = hostUid;
 				PictureImportActivity
 						.setOnPictureImportListener(new PictureImportActivity.OnPictureImportListener() {
 							public void onImport(String encodedImage) {
@@ -3420,7 +3431,8 @@ public class Conversation extends Activity {
 					"In order to send attachment images, your communication partner needs to be registered.");
 			return;
 		}
-		if (!Setup.isAttachmentsAllowedByServer(activity)) {
+		int serverId = Setup.getServerId(activity, hostUid);
+		if (!Setup.isAttachmentsAllowedByServer(activity, serverId)) {
 			String title = "Attachments Not Allowed";
 			String text = "Attachments are not allowed by the server and will be removed for Internet messages.\n"
 					+ "You may still send them via SMS but be advised not to send too "
@@ -3554,7 +3566,8 @@ public class Conversation extends Activity {
 	public static String possiblyRemoveImageAttachments(Context context,
 			String text, boolean forceRemoveAll, String substitute) {
 
-		int limit = Setup.getAttachmentServerLimit(context) * 1000;
+		int serverId = Setup.getServerId(context, hostUid);
+		int limit = Setup.getAttachmentServerLimit(context, serverId) * 1000;
 		if (text.length() < limit && !forceRemoveAll) {
 			Log.d("communicator",
 					"total text is smaller than the attachment limit : textlen="
@@ -3708,7 +3721,7 @@ public class Conversation extends Activity {
 		}
 		String sentReceived = "from "
 				+ Main.UID2Name(context, conversationItem.from, true);
-		if (conversationItem.me(context)) {
+		if (conversationItem.from != hostUid) {
 			sentReceived = "to "
 					+ Main.UID2Name(context, conversationItem.to, true);
 		}
@@ -3747,7 +3760,7 @@ public class Conversation extends Activity {
 
 		String sentReceived = "received from "
 				+ Main.UID2Name(context, conversationItem.from, true);
-		if (conversationItem.me(context)) {
+		if (conversationItem.from != hostUid) {
 			sentReceived = "sent to "
 					+ Main.UID2Name(context, conversationItem.to, true);
 		}

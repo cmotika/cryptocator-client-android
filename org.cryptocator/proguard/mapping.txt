@@ -3669,6 +3669,7 @@ org.cryptocator.ImageContextMenu -> org.cryptocator.ImageContextMenu:
     void show(android.content.Context,org.cryptocator.ImageContextMenu$ImageContextMenuProvider) -> a
     void onDestroy() -> onDestroy
     void onStop() -> onStop
+    void onPause() -> onPause
     void onCreateContextMenu(android.view.ContextMenu,android.view.View,android.view.ContextMenu$ContextMenuInfo) -> onCreateContextMenu
     void onCreate(android.os.Bundle) -> onCreate
     long access$0(org.cryptocator.ImageContextMenu) -> a

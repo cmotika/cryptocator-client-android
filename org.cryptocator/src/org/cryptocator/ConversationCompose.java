@@ -615,7 +615,8 @@ public class ConversationCompose extends Activity {
 			return;
 		}
 		// now check if SMS and encryption is available
-		boolean mySMSAvailable = Setup.isSMSOptionEnabled(context);
+		int serverId = Setup.getServerId(context, uid);
+		boolean mySMSAvailable = Setup.isSMSOptionEnabled(context, serverId);
 		boolean otherSMSAvailable = Setup.havePhone(context, uid);
 		boolean sms = mySMSAvailable && otherSMSAvailable;
 		boolean encryption = Setup.isEncryptionAvailable(context, uid);

@@ -46,6 +46,9 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import javax.crypto.KeyGenerator;
@@ -65,8 +68,10 @@ import android.provider.Telephony;
 import android.text.InputType;
 import android.util.Base64;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -75,6 +80,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 /**
@@ -93,7 +99,7 @@ public class Setup extends Activity {
 	// //// BASIC APP CONSTANTS //// //
 
 	/** The server URL to be used per default. */
-	public static String BASEURLDEFAULT = "http://www.cryptocator.org";
+	public static String DEFAULT_SERVER = "http://www.cryptocator.org";
 
 	/**
 	 * The prefix to be used for UID databases names. All conversations are
@@ -144,7 +150,7 @@ public class Setup extends Activity {
 	 * The cached version of the base URL for faster access because of frequent
 	 * use.
 	 */
-	private static String BASEURLCACHED = null;
+	private static HashMap<Integer, String> BASESERVERADDRESSCACHED = new HashMap<Integer, String>();
 
 	/**
 	 * After this time these confirmations will be discarded (from the sent.db),
@@ -437,6 +443,42 @@ public class Setup extends Activity {
 	/** The Constant AESKEY for session keys. */
 	public static final String AESKEY = "aes";
 
+	/** The Constant SERVERLIST. */
+	public static final String SERVERLIST = "serverlist";
+
+	/** The Constant SERVER_UID. */
+	public static final String SERVER_UID = "uid";
+
+	/** The Constant SERVER_EMAIL. */
+	public static final String SERVER_EMAIL = "email";
+
+	/** The Constant SERVER_PWD. */
+	public static final String SERVER_PWD = "pwd";
+
+	/** The Constant SERVER_USERNAME. */
+	public static final String SERVER_USERNAME = "username";
+
+	/** The Constant SUID2UID enables mapping from UID to SUID. */
+	public static final String UID2SUID = "UID2SUID";
+
+	/** The Constant SUID2SERVERID enables mapping from UID to SERVERID. */
+	public static final String UID2SERVERID = "UID2SERVERID";
+
+	/**
+	 * The Constant DEFAULTSERVERINDEX is the index in the serverid list that is
+	 * the default one,e.g. for displaying the name in the main screen.
+	 */
+	public static final int DEFAULTSERVERINDEX = 0;
+
+	/** The Constant SERVER_ACTIVE. */
+	public static final String SERVER_ACTIVE = "serveractive";
+
+	/** The Constant for the saved round robin server id. */
+	public static final String SERVERLASTRRID = "serverlastrrid";
+
+	/** The Constant SERVER_ACTIVEDEFAULT for new servers. */
+	public static final boolean SERVER_ACTIVEDEFAULT = true;
+
 	/**
 	 * The Constant KEYEXTRAWAITCOUNTDOWN is a countdown that is set by the
 	 * automated session key sending component for SMS to 10 and for Internet to
@@ -470,12 +512,6 @@ public class Setup extends Activity {
 	 * timestamp of the last message per user.
 	 */
 	public static final String SETTINGS_USERLISTLASTMESSAGETIMESTAMP = "userlistlastmessagetimestamp";
-
-	/**
-	 * The Constant SETTINGS_HAVESENTRSAKEYYET for remember if we have sent the
-	 * rsa key to the server yet.
-	 */
-	public static final String SETTINGS_HAVESENTRSAKEYYET = "sentrsakeyforuser";
 
 	/** The Constant SETTINGS_PHONE for the phone number. */
 	public static final String SETTINGS_PHONE = "phone";
@@ -738,12 +774,6 @@ public class Setup extends Activity {
 	/** The advancedsettings. */
 	private static LinearLayout advancedsettings;
 
-	/** The baseurltext. */
-	private static EditText baseurltext;
-
-	/** The baseurlbutton. */
-	private static Button baseurlbutton;
-
 	/** The buttonclearsending. */
 	private static Button buttonclearsending;
 
@@ -789,8 +819,14 @@ public class Setup extends Activity {
 	/** The accountonline. */
 	private static LinearLayout accountonline;
 
+	/** The account settingspart. */
+	private LinearLayout accountsection;
+
+	/** The header of account settingspart. */
+	private LinearLayout accountheader;
+
 	/** The settingspart. */
-	private LinearLayout settingspart;
+	private LinearLayout settingssection;
 
 	/** The mainscrollview. */
 	private static ScrollView mainscrollview;
@@ -803,6 +839,21 @@ public class Setup extends Activity {
 
 	/** The account type. */
 	private boolean accountType = false;
+
+	/** The serverbuttonmodify. */
+	private Button serverbuttonmodify = null;
+
+	/** The serverbuttonadd. */
+	private Button serverbuttonadd = null;
+
+	/** The serverbuttondelete. */
+	private Button serverbuttondelete = null;
+
+	/** The server selection spinner. */
+	private Spinner serverspinner = null;
+
+	/** The selected server id. */
+	private int selectedServerId = 0;
 
 	// ------------------------------------------------------------------------
 
@@ -837,57 +888,69 @@ public class Setup extends Activity {
 
 		accountType = this.getIntent().hasExtra("account");
 
-		uid = (EditText) findViewById(R.id.uid);
-		uid.setTag(uid.getKeyListener()); // remember the listener for later use
-		uid.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				updateAccountLocked(context, false);
-			}
-		});
-		TextView textexisting2 = (TextView) findViewById(R.id.textexisting2);
-		textexisting2.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				updateAccountLocked(context, false);
-			}
-		});
-
-		email = (EditText) findViewById(R.id.email);
-		email.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				updateAccountLocked(context, false);
-			}
-		});
-		pwd = (EditText) findViewById(R.id.pwd);
-		pwd.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				updateAccountLocked(context, false);
-			}
-		});
-
-		usernew = (EditText) findViewById(R.id.usernew);
-		emailnew = (EditText) findViewById(R.id.emailnew);
-		pwdnew = (EditText) findViewById(R.id.pwdnew);
-		phone = (EditText) findViewById(R.id.phone);
-
 		error = (TextView) findViewById(R.id.error);
 		info = (TextView) findViewById(R.id.info);
 
-		advancedsettings = (LinearLayout) findViewById(R.id.advancedsettings);
-		advancedsettings.setVisibility(View.GONE);
-		baseurltext = (EditText) findViewById(R.id.baseurltext);
-		baseurlbutton = (Button) findViewById(R.id.baseurlbutton);
-		baseurlbutton.setOnClickListener(new OnClickListener() {
+		LinearLayout mainsettingsinnerlayout = (LinearLayout) findViewById(R.id.mainsettingsinnerlayout);
+		mainsettingsinnerlayout.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				String oldBaseUrl = Utility.loadStringSetting(context,
-						Setup.SETTINGS_BASEURL, BASEURLDEFAULT);
-				if (!baseurltext.getText().toString().equals(oldBaseUrl)) {
-					promptChangeBaseURL(context);
-				} else {
-					advancedsettings.setVisibility(View.GONE);
-				}
-
+				setErrorInfo(null);
 			}
 		});
+
+		accountsection = (LinearLayout) findViewById(R.id.accountsection);
+		accountheader = (LinearLayout) findViewById(R.id.accountheader);
+		settingssection = (LinearLayout) findViewById(R.id.settingssection);
+		serverbuttonmodify = (Button) findViewById(R.id.serverbuttonmodify);
+		serverbuttonadd = (Button) findViewById(R.id.serverbuttonadd);
+		serverbuttondelete = (Button) findViewById(R.id.serverbuttondelete);
+		hideServerModifyButtons();
+		serverbuttonmodify.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				promptModifyServer(context);
+			}
+		});
+		serverbuttonadd.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				promptAddServer(context);
+			}
+		});
+		serverbuttondelete.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				promptDeleteServer(context);
+			}
+		});
+
+		serverspinner = (Spinner) findViewById(R.id.serverspinner);
+		serverspinner.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				selectedServerId = -1;
+				try {
+					String serverAddress = (String) serverspinner
+							.getSelectedItem();
+					selectedServerId = getServerId(serverAddress);
+					// login == false
+					online = false;
+					updateonline();
+					// reload login info text fields
+					loadServerTab(context, selectedServerId);
+				} catch (Exception e) {
+					// ignore
+				}
+			}
+		});
+
+		if (!accountType) {
+			accountsection.setVisibility(View.GONE);
+			loadSettings(context);
+		} else {
+			settingssection.setVisibility(View.GONE);
+			updateServerSpinner(context);
+			buildServerTabs(context);
+		}
+
+		advancedsettings = (LinearLayout) findViewById(R.id.advancedsettings);
+		advancedsettings.setVisibility(View.GONE);
 		buttonclearsending = (Button) findViewById(R.id.buttonclearsending);
 		buttonclearsending.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
@@ -951,30 +1014,425 @@ public class Setup extends Activity {
 				}
 				if (advanedSetupCountdown <= 0) {
 					advanedSetupCountdown = ADVANCEDSETUPCOUNTDOWNSTART;
-					baseurltext.setText(Utility.loadStringSetting(context,
-							SETTINGS_BASEURL, BASEURLDEFAULT));
 					// Make it visible
-					baseurlbutton.setEnabled(false);
-					baseurltext.setEnabled(false);
-					baseurlbutton.postDelayed(new Runnable() {
+					advancedsettings.postDelayed(new Runnable() {
 						public void run() {
-							baseurlbutton.setEnabled(true);
-							baseurltext.setEnabled(true);
+							advancedsettings.setVisibility(View.VISIBLE);
 						}
 					}, 4000);
-					advancedsettings.setVisibility(View.VISIBLE);
 				}
 			}
 		});
 
 		updateTitleIDInfo(context);
+		// requestWindowFeature(Window.FEATURE_LEFT_ICON);
+		int serverDefaultId = Setup.getServerDefaultId(context);
+		String uidString2 = Utility.loadStringSetting(context, Setup.SERVER_UID + serverDefaultId, "");
+		if (uidString2 != null & uidString2.trim().length() > 0) {
+			uidString2 = " - UID " + uidString2;
+		}
+
+		if (!accountType) {
+			setTitle("Settings" + uidString2);
+		} else {
+			setTitle("Account" + uidString2);
+		}
+		setErrorInfo(null);
+
+		try {
+			// Setting backgrounds
+			Utility.setBackground(this, main, R.drawable.dolphins1);
+			LinearLayout settingsBackground = ((LinearLayout) findViewById(R.id.settingsbackground));
+			Utility.setBackground(this, settingsBackground,
+					R.drawable.dolphins1);
+			settingsBackground.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					setErrorInfo(null);
+				}
+			});
+
+			Utility.setBackground(this, accountheader,
+					R.drawable.dolphins4light);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// reload login info text fields
+		loadServerTab(context, selectedServerId);
+
+		Utility.hideKeyboard(context);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Hide server modify buttons.
+	 */
+	public void hideServerModifyButtons() {
+		serverbuttonmodify.setVisibility(View.VISIBLE);
+		serverbuttonadd.setVisibility(View.GONE);
+		serverbuttondelete.setVisibility(View.GONE);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Builds the server tabs.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void buildServerTabs(final Context context) {
+		LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		final ScrollView accountInner = (ScrollView) inflater.inflate(
+				R.layout.setup_account, null);
+		accountsection.addView(accountInner);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Update server spinner.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void updateServerSpinner(final Context context) {
+		List<String> spinnerArray = getServers(context);
+		ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(
+				context, android.R.layout.simple_spinner_item, spinnerArray);
+		spinnerArrayAdapter
+				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		serverspinner.setAdapter(spinnerArrayAdapter);
+	}
+
+	// ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Load setup settings.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void loadSettings(final Context context) {
+		// Create a view
+		LayoutInflater serverTabInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		ScrollView settings = (ScrollView) serverTabInflater.inflate(
+				R.layout.setup_settings, null);
+		settingssection.addView(settings);
+
+		active = (CheckBox) findViewById(R.id.active);
+		encryption = (CheckBox) findViewById(R.id.encryption);
+		tone = (CheckBox) findViewById(R.id.tone);
+		vibrate = (CheckBox) findViewById(R.id.vibrate);
+		ignore = (CheckBox) findViewById(R.id.ignore);
+		notification = (CheckBox) findViewById(R.id.notification);
+		autosave = (CheckBox) findViewById(R.id.autosave);
+		noread = (CheckBox) findViewById(R.id.noread);
+		chatmode = (CheckBox) findViewById(R.id.chatmode);
+		quicktype = (CheckBox) findViewById(R.id.quicktype);
+		smileys = (CheckBox) findViewById(R.id.smileys);
+		receiveallsms = (CheckBox) findViewById(R.id.receiveallsms);
+		noscreenshots = (CheckBox) findViewById(R.id.noscreenshots);
+		powersave = (CheckBox) findViewById(R.id.powersave);
+
+		// other settings
+		active.setChecked(Utility.loadBooleanSetting(context, OPTION_ACTIVE,
+				DEFAULT_ACTIVE));
+		active.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				setActive(context, active.isChecked());
+				if (active.isChecked()) {
+					// Start the scheduler
+					Scheduler.reschedule(context, false, false, false);
+				} else {
+					// We do not have to end the scheduler, it will end
+					// automatically...
+				}
+			}
+		});
+		tone.setChecked(Utility.loadBooleanSetting(context, Setup.OPTION_TONE,
+				Setup.DEFAULT_TONE));
+		tone.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				Utility.saveBooleanSetting(context, Setup.OPTION_TONE,
+						tone.isChecked());
+			}
+		});
+		vibrate.setChecked(Utility.loadBooleanSetting(context,
+				Setup.OPTION_VIBRATE, true));
+		vibrate.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				Utility.saveBooleanSetting(context, Setup.OPTION_VIBRATE,
+						vibrate.isChecked());
+			}
+		});
+		ignore.setChecked(Utility.loadBooleanSetting(context,
+				Setup.OPTION_IGNORE, Setup.DEFAULT_IGNORE));
+		ignore.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				Utility.saveBooleanSetting(context, Setup.OPTION_IGNORE,
+						ignore.isChecked());
+			}
+		});
+		notification.setChecked(Utility.loadBooleanSetting(context,
+				Setup.OPTION_NOTIFICATION, Setup.DEFAULT_NOTIFICATION));
+		notification.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				Utility.saveBooleanSetting(context, Setup.OPTION_NOTIFICATION,
+						notification.isChecked());
+			}
+		});
+		autosave.setChecked(Utility.loadBooleanSetting(context,
+				Setup.OPTION_AUTOSAVE, Setup.DEFAULT_AUTOSAVE));
+		autosave.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				Utility.saveBooleanSetting(context, Setup.OPTION_AUTOSAVE,
+						autosave.isChecked());
+			}
+		});
+		noread.setChecked(Utility.loadBooleanSetting(context,
+				Setup.OPTION_NOREAD, Setup.DEFAULT_NOREAD));
+		noread.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				if (!noread.isChecked()) {
+					// we allowed it now, save the timestamp to just receive
+					// read confirmations FROM NOW ON
+					// this will hide ALL confirmations sent before this
+					// time!
+					Utility.saveStringSetting(context, "timestampread",
+							DB.getTimestampString());
+					Utility.saveBooleanSetting(context, Setup.OPTION_NOREAD,
+							false);
+				} else {
+					noread.setChecked(false);
+					askOnRefuseReadConfirmation(context);
+				}
+			}
+		});
+		chatmode.setChecked(Utility.loadBooleanSetting(context,
+				Setup.OPTION_CHATMODE, Setup.DEFAULT_CHATMODE));
+		chatmode.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				Utility.saveBooleanSetting(context, Setup.OPTION_CHATMODE,
+						chatmode.isChecked());
+			}
+		});
+		quicktype.setChecked(Utility.loadBooleanSetting(context,
+				Setup.OPTION_QUICKTYPE, Setup.DEFAULT_QUICKTYPE));
+		quicktype.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				Utility.saveBooleanSetting(context, Setup.OPTION_QUICKTYPE,
+						quicktype.isChecked());
+			}
+		});
+		smileys.setChecked(Utility.loadBooleanSetting(context,
+				Setup.OPTION_SMILEYS, Setup.DEFAULT_SMILEYS));
+		smileys.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				Utility.saveBooleanSetting(context, Setup.OPTION_SMILEYS,
+						smileys.isChecked());
+			}
+		});
+		noscreenshots.setChecked(Utility.loadBooleanSetting(context,
+				Setup.OPTION_NOSCREENSHOTS, Setup.DEFAULT_NOSCREENSHOTS));
+		noscreenshots.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				Utility.saveBooleanSetting(context, Setup.OPTION_NOSCREENSHOTS,
+						noscreenshots.isChecked());
+				if (!noscreenshots.isChecked()) {
+					// allow screenshots, tell user to restart app!
+					Conversation
+							.promptInfo(
+									context,
+									"Allow Screenshots",
+									"You may need to fully restart the App in order to make screenshots.\n\nIf this does not work, you may even need to restart your phone.\n\nConsider re-enabling this feature soon to protect your privacy!");
+				}
+			}
+		});
+		powersave.setChecked(Utility.loadBooleanSetting(context,
+				Setup.OPTION_POWERSAVE, Setup.DEFAULT_POWERSAVE));
+		powersave.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				Utility.saveBooleanSetting(context, Setup.OPTION_POWERSAVE,
+						powersave.isChecked());
+			}
+		});
+		encryption.setChecked(Utility.loadBooleanSetting(context,
+				Setup.OPTION_ENCRYPTION, Setup.DEFAULT_ENCRYPTION));
+		encryption.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				if (encryption.isChecked()) {
+					enableEncryption(context);
+					updateTitleIDInfo(context);
+					Utility.saveBooleanSetting(context,
+							Setup.OPTION_ENCRYPTION, true);
+				} else {
+					encryption.setChecked(true);
+					askOnDisableEncryption(context);
+				}
+			}
+		});
+		receiveallsms.setChecked(isSMSDefaultApp(context, false));
+		receiveallsms.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				if (receiveallsms.isChecked()) {
+					// Enable Delphino Cryptocator as default messaging app
+					setSMSDefaultApp(context, true);
+				} else {
+					receiveallsms.setChecked(true);
+					promptDisableReceiveAllSms(context);
+				}
+			}
+		});
+
+		// help icon clicks
+		helpactive = (ImageView) findViewById(R.id.helpactive);
+		helpencryption = (ImageView) findViewById(R.id.helpencryption);
+		helptone = (ImageView) findViewById(R.id.helptone);
+		helpvibrate = (ImageView) findViewById(R.id.helpvibrate);
+		helpnotification = (ImageView) findViewById(R.id.helpnotification);
+		helpignore = (ImageView) findViewById(R.id.helpignore);
+		helpautosave = (ImageView) findViewById(R.id.helpautosave);
+		helpnoread = (ImageView) findViewById(R.id.helpnoread);
+		helpchatmode = (ImageView) findViewById(R.id.helpchatmode);
+		helpquicktype = (ImageView) findViewById(R.id.helpquicktype);
+		helpsmileys = (ImageView) findViewById(R.id.helpsmileys);
+		helpnoscreenshots = (ImageView) findViewById(R.id.helpnoscreenshots);
+		helppowersave = (ImageView) findViewById(R.id.helppowersave);
+		helpreceiveallsms = (ImageView) findViewById(R.id.helpreceiveallsms);
+		helpactive.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				setErrorInfo(HELP_ACTIVE, false);
+			}
+		});
+		helpencryption.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				setErrorInfo(HELP_ENCRYPTION, false);
+			}
+		});
+		helptone.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				setErrorInfo(HELP_TONE, false);
+			}
+		});
+		helpvibrate.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				setErrorInfo(HELP_VIBTRATE, false);
+			}
+		});
+		helpnotification.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				setErrorInfo(HELP_NOTIFICATION, false);
+			}
+		});
+		helpignore.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				setErrorInfo(HELP_IGNORE, false);
+			}
+		});
+		helpautosave.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				setErrorInfo(HELP_AUTOSAVE, false);
+			}
+		});
+		helpnoread.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				setErrorInfo(HELP_NOREAD, false);
+			}
+		});
+		helpchatmode.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				setErrorInfo(HELP_CHATMODE, false);
+			}
+		});
+		helpquicktype.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				setErrorInfo(HELP_QUICKTYPE, false);
+			}
+		});
+		helpsmileys.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				setErrorInfo(HELP_SMILEY, false);
+			}
+		});
+		helpnoscreenshots.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				setErrorInfo(HELP_NOSCREENSHOTS, false);
+			}
+		});
+		helppowersave.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				setErrorInfo(HELP_POWERSAVE, false);
+			}
+		});
+		helpreceiveallsms.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				setErrorInfo(HELP_RECEIVEALLSMSE, false);
+			}
+		});
+
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Load the current server tab. This is called when a server tab changes.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param serverId
+	 *            the server id
+	 */
+	private void loadServerTab(final Context context, final int serverId) {
+		if (serverId == -1) {
+			// NO VALID SERVER SELECTED - HIDE EVERYTHING!
+			accountexisting.setVisibility(View.GONE);
+			accountnew.setVisibility(View.GONE);
+			online = false;
+			updateonline();
+			return;
+		}
+
+		uid = (EditText) findViewById(R.id.uid);
+		uid.setTag(uid.getKeyListener()); // remember the listener for later use
+		uid.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				updateAccountLocked(context, false);
+			}
+		});
+		TextView textexisting2 = (TextView) findViewById(R.id.textexisting2);
+		textexisting2.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				updateAccountLocked(context, false);
+			}
+		});
+
+		email = (EditText) findViewById(R.id.email);
+		email.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				updateAccountLocked(context, false);
+			}
+		});
+		pwd = (EditText) findViewById(R.id.pwd);
+		pwd.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				updateAccountLocked(context, false);
+			}
+		});
+
+		usernew = (EditText) findViewById(R.id.usernew);
+		emailnew = (EditText) findViewById(R.id.emailnew);
+		pwdnew = (EditText) findViewById(R.id.pwdnew);
+		phone = (EditText) findViewById(R.id.phone);
 
 		pwdchange = (EditText) findViewById(R.id.pwdchange);
 
 		accountnew = (LinearLayout) findViewById(R.id.accountnew);
 		accountexisting = (LinearLayout) findViewById(R.id.accountexisting);
 		accountonline = (LinearLayout) findViewById(R.id.accountonline);
-		settingspart = (LinearLayout) findViewById(R.id.settingssection);
 		newaccount = (CheckBox) findViewById(R.id.newaccount);
 		mainscrollview = (ScrollView) findViewById(R.id.mainscrollview);
 
@@ -990,47 +1448,6 @@ public class Setup extends Activity {
 
 		enablesmsoption = (Button) findViewById(R.id.enablesmsoption);
 		disablesmsoption = (Button) findViewById(R.id.disablesmsoption);
-
-		active = (CheckBox) findViewById(R.id.active);
-		encryption = (CheckBox) findViewById(R.id.encryption);
-		tone = (CheckBox) findViewById(R.id.tone);
-		vibrate = (CheckBox) findViewById(R.id.vibrate);
-
-		ignore = (CheckBox) findViewById(R.id.ignore);
-		notification = (CheckBox) findViewById(R.id.notification);
-		autosave = (CheckBox) findViewById(R.id.autosave);
-		noread = (CheckBox) findViewById(R.id.noread);
-		chatmode = (CheckBox) findViewById(R.id.chatmode);
-		quicktype = (CheckBox) findViewById(R.id.quicktype);
-		smileys = (CheckBox) findViewById(R.id.smileys);
-		receiveallsms = (CheckBox) findViewById(R.id.receiveallsms);
-		noscreenshots = (CheckBox) findViewById(R.id.noscreenshots);
-		powersave = (CheckBox) findViewById(R.id.powersave);
-
-		// requestWindowFeature(Window.FEATURE_LEFT_ICON);
-		String uidString2 = Utility.loadStringSetting(context, "uid", "");
-		if (uidString2 != null & uidString2.trim().length() > 0) {
-			uidString2 = " - UID " + uidString2;
-		}
-		if (!accountType) {
-			setTitle("Settings" + uidString2);
-			newaccount.setVisibility(View.GONE);
-			accountnew.setVisibility(View.GONE);
-			accountexisting.setVisibility(View.GONE);
-			accountonline.setVisibility(View.GONE);
-			// getWindow(). setIcon(R.drawable.msgsetup);
-			// getWindow().setFeatureDrawableResource(Window.FEATURE_LEFT_ICON,R.drawable.msgsetup);
-			// getActionBar().setIcon(R.drawable.msgsetup);
-		} else {
-			setTitle("Account" + uidString2);
-			newaccount.setVisibility(View.VISIBLE);
-			settingspart.setVisibility(View.GONE);
-			// getActionBar().setIcon(R.drawable.account);
-			// getWindow().setIcon(R.drawable.account);
-			// getWindow().setFeatureDrawableResource(Window.FEATURE_LEFT_ICON,R.drawable.account);
-		}
-
-		setErrorInfo(null);
 
 		try {
 			if (accountType) {
@@ -1055,251 +1472,8 @@ public class Setup extends Activity {
 						});
 			}
 
-			// other settings
-			active.setChecked(Utility.loadBooleanSetting(context,
-					OPTION_ACTIVE, DEFAULT_ACTIVE));
-			active.setOnClickListener(new OnClickListener() {
-				public void onClick(View arg0) {
-					setActive(context, active.isChecked());
-					if (active.isChecked()) {
-						// Start the scheduler
-						Scheduler.reschedule(context, false, false, false);
-					} else {
-						// We do not have to end the scheduler, it will end
-						// automatically...
-					}
-				}
-			});
-			tone.setChecked(Utility.loadBooleanSetting(context,
-					Setup.OPTION_TONE, Setup.DEFAULT_TONE));
-			tone.setOnClickListener(new OnClickListener() {
-				public void onClick(View arg0) {
-					Utility.saveBooleanSetting(context, Setup.OPTION_TONE,
-							tone.isChecked());
-				}
-			});
-			vibrate.setChecked(Utility.loadBooleanSetting(context,
-					Setup.OPTION_VIBRATE, true));
-			vibrate.setOnClickListener(new OnClickListener() {
-				public void onClick(View arg0) {
-					Utility.saveBooleanSetting(context, Setup.OPTION_VIBRATE,
-							vibrate.isChecked());
-				}
-			});
-			ignore.setChecked(Utility.loadBooleanSetting(context,
-					Setup.OPTION_IGNORE, Setup.DEFAULT_IGNORE));
-			ignore.setOnClickListener(new OnClickListener() {
-				public void onClick(View arg0) {
-					Utility.saveBooleanSetting(context, Setup.OPTION_IGNORE,
-							ignore.isChecked());
-				}
-			});
-			notification.setChecked(Utility.loadBooleanSetting(context,
-					Setup.OPTION_NOTIFICATION, Setup.DEFAULT_NOTIFICATION));
-			notification.setOnClickListener(new OnClickListener() {
-				public void onClick(View arg0) {
-					Utility.saveBooleanSetting(context,
-							Setup.OPTION_NOTIFICATION, notification.isChecked());
-				}
-			});
-			autosave.setChecked(Utility.loadBooleanSetting(context,
-					Setup.OPTION_AUTOSAVE, Setup.DEFAULT_AUTOSAVE));
-			autosave.setOnClickListener(new OnClickListener() {
-				public void onClick(View arg0) {
-					Utility.saveBooleanSetting(context, Setup.OPTION_AUTOSAVE,
-							autosave.isChecked());
-				}
-			});
-			noread.setChecked(Utility.loadBooleanSetting(context,
-					Setup.OPTION_NOREAD, Setup.DEFAULT_NOREAD));
-			noread.setOnClickListener(new OnClickListener() {
-				public void onClick(View arg0) {
-					if (!noread.isChecked()) {
-						// we allowed it now, save the timestamp to just receive
-						// read confirmations FROM NOW ON
-						// this will hide ALL confirmations sent before this
-						// time!
-						Utility.saveStringSetting(context, "timestampread",
-								DB.getTimestampString());
-						Utility.saveBooleanSetting(context,
-								Setup.OPTION_NOREAD, false);
-					} else {
-						noread.setChecked(false);
-						askOnRefuseReadConfirmation(context);
-					}
-				}
-			});
-			chatmode.setChecked(Utility.loadBooleanSetting(context,
-					Setup.OPTION_CHATMODE, Setup.DEFAULT_CHATMODE));
-			chatmode.setOnClickListener(new OnClickListener() {
-				public void onClick(View arg0) {
-					Utility.saveBooleanSetting(context, Setup.OPTION_CHATMODE,
-							chatmode.isChecked());
-				}
-			});
-			quicktype.setChecked(Utility.loadBooleanSetting(context,
-					Setup.OPTION_QUICKTYPE, Setup.DEFAULT_QUICKTYPE));
-			quicktype.setOnClickListener(new OnClickListener() {
-				public void onClick(View arg0) {
-					Utility.saveBooleanSetting(context, Setup.OPTION_QUICKTYPE,
-							quicktype.isChecked());
-				}
-			});
-			smileys.setChecked(Utility.loadBooleanSetting(context,
-					Setup.OPTION_SMILEYS, Setup.DEFAULT_SMILEYS));
-			smileys.setOnClickListener(new OnClickListener() {
-				public void onClick(View arg0) {
-					Utility.saveBooleanSetting(context, Setup.OPTION_SMILEYS,
-							smileys.isChecked());
-				}
-			});
-			noscreenshots.setChecked(Utility.loadBooleanSetting(context,
-					Setup.OPTION_NOSCREENSHOTS, Setup.DEFAULT_NOSCREENSHOTS));
-			noscreenshots.setOnClickListener(new OnClickListener() {
-				public void onClick(View arg0) {
-					Utility.saveBooleanSetting(context,
-							Setup.OPTION_NOSCREENSHOTS,
-							noscreenshots.isChecked());
-					if (!noscreenshots.isChecked()) {
-						// allow screenshots, tell user to restart app!
-						Conversation
-								.promptInfo(
-										context,
-										"Allow Screenshots",
-										"You may need to fully restart the App in order to make screenshots.\n\nIf this does not work, you may even need to restart your phone.\n\nConsider re-enabling this feature soon to protect your privacy!");
-					}
-				}
-			});
-			powersave.setChecked(Utility.loadBooleanSetting(context,
-					Setup.OPTION_POWERSAVE, Setup.DEFAULT_POWERSAVE));
-			powersave.setOnClickListener(new OnClickListener() {
-				public void onClick(View arg0) {
-					Utility.saveBooleanSetting(context, Setup.OPTION_POWERSAVE,
-							powersave.isChecked());
-				}
-			});
-			encryption.setChecked(Utility.loadBooleanSetting(context,
-					Setup.OPTION_ENCRYPTION, Setup.DEFAULT_ENCRYPTION));
-			encryption.setOnClickListener(new OnClickListener() {
-				public void onClick(View arg0) {
-					if (encryption.isChecked()) {
-						enableEncryption(context);
-						updateTitleIDInfo(context);
-						Utility.saveBooleanSetting(context,
-								Setup.OPTION_ENCRYPTION, true);
-					} else {
-						encryption.setChecked(true);
-						askOnDisableEncryption(context);
-					}
-				}
-			});
-			receiveallsms.setChecked(isSMSDefaultApp(context, false));
-			receiveallsms.setOnClickListener(new OnClickListener() {
-				public void onClick(View arg0) {
-					if (receiveallsms.isChecked()) {
-						// Enable Delphino Cryptocator as default messaging app
-						setSMSDefaultApp(context, true);
-					} else {
-						receiveallsms.setChecked(true);
-						promptDisableReceiveAllSms(context);
-					}
-				}
-			});
-
-			// help icon clicks
-			helpactive = (ImageView) findViewById(R.id.helpactive);
-			helpencryption = (ImageView) findViewById(R.id.helpencryption);
-			helptone = (ImageView) findViewById(R.id.helptone);
-			helpvibrate = (ImageView) findViewById(R.id.helpvibrate);
-			helpnotification = (ImageView) findViewById(R.id.helpnotification);
-			helpignore = (ImageView) findViewById(R.id.helpignore);
-			helpautosave = (ImageView) findViewById(R.id.helpautosave);
-			helpnoread = (ImageView) findViewById(R.id.helpnoread);
-			helpchatmode = (ImageView) findViewById(R.id.helpchatmode);
-			helpquicktype = (ImageView) findViewById(R.id.helpquicktype);
-			helpsmileys = (ImageView) findViewById(R.id.helpsmileys);
-			helpnoscreenshots = (ImageView) findViewById(R.id.helpnoscreenshots);
-			helppowersave = (ImageView) findViewById(R.id.helppowersave);
-			helpreceiveallsms = (ImageView) findViewById(R.id.helpreceiveallsms);
-			helpactive.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(HELP_ACTIVE, false);
-				}
-			});
-			helpencryption.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(HELP_ENCRYPTION, false);
-				}
-			});
-			helptone.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(HELP_TONE, false);
-				}
-			});
-			helpvibrate.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(HELP_VIBTRATE, false);
-				}
-			});
-			helpnotification.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(HELP_NOTIFICATION, false);
-				}
-			});
-			helpignore.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(HELP_IGNORE, false);
-				}
-			});
-			helpautosave.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(HELP_AUTOSAVE, false);
-				}
-			});
-			helpnoread.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(HELP_NOREAD, false);
-				}
-			});
-			helpchatmode.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(HELP_CHATMODE, false);
-				}
-			});
-			helpquicktype.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(HELP_QUICKTYPE, false);
-				}
-			});
-			helpsmileys.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(HELP_SMILEY, false);
-				}
-			});
-			helpnoscreenshots.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(HELP_NOSCREENSHOTS, false);
-				}
-			});
-			helppowersave.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(HELP_POWERSAVE, false);
-				}
-			});
-			helpreceiveallsms.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(HELP_RECEIVEALLSMSE, false);
-				}
-			});
-
-			LinearLayout mainsettingsinnerlayout = (LinearLayout) findViewById(R.id.mainsettingsinnerlayout);
-			mainsettingsinnerlayout.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(null);
-				}
-			});
-
-			String uidString = Utility.loadStringSetting(context, "uid", "");
+			String uidString = Utility.loadStringSetting(context, SERVER_UID
+					+ serverId, "");
 			boolean noAccountYet = uidString.equals("");
 			uid.setText(uidString);
 			newaccount.setChecked(true);
@@ -1314,9 +1488,12 @@ public class Setup extends Activity {
 
 			updateAccountLocked(context, true);
 
-			user.setText(Utility.loadStringSetting(context, "username", ""));
-			email.setText(Utility.loadStringSetting(context, "email", ""));
-			pwd.setText(Utility.loadStringSetting(context, "pwd", ""));
+			user.setText(Utility.loadStringSetting(context, SERVER_USERNAME
+					+ serverId, ""));
+			email.setText(Utility.loadStringSetting(context, SERVER_EMAIL
+					+ serverId, ""));
+			pwd.setText(Utility.loadStringSetting(context, SERVER_PWD
+					+ serverId, ""));
 			pwd.setInputType(InputType.TYPE_CLASS_TEXT
 					| InputType.TYPE_TEXT_VARIATION_PASSWORD);
 
@@ -1328,67 +1505,56 @@ public class Setup extends Activity {
 			create.setOnClickListener(new OnClickListener() {
 				public void onClick(View arg0) {
 					setErrorInfo(null);
-					createNewAccount(context);
+					createNewAccount(context, serverId);
 				}
 			});
 
 			login.setOnClickListener(new OnClickListener() {
 				public void onClick(View arg0) {
 					setErrorInfo(null);
-					validate(context);
+					validate(context, serverId);
 				}
 			});
 
 			updateuser.setOnClickListener(new OnClickListener() {
 				public void onClick(View arg0) {
 					setErrorInfo(null);
-					updateUsername(context);
+					updateUsername(context, serverId);
 				}
 			});
 
 			updatepwd.setOnClickListener(new OnClickListener() {
 				public void onClick(View arg0) {
 					setErrorInfo(null);
-					updatePwd(context);
+					updatePwd(context, serverId);
 				}
 			});
 
 			backup.setOnClickListener(new OnClickListener() {
 				public void onClick(View arg0) {
 					setErrorInfo(null);
-					backup(context, false, true);
+					backup(context, false, true, serverId);
 				}
 			});
 			restore.setOnClickListener(new OnClickListener() {
 				public void onClick(View arg0) {
 					setErrorInfo(null);
-					restore(context, true);
+					restore(context, true, serverId);
 				}
 			});
 
-			updatePhoneNumberAndButtonStates(context);
+			updatePhoneNumberAndButtonStates(context, serverId);
 			enablesmsoption.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					// enable or update?
-					updateSMSOption(context, true);
-					backup(context, true, false);
+					updateSMSOption(context, true, serverId);
+					backup(context, true, false, serverId);
 				}
 			});
 			disablesmsoption.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					// enable or update?
-					updateSMSOption(context, false);
-				}
-			});
-
-			// Setting backgrounds
-			Utility.setBackground(this, main, R.drawable.dolphins1);
-			LinearLayout settingsBackground = ((LinearLayout) findViewById(R.id.settingsbackground));
-			Utility.setBackground(this, settingsBackground,
-					R.drawable.dolphins1);
-			settingsBackground.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					setErrorInfo(null);
+					updateSMSOption(context, false, serverId);
 				}
 			});
 
@@ -1396,31 +1562,30 @@ public class Setup extends Activity {
 			e.printStackTrace();
 		}
 
-		Utility.hideKeyboard(context);
 	}
 
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Gets the base url of the server. Typically this is cryptocator.org if not
-	 * another server is configured.
+	 * Gets the base url of a server for a serverId. Typically this is
+	 * cryptocator.org if not another server is configured.
 	 * 
 	 * @param context
 	 *            the context
 	 * @return the base url
 	 */
-	public static String getBaseURL(Context context) {
-		if (BASEURLCACHED == null) {
-			BASEURLCACHED = Utility.loadStringSetting(context,
-					SETTINGS_BASEURL, BASEURLDEFAULT);
-			if (!BASEURLCACHED.endsWith("?")) {
-				if (!BASEURLCACHED.endsWith("/")) {
-					BASEURLCACHED = BASEURLCACHED + "/";
+	public static String getBaseURL(Context context, int serverId) {
+		if (!BASESERVERADDRESSCACHED.containsKey(serverId)) {
+			String serverAddress = getServer(context, serverId);
+			if (!serverAddress.endsWith("?")) {
+				if (!serverAddress.endsWith("/")) {
+					serverAddress = serverAddress + "/";
 				}
-				BASEURLCACHED = BASEURLCACHED + "?";
+				serverAddress = serverAddress + "?";
 			}
+			BASESERVERADDRESSCACHED.put(serverId, serverAddress);
 		}
-		return BASEURLCACHED;
+		return BASESERVERADDRESSCACHED.get(serverId);
 	}
 
 	// ------------------------------------------------------------------------
@@ -1511,47 +1676,63 @@ public class Setup extends Activity {
 
 	// -------------------------------------------------------------------------
 
-	/**
-	 * Prompt to change server base url. This is basically a WARNING.
-	 * 
-	 * @param context
-	 *            the context
-	 */
-	public void promptChangeBaseURL(final Context context) {
-		String titleMessage = "Changing Message Server";
-		String textMessage = "ATTENTION: You are about to change the message server from http://www.cryptocator.org to something else. "
-				+ "This is only desirable if you operate an own private message server at this location. Be warned that your userlist will "
-				+ "completely be deleted! You should make a backup of it before (Account Settings). Additionally, you may need to create"
-				+ " a new account at this different server - you cannot use the current account!\n\nUsing an own private server you will ONLY be "
-				+ "able to communicate with other people registered on THIS particular server. This is typically ONLY relevant for companies or other"
-				+ " closed user groups.\n\nDo you really want to change the message server and clear your userlist?";
+	private void promptAddServer(final Context context) {
+		String titleMessage = "New Message Server";
+		String textMessage = "Enter the URL of the new message server:";
+		new MessageInputDialog(context, titleMessage, textMessage, "Add",
+				"       Cancel      ", null,
+				"http://your-cryptocator-server-url",
+				new MessageInputDialog.OnSelectionListener() {
+					public void selected(MessageInputDialog dialog, int button,
+							boolean cancel, String returnText) {
+						if (!cancel) {
+							if (button == 0) {
+								addServer(context, returnText);
+							}
+						}
+						dialog.dismiss();
+					}
+				}).show();
+	}
+
+	// -------------------------------------------------------------------------
+
+	private void promptDeleteServer(final Context context) {
+		String titleMessage = "Delete Message Server";
+		String textMessage = "!!! WARNING !!!\n\nYou are about to delete a message server. If you proceed all users and conversations linked to this server will be removed from your userlist! Additionally your login data for this server will be cleared!\n\nDo you still want to proceed and delete this data?";
 		new MessageAlertDialog(context, titleMessage, textMessage,
 				"Still Do it!", "       Cancel      ", null,
 				new MessageAlertDialog.OnSelectionListener() {
 					public void selected(int button, boolean cancel) {
 						if (!cancel) {
 							if (button == 0) {
-								// Clear the userlist
-								List<Integer> uidlist = Main
-										.loadUIDList(context);
-								for (int uid : uidlist) {
-									if (uid >= 0) {
-										Main.deleteUser(context, uid);
-									}
-								}
-								Utility.saveStringSetting(context,
-										Setup.SETTINGS_BASEURL, baseurltext
-												.getText().toString().trim());
-								Utility.saveStringSetting(context, "uid", null);
-								Utility.saveStringSetting(context, "username",
-										null);
-								Utility.saveStringSetting(context, "email",
-										null);
-								Utility.saveStringSetting(context, "pwd", null);
-								// now really try to withdraw
-								Main.exitApplication(context);
-							} else {
-								advancedsettings.setVisibility(View.GONE);
+								// TODO: delete server
+							}
+						}
+					}
+				}).show();
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Prompt to change server list. This is basically a WARNING.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public void promptModifyServer(final Context context) {
+		String titleMessage = "Changing Message Server";
+		String textMessage = "ATTENTION: You are about to modify the message server list. You should only proceed if you know what you are doing!\n\nIf you delete or modify an existing server then all the users and conversations you added from this server will be removed. Additionally your locally account login information will be cleared.\n\nDo you really want to modify the server list?";
+		new MessageAlertDialog(context, titleMessage, textMessage,
+				"Still Do it!", "       Cancel      ", null,
+				new MessageAlertDialog.OnSelectionListener() {
+					public void selected(int button, boolean cancel) {
+						if (!cancel) {
+							if (button == 0) {
+								serverbuttonmodify.setVisibility(View.GONE);
+								serverbuttonadd.setVisibility(View.VISIBLE);
+								serverbuttondelete.setVisibility(View.VISIBLE);
 							}
 
 						}
@@ -1561,19 +1742,76 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	// /**
+	// * Prompt to change server base url. This is basically a WARNING.
+	// *
+	// * @param context
+	// * the context
+	// */
+	// public void promptChangeBaseURL(final Context context) {
+	// String titleMessage = "Changing Message Server";
+	// String textMessage =
+	// "ATTENTION: You are about to change the message server from http://www.cryptocator.org to something else. "
+	// +
+	// "This is only desirable if you operate an own private message server at this location. Be warned that your userlist will "
+	// +
+	// "completely be deleted! You should make a backup of it before (Account Settings). Additionally, you may need to create"
+	// +
+	// " a new account at this different server - you cannot use the current account!\n\nUsing an own private server you will ONLY be "
+	// +
+	// "able to communicate with other people registered on THIS particular server. This is typically ONLY relevant for companies or other"
+	// +
+	// " closed user groups.\n\nDo you really want to change the message server and clear your userlist?";
+	// new MessageAlertDialog(context, titleMessage, textMessage,
+	// "Still Do it!", "       Cancel      ", null,
+	// new MessageAlertDialog.OnSelectionListener() {
+	// public void selected(int button, boolean cancel) {
+	// if (!cancel) {
+	// if (button == 0) {
+	// // Clear the userlist
+	// List<Integer> uidlist = Main
+	// .loadUIDList(context);
+	// for (int uid : uidlist) {
+	// if (uid >= 0) {
+	// Main.deleteUser(context, uid);
+	// }
+	// }
+	// Utility.saveStringSetting(context,
+	// Setup.SETTINGS_BASEURL, baseurltext
+	// .getText().toString().trim());
+	// Utility.saveStringSetting(context, "uid", null);
+	// Utility.saveStringSetting(context, "username",
+	// null);
+	// Utility.saveStringSetting(context, "email",
+	// null);
+	// Utility.saveStringSetting(context, "pwd", null);
+	// // now really try to withdraw
+	// Main.exitApplication(context);
+	// } else {
+	// advancedsettings.setVisibility(View.GONE);
+	// }
+	//
+	// }
+	// }
+	// }).show();
+	// }
+
+	// ------------------------------------------------------------------------
+
 	/**
 	 * Update phone number and button states.
 	 * 
 	 * @param context
 	 *            the context
 	 */
-	private static void updatePhoneNumberAndButtonStates(Context context) {
+	private static void updatePhoneNumberAndButtonStates(Context context,
+			int serverId) {
 		if (phone == null || enablesmsoption == null
 				|| disablesmsoption == null) {
 			// not visible
 			return;
 		}
-		if (!isSMSOptionEnabled(context)) {
+		if (!isSMSOptionEnabled(context, serverId)) {
 			// Not saved phone number
 			phone.setText(Utility.getPhoneNumber(context));
 			// disabled
@@ -1653,8 +1891,7 @@ public class Setup extends Activity {
 	 *            the is error
 	 */
 	static void setErrorInfo(Context context, String message, boolean isError) {
-		if (error == null || info == null || uid == null
-				|| mainscrollview == null) {
+		if (error == null || info == null) {
 			// Not visible only send this as toast
 			if (message != null && message.length() > 0) {
 				Utility.showToastAsync(context, message);
@@ -1676,9 +1913,10 @@ public class Setup extends Activity {
 				info.setText(message);
 				info.requestFocus();
 			}
-			uid.requestFocus();
-			Utility.hideKeyboardExplicit(uid);
-			// mainscrollview.scrollTo(0, 0);
+			if (uid != null) {
+				uid.requestFocus();
+				Utility.hideKeyboardExplicit(uid);
+			}
 		}
 	}
 
@@ -1711,10 +1949,11 @@ public class Setup extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	void validate(final Context context) {
-		Setup.updateServerkey(context);
+	void validate(final Context context, final int serverId) {
+		Setup.updateServerkey(context, serverId, true);
 
-		final String uidBefore = Utility.loadStringSetting(context, "uid", "");
+		final String uidBefore = Utility.loadStringSetting(context, SERVER_UID
+				+ serverId, "");
 
 		login.setEnabled(false);
 		setErrorInfo(null);
@@ -1740,15 +1979,15 @@ public class Setup extends Activity {
 		// APPLICATION!
 		if (!uidBefore.equals(uidString)) {
 			Setup.disableEncryption(context);
-			updateCurrentMid(context);
+			updateCurrentMid(context, serverId);
 		}
 
-		Utility.saveStringSetting(context, "uid", uidString);
-		Utility.saveStringSetting(context, "email", emailString);
-		Utility.saveStringSetting(context, "pwd", pwdString);
+		Utility.saveStringSetting(context, SERVER_UID + serverId, uidString);
+		Utility.saveStringSetting(context, SERVER_EMAIL + serverId, emailString);
+		Utility.saveStringSetting(context, SERVER_PWD + serverId, pwdString);
 
 		LoginData loginData = calculateLoginVal(context, uidString,
-				emailString, pwdString);
+				emailString, pwdString, serverId);
 		if (loginData == null) {
 			setErrorInfo("Encryption error, try again after restarting the App!");
 			login.setEnabled(true);
@@ -1756,7 +1995,7 @@ public class Setup extends Activity {
 		}
 
 		// RSA encode
-		PublicKey serverKey = getServerkey(context);
+		PublicKey serverKey = getServerkey(context, serverId);
 		String uidStringEnc = Communicator.encryptServerMessage(context,
 				uidString, serverKey);
 		if (uidStringEnc == null) {
@@ -1776,18 +2015,18 @@ public class Setup extends Activity {
 
 		String reseturl = null;
 		String reactivateurl = null;
-		String url = Setup.getBaseURL(context) + "cmd=validate&val1="
+		String url = Setup.getBaseURL(context, serverId) + "cmd=validate&val1="
 				+ loginData.user + "&val2=" + loginData.password + "&val3="
 				+ loginData.val;
 		if (!uidString.equals("")) {
-			reseturl = Setup.getBaseURL(context) + "cmd=resetpwd&uid="
-					+ uidStringEnc;
-			reactivateurl = Setup.getBaseURL(context)
+			reseturl = Setup.getBaseURL(context, serverId)
+					+ "cmd=resetpwd&uid=" + uidStringEnc;
+			reactivateurl = Setup.getBaseURL(context, serverId)
 					+ "cmd=resendactivation&uid=" + uidStringEnc;
 		} else {
-			reseturl = Setup.getBaseURL(context) + "cmd=resetpwd&email="
-					+ emailStringEnd;
-			reactivateurl = Setup.getBaseURL(context)
+			reseturl = Setup.getBaseURL(context, serverId)
+					+ "cmd=resetpwd&email=" + emailStringEnd;
+			reactivateurl = Setup.getBaseURL(context, serverId)
 					+ "cmd=resendactivation&email=" + emailStringEnd;
 		}
 		Log.d("communicator", "LOGIN VALIDATE: " + url);
@@ -1824,21 +2063,25 @@ public class Setup extends Activity {
 									String sessionID = array[0];
 									String loginErrCnt = array[1];
 									updateSuccessfullLogin(context, sessionID,
-											loginErrCnt);
-									uidR = decUid(context, array[2]) + "";
-									emailR = decText(context, array[3]);
-									usernameR = decText(context, array[4]);
+											loginErrCnt, serverId);
+									uidR = decUid(context, array[2], serverId)
+											+ "";
+									emailR = decText(context, array[3],
+											serverId);
+									usernameR = decText(context, array[4],
+											serverId);
 									// no invalid but also no unknown users
 									if ((!uidR.equals("-1"))
 											&& (!uidR.equals("-2"))
 											&& emailR != null
 											&& usernameR != null) {
 										Utility.saveStringSetting(context,
-												"uid", uidR);
+												SERVER_UID + serverId, uidR);
 										Utility.saveStringSetting(context,
-												"email", emailR);
+												SERVER_EMAIL + serverId, emailR);
 										Utility.saveStringSetting(context,
-												"username", usernameR);
+												SERVER_USERNAME + serverId,
+												usernameR);
 										// DETECT UID=CHANGE ===> EXIT
 										// APPLICATION!
 										if (!uidBefore.equals(uidR)) {
@@ -1852,7 +2095,8 @@ public class Setup extends Activity {
 										emailR = email.getText().toString()
 												.trim();
 										usernameR = Utility.loadStringSetting(
-												context, "username", "");
+												context, SERVER_USERNAME
+														+ serverId, "");
 									}
 								}
 							}
@@ -1873,7 +2117,8 @@ public class Setup extends Activity {
 										uid.setText(uid2);
 										user.setText(username2);
 										Utility.saveStringSetting(context,
-												"username", username2);
+												SERVER_USERNAME + serverId,
+												username2);
 										if (tmpUid > 0) {
 											Main.saveUID2Name(context, tmpUid,
 													username2);
@@ -1901,7 +2146,7 @@ public class Setup extends Activity {
 													null);
 
 											Utility.saveStringSetting(context,
-													"pwd", "");
+													SERVER_PWD + serverId, "");
 											setErrorInfo("Login failed. \n\nIf you don't know your password, click the following link to reset it:\n"
 													+ reseturl2);
 										}
@@ -1939,13 +2184,13 @@ public class Setup extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	void updateUsername(final Context context) {
+	void updateUsername(final Context context, final int serverId) {
 		updateuser.setEnabled(false);
 		setErrorInfo(null);
 		final String usernameString = user.getText().toString();
 
 		// RSA encode
-		PublicKey serverKey = getServerkey(context);
+		PublicKey serverKey = getServerkey(context, serverId);
 		String usernameStringEnc = Communicator.encryptServerMessage(context,
 				usernameString, serverKey);
 		if (usernameStringEnc == null) {
@@ -1955,7 +2200,7 @@ public class Setup extends Activity {
 		}
 		usernameStringEnc = Utility.urlEncode(usernameStringEnc);
 
-		String session = Setup.getTmpLoginEncoded(context);
+		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			setErrorInfo("Session error. Try again after restarting the App.");
 			updateuser.setEnabled(true);
@@ -1964,8 +2209,8 @@ public class Setup extends Activity {
 		}
 
 		String url = null;
-		url = Setup.getBaseURL(context) + "cmd=updateuser&session=" + session
-				+ "&user=" + usernameStringEnc;
+		url = Setup.getBaseURL(context, serverId) + "cmd=updateuser&session="
+				+ session + "&user=" + usernameStringEnc;
 		Log.d("communicator", "UPDATE USERNAME: " + url);
 		final String url2 = url;
 		@SuppressWarnings("unused")
@@ -1975,7 +2220,8 @@ public class Setup extends Activity {
 						if (Communicator.isResponseValid(response)) {
 							final String response2 = response;
 							if (Communicator.isResponsePositive(response2)) {
-								Utility.saveStringSetting(context, "username",
+								Utility.saveStringSetting(context,
+										SERVER_USERNAME + serverId,
 										usernameString);
 							}
 							final Handler mUIHandler = new Handler(
@@ -2038,14 +2284,14 @@ public class Setup extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	void updatePwd(final Context context) {
+	void updatePwd(final Context context, final int serverId) {
 		updatepwd.setEnabled(false);
 		setErrorInfo(null);
 		final String usernameString = user.getText().toString();
 		final String pwdChangeString = pwdchange.getText().toString();
 
 		// RSA encode
-		PublicKey serverKey = getServerkey(context);
+		PublicKey serverKey = getServerkey(context, serverId);
 		String pwdChangeStringEnc = Communicator.encryptServerMessage(context,
 				pwdChangeString, serverKey);
 		if (pwdChangeStringEnc == null) {
@@ -2055,7 +2301,7 @@ public class Setup extends Activity {
 		}
 		pwdChangeStringEnc = Utility.urlEncode(pwdChangeStringEnc);
 
-		String session = Setup.getTmpLoginEncoded(context);
+		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			setErrorInfo("Session error. Try again after restarting the App.");
 			updatepwd.setEnabled(true);
@@ -2064,8 +2310,8 @@ public class Setup extends Activity {
 		}
 
 		String url = null;
-		url = Setup.getBaseURL(context) + "cmd=updatepwd&session=" + session
-				+ "&val=" + pwdChangeStringEnc;
+		url = Setup.getBaseURL(context, serverId) + "cmd=updatepwd&session="
+				+ session + "&val=" + pwdChangeStringEnc;
 		Log.d("communicator", "UPDATE PWD: " + url);
 
 		final String url2 = url;
@@ -2076,7 +2322,8 @@ public class Setup extends Activity {
 						if (Communicator.isResponseValid(response)) {
 							final String response2 = response;
 							if (Communicator.isResponsePositive(response2)) {
-								Utility.saveStringSetting(context, "username",
+								Utility.saveStringSetting(context,
+										SERVER_USERNAME + serverId,
 										usernameString);
 							}
 							final Handler mUIHandler = new Handler(
@@ -2092,7 +2339,8 @@ public class Setup extends Activity {
 										// EVERYTHING OK
 										// save the new password
 										Utility.saveStringSetting(context,
-												"pwd", pwdChangeString);
+												SERVER_PWD + serverId,
+												pwdChangeString);
 										pwd.setText(pwdChangeString);
 										pwdchange.setText("");
 										setErrorInfo(
@@ -2148,8 +2396,8 @@ public class Setup extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	void createNewAccount(final Context context) {
-		Setup.updateServerkey(context);
+	void createNewAccount(final Context context, final int serverId) {
+		Setup.updateServerkey(context, serverId, true);
 
 		create.setEnabled(false);
 		setErrorInfo(null);
@@ -2159,7 +2407,7 @@ public class Setup extends Activity {
 		String pwdString = pwdnew.getText().toString();
 
 		// RSA encode
-		PublicKey serverKey = getServerkey(context);
+		PublicKey serverKey = getServerkey(context, serverId);
 
 		emailString = Communicator.encryptServerMessage(context, emailString,
 				serverKey);
@@ -2190,9 +2438,9 @@ public class Setup extends Activity {
 
 		String url = null;
 		String reseturl = null;
-		url = Setup.getBaseURL(context) + "cmd=create&email=" + emailString
-				+ "&pwd=" + pwdString + "&user=" + usernameString;
-		reseturl = Setup.getBaseURL(context) + "cmd=resetpwd&email="
+		url = Setup.getBaseURL(context, serverId) + "cmd=create&email="
+				+ emailString + "&pwd=" + pwdString + "&user=" + usernameString;
+		reseturl = Setup.getBaseURL(context, serverId) + "cmd=resetpwd&email="
 				+ emailString;
 		Log.d("communicator", "CREATE ACCOUNt: " + url);
 
@@ -2209,8 +2457,8 @@ public class Setup extends Activity {
 							if (Communicator.isResponsePositive(response)) {
 								// the return value should be the new created
 								// UID
-								Utility.saveStringSetting(context, "uid",
-										newUID);
+								Utility.saveStringSetting(context, SERVER_UID
+										+ serverId, newUID);
 							}
 							final Handler mUIHandler = new Handler(Looper
 									.getMainLooper());
@@ -2237,11 +2485,14 @@ public class Setup extends Activity {
 										String pwdString = pwdnew.getText()
 												.toString();
 										Utility.saveStringSetting(context,
-												"username", usernameString);
+												SERVER_USERNAME + serverId,
+												usernameString);
 										Utility.saveStringSetting(context,
-												"email", emailString);
+												SERVER_EMAIL + serverId,
+												emailString);
 										Utility.saveStringSetting(context,
-												"pwd", pwdString);
+												SERVER_PWD + serverId,
+												pwdString);
 
 										Utility.saveBooleanSetting(context,
 												Setup.OPTION_ENCRYPTION, false);
@@ -2249,7 +2500,7 @@ public class Setup extends Activity {
 												false);
 
 										newaccount.setChecked(false);
-										updateCurrentMid(context);
+										updateCurrentMid(context, serverId);
 										setErrorInfo(
 												"Registration successfull!\n\nYOUR NEW UNIQUE UID IS: "
 														+ newUID
@@ -2310,9 +2561,10 @@ public class Setup extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	public static void updateCurrentMid(final Context context) {
+	public static void updateCurrentMid(final Context context,
+			final int serverId) {
 		String url = null;
-		url = Setup.getBaseURL(context) + "cmd=mid";
+		url = Setup.getBaseURL(context, serverId) + "cmd=mid";
 		final String url2 = url;
 		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
@@ -2323,7 +2575,7 @@ public class Setup extends Activity {
 									.getResponseContent(response);
 							if (content != null) {
 								DB.resetLargestMid(context,
-										Utility.parseInt(content, -1));
+										Utility.parseInt(content, -1), serverId);
 								Log.d("communicator",
 										"XXXX SAVED LARGEST MID '" + content
 												+ "'");
@@ -2351,7 +2603,7 @@ public class Setup extends Activity {
 	 *            the manual
 	 */
 	public static void backup(final Context context, final boolean silent,
-			boolean manual) {
+			boolean manual, int serverId) {
 		if (backup != null) {
 			backup.setEnabled(false);
 		}
@@ -2377,9 +2629,11 @@ public class Setup extends Activity {
 		// long otherwise for RSA encryption
 		String userlistString = "";
 		for (int uid : uidList) {
-			// Only backup registered users for now!
+			// Only backup registered users that belong to this server for now!
+			// TODO: only users that belong to this server
 			if (uid >= 0) {
-				String uidEnc = Setup.encUid(context, uid);
+				final int suid = Setup.getSUid(context, uid);
+				String uidEnc = Setup.encUid(context, suid, serverId);
 				if (userlistString.length() > 0) {
 					userlistString += "#";
 				}
@@ -2399,7 +2653,7 @@ public class Setup extends Activity {
 		// }
 		String userlistStringEnc = Utility.urlEncode(userlistString);
 
-		String session = Setup.getTmpLoginEncoded(context);
+		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			setErrorInfo(context,
 					"Session error. Try again after restarting the App.");
@@ -2409,11 +2663,12 @@ public class Setup extends Activity {
 		}
 
 		String url = null;
-		url = Setup.getBaseURL(context) + "cmd=backup&session=" + session
-				+ "&val=" + userlistStringEnc;
+		url = Setup.getBaseURL(context, serverId) + "cmd=backup&session="
+				+ session + "&val=" + userlistStringEnc;
 		if (manual) {
-			url = Setup.getBaseURL(context) + "cmd=backupmanual&session="
-					+ session + "&val=" + userlistStringEnc;
+			url = Setup.getBaseURL(context, serverId)
+					+ "cmd=backupmanual&session=" + session + "&val="
+					+ userlistStringEnc;
 		}
 
 		Log.d("communicator", "BACKUP: " + url);
@@ -2488,11 +2743,11 @@ public class Setup extends Activity {
 	 * @param manual
 	 *            the manual
 	 */
-	void restore(final Context context, boolean manual) {
+	void restore(final Context context, boolean manual, final int serverId) {
 		restore.setEnabled(false);
 		setErrorInfo(null);
 
-		String session = Setup.getTmpLoginEncoded(context);
+		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			setErrorInfo(context,
 					"Session error. Try again after restarting the App.");
@@ -2502,10 +2757,11 @@ public class Setup extends Activity {
 		}
 
 		String url = null;
-		url = Setup.getBaseURL(context) + "cmd=restore&session=" + session;
+		url = Setup.getBaseURL(context, serverId) + "cmd=restore&session="
+				+ session;
 		if (manual) {
-			url = Setup.getBaseURL(context) + "cmd=restoremanual&session="
-					+ session;
+			url = Setup.getBaseURL(context, serverId)
+					+ "cmd=restoremanual&session=" + session;
 		}
 		final String url2 = url;
 		@SuppressWarnings("unused")
@@ -2530,19 +2786,31 @@ public class Setup extends Activity {
 											responseContent = "";
 										}
 										responseContent = decText(context,
-												responseContent);
+												responseContent, serverId);
 										if (responseContent == null) {
 											responseContent = "";
 										}
-										responseContent = responseContent
-												.replace("#", ",");
 										// EVERYTHING OK
-										List<Integer> updateList = Main.appendUIDList(
-												context, responseContent,
-												Main.loadUIDList(context));
+										// CONVERT SUIDs to local UIDs
+										List<Integer> possiblyNewUIDs = new ArrayList<Integer>();
+										for (String suidString : responseContent
+												.split("#")) {
+											int suid = Utility.parseInt(
+													suidString, -1);
+											if (suid != -1) {
+												int uid = Setup.getUid(context,
+														suid, serverId);
+												possiblyNewUIDs.add(uid);
+											}
+										}
+										List<Integer> updateList = Main
+												.loadUIDList(context);
+										updateList.addAll(possiblyNewUIDs);
 										Main.saveUIDList(context, updateList);
-										if (Setup.isSMSOptionEnabled(context)) {
-											Setup.backup(context, true, false);
+										if (Setup.isSMSOptionEnabled(context,
+												serverId)) {
+											Setup.backup(context, true, false,
+													serverId);
 										}
 										setErrorInfo(
 												"Restore of user list from server successful. Users from backup where added to your existing local userlist.",
@@ -2591,7 +2859,7 @@ public class Setup extends Activity {
 	 *            the enable
 	 */
 	public static void updateSMSOption(final Context context,
-			final boolean enable) {
+			final boolean enable, final int serverId) {
 		if (enablesmsoption != null) {
 			enablesmsoption.setEnabled(false);
 		}
@@ -2640,7 +2908,7 @@ public class Setup extends Activity {
 		}
 
 		// RSA encode
-		PublicKey serverKey = getServerkey(context);
+		PublicKey serverKey = getServerkey(context, serverId);
 		String phoneStringEnc = Communicator.encryptServerMessage(context,
 				phoneString, serverKey);
 		if (phoneStringEnc == null) {
@@ -2651,7 +2919,7 @@ public class Setup extends Activity {
 		}
 		phoneStringEnc = Utility.urlEncode(phoneStringEnc);
 
-		String session = Setup.getTmpLoginEncoded(context);
+		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			setErrorInfo(context,
 					"Session error. Try again after restarting the App.");
@@ -2661,8 +2929,8 @@ public class Setup extends Activity {
 		}
 
 		String url = null;
-		url = Setup.getBaseURL(context) + "cmd=updatephone&session=" + session
-				+ "&val=" + phoneStringEnc;
+		url = Setup.getBaseURL(context, serverId) + "cmd=updatephone&session="
+				+ session + "&val=" + phoneStringEnc;
 		final String url2 = url;
 		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
@@ -2691,7 +2959,8 @@ public class Setup extends Activity {
 											Utility.saveStringSetting(context,
 													SETTINGS_PHONE, "");
 										}
-										updatePhoneNumberAndButtonStates(context);
+										updatePhoneNumberAndButtonStates(
+												context, serverId);
 										if (enable) {
 											setErrorInfo(
 													context,
@@ -2859,9 +3128,12 @@ public class Setup extends Activity {
 
 			Log.d("communicator", "###### encodedpublicKey=" + encodedpublicKey);
 
-			// send public key to server
+			// send public key to all servers
 			String keyHash = getPublicKeyHash(context);
-			Communicator.sendKeyToServer(context, encodedpublicKey, keyHash);
+			for (int serverId : getServerIds(context)) {
+				Communicator.sendKeyToServer(context, encodedpublicKey,
+						keyHash, serverId);
+			}
 
 		} catch (Exception e) {
 			Log.e("communicator", "RSA key pair error");
@@ -2883,7 +3155,9 @@ public class Setup extends Activity {
 		String keyHash = getPublicKeyHash(context);
 		Utility.saveStringSetting(context, Setup.PUBKEY, null);
 		Utility.saveStringSetting(context, Setup.PRIVATEKEY, null);
-		Communicator.clearKeyFromServer(context, keyHash);
+		for (int serverId : getServerIds(context)) {
+			Communicator.clearKeyFromServer(context, keyHash, serverId);
+		}
 	}
 
 	// -------------------------------------------------------------------------
@@ -3566,9 +3840,9 @@ public class Setup extends Activity {
 	 *            the context
 	 * @return true, if is SMS option enabled
 	 */
-	public static boolean isSMSOptionEnabled(Context context) {
+	public static boolean isSMSOptionEnabled(Context context, int serverId) {
 		String personalphone = Utility.loadStringSetting(context,
-				SETTINGS_PHONE, "");
+				SETTINGS_PHONE + serverId, "");
 		return (personalphone.trim().length() != 0);
 	}
 
@@ -3901,9 +4175,9 @@ public class Setup extends Activity {
 	 *            the context
 	 * @return the session secret
 	 */
-	public static String getSessionSecret(final Context context) {
-		return Utility.loadStringSetting(context, Setup.SETTINGS_SESSIONSECRET,
-				"");
+	public static String getSessionSecret(final Context context, int serverId) {
+		return Utility.loadStringSetting(context, Setup.SETTINGS_SESSIONSECRET
+				+ serverId, "");
 	}
 
 	// -------------------------------------------------------------------------
@@ -3915,8 +4189,9 @@ public class Setup extends Activity {
 	 *            the context
 	 * @return the session id
 	 */
-	public static String getSessionID(final Context context) {
-		return Utility.loadStringSetting(context, Setup.SETTINGS_SESSIONID, "");
+	public static String getSessionID(final Context context, int serverId) {
+		return Utility.loadStringSetting(context, Setup.SETTINGS_SESSIONID
+				+ serverId, "");
 	}
 
 	// -------------------------------------------------------------------------
@@ -3928,9 +4203,11 @@ public class Setup extends Activity {
 	 *            the context
 	 */
 	// if a tmplogin failed, do a new login!
-	public static void invalidateTmpLogin(Context context) {
-		Utility.saveStringSetting(context, Setup.SETTINGS_SESSIONSECRET, "");
-		Utility.saveStringSetting(context, Setup.SETTINGS_SESSIONID, "");
+	public static void invalidateTmpLogin(Context context, int serverId) {
+		Utility.saveStringSetting(context, Setup.SETTINGS_SESSIONSECRET
+				+ serverId, "");
+		Utility.saveStringSetting(context, Setup.SETTINGS_SESSIONID + serverId,
+				"");
 	}
 
 	// -------------------------------------------------------------------------
@@ -3942,14 +4219,14 @@ public class Setup extends Activity {
 	 *            the context
 	 * @return true, if successful
 	 */
-	public static boolean ensureLoggedIn(Context context) {
+	public static boolean ensureLoggedIn(Context context, int serverId) {
 		// Check if we are logged in... if not re-login
-		String secret = Setup.getSessionSecret(context);
-		String sessionid = Setup.getSessionID(context);
+		String secret = Setup.getSessionSecret(context, serverId);
+		String sessionid = Setup.getSessionID(context, serverId);
 		if (secret == null || secret.length() == 0 || sessionid == null
 				|| sessionid.length() == 0) {
 			long lastLoginRequest = Utility.loadLongSetting(context,
-					"lastloginrequest", 0);
+					"lastloginrequest" + serverId, 0);
 			long now = DB.getTimestamp();
 			final int MINIMUM_WAIT_TO_LOGIN = 10 * 1000; // do not relogin twice
 															// within 10
@@ -3959,12 +4236,12 @@ public class Setup extends Activity {
 				return false;
 			}
 			// Remember that we relogin now
-			Utility.saveLongSetting(context, "lastloginrequest", now);
-			Setup.possiblyInvalidateSession(context, true); // reset
-															// invalidation
-															// counter
+			Utility.saveLongSetting(context, "lastloginrequest" + serverId, now);
+			Setup.possiblyInvalidateSession(context, true, serverId); // reset
+			// invalidation
+			// counter
 			// Auto-Re-Login
-			Setup.login(context);
+			Setup.login(context, serverId);
 			// Automatic error resume
 			Scheduler.reschedule(context, true, false, false);
 			// Do nothing
@@ -3983,8 +4260,8 @@ public class Setup extends Activity {
 	 *            the context
 	 * @return the tmp login encoded
 	 */
-	public static String getTmpLoginEncoded(Context context) {
-		String session = getTmpLogin(context);
+	public static String getTmpLoginEncoded(Context context, int serverId) {
+		String session = getTmpLogin(context, serverId);
 		if (session != null) {
 			return Utility.urlEncode(session);
 		}
@@ -4001,10 +4278,10 @@ public class Setup extends Activity {
 	 *            the context
 	 * @return the tmp login
 	 */
-	public static String getTmpLogin(Context context) {
-		String secret = getSessionSecret(context);
-		String sessionid = getSessionID(context);
-		if (!Setup.ensureLoggedIn(context)) {
+	public static String getTmpLogin(Context context, int serverId) {
+		String secret = getSessionSecret(context, serverId);
+		String sessionid = getSessionID(context, serverId);
+		if (!Setup.ensureLoggedIn(context, serverId)) {
 			return null;
 		}
 		String timeStampInSeconds = "" + ((DB.getTimestamp() / 1000) / 100);
@@ -4033,22 +4310,22 @@ public class Setup extends Activity {
 	 * @return the string
 	 */
 	public static LoginData calculateLoginVal(Context context, String uid,
-			String email, String pwd) {
+			String email, String pwd, int serverId) {
 		String sessionSecret = Utility.getRandomString(Setup.SECRETLEN);
-		Utility.saveStringSetting(context, Setup.SETTINGS_SESSIONSECRET,
-				sessionSecret);
+		Utility.saveStringSetting(context, Setup.SETTINGS_SESSIONSECRET
+				+ serverId, sessionSecret);
 		String timeStampInSeconds = "" + (DB.getTimestamp() / 1000);
 		String deviceID = getDeviceId(context);
 
 		// RSA encode
-		PublicKey serverKey = getServerkey(context);
+		PublicKey serverKey = getServerkey(context, serverId);
 
 		String loginUser = email;
 		if (uid != null && uid.trim().length() > 0) {
 			loginUser = uid;
 		}
 		if (serverKey == null) {
-			Setup.updateServerkey(context);
+			Setup.updateServerkey(context, serverId, true);
 			return null; // no server key, seems to be an internet error?
 		}
 		if (loginUser == null) {
@@ -4113,14 +4390,15 @@ public class Setup extends Activity {
 	 *            the login err cnt
 	 */
 	public static void updateSuccessfullLogin(Context context,
-			String sessionID, String loginErrCnt) {
-		Utility.saveStringSetting(context, Setup.SETTINGS_SESSIONID, sessionID);
+			String sessionID, String loginErrCnt, int serverId) {
+		Utility.saveStringSetting(context, Setup.SETTINGS_SESSIONID + serverId,
+				sessionID);
 		int loginerrorcnt = Utility.parseInt(loginErrCnt, 0);
 		// save the login error counter
-		Utility.saveIntSetting(context, Setup.SETTINGS_LOGINERRORCNT,
-				loginerrorcnt);
-		Log.d("communicator", "XXXX LOGGED IN: SESSIONID = '" + sessionID
-				+ "', errcnt=" + loginerrorcnt);
+		Utility.saveIntSetting(context,
+				Setup.SETTINGS_LOGINERRORCNT + serverId, loginerrorcnt);
+		Log.d("communicator", "XXXX LOGGED IN TO " + serverId
+				+ ": SESSIONID = '" + sessionID + "', errcnt=" + loginerrorcnt);
 	}
 
 	// -------------------------------------------------------------------------
@@ -4132,25 +4410,27 @@ public class Setup extends Activity {
 	 *            the context
 	 */
 	// update if not present, will be deleted on login failure
-	public static void login(final Context context) {
+	public static void login(final Context context, final int serverId) {
 		Communicator.accountNotActivated = false;
-		Setup.updateServerkey(context);
-		if (getSessionSecret(context).equals("")
-				|| getSessionID(context).equals("") || true) {
+		Setup.updateServerkey(context, serverId, true);
+		if (getSessionSecret(context, serverId).equals("")
+				|| getSessionID(context, serverId).equals("") || true) {
 			// no sessionsecret or no session seed
 
-			String uidString = Utility.loadStringSetting(context, "uid", "");
-			String pwdString = Utility.loadStringSetting(context, "pwd", "");
+			String uidString = Utility.loadStringSetting(context, SERVER_UID
+					+ serverId, "");
+			String pwdString = Utility.loadStringSetting(context, SERVER_PWD
+					+ serverId, "");
 
 			LoginData loginData = calculateLoginVal(context, uidString, null,
-					pwdString);
+					pwdString, serverId);
 			if (loginData == null) {
 				return;
 			}
 
 			String url = null;
 			// www.delphino.net/cryptocator/index.php?cmd=login2&uid=5&val=passw%23session%23timestamp%23HTC1
-			url = Setup.getBaseURL(context) + "cmd=login2&val1="
+			url = Setup.getBaseURL(context, serverId) + "cmd=login2&val1="
 					+ loginData.user + "&val2=" + loginData.password + "&val3="
 					+ loginData.val;
 			Log.d("communicator", "XXXX LOGGING IN: URL = '" + url);
@@ -4181,14 +4461,16 @@ public class Setup extends Activity {
 										String sessionID = values[0];
 										String loginErrCnt = values[1];
 										updateSuccessfullLogin(context,
-												sessionID, loginErrCnt);
+												sessionID, loginErrCnt,
+												serverId);
 									}
 								}
 							} else {
 								Log.d("communicator", "XXXX LOGIN FAILED'");
 								// / Clear server key to enforce a soon reload!
 								Utility.saveStringSetting(context,
-										Setup.SETTINGS_SERVERKEY, null);
+										Setup.SETTINGS_SERVERKEY + serverId,
+										null);
 							}
 						}
 					}));
@@ -4204,8 +4486,10 @@ public class Setup extends Activity {
 	 *            the context
 	 * @return the serverkey as string
 	 */
-	public static String getServerkeyAsString(final Context context) {
-		return Utility.loadStringSetting(context, Setup.SETTINGS_SERVERKEY, "");
+	public static String getServerkeyAsString(final Context context,
+			int serverId) {
+		return Utility.loadStringSetting(context, Setup.SETTINGS_SERVERKEY
+				+ serverId, "");
 	}
 
 	// -------------------------------------------------------------------------
@@ -4217,10 +4501,12 @@ public class Setup extends Activity {
 	 *            the context
 	 * @return the serverkey
 	 */
-	public static PublicKey getServerkey(final Context context) {
+	public static PublicKey getServerkey(final Context context,
+			final int serverId) {
 
 		try {
-			String modAndExpString = new String(getServerkeyAsString(context));
+			String modAndExpString = new String(getServerkeyAsString(context,
+					serverId));
 			String[] values = modAndExpString.split("#");
 			if (values.length == 2) {
 				String exp = values[0];
@@ -4260,18 +4546,56 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Gets the server.
+	 * 
+	 * @param serverId
+	 *            the server id
+	 * @return the server
+	 */
+	public static String getServer(Context context, int serverId) {
+		List<String> serverList = getServers(context);
+		for (int i = 0; i < serverList.size(); i++) {
+			String serverAddress = serverList.get(i);
+			if (getServerId(serverAddress) == serverId) {
+				return serverAddress;
+			}
+		}
+		return "";
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update ALL serverkeys. Only use this on startup or manual refresh, this
+	 * may be costly.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public static void updateAllServerkeys(final Context context) {
+		for (int serverId : getServerIds(context)) {
+			updateServerkey(context, serverId, true);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
 	 * Update serverkey.
 	 * 
 	 * @param context
 	 *            the context
 	 */
 	// Update if not present, will be deleted on login failure
-	public static void updateServerkey(final Context context) {
-		if (getServerkeyAsString(context).equals("")) {
+	public static void updateServerkey(final Context context,
+			final int serverId, final boolean silent) {
+		if (getServerkeyAsString(context, serverId).equals("")) {
 			// No serverkey there, needs to update
 
+			final String baseUrl = getServer(context, serverId);
+
 			String url = null;
-			url = Setup.getBaseURL(context) + "cmd=serverkey";
+			url = Setup.getBaseURL(context, serverId) + "cmd=serverkey";
 			final String url2 = url;
 			@SuppressWarnings("unused")
 			HttpStringRequest httpStringRequest = (new HttpStringRequest(
@@ -4286,7 +4610,8 @@ public class Setup extends Activity {
 													.getResponseContent(response));
 									Log.d("communicator",
 											"XXXX SAVED SERVER KEY '"
-													+ getServerkeyAsString(context)
+													+ getServerkeyAsString(
+															context, serverId)
 													+ "'");
 									Communicator.internetOk = true;
 								} else {
@@ -4294,6 +4619,17 @@ public class Setup extends Activity {
 								}
 							} else {
 								Communicator.internetOk = false;
+
+								if (!silent) {
+									Utility.showToastAsync(
+											context,
+											"Server '"
+													+ baseUrl
+													+ "' not reachable. It will be disabled.");
+									// Disable
+									setServerActive(context, serverId, false);
+								}
+
 								// Log.d("communicator",
 								// "XXXX FAILED TO UPDATE SERVER KEY '"
 								// + response + "'");
@@ -4313,9 +4649,10 @@ public class Setup extends Activity {
 	 *            the context
 	 * @return the byte[]
 	 */
-	private static byte[] prepareKey(Context context) {
+	private static byte[] prepareKey(Context context, int serverId) {
 		try {
-			String secret = Utility.md5(getSessionSecret(context).substring(5)); // the
+			String secret = Utility.md5(getSessionSecret(context, serverId)
+					.substring(5)); // the
 			// first 5 characters remain a secret!
 			String timeStampInSeconds = "" + ((DB.getTimestamp() / 1000) / 100);
 
@@ -4345,11 +4682,12 @@ public class Setup extends Activity {
 	 *            the text encrypted
 	 * @return the string
 	 */
-	public static String decText(Context context, String textEncrypted) {
+	public static String decText(Context context, String textEncrypted,
+			int serverId) {
 		try {
 			byte[] encrypted = Base64.decode(textEncrypted, Base64.DEFAULT);
 
-			byte[] keyArray = prepareKey(context);
+			byte[] keyArray = prepareKey(context, serverId);
 			if (keyArray == null) {
 				return null;
 			}
@@ -4385,8 +4723,8 @@ public class Setup extends Activity {
 	 *            the text
 	 * @return the string
 	 */
-	public static String encText(Context context, String text) {
-		byte[] keyArray = prepareKey(context);
+	public static String encText(Context context, String text, int serverId) {
+		byte[] keyArray = prepareKey(context, serverId);
 		if (keyArray == null) {
 			return null;
 		}
@@ -4419,8 +4757,8 @@ public class Setup extends Activity {
 	 *            the context
 	 * @return the byte[]
 	 */
-	private static byte[] prepareSimpleKey(Context context) {
-		String secret = getSessionSecret(context);
+	private static byte[] prepareSimpleKey(Context context, int serverId) {
+		String secret = getSessionSecret(context, serverId);
 		if (secret == null || secret.length() < 20) {
 			return null;
 		}
@@ -4471,9 +4809,9 @@ public class Setup extends Activity {
 	 *            the uid
 	 * @return the string
 	 */
-	public static String encUid(Context context, int uid) {
+	public static String encUid(Context context, int uid, int serverId) {
 		String text = uid + "";
-		byte[] simpleKey = prepareSimpleKey(context);
+		byte[] simpleKey = prepareSimpleKey(context, serverId);
 		if (simpleKey == null) {
 			return null;
 		}
@@ -4495,8 +4833,8 @@ public class Setup extends Activity {
 	 *            the uid encrypted
 	 * @return the int
 	 */
-	public static int decUid(Context context, String uidEncrypted) {
-		byte[] simpleKey = prepareSimpleKey(context);
+	public static int decUid(Context context, String uidEncrypted, int serverId) {
+		byte[] simpleKey = prepareSimpleKey(context, serverId);
 		if (simpleKey == null) {
 			return -1;
 		}
@@ -4528,18 +4866,19 @@ public class Setup extends Activity {
 	 * @param reset
 	 *            the reset
 	 */
-	public static void possiblyInvalidateSession(Context context, boolean reset) {
+	public static void possiblyInvalidateSession(Context context,
+			boolean reset, int serverId) {
 		Log.d("communicator", "possiblyInvalidateSession() reset? " + reset);
 		if (!reset) {
 			int counter = Utility.loadIntSetting(context,
-					Setup.SETTINGS_INVALIDATIONCOUNTER,
+					Setup.SETTINGS_INVALIDATIONCOUNTER + serverId,
 					Setup.SETTINGS_INVALIDATIONCOUNTER_MAX);
 			Log.d("communicator", "possiblyInvalidateSession() counter: "
 					+ counter);
 			if (counter > Setup.SETTINGS_INVALIDATIONCOUNTER_MAX) {
 				// guard against two high counter
 				// reset
-				possiblyInvalidateSession(context, true);
+				possiblyInvalidateSession(context, true, serverId);
 				return;
 			}
 			if (counter > 0) {
@@ -4548,14 +4887,14 @@ public class Setup extends Activity {
 						Setup.SETTINGS_INVALIDATIONCOUNTER, counter);
 			} else {
 				// reset
-				possiblyInvalidateSession(context, true);
+				possiblyInvalidateSession(context, true, serverId);
 				// trigger a new login by invalidating the session
-				invalidateTmpLogin(context);
+				invalidateTmpLogin(context, serverId);
 			}
 		} else {
 			// reset to the maximum
-			Utility.saveIntSetting(context, Setup.SETTINGS_INVALIDATIONCOUNTER,
-					Setup.SETTINGS_INVALIDATIONCOUNTER_MAX);
+			Utility.saveIntSetting(context, Setup.SETTINGS_INVALIDATIONCOUNTER
+					+ serverId, Setup.SETTINGS_INVALIDATIONCOUNTER_MAX);
 		}
 	}
 
@@ -4671,14 +5010,54 @@ public class Setup extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Checks if is UID defined.
+	 * Checks if is UID defined at a server.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param serverId
+	 *            the server id
+	 * @return true, if is UID defined
+	 */
+	public static boolean isUIDDefined(Context context, int serverId) {
+		return (Utility.loadStringSetting(context, SERVER_UID + serverId, "")
+				.trim().length() != 0);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Checks if is UID defined at ANY server.
 	 * 
 	 * @param context
 	 *            the context
 	 * @return true, if is UID defined
 	 */
 	public static boolean isUIDDefined(Context context) {
-		return (Utility.loadStringSetting(context, "uid", "").trim().length() != 0);
+		for (int serverId : getServerIds(context)) {
+			if (isUIDDefined(context, serverId)) {
+				return true;
+			}
+		}
+		// No account at non of the servers!
+		return false;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Update attachment ALL server limits. This should oly be called at startup
+	 * or on manual refresh.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param forceUpdate
+	 *            the force update
+	 */
+	public static void updateAttachmentAllServerLimits(final Context context,
+			boolean forceUpdate) {
+		for (int serverId : getServerIds(context)) {
+			updateAttachmentServerLimit(context, forceUpdate, serverId);
+		}
 	}
 
 	// ------------------------------------------------------------------------
@@ -4694,9 +5073,9 @@ public class Setup extends Activity {
 	 *            the force update
 	 */
 	public static void updateAttachmentServerLimit(final Context context,
-			boolean forceUpdate) {
+			boolean forceUpdate, final int serverId) {
 		long lastTime = Utility.loadLongSetting(context,
-				Setup.LASTUPDATE_SERVER_ATTACHMENT_LIMIT, 0);
+				Setup.LASTUPDATE_SERVER_ATTACHMENT_LIMIT + serverId, 0);
 		final long currentTime = DB.getTimestamp();
 		if (!forceUpdate
 				&& (lastTime
@@ -4706,7 +5085,7 @@ public class Setup extends Activity {
 		}
 
 		String url = null;
-		url = Setup.getBaseURL(context) + "cmd=attachments";
+		url = Setup.getBaseURL(context, serverId) + "cmd=attachments";
 		final String url2 = url;
 		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
@@ -4720,20 +5099,21 @@ public class Setup extends Activity {
 								if (content != null) {
 									int limit = Utility.parseInt(content, -1);
 									Utility.saveIntSetting(context,
-											Setup.SERVER_ATTACHMENT_LIMIT,
-											limit);
+											Setup.SERVER_ATTACHMENT_LIMIT
+													+ serverId, limit);
 									Log.d("communicator",
 											"XXXX SAVED SERVER ATTACHMENT LIMIT KB='"
 													+ content + "'");
 									Utility.saveLongSetting(
 											context,
-											Setup.LASTUPDATE_SERVER_ATTACHMENT_LIMIT,
-											currentTime);
+											Setup.LASTUPDATE_SERVER_ATTACHMENT_LIMIT
+													+ serverId, currentTime);
 								}
 							} else {
 								// No attachments allowed
 								Utility.saveIntSetting(context,
-										Setup.SERVER_ATTACHMENT_LIMIT, 0);
+										Setup.SERVER_ATTACHMENT_LIMIT
+												+ serverId, 0);
 							}
 						}
 					}
@@ -4752,9 +5132,9 @@ public class Setup extends Activity {
 	 *            the context
 	 * @return the attachment server limit
 	 */
-	public static int getAttachmentServerLimit(Context context) {
-		return Utility.loadIntSetting(context, Setup.SERVER_ATTACHMENT_LIMIT,
-				Setup.SERVER_ATTACHMENT_LIMIT_DEFAULT);
+	public static int getAttachmentServerLimit(Context context, int serverId) {
+		return Utility.loadIntSetting(context, Setup.SERVER_ATTACHMENT_LIMIT
+				+ serverId, Setup.SERVER_ATTACHMENT_LIMIT_DEFAULT);
 	}
 
 	// ------------------------------------------------------------------------
@@ -4768,8 +5148,9 @@ public class Setup extends Activity {
 	 *            the context
 	 * @return true, if is attachments allowed by server
 	 */
-	public static boolean isAttachmentsAllowedByServer(Context context) {
-		return (getAttachmentServerLimit(context) > 0);
+	public static boolean isAttachmentsAllowedByServer(Context context,
+			int serverId) {
+		return (getAttachmentServerLimit(context, serverId) > 0);
 	}
 
 	// ------------------------------------------------------------------------
@@ -4810,6 +5191,263 @@ public class Setup extends Activity {
 			cnt = 5;
 		}
 		Utility.saveIntSetting(context, Setup.KEYEXTRAWAITCOUNTDOWN, cnt);
+	}
+
+	// ------------------------------------------------------------------------
+
+	public static String normalizeServer(String serverAddress) {
+		String normalizedAddress = serverAddress.toLowerCase();
+		// Do NOT do the following. Maybe we constantly want to add another
+		// parameter!
+		//
+		// if (!normalizedAddress.endsWith("/")) {
+		// normalizedAddress += "/";
+		// }
+		return normalizedAddress;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the server id from the server address.
+	 * 
+	 * @param serverName
+	 *            the server address
+	 * @return the server id
+	 */
+	public static int getServerId(String serverAddress) {
+		return normalizeServer(serverAddress).hashCode();
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Removes a server.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param serverId
+	 *            the server id
+	 * @return true, if successful
+	 */
+	public static boolean removeServer(Context context, int serverId) {
+		List<String> serverList = getServers(context);
+		int indexToDelete = -1;
+		for (int i = 0; i < serverList.size(); i++) {
+			String serverAddress = serverList.get(i);
+			if (getServerId(serverAddress) == serverId) {
+				indexToDelete = i;
+				break;
+			}
+		}
+		if (indexToDelete >= 0) {
+			serverList.remove(indexToDelete);
+			String separatedString = Utility.getListAsString(
+					new ArrayList<String>(serverList), "|");
+			Utility.saveStringSetting(context, Setup.SERVERLIST,
+					separatedString);
+			return true;
+		}
+		return false;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Adds a server.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param serverAddress
+	 *            the server address
+	 */
+	public static void addServer(Context context, String serverAddress) {
+		LinkedHashSet<String> serverList = new LinkedHashSet<String>(
+				getServers(context));
+		serverList.add(serverAddress);
+		String separatedString = Utility.getListAsString(new ArrayList<String>(
+				serverList), "|");
+		Utility.saveStringSetting(context, Setup.SERVERLIST, separatedString);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the server ids.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the server ids
+	 */
+	public static List<Integer> getServerIds(Context context) {
+		ArrayList<Integer> returnList = new ArrayList<Integer>();
+		for (String serverAddress : getServers(context)) {
+			returnList.add(getServerId(serverAddress));
+		}
+		return returnList;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the list of servers.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the servers
+	 */
+	public static List<String> getServers(Context context) {
+		LinkedHashSet<String> returnList = new LinkedHashSet<String>();
+
+		String separatedString = Utility.loadStringSetting(context,
+				Setup.SERVERLIST, null);
+		returnList = new LinkedHashSet<String>();
+		returnList.add(Setup.DEFAULT_SERVER);
+		returnList.addAll(Utility.getListFromString(separatedString, "|"));
+		return new ArrayList<String>(returnList);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the next active server in round robin style. If no such server
+	 * exists, the empty string is returned.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the next server
+	 */
+	public static String getNextServer(Context context) {
+		int lastServerIndex = Utility.loadIntSetting(context,
+				Setup.SERVERLASTRRID, 0);
+		String returnServerAddress = "";
+		List<String> serverList = getServers(context);
+		if (serverList.size() == 0) {
+			return returnServerAddress;
+		}
+		int serverIndex = lastServerIndex;
+		boolean foundActive = false;
+		boolean seenZero = false;
+		while (!foundActive) {
+			serverIndex++;
+			if (serverIndex >= serverList.size()) {
+				if (seenZero) {
+					// We do not want to loop forever... there is no active
+					// server!
+					break;
+				}
+				serverIndex = 0;
+				seenZero = true;
+			}
+			String serverAddress = serverList.get(serverIndex);
+			int serverId = getServerId(serverAddress);
+			if (isServerActive(context, serverId)) {
+				Utility.saveIntSetting(context, Setup.SERVERLASTRRID,
+						serverIndex);
+				returnServerAddress = serverAddress;
+				foundActive = true;
+			}
+		}
+		return returnServerAddress;
+	}
+
+	// ------------------------------------------------------------------------
+
+	public static void setServerActive(Context context, int serverId,
+			boolean active) {
+		Utility.saveBooleanSetting(context, Setup.SERVER_ACTIVE, active);
+	}
+
+	// ------------------------------------------------------------------------
+
+	public static boolean isServerActive(Context context, int serverId) {
+		return Utility.loadBooleanSetting(context, Setup.SERVER_ACTIVE,
+				SERVER_ACTIVEDEFAULT);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets and saves a (new) UID for a server-internal uid (suid) and a
+	 * serverId.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param serverUid
+	 *            the server uid
+	 * @return the s uid
+	 */
+	public static int getUid(Context context, int sUid, int serverId) {
+		int uid = (new Integer(sUid)).hashCode()
+				+ (new Integer(serverId).hashCode());
+		Utility.saveIntSetting(context, UID2SUID + uid, sUid);
+		Utility.saveIntSetting(context, UID2SERVERID + uid, serverId);
+		return uid;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the suid from an UID. Note that for the userlist now internally only
+	 * UIDs are used in place of SUIDs. SUIDs are only unique for a server (S).
+	 * If no mapping was found, the legacy fallback will return the uid itself.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param sUid
+	 *            the s uid
+	 * @return the uid
+	 */
+	public static int getSUid(Context context, int uid) {
+		if (uid < 0) {
+			// for SMS user return the uid itself
+			return uid;
+		}
+		return Utility.loadIntSetting(context, UID2SUID + uid, uid);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the server id from an UID. Note that for the userlist now internally
+	 * only UIDs are used in place of SUIDs. SUIDs are only unique for a server
+	 * (S). If no mapping was found, the legacy-fallback will return
+	 * cryptocator.org as the server.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param sUid
+	 *            the s uid
+	 * @return the server id
+	 */
+	public static int getServerId(Context context, int uid) {
+		if (uid < 0) {
+			// for SMS user return -1
+			return -1;
+		}
+		return Utility.loadIntSetting(context, UID2SERVERID + uid,
+				getServerId(DEFAULT_SERVER));
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the default server id. E.g., this is responsible first for the
+	 * display name/uid of the current user.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the server default id
+	 */
+	public static int getServerDefaultId(Context context) {
+		List<Integer> serverIds = Setup.getServerIds(context);
+		int serverId = -1;
+		if (serverIds.size() > Setup.DEFAULTSERVERINDEX) {
+			serverId = serverIds.get(Setup.DEFAULTSERVERINDEX);
+		}
+		return serverId;
 	}
 
 	// ------------------------------------------------------------------------

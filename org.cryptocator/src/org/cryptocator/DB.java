@@ -36,6 +36,7 @@ package org.cryptocator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -50,7 +51,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-// TODO: Auto-generated Javadoc
 /**
  * The DB class handles the local data base accesses and is responsible for
  * loading conversations or adding new messages to a conversation.
@@ -86,7 +86,7 @@ public class DB {
 	 * The globally last received mid (cached version). There is also a settings
 	 * entry to be updated: Setup.SETTINGS_DEFAULTMID.
 	 */
-	public static int lastReceivedMid = -1;
+	public static HashMap<Integer, Integer> lastReceivedMid = new HashMap<Integer, Integer>();
 
 	/** The SMS dummy mid. */
 	public static int SMS_MID = -1;
@@ -127,6 +127,9 @@ public class DB {
 	 */
 	public static int MULTIPART_TIMEOUT = 10 * 60 * 1000;
 
+	/** The default receipient uid == WE. */
+	public static int DEFAULT_MYSELF_UID = -3;
+
 	// -----------------------------------------------------------------
 
 	/** The active user uid. */
@@ -135,21 +138,31 @@ public class DB {
 	// -----------------------------------------------------------------
 
 	/**
-	 * Returns the active user's uid.
+	 * Returns the active user's real uid w.r.t. a server.
 	 * 
 	 * @param context
 	 *            the context
 	 * @return the int
 	 */
-	public static int myUid(Context context) {
+	public static int myUid(Context context, int serverId) {
 		if (myUid < 0) {
-			String uidString = Utility.loadStringSetting(context, "uid", "");
+			String uidString = Utility.loadStringSetting(context,
+					Setup.SERVER_UID + serverId, "");
 			try {
 				myUid = Integer.parseInt(uidString);
 			} catch (Exception e) {
 			}
 		}
 		return myUid;
+	}
+
+	/**
+	 * My uid dummy place holder locally.
+	 * 
+	 * @return the int
+	 */
+	public static int myUid() {
+		return DEFAULT_MYSELF_UID;
 	}
 
 	// -----------------------------------------------------------------
@@ -1312,8 +1325,10 @@ public class DB {
 			Main.updateLastMessage(context, hostUid, text, DB.getTimestamp());
 		}
 
-		// AUTOMATED MULTIPART SPLITTING - NOT FOR SYSTEM SMS MESSAGES NOT FOR EXTERNAL USER! //
-		if (transport == DB.TRANSPORT_SMS && hostUid >= 0 && text.length() > Setup.MULTIPART_MESSAGELIMIT && !system) {
+		// AUTOMATED MULTIPART SPLITTING - NOT FOR SYSTEM SMS MESSAGES NOT FOR
+		// EXTERNAL USER! //
+		if (transport == DB.TRANSPORT_SMS && hostUid >= 0
+				&& text.length() > Setup.MULTIPART_MESSAGELIMIT && !system) {
 			// SPLIT UP
 			double textLen = (double) text.length();
 			int parts = (int) Math.ceil(textLen
@@ -1429,9 +1444,10 @@ public class DB {
 			messageTextToShow = "";
 		}
 
-		int localId = addMessage(context, DB.myUid(context), hostUid,
-				messageTextToShow, created, null, null, null, null, encrypted,
-				transport, systemToShow, part, parts, multipartid);
+		final int myUid = DB.myUid();
+		int localId = addMessage(context, myUid, hostUid, messageTextToShow,
+				created, null, null, null, null, encrypted, transport,
+				systemToShow, part, parts, multipartid);
 
 		Log.d("communicator", "#### KEY NEW KEY #6.7");
 
@@ -1463,7 +1479,7 @@ public class DB {
 
 			ContentValues values = new ContentValues();
 			values.put("localid", localId);
-			values.put("fromuid", DB.myUid(context));
+			values.put("fromuid", myUid);
 			values.put("touid", hostUid);
 			values.put("transport", transport);
 			values.put("text", partText);
@@ -1794,7 +1810,7 @@ public class DB {
 			String read, String withdraw, boolean encrypted, int transport,
 			boolean system, int part, int parts, String multipartid) {
 		int uid = from;
-		if (to != DB.myUid(context)) {
+		if (to != DB.myUid()) {
 			uid = to;
 		}
 		int localId = -1;
@@ -1927,7 +1943,7 @@ public class DB {
 					if (val != null) {
 						val = val.replace("\n", "").replace("\r", "");
 					}
-					
+
 					entry += name + "=" + val + ", ";
 				}
 				Log.d("communicator", "DBTABLE [" + uid + "] " + entry);
@@ -2002,13 +2018,13 @@ public class DB {
 				String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `withdraw`, `encrypted`, `transport`, `system`, `part` FROM `"
 						+ TABLE_MESSAGES
 						+ "` WHERE ((`fromuid` = "
-						+ myUid(context)
+						+ myUid()
 						+ " AND `touid` = "
 						+ hostUid
 						+ ") OR (`fromuid` = "
 						+ hostUid
 						+ " AND `touid` = "
-						+ myUid(context)
+						+ myUid()
 						+ ")) AND `system` != '1' AND `part` = "
 						+ DB.DEFAULT_MESSAGEPART
 						+ " ORDER BY `created` DESC, `sent` DESC "; // AND
@@ -2062,15 +2078,16 @@ public class DB {
 			String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `withdraw`, `encrypted`, `transport`, `system`, `part`, `parts`, `multipartid` FROM `"
 					+ TABLE_MESSAGES
 					+ "` WHERE ((`fromuid` = "
-					+ myUid(context)
+					+ myUid()
 					+ " AND `touid` = "
 					+ hostUid
 					+ ") OR (`fromuid` = "
 					+ hostUid
 					+ " AND `touid` = "
-					+ myUid(context) + ")) " 
+					+ myUid()
+					+ ")) "
 					+ " AND `fromuid` != -1 AND `touid` != -1 AND `text` != '' AND (`system` != '1' OR `mid` = '-1')"
-//					"AND `system` != 1 "
+					// "AND `system` != 1 "
 					// AND `part` = "+ DB.DEFAULT_MESSAGEPART
 					// + " GROUP BY `multipartid` HAVING `part` = MIN(`part`)"
 					+ " ORDER BY `created` DESC, `sent` DESC " // AND
@@ -2078,13 +2095,13 @@ public class DB {
 					// !=
 					// '1'
 					+ LIMIT;
-					;
+			;
 			Log.d("communicator", "loadConversation() -2255 QUERY = " + QUERY);
 
 			Cursor cursor = db.rawQuery(QUERY, null);
 			if (cursor != null && cursor.moveToFirst()) {
-				Log.d("communicator",
-						"loadConversation() -2255 getCount = " + cursor.getCount());
+				Log.d("communicator", "loadConversation() -2255 getCount = "
+						+ cursor.getCount());
 
 				for (int c = 0; c < cursor.getCount(); c++) {
 
@@ -2094,10 +2111,9 @@ public class DB {
 					int to = Utility.parseInt(cursor.getString(3), -1);
 					String text = cursor.getString(4);
 
-					Log.d("communicator",
-							"loadConversation() -2255 text["+cursor.getString(1)+"] = " + text);
+					Log.d("communicator", "loadConversation() -2255 text["
+							+ cursor.getString(1) + "] = " + text);
 
-					
 					long created = parseTimestamp(cursor.getString(5), -1);
 					long sent = parseTimestamp(cursor.getString(6), -1);
 
@@ -2188,7 +2204,7 @@ public class DB {
 	// -----------------------------------------------------------------
 
 	/** The largest timestamp received. */
-	static long largestTimestampReceived = -1;
+	static HashMap<Integer, Long> largestTimestampReceived = new HashMap<Integer, Long>();
 
 	/**
 	 * Gets the largest timestamp received. This value is cached.
@@ -2197,12 +2213,13 @@ public class DB {
 	 *            the context
 	 * @return the largest timestamp received
 	 */
-	static long getLargestTimestampReceived(Context context) {
-		if (largestTimestampReceived == -1) {
-			largestTimestampReceived = Utility.loadLongSetting(context,
-					Setup.SETTINGS_LARGEST_TS_RECEIVED, DB.getTimestamp());
+	static long getLargestTimestampReceived(Context context, int serverId) {
+		if (!largestTimestampReceived.containsKey(serverId)) {
+			largestTimestampReceived.put(serverId, Utility.loadLongSetting(
+					context, Setup.SETTINGS_LARGEST_TS_RECEIVED + serverId,
+					DB.getTimestamp()));
 		}
-		return largestTimestampReceived;
+		return largestTimestampReceived.get(serverId);
 	}
 
 	// -------------------------------------------------------------------------
@@ -2284,20 +2301,21 @@ public class DB {
 	 * @param newTS
 	 *            the new ts
 	 */
-	static void updateLargestTimestampReceived(Context context, String newTS) {
+	static void updateLargestTimestampReceived(Context context, String newTS,
+			int serverId) {
 		Log.d("communicator", " UPDATE LARGEST TIMESTAMP RECEIVED: " + newTS);
 		long newTSLong = Utility.parseLong(newTS, 0);
-		if (newTSLong > getLargestTimestampReceived(context)) {
-			Utility.saveLongSetting(context,
-					Setup.SETTINGS_LARGEST_TS_RECEIVED, newTSLong);
-			largestTimestampReceived = newTSLong;
+		if (newTSLong > getLargestTimestampReceived(context, serverId)) {
+			Utility.saveLongSetting(context, Setup.SETTINGS_LARGEST_TS_RECEIVED
+					+ serverId, newTSLong);
+			largestTimestampReceived.put(serverId, newTSLong);
 		}
 	}
 
 	// -----------------------------------------------------------------
 
 	/** The largest timestamp read. */
-	static long largestTimestampRead = -1;
+	static HashMap<Integer, Long> largestTimestampRead = new HashMap<Integer, Long>();
 
 	/**
 	 * Gets the largest timestamp read. This value is cached.
@@ -2306,12 +2324,13 @@ public class DB {
 	 *            the context
 	 * @return the largest timestamp read
 	 */
-	static long getLargestTimestampRead(Context context) {
-		if (largestTimestampRead == -1) {
-			largestTimestampRead = Utility.loadLongSetting(context,
-					Setup.SETTINGS_LARGEST_TS_READ, DB.getTimestamp());
+	static long getLargestTimestampRead(Context context, int serverId) {
+		if (!largestTimestampRead.containsKey(serverId)) {
+			largestTimestampRead.put(serverId, Utility.loadLongSetting(context,
+					Setup.SETTINGS_LARGEST_TS_READ + serverId,
+					DB.getTimestamp()));
 		}
-		return largestTimestampRead;
+		return largestTimestampRead.get(serverId);
 	}
 
 	// -------------------------------------------------------------------------
@@ -2324,13 +2343,14 @@ public class DB {
 	 * @param newTS
 	 *            the new ts
 	 */
-	static void updateLargestTimestampRead(Context context, String newTS) {
+	static void updateLargestTimestampRead(Context context, String newTS,
+			int serverId) {
 		Log.d("communicator", " UPDATE LARGEST TIMESTAMP READ: " + newTS);
 		long newTSLong = Utility.parseLong(newTS, 0);
-		if (newTSLong > getLargestTimestampRead(context)) {
-			Utility.saveLongSetting(context, Setup.SETTINGS_LARGEST_TS_READ,
-					newTSLong);
-			largestTimestampRead = newTSLong;
+		if (newTSLong > getLargestTimestampRead(context, serverId)) {
+			Utility.saveLongSetting(context, Setup.SETTINGS_LARGEST_TS_READ
+					+ serverId, newTSLong);
+			largestTimestampRead.put(serverId, newTSLong);
 		}
 	}
 
@@ -2352,8 +2372,7 @@ public class DB {
 		SQLiteDatabase db = openDB(context, uid);
 
 		String QUERY = "SELECT `mid` FROM `" + TABLE_MESSAGES
-				+ "` WHERE `touid` = " + DB.myUid(context)
-				+ " AND `fromuid` = " + uid
+				+ "` WHERE `touid` = " + DB.myUid() + " AND `fromuid` = " + uid
 				+ " AND `transport` = 0 AND `system` != '1'"
 				+ " ORDER BY `mid` DESC";
 
@@ -2396,12 +2415,12 @@ public class DB {
 	 * @param mid
 	 *            the mid
 	 */
-	static void resetLargestMid(Context context, int mid) {
+	static void resetLargestMid(Context context, int mid, int serverId) {
 		// Log.d("communicator",
 		// "@@@@@@@ RESET LARGEST MID: " + mid);
-		lastReceivedMid = mid;
-		Utility.saveIntSetting(context, Setup.SETTINGS_LARGEST_MID_RECEIVED,
-				mid);
+		lastReceivedMid.put(serverId, mid);
+		Utility.saveIntSetting(context, Setup.SETTINGS_LARGEST_MID_RECEIVED
+				+ serverId, mid);
 	}
 
 	// -------------------------------------------------------------------------
@@ -2415,13 +2434,13 @@ public class DB {
 	 *            the mid
 	 * @return true, if successful
 	 */
-	static boolean updateLargestMid(Context context, int mid) {
+	static boolean updateLargestMid(Context context, int mid, int serverId) {
 		// Log.d("communicator",
 		// "@@@@@@@ UPDATE LARGEST MID: " + mid);
-		int currentMid = getLargestMid(context);
+		int currentMid = getLargestMid(context, serverId);
 		if (mid > currentMid) {
-			resetLargestMid(context, mid);
-			lastReceivedMid = mid;
+			resetLargestMid(context, mid, serverId);
+			lastReceivedMid.put(serverId, mid);
 			return true;
 		}
 		return false;
@@ -2436,16 +2455,16 @@ public class DB {
 	 *            the context
 	 * @return the largest mid
 	 */
-	static int getLargestMid(Context context) {
+	static int getLargestMid(Context context, int serverId) {
 		// Cache to make it more efficient, be sure to invalidate if receiving
 		// new messages -- this is also used for clearing conversation!!!
-		if (lastReceivedMid == -1) {
-			lastReceivedMid = Utility.loadIntSetting(context,
-					Setup.SETTINGS_LARGEST_MID_RECEIVED, -1);
+		if (!lastReceivedMid.containsKey(serverId)) {
+			lastReceivedMid.put(serverId, Utility.loadIntSetting(context,
+					Setup.SETTINGS_LARGEST_MID_RECEIVED + serverId, -1));
 		}
 		// Log.d("communicator",
 		// "@@@@@@@ GET LARGEST MID: " + lastReceivedMid);
-		return lastReceivedMid;
+		return lastReceivedMid.get(serverId);
 	}
 
 	// -----------------------------------------------------------------
@@ -2760,8 +2779,8 @@ public class DB {
 			SQLiteDatabase db = openDB(context, hostUid);
 			// all messages that I have received, I flag in my own DB as read
 			// now that I am reading..
-			db.update("messages", values, "`touid` = " + DB.myUid(context)
-					+ " AND `fromuid` != " + DB.myUid(context), null);
+			db.update("messages", values, "`touid` = " + DB.myUid()
+					+ " AND `fromuid` != " + DB.myUid(), null);
 			db.close();
 			success = true;
 		} catch (Exception e) {
