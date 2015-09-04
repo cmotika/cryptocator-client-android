@@ -291,7 +291,7 @@ public class MessageDetailsActivity extends Activity {
 		} else {
 			transport.setText("SMS");
 			size.setText(((int) (Math.ceil(((double) updatedItem.text.length())
-					/ ((double) Setup.SMS_DEFAULT_SIZE))))
+					/ ((double) Setup.SMS_DEFAULT_SIZE_MULTIPART)))) 
 					+ " SMS");
 		}
 		if (updatedItem.encrypted) {
