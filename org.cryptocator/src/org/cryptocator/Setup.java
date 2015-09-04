@@ -2264,7 +2264,7 @@ public class Setup extends Activity {
 
 									} else {
 										if (response2.equals("-17")) {
-											setErrorInfo("This server currently allows no new registrations.");
+											setErrorInfo("This server currently does not permit any new registrations.");
 										} else if (response2.equals("-2")) {
 											setErrorInfo("Email address already taken.\n\nHave you activated your account already? If not go to your email account and follow the activation link we sent you.\n\nIf this is your address and you cannot find the activation email then reset the password, otherwise use a different address.\n\nTo reset the password click here:\n"
 													+ reseturl2);
