@@ -1522,7 +1522,7 @@ public class Main extends Activity {
 		String name = Utility.loadStringSetting(context, "uid2name" + uid, "");
 		final int suid = Setup.getSUid(context, uid);
 
-		if (uid == myUid) {
+		if (uid == myUid || uid == DB.myUid()) {
 			if (myUid == -1 || name == null || name.equals("")) {
 				return "no active account";
 			} else if (fullNameWithUID) {
