@@ -47,6 +47,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -71,11 +72,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -97,6 +101,15 @@ import android.widget.TextView;
 public class Setup extends Activity {
 
 	// //// BASIC APP CONSTANTS //// //
+
+	/** The version singleserver. */
+	public static int VERSION_SINGLESERVER = 0;
+
+	/** The version multiserver. */
+	public static int VERSION_MULTISERVER = 2;
+
+	/** The programversion may lead to recovery actions for database changes. */
+	public static int VERSION_CURRENT = VERSION_MULTISERVER;
 
 	/** The server URL to be used per default. */
 	public static String DEFAULT_SERVER = "http://www.cryptocator.org";
@@ -150,6 +163,7 @@ public class Setup extends Activity {
 	 * The cached version of the base URL for faster access because of frequent
 	 * use.
 	 */
+	@SuppressLint("UseSparseArrays")
 	private static HashMap<Integer, String> BASESERVERADDRESSCACHED = new HashMap<Integer, String>();
 
 	/**
@@ -828,9 +842,6 @@ public class Setup extends Activity {
 	/** The settingspart. */
 	private LinearLayout settingssection;
 
-	/** The mainscrollview. */
-	private static ScrollView mainscrollview;
-
 	/** The online. */
 	private static boolean online = false;
 
@@ -839,6 +850,10 @@ public class Setup extends Activity {
 
 	/** The account type. */
 	private boolean accountType = false;
+
+	private ImageView serverimage = null;
+
+	private CheckBox serverdisabled = null;
 
 	/** The serverbuttonmodify. */
 	private Button serverbuttonmodify = null;
@@ -901,15 +916,27 @@ public class Setup extends Activity {
 		accountsection = (LinearLayout) findViewById(R.id.accountsection);
 		accountheader = (LinearLayout) findViewById(R.id.accountheader);
 		settingssection = (LinearLayout) findViewById(R.id.settingssection);
+
+		serverimage = (ImageView) findViewById(R.id.serverimage);
+		serverdisabled = (CheckBox) findViewById(R.id.serverdisabled);
+
 		serverbuttonmodify = (Button) findViewById(R.id.serverbuttonmodify);
 		serverbuttonadd = (Button) findViewById(R.id.serverbuttonadd);
 		serverbuttondelete = (Button) findViewById(R.id.serverbuttondelete);
 		hideServerModifyButtons();
-		serverbuttonmodify.setOnClickListener(new View.OnClickListener() {
+		serverbuttonmodify.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				promptModifyServer(context);
+				Utility.showToastAsync(context,
+						"Long press for modifying message servers.");
 			}
 		});
+		serverbuttonmodify
+				.setOnLongClickListener(new View.OnLongClickListener() {
+					public boolean onLongClick(View v) {
+						promptModifyServer(context);
+						return true;
+					}
+				});
 		serverbuttonadd.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				promptAddServer(context);
@@ -921,9 +948,28 @@ public class Setup extends Activity {
 			}
 		});
 
-		serverspinner = (Spinner) findViewById(R.id.serverspinner);
-		serverspinner.setOnClickListener(new OnClickListener() {
+		serverimage.setOnLongClickListener(new OnLongClickListener() {
+			public boolean onLongClick(View v) {
+				boolean active = isServerActive(context, selectedServerId);
+				setServerActive(context, selectedServerId, !active);
+				updateServerImage(context, false);
+				return false;
+			}
+		});
+		serverdisabled.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
+				if (!serverdisabled.isChecked()) {
+					setServerActive(context, selectedServerId, true);
+					updateServerImage(context, true);
+				}
+			}
+		});
+
+		serverspinner = (Spinner) findViewById(R.id.serverspinner);
+		serverspinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+			public void onItemSelected(AdapterView<?> parent, View view,
+					int position, long id) {
 				selectedServerId = -1;
 				try {
 					String serverAddress = (String) serverspinner
@@ -938,6 +984,9 @@ public class Setup extends Activity {
 					// ignore
 				}
 			}
+
+			public void onNothingSelected(AdapterView<?> parent) {
+			}
 		});
 
 		if (!accountType) {
@@ -945,7 +994,7 @@ public class Setup extends Activity {
 			loadSettings(context);
 		} else {
 			settingssection.setVisibility(View.GONE);
-			updateServerSpinner(context);
+			updateServerSpinner(context, serverspinner);
 			buildServerTabs(context);
 		}
 
@@ -1027,7 +1076,8 @@ public class Setup extends Activity {
 		updateTitleIDInfo(context);
 		// requestWindowFeature(Window.FEATURE_LEFT_ICON);
 		int serverDefaultId = Setup.getServerDefaultId(context);
-		String uidString2 = Utility.loadStringSetting(context, Setup.SERVER_UID + serverDefaultId, "");
+		String uidString2 = Utility.loadStringSetting(context, Setup.SERVER_UID
+				+ serverDefaultId, "");
 		if (uidString2 != null & uidString2.trim().length() > 0) {
 			uidString2 = " - UID " + uidString2;
 		}
@@ -1051,15 +1101,16 @@ public class Setup extends Activity {
 				}
 			});
 
-			Utility.setBackground(this, accountheader,
-					R.drawable.dolphins4light);
+			Utility.setBackground(this, accountheader, R.drawable.dolphins3);
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		// reload login info text fields
-		loadServerTab(context, selectedServerId);
+		if (accountType) {
+			// reload login info text fields
+			loadServerTab(context, selectedServerId);
+		}
 
 		Utility.hideKeyboard(context);
 	}
@@ -1083,6 +1134,7 @@ public class Setup extends Activity {
 	 * @param context
 	 *            the context
 	 */
+	@SuppressLint("InflateParams")
 	private void buildServerTabs(final Context context) {
 		LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		final ScrollView accountInner = (ScrollView) inflater.inflate(
@@ -1098,13 +1150,13 @@ public class Setup extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	private void updateServerSpinner(final Context context) {
+	public static void updateServerSpinner(final Context context, final Spinner spinner) {
 		List<String> spinnerArray = getServers(context);
 		ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(
 				context, android.R.layout.simple_spinner_item, spinnerArray);
 		spinnerArrayAdapter
 				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		serverspinner.setAdapter(spinnerArrayAdapter);
+		spinner.setAdapter(spinnerArrayAdapter);
 	}
 
 	// ------------------------------------------------------------------------
@@ -1116,6 +1168,7 @@ public class Setup extends Activity {
 	 * @param context
 	 *            the context
 	 */
+	@SuppressLint("InflateParams")
 	private void loadSettings(final Context context) {
 		// Create a view
 		LayoutInflater serverTabInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -1400,26 +1453,26 @@ public class Setup extends Activity {
 		uid.setTag(uid.getKeyListener()); // remember the listener for later use
 		uid.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				updateAccountLocked(context, false);
+				updateAccountLocked(context, false, serverId);
 			}
 		});
 		TextView textexisting2 = (TextView) findViewById(R.id.textexisting2);
 		textexisting2.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				updateAccountLocked(context, false);
+				updateAccountLocked(context, false, serverId);
 			}
 		});
 
 		email = (EditText) findViewById(R.id.email);
 		email.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				updateAccountLocked(context, false);
+				updateAccountLocked(context, false, serverId);
 			}
 		});
 		pwd = (EditText) findViewById(R.id.pwd);
 		pwd.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				updateAccountLocked(context, false);
+				updateAccountLocked(context, false, serverId);
 			}
 		});
 
@@ -1434,8 +1487,6 @@ public class Setup extends Activity {
 		accountexisting = (LinearLayout) findViewById(R.id.accountexisting);
 		accountonline = (LinearLayout) findViewById(R.id.accountonline);
 		newaccount = (CheckBox) findViewById(R.id.newaccount);
-		mainscrollview = (ScrollView) findViewById(R.id.mainscrollview);
-
 		user = (EditText) findViewById(R.id.user);
 
 		create = (Button) findViewById(R.id.create);
@@ -1486,7 +1537,7 @@ public class Setup extends Activity {
 				this.accountLocked = 0;
 			}
 
-			updateAccountLocked(context, true);
+			updateAccountLocked(context, true, serverId);
 
 			user.setText(Utility.loadStringSetting(context, SERVER_USERNAME
 					+ serverId, ""));
@@ -1562,6 +1613,76 @@ public class Setup extends Activity {
 			e.printStackTrace();
 		}
 
+		updateServerImage(context, false);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Update server image for the selected server id.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void updateServerImage(Context context, boolean userClickedActivate) {
+		boolean active = isServerActive(context, selectedServerId);
+
+		if (active) {
+			if (serverdisabled != null) {
+				serverdisabled.setVisibility(View.GONE);
+				if (serverdisabled.isChecked()) {
+					serverdisabled.setChecked(false);
+				}
+			}
+			if (serverimage != null) {
+				serverimage.setImageResource(R.drawable.server);
+			}
+		} else {
+			if (userClickedActivate) {
+				// The user wanted to activate but actually the server is
+				// inactive again
+				// prompt the user to tell him...
+				Conversation
+						.promptInfo(
+								context,
+								"Server Not Active",
+								"You need a valid account and an "
+										+ "Internet connection in order to activate a server.\n\nIf you do not have an "
+										+ "account for this server yet, create one first below. After that try to "
+										+ "activate the server again.");
+			}
+			if (serverdisabled != null) {
+				serverdisabled.setVisibility(View.VISIBLE);
+				if (!serverdisabled.isChecked()) {
+					serverdisabled.setChecked(true);
+				}
+			}
+			if (serverimage != null) {
+				serverimage.setImageResource(R.drawable.serverdisabled);
+			}
+		}
+
+		// Update the title as well
+		String uidString2 = Utility.loadStringSetting(context, Setup.SERVER_UID
+				+ selectedServerId, "");
+
+		String serverAddress = getServerLabel(context, selectedServerId, true);
+
+		if (uidString2 != null & uidString2.trim().length() > 0) {
+			uidString2 = " - UID " + uidString2 + " @ " + serverAddress; // +
+																			// " ["
+																			// +
+																			// selectedServerId
+																			// +
+																			// "]";
+		}
+
+		if (!accountType) {
+			setTitle("Settings" + uidString2);
+		} else {
+			setTitle("Account" + uidString2);
+		}
+
 	}
 
 	// ------------------------------------------------------------------------
@@ -1614,7 +1735,12 @@ public class Setup extends Activity {
 	 * @param silent
 	 *            the silent
 	 */
-	private void updateAccountLocked(Context context, boolean silent) {
+	private void updateAccountLocked(Context context, boolean silent,
+			int serverId) {
+		String uidString = Utility.loadStringSetting(context, SERVER_UID
+				+ serverId, "");
+		boolean noAccountYet = uidString.equals("");
+
 		if (accountLocked > 0) {
 			login.setText("   Validate / Login   ");
 			newaccount.setEnabled(false);
@@ -1638,11 +1764,14 @@ public class Setup extends Activity {
 
 			login.setText("   Validate / Save   ");
 			accountLocked = accountLocked - 1;
-			Conversation
-					.promptInfo(
-							context,
-							"Changing Login Information",
-							"You are about to change the login information!\n\nIt is very curcial that you only change your login information if this is really required! All local data on you phone is linked to your account. If you switch to another account (user) you should clear all your contacts beforehand. Also note that your old account key becomes invalid and others might get into trouble sending you encrypted messages!\n\nDo not change your login information unless you really know what you are doing!");
+			if (!noAccountYet) {
+				// Only warn if there exists already an account
+				Conversation
+						.promptInfo(
+								context,
+								"Changing Login Information",
+								"You are about to change the login information!\n\nIt is very curcial that you only change your login information if this is really required! All local data on you phone is linked to your account. If you switch to another account (user) you should clear all your contacts beforehand. Also note that your old account key becomes invalid and others might get into trouble sending you encrypted messages!\n\nDo not change your login information unless you really know what you are doing!");
+			}
 
 			newaccount.setEnabled(true);
 			uid.setTextColor(Color.parseColor("#FFDDDDDD"));
@@ -1688,11 +1817,12 @@ public class Setup extends Activity {
 						if (!cancel) {
 							if (button == 0) {
 								addServer(context, returnText);
+								updateServerSpinner(context, serverspinner);
 							}
 						}
 						dialog.dismiss();
 					}
-				}).show();
+				}, 0x00000011).show();
 	}
 
 	// -------------------------------------------------------------------------
@@ -1706,7 +1836,22 @@ public class Setup extends Activity {
 					public void selected(int button, boolean cancel) {
 						if (!cancel) {
 							if (button == 0) {
-								// TODO: delete server
+								if (selectedServerId == getServerId(DEFAULT_SERVER)) {
+									Conversation
+											.promptInfo(
+													context,
+													"Cannot Delete Server",
+													"You cannot delete this (default) server.\n\nBut" +
+													" you can disable it by long pressing the blue" +
+													" server image.");
+								} else {
+									String serverLabel = getServerLabel(
+											context, selectedServerId, true);
+									removeServer(context, selectedServerId);
+									updateServerSpinner(context, serverspinner);
+									Utility.showToastAsync(context, "Server '"
+											+ serverLabel + "' removed.");
+								}
 							}
 						}
 					}
@@ -1820,7 +1965,7 @@ public class Setup extends Activity {
 			disablesmsoption.setEnabled(false);
 		} else {
 			phone.setText(Utility
-					.loadStringSetting(context, SETTINGS_PHONE, ""));
+					.loadStringSetting(context, SETTINGS_PHONE + serverId, ""));
 			// enabled
 			enablesmsoption.setEnabled(true);
 			enablesmsoption.setText(" Update ");
@@ -2142,8 +2287,8 @@ public class Setup extends Activity {
 											// Clear server key to enforce a
 											// soon reload!
 											Utility.saveStringSetting(context,
-													Setup.SETTINGS_SERVERKEY,
-													null);
+													Setup.SETTINGS_SERVERKEY
+															+ serverId, null);
 
 											Utility.saveStringSetting(context,
 													SERVER_PWD + serverId, "");
@@ -2346,6 +2491,9 @@ public class Setup extends Activity {
 										setErrorInfo(
 												"Password changed. Check your email to activate the new password!",
 												false);
+										// Must log out! User must verify link in mail to activate password!
+										online = false;
+										updateonline();
 									} else {
 										if (response2.equals("-6")) {
 											// email already registered
@@ -2696,7 +2844,7 @@ public class Setup extends Activity {
 										if (!silent) {
 											setErrorInfo(
 													context,
-													"Backup of user list to server successful. You can now later restore it, e.g., on a different device or in case of data loss.\n\nNote that no messages are backed up.\n\nAlso note that ONLY registered users are backed up and only their UID not their display name or phone number was saved at the server!",
+													"Backup of user list to server successful. You can now later restore it, e.g., on a different device or in case of data loss.\n\nNote that no messages are backed up.\n\nAlso note that ONLY registered users of THIS server are backed up and only their UID not their display name or phone number was saved at the server!",
 													false);
 										}
 									} else {
@@ -2953,11 +3101,11 @@ public class Setup extends Activity {
 										// EVERYTHING OK
 										if (enable) {
 											Utility.saveStringSetting(context,
-													SETTINGS_PHONE,
+													SETTINGS_PHONE + serverId,
 													phoneString2);
 										} else {
 											Utility.saveStringSetting(context,
-													SETTINGS_PHONE, "");
+													SETTINGS_PHONE + serverId, "");
 										}
 										updatePhoneNumberAndButtonStates(
 												context, serverId);
@@ -3131,8 +3279,10 @@ public class Setup extends Activity {
 			// send public key to all servers
 			String keyHash = getPublicKeyHash(context);
 			for (int serverId : getServerIds(context)) {
-				Communicator.sendKeyToServer(context, encodedpublicKey,
-						keyHash, serverId);
+				if (Setup.isServerActive(context, serverId)) {
+					Communicator.sendKeyToServer(context, encodedpublicKey,
+							keyHash, serverId);
+				}
 			}
 
 		} catch (Exception e) {
@@ -3156,7 +3306,9 @@ public class Setup extends Activity {
 		Utility.saveStringSetting(context, Setup.PUBKEY, null);
 		Utility.saveStringSetting(context, Setup.PRIVATEKEY, null);
 		for (int serverId : getServerIds(context)) {
-			Communicator.clearKeyFromServer(context, keyHash, serverId);
+			if (Setup.isServerActive(context, serverId)) {
+				Communicator.clearKeyFromServer(context, keyHash, serverId);
+			}
 		}
 	}
 
@@ -4605,7 +4757,7 @@ public class Setup extends Activity {
 								if (response.length() > 10) {
 									Utility.saveStringSetting(
 											context,
-											Setup.SETTINGS_SERVERKEY,
+											Setup.SETTINGS_SERVERKEY + serverId,
 											Communicator
 													.getResponseContent(response));
 									Log.d("communicator",
@@ -5216,7 +5368,7 @@ public class Setup extends Activity {
 	 * @return the server id
 	 */
 	public static int getServerId(String serverAddress) {
-		return normalizeServer(serverAddress).hashCode();
+		return Math.abs(normalizeServer(serverAddress).hashCode());
 	}
 
 	// ------------------------------------------------------------------------
@@ -5303,7 +5455,7 @@ public class Setup extends Activity {
 				Setup.SERVERLIST, null);
 		returnList = new LinkedHashSet<String>();
 		returnList.add(Setup.DEFAULT_SERVER);
-		returnList.addAll(Utility.getListFromString(separatedString, "|"));
+		returnList.addAll(Utility.getListFromString(separatedString, "\\|"));
 		return new ArrayList<String>(returnList);
 	}
 
@@ -5355,14 +5507,22 @@ public class Setup extends Activity {
 
 	public static void setServerActive(Context context, int serverId,
 			boolean active) {
-		Utility.saveBooleanSetting(context, Setup.SERVER_ACTIVE, active);
+		Utility.saveBooleanSetting(context, Setup.SERVER_ACTIVE + serverId,
+				active);
 	}
 
 	// ------------------------------------------------------------------------
 
 	public static boolean isServerActive(Context context, int serverId) {
-		return Utility.loadBooleanSetting(context, Setup.SERVER_ACTIVE,
-				SERVER_ACTIVEDEFAULT);
+		String uidString = Utility.loadStringSetting(context, SERVER_UID
+				+ serverId, "");
+		boolean noAccountYet = uidString.equals("");
+		if (noAccountYet) {
+			// No account at this server, this server is automatically deactive
+			return false;
+		}
+		return Utility.loadBooleanSetting(context, Setup.SERVER_ACTIVE
+				+ serverId, SERVER_ACTIVEDEFAULT);
 	}
 
 	// ------------------------------------------------------------------------
@@ -5380,8 +5540,8 @@ public class Setup extends Activity {
 	 * @return the s uid
 	 */
 	public static int getUid(Context context, int sUid, int serverId) {
-		int uid = (new Integer(sUid)).hashCode()
-				+ (new Integer(serverId).hashCode());
+		int uid = Math.abs((Integer.valueOf(sUid)).hashCode())
+				+ Math.abs((Integer.valueOf(serverId).hashCode()));
 		Utility.saveIntSetting(context, UID2SUID + uid, sUid);
 		Utility.saveIntSetting(context, UID2SERVERID + uid, serverId);
 		return uid;
@@ -5448,6 +5608,105 @@ public class Setup extends Activity {
 			serverId = serverIds.get(Setup.DEFAULTSERVERINDEX);
 		}
 		return serverId;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the current version. This gets the last version of the database
+	 * before this updated app ran. Typically isUpdateVersion may be sufficient.
+	 * If you need to process different update stategies depending on the exact
+	 * version, user this method. Be sure to trigger ALL recovery actions and
+	 * setVersionUpdated() afterwards.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the current version
+	 */
+	public static int getVersion(Context context) {
+		return Utility.loadIntSetting(context, "programversion", 0);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sets the version to a specific other intermediate one. Do this after you
+	 * processed your recovery action. You may also select if a reboot of the
+	 * application is required.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the int
+	 */
+	public static void setVersionUpdated(Context context, int updatedVersion,
+			boolean requiresAppReboot, String messageToUser) {
+		Utility.saveIntSetting(context, "programversion", updatedVersion);
+		if (messageToUser != null) {
+			Utility.showToastAsync(context, messageToUser);
+		}
+		if (requiresAppReboot) {
+			Main.exitApplication(context);
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sets the version to the most updated one. Do this after you processed
+	 * your recovery action.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the int
+	 */
+	public static void setVersionUpdated(Context context) {
+		Utility.saveIntSetting(context, "programversion", Setup.VERSION_CURRENT);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Checks if is is an updated program version. Be sure to trigger ALL
+	 * recovery actions and setVersionUpdated() afterwards.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return true, if is updates version
+	 */
+	public static boolean isVersionUpdated(Context context) {
+		return (getVersion(context) < Setup.VERSION_CURRENT);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the server label if either forceDisplay is true or there is more
+	 * than one server configured.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param serverId
+	 *            the server id
+	 * @param forceDisplay
+	 *            the force display
+	 * @return the server label
+	 */
+	public static String getServerLabel(Context context, int serverId,
+			boolean forceDisplay) {
+		if (getServers(context).size() < 2 && !forceDisplay) {
+			return "";
+		}
+		if (serverId == -1) {
+			return "";
+		}
+		String returnLabel = getServer(context, serverId)
+				.replace("http://", "").replace("www.", "");
+
+		int i = returnLabel.indexOf("/");
+		if (i > 0) {
+			returnLabel = returnLabel.substring(0, i);
+		}
+		return returnLabel;
 	}
 
 	// ------------------------------------------------------------------------

@@ -409,7 +409,14 @@ public class UserDetailsActivity extends Activity {
 		params.width = 90;
 
 		// DATA
-		String text = "UID: " + uid + "\n\n";
+		String text = "";
+		if (uid >= 0) {
+			int serverId = Setup.getServerId(context, uid);
+			int suid = Setup.getSUid(context, uid);
+			text += "Message Server: " + Setup.getServerLabel(context, serverId, true) + "\n";
+			text += "UID Server: " + suid + "\n";
+		}
+		text += "UID Local: " + uid + "\n\n";
 
 		if (uid >= 0) {
 			text += "Registered user\n";

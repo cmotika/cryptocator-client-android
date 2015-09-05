@@ -572,6 +572,10 @@ public class Communicator {
 										newItem.from = Setup.getUid(context,
 												newItem.from, serverId);
 
+										Log.d("communicator",
+												"RECEIVE NEXT MESSAGE FROM LOCAL UID: newItem.from="
+														+ newItem.from);
+
 										newItem.to = DB.myUid();
 										newItem.created = DB
 												.parseTimestamp(created);
@@ -617,7 +621,8 @@ public class Communicator {
 											if (ignore) {
 												// The user must be added to our
 												// list
-												uidList.add(newItem.from);
+												int uid = Setup.getUid(context, newItem.from, serverId);
+												uidList.add(uid);
 												DB.ensureDBInitialized(context,
 														uidList);
 												Main.saveUIDList(context,
@@ -628,6 +633,11 @@ public class Communicator {
 												skipBecauseOfUnknownUser = true;
 											}
 										}
+										
+										Log.d("communicator",
+												"RECEIVE NEXT MESSAGE skipBecauseOfUnknownUser="
+														+ skipBecauseOfUnknownUser);
+										
 
 										if (!skipBecauseOfUnknownUser
 												&& !alreadyInDB
@@ -2062,8 +2072,10 @@ public class Communicator {
 			final List<Integer> uidList, final boolean forceUpdate,
 			final Main.UpdateListener updateListener) {
 		for (int serverId : Setup.getServerIds(context)) {
-			updateKeysFromServer(context, uidList, forceUpdate, updateListener,
-					serverId);
+			if (Setup.isServerActive(context, serverId)) {
+				updateKeysFromServer(context, uidList, forceUpdate, updateListener,
+						serverId);
+			}
 		}
 	}
 
@@ -2103,11 +2115,12 @@ public class Communicator {
 			// from THIS server!
 			if (uid > 0) {
 				if (Setup.getServerId(context, uid) == serverId) {
+					int suid = Setup.getSUid(context, uid);
 					sentList.add(uid);
 					if (uidliststring.length() != 0) {
 						uidliststring += "#";
 					}
-					uidliststring += Setup.encUid(context, uid, serverId);
+					uidliststring += Setup.encUid(context, suid, serverId);
 				}
 			}
 		}
@@ -2131,7 +2144,7 @@ public class Communicator {
 						if (isResponseValid(response)) {
 							// Log.d("communicator",
 							// "###### HAS KEY VALUES RECEIVED!!! "
-							// + response2);
+							// + response);
 							if (isResponsePositive(response)) {
 								String responseContent = getResponseContent(response);
 								List<String> values = Utility
@@ -2219,7 +2232,9 @@ public class Communicator {
 	public static void updatePhonesFromAllServers(final Context context,
 			final List<Integer> uidList, final boolean forceUpdate) {
 		for (int serverId : Setup.getServerIds(context)) {
-			updatePhonesFromServer(context, uidList, forceUpdate, serverId);
+			if (Setup.isServerActive(context, serverId)) {
+				updatePhonesFromServer(context, uidList, forceUpdate, serverId);
+			}
 		}
 	}
 
@@ -2262,11 +2277,12 @@ public class Communicator {
 			// from THIS server
 			if (uid > 0) {
 				if (Setup.getServerId(context, uid) == serverId) {
+					int suid = Setup.getSUid(context, uid);
 					uidListUsed.add(uid);
 					if (uidliststring.length() != 0) {
 						uidliststring += "#";
 					}
-					uidliststring += Setup.encUid(context, uid, serverId);
+					uidliststring += Setup.encUid(context, suid, serverId);
 				}
 			}
 		}

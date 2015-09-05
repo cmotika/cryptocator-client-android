@@ -55,31 +55,7 @@
                     android:textSize="14sp" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/deviceid"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="0px"
-                android:layout_marginLeft="0px"
-                android:layout_marginRight="0px"
-                android:layout_marginTop="0px"
-                android:layout_weight="0.05"
-                android:autoLink="web"
-                android:background="#44888888"
-                android:clickable="true"
-                android:focusableInTouchMode="true"
-                android:gravity="center"
-                android:paddingBottom="12dp"
-                android:paddingLeft="20dp"
-                android:paddingRight="20dp"
-                android:paddingTop="12dp"
-                android:text="Device ID: "
-                android:textColor="#ffCCCCCC"
-                android:textColorLink="#ffCCCCCC"
-                android:textSize="16sp" >
-            </TextView>
-
-            <TextView
+                        <TextView
                 android:id="@+id/info"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
@@ -124,6 +100,32 @@
                 android:textColorLink="#ffffffff"
                 android:textSize="16sp" >
             </TextView>
+            
+            
+            <TextView
+                android:id="@+id/deviceid"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="0px"
+                android:layout_marginLeft="0px"
+                android:layout_marginRight="0px"
+                android:layout_marginTop="0px"
+                android:layout_weight="0.05"
+                android:autoLink="web"
+                android:background="#44888888"
+                android:clickable="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center"
+                android:paddingBottom="12dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:paddingTop="12dp"
+                android:text="Device ID: "
+                android:textColor="#ffCCCCCC"
+                android:textColorLink="#ffCCCCCC"
+                android:textSize="16sp" >
+            </TextView>
+
 
             <LinearLayout
                 android:id="@+id/accountsection"
@@ -134,11 +136,6 @@
                 android:orientation="vertical" >
 
                 <LinearLayout
-                    android:layout_width="fill_parent"
-                    android:layout_height="1px"
-                    android:background="#DDFFFFFF" />
-
-                <LinearLayout
                     android:id="@+id/accountheader"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
@@ -147,37 +144,51 @@
                     android:orientation="horizontal" >
 
                     <ImageView
+                        android:id="@+id/serverimage"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
-                        android:layout_marginTop="10px"
                         android:layout_marginBottom="5px"
-                        android:layout_marginRight="10px"
                         android:layout_marginLeft="10px"
+                        android:layout_marginRight="10px"
+                        android:layout_marginTop="10px"
                         android:src="@drawable/server" />
 
                     <LinearLayout
                         android:layout_width="fill_parent"
-                        android:layout_marginTop="10px"
-                        android:layout_marginBottom="10px"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="10px"
+                        android:layout_marginTop="10px"
                         android:orientation="horizontal" >
 
-                        <Spinner
-                            android:id="@+id/serverspinner"
+                        <LinearLayout
                             android:layout_width="wrap_content"
+                                android:layout_weight="1"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:textSize="30sp"
-                            android:layout_weight="1" />
+                            android:orientation="vertical" >
+
+                            <Spinner
+                                android:id="@+id/serverspinner"
+                                android:layout_width="fill_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:textSize="30sp" />
+
+                            <CheckBox
+                                android:id="@+id/serverdisabled"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Disabled" />
+                        </LinearLayout>
 
                         <Button
                             android:id="@+id/serverbuttonmodify"
-                            android:layout_width="wrap_content"
+                            android:layout_width="50px"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal|center_vertical"
                             android:layout_marginRight="10px"
                             android:text="..."
                             android:textSize="14sp" />
+
                         <Button
                             android:id="@+id/serverbuttonadd"
                             android:layout_width="wrap_content"
@@ -186,6 +197,7 @@
                             android:layout_marginRight="2px"
                             android:text="Add"
                             android:textSize="14sp" />
+
                         <Button
                             android:id="@+id/serverbuttondelete"
                             android:layout_width="wrap_content"
@@ -194,14 +206,12 @@
                             android:layout_marginRight="10px"
                             android:text="Delete"
                             android:textSize="14sp" />
-                        </LinearLayout>
+                    </LinearLayout>
                 </LinearLayout>
 
-                <LinearLayout
-                    android:layout_width="fill_parent"
-                    android:layout_height="1px"
-                    android:background="#DD000000" />
-            </LinearLayout>
+                
+                
+                </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/settingssection"

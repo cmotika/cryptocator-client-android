@@ -33,7 +33,6 @@
  */
 package org.cryptocator;
 
-import android.content.Context;
 
 /**
  * The ConversationItem class is a fast data structure to represent an item in a
