@@ -10,7 +10,7 @@
             android:orientation="horizontal" >
 
             <ImageView
-                android:id="@+id/personIcon"
+                android:id="@+id/personicon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/person"
@@ -66,9 +66,10 @@
                 android:id="@+id/userlisttext"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#ffDDDDDD"
+                android:textColor="#CCDDDDDD"
                 android:text="Hallo wie geht es Dir?"
                 android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_marginBottom="10px"
                 android:textSize="14sp"
                 >
             </TextView>

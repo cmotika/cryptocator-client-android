@@ -473,7 +473,8 @@ public class Conversation extends Activity {
 
 		sendbutton.setOnClickListener(new OnClickListener() {
 			public void onClick(View arg0) {
-				if (isSMSModeAvailableAndOn(context)) {
+				// If registered user and SMS mode active, or if SMS-user only
+				if (hostUid < 0 || isSMSModeAvailableAndOn(context)) {
 					sendMessageOrPrompt(context, DB.TRANSPORT_SMS, true);
 				} else {
 					sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET, true);

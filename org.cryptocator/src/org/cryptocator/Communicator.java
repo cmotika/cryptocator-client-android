@@ -1650,6 +1650,12 @@ public class Communicator {
 			final ConversationItem itemToSend) {
 		messageSent = false;
 
+		
+		// Guard against invalid (SMS) users...
+		if (to < 0) {
+			return;
+		}
+		
 		final int serverId = Setup.getServerId(context, to);
 
 		String session = Setup.getTmpLogin(context, serverId);
