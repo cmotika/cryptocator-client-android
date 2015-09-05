@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Christian Motika.
+ * Copyright (c) 2015, Christian Motika. Dedicated to Sara.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -18,6 +18,15 @@
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
+ * 4. Free or commercial forks of Cryptocator are permitted as long as
+ *    both (a) and (b) are and stay fulfilled. 
+ *    (a) this license is enclosed
+ *    (b) the protocol to communicate between Cryptocator servers
+ *        and Cryptocator clients *MUST* must be fully conform with 
+ *        the documentation and (possibly updated) reference 
+ *        implementation from cryptocator.org. This is to ensure 
+ *        interconnectivity between all clients and servers. 
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -29,7 +38,7 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *  
  */
 package org.cryptocator;
 
@@ -38,6 +47,7 @@ import java.util.List;
 
 import org.cryptocator.ScrollViewEx.ScrollViewExListener;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Handler;
@@ -442,7 +452,7 @@ public class FastScrollView extends LinearLayout {
 
 			public void onScrollRested(ScrollViewEx scrollView, int x, int y,
 					int oldx, int oldy) {
-				Log.d("communicator", "PPPPPP FastScrollView.onScrollRested()");
+				//Log.d("communicator", "PPPPPP FastScrollView.onScrollRested()");
 				if (scrollListener != null) {
 					int percent = getPosToPercent(y);
 					int item = getPosToItem(y);
@@ -453,7 +463,7 @@ public class FastScrollView extends LinearLayout {
 			}
 
 			public void onOversroll(boolean up) {
-				Log.d("communicator", "PPPPPP FastScrollView.onOversroll()");
+				//Log.d("communicator", "PPPPPP FastScrollView.onOversroll()");
 
 				if (scrollListener != null) {
 					scrollListener.onOversroll(up);
@@ -686,16 +696,29 @@ public class FastScrollView extends LinearLayout {
 	 * scroll bar now, at a later time (when this method is called). This method
 	 * should only be called if user for example is not currently typing fast/
 	 */
+	@SuppressLint("WrongCall")
 	public void potentiallyRefreshState(boolean force) {
 		if (deferredScrolling != -1 || force) {
 			updateScrollBar();
 			int percent = getPosToPercent(deferredScrolling);
 			updateFastScrollBar(percent, false);
 			deferredScrolling = -1;
+			measureHeights();
+		}
+		if (postL != -1) {
+			// We MUST call onLayout because layout() would falsely detect
+			// NO change since last layout, BUT we have delayed the layout
+			// so it can't now!
+			onLayout(true, postL, postT, postR, postB);
 		}
 	}
 
 	// -------------------------------------------------------------------------
+
+	private static int postL = -1;
+	private static int postT = -1;
+	private static int postR = -1;
+	private static int postB = -1;
 
 	/*
 	 * (non-Javadoc)
@@ -704,9 +727,14 @@ public class FastScrollView extends LinearLayout {
 	 */
 	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
-		Log.d("communicator", "PPPPPP FastScrollView.onLayout()");
+		// Log.d("communicator", "PPPPPP FastScrollView.onLayout("
+		// + allowOneLayoutOverride + ") called");
 		if (!isNoHangNeeded() || allowOneLayoutOverride > 0) {
-			allowOneLayoutOverride--;
+			// Log.d("communicator", "PPPPPP FastScrollView.onLayout("
+			// + allowOneLayoutOverride + ") LAYOUT!");
+			if (allowOneLayoutOverride > 0) {
+				allowOneLayoutOverride--;
+			}
 			super.onLayout(changed, l, t, r, b);
 			updateScrollBar();
 			if (layoutDoneListener != null) {
@@ -715,6 +743,15 @@ public class FastScrollView extends LinearLayout {
 			// IT SEEMS TO BE NECESSARY TO STILL UPDATE THE MEASUREMENTS!!!
 			// This should not be deferred like the scrolling
 			measureHeights();
+			postL = -1;
+			postT = -1;
+			postR = -1;
+			postB = -1;
+		} else {
+			postL = l;
+			postT = t;
+			postR = r;
+			postB = b;
 		}
 		changed = false;
 	}
@@ -748,7 +785,8 @@ public class FastScrollView extends LinearLayout {
 			heightsSum += h;
 		}
 		Log.d("communicator",
-				"PPPPPP FastScrollView.onLayout() : UPDATING SCROLL BAR....");
+				"PPPPPP FastScrollView.onLayout() : UPDATING SCROLL BAR....  heightsSum="
+						+ heightsSum);
 		updateScrollBar();
 
 	}

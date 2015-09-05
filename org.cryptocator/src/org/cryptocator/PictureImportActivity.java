@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Christian Motika.
+ * Copyright (c) 2015, Christian Motika. Dedicated to Sara.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -18,6 +18,15 @@
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
+ * 4. Free or commercial forks of Cryptocator are permitted as long as
+ *    both (a) and (b) are and stay fulfilled. 
+ *    (a) this license is enclosed
+ *    (b) the protocol to communicate between Cryptocator servers
+ *        and Cryptocator clients *MUST* must be fully conform with 
+ *        the documentation and (possibly updated) reference 
+ *        implementation from cryptocator.org. This is to ensure 
+ *        interconnectivity between all clients and servers. 
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -67,6 +76,12 @@ import android.widget.TextView;
  * 
  */
 public class PictureImportActivity extends Activity {
+
+	/**
+	 * The host uid should be set before starting the activity in order to make
+	 * estimations on server permitted size.
+	 */
+	public static int hostUid = -1;
 
 	/** The activity. */
 	Activity activity = null;
@@ -163,9 +178,6 @@ public class PictureImportActivity extends Activity {
 
 	/** The alert color if attachment size is too large for Internet message. */
 	private static int BACKALERTWARN2COLOR = Color.parseColor("#88FF0000");
-	
-	/** The host uid. */
-	public static int hostUid = -1;
 
 	// ------------------------------------------------------------------------
 
@@ -479,18 +491,26 @@ public class PictureImportActivity extends Activity {
 			// warning limit, so also warn here!
 			displayText += "\n\nLarge image: Should not be sent via SMS!";
 		}
-		
+
 		int serverId = Setup.getServerId(context, hostUid);
 
 		int limit = Setup.getAttachmentServerLimit(context, serverId);
-		if (limit == 0) {
-			sizetextback.setBackgroundColor(BACKALERTWARN2COLOR);
-			displayText += "\n\nServer does not allow any attachments. Image will get removed when sent as Internet message.";
-		} else if (lenKB > limit) {
-			sizetextback.setBackgroundColor(BACKALERTWARN2COLOR);
-			displayText += "\n\nServer permits only attachments up to "
-					+ limit
-					+ " KB. Image will get removed when sent as Internet message.";
+		String serverLabel = Setup.getServerLabel(context, serverId, true);
+		// If limit == -1 => we do not know!
+		if (limit != -1) {
+			if (limit == 0) {
+				sizetextback.setBackgroundColor(BACKALERTWARN2COLOR);
+				displayText += "\n\nServer "
+						+ serverLabel
+						+ " does not allow any attachments. Image will get removed when sent as Internet message.";
+			} else if (lenKB > limit) {
+				sizetextback.setBackgroundColor(BACKALERTWARN2COLOR);
+				displayText += "\n\nServer "
+						+ serverLabel
+						+ " permits only attachments up to "
+						+ limit
+						+ " KB. Image will get removed when sent as Internet message.";
+			}
 		}
 		sizetext.setText(displayText);
 	}

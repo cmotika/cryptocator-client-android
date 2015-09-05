@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Christian Motika.
+ * Copyright (c) 2015, Christian Motika. Dedicated to Sara.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -18,6 +18,15 @@
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
+ * 4. Free or commercial forks of Cryptocator are permitted as long as
+ *    both (a) and (b) are and stay fulfilled. 
+ *    (a) this license is enclosed
+ *    (b) the protocol to communicate between Cryptocator servers
+ *        and Cryptocator clients *MUST* must be fully conform with 
+ *        the documentation and (possibly updated) reference 
+ *        implementation from cryptocator.org. This is to ensure 
+ *        interconnectivity between all clients and servers. 
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -29,7 +38,7 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *  
  */
 package org.cryptocator;
 
@@ -2026,13 +2035,10 @@ public class DB {
 						+ hostUid
 						+ " AND `touid` = "
 						+ myUid()
-						+ ")) AND `system` != '1' AND `part` = "
+						+ ")) AND ( `system` != '1' OR `mid` = -1) AND `part` = "
 						+ DB.DEFAULT_MESSAGEPART
 						+ " ORDER BY `created` DESC, `sent` DESC "; // AND
-				// `system`
-				// !=
-				// '1'
-				// ;
+				
 				Cursor cursor = db.rawQuery(QUERY, null);
 				if (cursor != null && cursor.moveToFirst()) {
 					cachedConversationSize = cursor.getCount();
@@ -3373,7 +3379,7 @@ public class DB {
 				int uid = oldUid;
 				if (oldUid > 0) {
 					int newUid = Setup.getUid(context, oldUid,
-							Setup.getServerId("http://www.cryptocator.org"));
+							Setup.getServerId(Setup.DEFAULT_SERVER));
 					newUidList.add(newUid);
 
 					// Copy all data from the oldUid to the newUid

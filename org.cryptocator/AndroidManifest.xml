@@ -91,6 +91,7 @@
             android:name="org.cryptocator.ConversationCompose"
             android:icon="@drawable/msg"
             android:label="Cryptocator Message"
+            android:clearTaskOnLaunch="false"
             android:windowSoftInputMode="stateVisible|adjustResize" >
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

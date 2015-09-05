@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Christian Motika.
+ * Copyright (c) 2015, Christian Motika. Dedicated to Sara.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -18,6 +18,15 @@
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
+ * 4. Free or commercial forks of Cryptocator are permitted as long as
+ *    both (a) and (b) are and stay fulfilled. 
+ *    (a) this license is enclosed
+ *    (b) the protocol to communicate between Cryptocator servers
+ *        and Cryptocator clients *MUST* must be fully conform with 
+ *        the documentation and (possibly updated) reference 
+ *        implementation from cryptocator.org. This is to ensure 
+ *        interconnectivity between all clients and servers. 
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -29,7 +38,7 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *  
  */
 package org.cryptocator;
 
@@ -67,6 +76,12 @@ public class ImageLabelButton extends ImageButton {
 
 	/** The height of the text label. */
 	int height = 0;
+
+	/** The additional margin down can also be negative. */
+	int marginDown = 0;
+
+	/** The additional margin up can also be negative. */
+	int marginUp = 0;
 
 	/** The width of the text label. */
 	int width = 0;
@@ -168,6 +183,32 @@ public class ImageLabelButton extends ImageButton {
 	// ------------------------------------------------------------------------
 
 	/**
+	 * Sets the margin down for the text label. This can also be a negative
+	 * value.
+	 * 
+	 * @param marginDown
+	 *            the new margin down
+	 */
+	public void setMarginDown(int marginDown) {
+		this.marginDown = marginDown;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sets the margin up for the image. This can also be a negative
+	 * value. Must be called befor setting the image!
+	 * 
+	 * @param marginDown
+	 *            the new margin down
+	 */
+	public void setMarginUp(int marginUp) {
+		this.marginUp = marginUp;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
 	 * Set the label text color.
 	 * 
 	 * @param color
@@ -234,7 +275,7 @@ public class ImageLabelButton extends ImageButton {
 		Canvas canvas = new Canvas(icon2);
 
 		// Draw the source image centered
-		canvas.drawBitmap(icon, 0, 0, new Paint());
+		canvas.drawBitmap(icon, 0, marginUp, new Paint());
 
 		super.setImageBitmap(icon2);
 	}
@@ -251,13 +292,14 @@ public class ImageLabelButton extends ImageButton {
 		super.onDraw(canvas);
 
 		try {
-			// Draw the Text. The space was created in setImageResourceInternal()
+			// Draw the Text. The space was created in
+			// setImageResourceInternal()
 			// already.
 			float buttonWitdh = this.getWidth();
 			float buttonHeight = this.getHeight();
 			canvas.drawText(this.text, (buttonWitdh - width) / 2, buttonHeight
-					- height - height / 2, paint);
-		} catch(Exception e) {
+					- height - (height / 2) - marginDown, paint);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
