@@ -2563,6 +2563,13 @@ public class DB {
 			cursor.close();
 		}
 		db.close();
+		
+		// Possibly fix the transport if receipient is only external SMS user
+		// We should not come here but still want to guard against it
+		if (returnItem != null && returnItem.transport == DB.TRANSPORT_INTERNET && returnItem.to < 0) {
+			returnItem.transport = DB.TRANSPORT_SMS;
+		}
+		
 		return returnItem;
 	}
 
@@ -3341,61 +3348,75 @@ public class DB {
 
 	public static void possiblyUpdate(Context context) {
 		if (Setup.getVersion(context) < Setup.VERSION_MULTISERVER) {
-			// Recovery action needed - GO FROM SINGLE SERVER VERSION TO MULTISERVER VERSION
+			// Recovery action needed - GO FROM SINGLE SERVER VERSION TO
+			// MULTISERVER VERSION
 
-			// We must go thru the uid list, create a new uid from this then suid
+			// We must go thru the uid list, create a new uid from this then
+			// suid
 			// considering cryptocator.org as the server
-			// we then must update the database and replace 
+			// we then must update the database and replace
 			// 1. our uid by -1
 			// 2. the other suid by the new uid
-			
+
 			String oldMyUidString = Utility.loadStringSetting(context,
 					Setup.SERVER_UID, "");
-			String newMyUidString = "-1";
-			
+			String newMyUidString = "-3";
+
 			List<Integer> newUidList = new ArrayList<Integer>();
 			List<Integer> uidList = new ArrayList<Integer>();
 			String listString = Utility.loadStringSetting(context,
 					Setup.SETTINGS_USERLIST, "");
 			Main.appendUIDList(context, listString, uidList);
-			
+
 			for (int oldUid : uidList) {
 
 				int uid = oldUid;
 				if (oldUid > 0) {
-					int newUid = Setup.getUid(context, oldUid, Setup.getServerId("http://www.cryptocator.org"));
+					int newUid = Setup.getUid(context, oldUid,
+							Setup.getServerId("http://www.cryptocator.org"));
 					newUidList.add(newUid);
-					
+
 					// Copy all data from the oldUid to the newUid
-					mergeUser(context,  oldUid,	newUid);
+					mergeUser(context, oldUid, newUid);
 					uid = newUid;
+				} else {
+					// SMS user keep their
+					newUidList.add(oldUid);
 				}
-				
+
 				try {
 					SQLiteDatabase db = openDB(context, uid);
 
 					ContentValues values = new ContentValues();
 					values.put("fromuid", newMyUidString);
-					db.update(DB.TABLE_MESSAGES, values, "fromuid = " + oldMyUidString,
-							null);
+					db.update(DB.TABLE_MESSAGES, values, "fromuid = "
+							+ oldMyUidString, null);
 					values = new ContentValues();
 					values.put("touid", newMyUidString);
-					db.update(DB.TABLE_MESSAGES, values, "touid = " + oldMyUidString,
-							null);
+					db.update(DB.TABLE_MESSAGES, values, "touid = "
+							+ oldMyUidString, null);
 
 					db.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				
+
 				if (oldUid > 0) {
-					dropDB(context, oldUid);	
+					dropDB(context, oldUid);
 				}
 			}
 
 			// Save the new Uid list instead
-			
-			Setup.setVersionUpdated(context, Setup.VERSION_MULTISERVER, true, "Cryptocator updated DB to new version and needs to be restarted.");
+			Log.d("communicator",
+					"MIGRATE OLD: " + Utility.getListAsString(uidList, ","));
+			Log.d("communicator",
+					"MIGRATE NEW: " + Utility.getListAsString(newUidList, ","));
+
+			Utility.saveStringSetting(context, Setup.SETTINGS_USERLIST,
+					Utility.getListAsString(newUidList, ","));
+
+			Setup.setVersionUpdated(context, Setup.VERSION_MULTISERVER, true,
+					"Cryptocator updated DB to new version and needs to be restarted.");
 		}
 	}
 

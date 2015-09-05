@@ -289,7 +289,7 @@ public class Scheduler extends BroadcastReceiver {
 	private static void update(final Context context, final boolean onlyReceive) {
 		// Switch to the next server in a round robin style
 		final int serverId = Setup.getServerId(Setup.getNextServer(context));
-
+		
 		// If a message previously sent, try to send the next message with
 		// priority
 		// only if no message is to send, try to receive a message,

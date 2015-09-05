@@ -81,6 +81,7 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -856,7 +857,7 @@ public class Setup extends Activity {
 	private CheckBox serverdisabled = null;
 
 	/** The serverbuttonmodify. */
-	private Button serverbuttonmodify = null;
+	private ImageButton serverbuttonmodify = null;
 
 	/** The serverbuttonadd. */
 	private Button serverbuttonadd = null;
@@ -920,7 +921,7 @@ public class Setup extends Activity {
 		serverimage = (ImageView) findViewById(R.id.serverimage);
 		serverdisabled = (CheckBox) findViewById(R.id.serverdisabled);
 
-		serverbuttonmodify = (Button) findViewById(R.id.serverbuttonmodify);
+		serverbuttonmodify = (ImageButton) findViewById(R.id.serverbuttonmodify);
 		serverbuttonadd = (Button) findViewById(R.id.serverbuttonadd);
 		serverbuttondelete = (Button) findViewById(R.id.serverbuttondelete);
 		hideServerModifyButtons();
@@ -960,6 +961,17 @@ public class Setup extends Activity {
 			public void onClick(View v) {
 				if (!serverdisabled.isChecked()) {
 					setServerActive(context, selectedServerId, true);
+
+					// Update the server key / attachment
+					updateServerkey(context, selectedServerId, false);
+					updateAttachmentServerLimit(context, true, selectedServerId);
+					// If the user has enabled encryption, update his key cause
+					// this was skipped - ask before if the server is still active
+					// or alrady has been flagged as non reachable by updateServerkey()!
+					if (isEncryptionEnabled(context) && isServerActive(context, selectedServerId)) {
+						sendCurrentKeyToServer(context, selectedServerId);
+					}
+
 					updateServerImage(context, true);
 				}
 			}
@@ -1150,7 +1162,8 @@ public class Setup extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	public static void updateServerSpinner(final Context context, final Spinner spinner) {
+	public static void updateServerSpinner(final Context context,
+			final Spinner spinner) {
 		List<String> spinnerArray = getServers(context);
 		ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(
 				context, android.R.layout.simple_spinner_item, spinnerArray);
@@ -1706,6 +1719,9 @@ public class Setup extends Activity {
 			}
 			BASESERVERADDRESSCACHED.put(serverId, serverAddress);
 		}
+		if (serverId == -1) {
+			return DEFAULT_SERVER;
+		}
 		return BASESERVERADDRESSCACHED.get(serverId);
 	}
 
@@ -1841,9 +1857,9 @@ public class Setup extends Activity {
 											.promptInfo(
 													context,
 													"Cannot Delete Server",
-													"You cannot delete this (default) server.\n\nBut" +
-													" you can disable it by long pressing the blue" +
-													" server image.");
+													"You cannot delete this (default) server.\n\nBut"
+															+ " you can disable it by long pressing the blue"
+															+ " server image.");
 								} else {
 									String serverLabel = getServerLabel(
 											context, selectedServerId, true);
@@ -1964,8 +1980,8 @@ public class Setup extends Activity {
 			enablesmsoption.setText(" Enable SMS ");
 			disablesmsoption.setEnabled(false);
 		} else {
-			phone.setText(Utility
-					.loadStringSetting(context, SETTINGS_PHONE + serverId, ""));
+			phone.setText(Utility.loadStringSetting(context, SETTINGS_PHONE
+					+ serverId, ""));
 			// enabled
 			enablesmsoption.setEnabled(true);
 			enablesmsoption.setText(" Update ");
@@ -2095,6 +2111,8 @@ public class Setup extends Activity {
 	 *            the context
 	 */
 	void validate(final Context context, final int serverId) {
+		Log.d("communicator", "#### UPDATE 2 :" + serverId);
+
 		Setup.updateServerkey(context, serverId, true);
 
 		final String uidBefore = Utility.loadStringSetting(context, SERVER_UID
@@ -2491,7 +2509,8 @@ public class Setup extends Activity {
 										setErrorInfo(
 												"Password changed. Check your email to activate the new password!",
 												false);
-										// Must log out! User must verify link in mail to activate password!
+										// Must log out! User must verify link
+										// in mail to activate password!
 										online = false;
 										updateonline();
 									} else {
@@ -2560,7 +2579,7 @@ public class Setup extends Activity {
 		emailString = Communicator.encryptServerMessage(context, emailString,
 				serverKey);
 		if (emailString == null) {
-			setErrorInfo("Encryption error. Habe you specified a valid email address? Try again after restarting the App.");
+			setErrorInfo("Encryption error. Have you specified a valid email address? Try again after restarting the App.");
 			create.setEnabled(true);
 			return;
 		}
@@ -2569,7 +2588,7 @@ public class Setup extends Activity {
 		pwdString = Communicator.encryptServerMessage(context, pwdString,
 				serverKey);
 		if (pwdString == null) {
-			setErrorInfo("Encryption error. Habe you specified a valid password? Try again after restarting the App.");
+			setErrorInfo("Encryption error. Have you specified a valid password? Try again after restarting the App.");
 			create.setEnabled(true);
 			return;
 		}
@@ -2578,7 +2597,7 @@ public class Setup extends Activity {
 		usernameString = Communicator.encryptServerMessage(context,
 				usernameString, serverKey);
 		if (usernameString == null) {
-			setErrorInfo("Encryption error. Habe you specified a valid username? Try again after restarting the App.");
+			setErrorInfo("Encryption error. Have you specified a valid username? Try again after restarting the App.");
 			create.setEnabled(true);
 			return;
 		}
@@ -3105,7 +3124,8 @@ public class Setup extends Activity {
 													phoneString2);
 										} else {
 											Utility.saveStringSetting(context,
-													SETTINGS_PHONE + serverId, "");
+													SETTINGS_PHONE + serverId,
+													"");
 										}
 										updatePhoneNumberAndButtonStates(
 												context, serverId);
@@ -3289,6 +3309,29 @@ public class Setup extends Activity {
 			Log.e("communicator", "RSA key pair error");
 		}
 
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Send OUR current public RSA key to server.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param serverId
+	 *            the server id
+	 */
+	public boolean sendCurrentKeyToServer(Context context, int serverId) {
+		String encodedpublicKey = Utility.loadStringSetting(context,
+				Setup.PUBKEY, null);
+		if (encodedpublicKey == null) {
+			return false;
+		}
+		String keyHash = getPublicKeyHash(context);
+		Communicator.sendKeyToServer(context, encodedpublicKey, keyHash,
+				serverId);
+		// true == sent
+		return true;
 	}
 
 	// -------------------------------------------------------------------------
@@ -4431,6 +4474,10 @@ public class Setup extends Activity {
 	 * @return the tmp login
 	 */
 	public static String getTmpLogin(Context context, int serverId) {
+		if (serverId == -1) {
+			// for invalid serverId return null
+			return null;
+		}
 		String secret = getSessionSecret(context, serverId);
 		String sessionid = getSessionID(context, serverId);
 		if (!Setup.ensureLoggedIn(context, serverId)) {
@@ -4564,6 +4611,7 @@ public class Setup extends Activity {
 	// update if not present, will be deleted on login failure
 	public static void login(final Context context, final int serverId) {
 		Communicator.accountNotActivated = false;
+
 		Setup.updateServerkey(context, serverId, true);
 		if (getSessionSecret(context, serverId).equals("")
 				|| getSessionID(context, serverId).equals("") || true) {
@@ -4726,7 +4774,9 @@ public class Setup extends Activity {
 	 */
 	public static void updateAllServerkeys(final Context context) {
 		for (int serverId : getServerIds(context)) {
-			updateServerkey(context, serverId, true);
+			if (isServerActive(context, serverId)) {
+				updateServerkey(context, serverId, true);
+			}
 		}
 	}
 
@@ -4741,6 +4791,7 @@ public class Setup extends Activity {
 	// Update if not present, will be deleted on login failure
 	public static void updateServerkey(final Context context,
 			final int serverId, final boolean silent) {
+
 		if (getServerkeyAsString(context, serverId).equals("")) {
 			// No serverkey there, needs to update
 
@@ -5208,7 +5259,9 @@ public class Setup extends Activity {
 	public static void updateAttachmentAllServerLimits(final Context context,
 			boolean forceUpdate) {
 		for (int serverId : getServerIds(context)) {
-			updateAttachmentServerLimit(context, forceUpdate, serverId);
+			if (isServerActive(context, serverId)) {
+				updateAttachmentServerLimit(context, forceUpdate, serverId);
+			}
 		}
 	}
 
@@ -5562,10 +5615,15 @@ public class Setup extends Activity {
 	 */
 	public static int getSUid(Context context, int uid) {
 		if (uid < 0) {
+			// Log.d("communicator",
+			// "MIGRATE getSUid: uid=" + uid + " --> same ");
 			// for SMS user return the uid itself
 			return uid;
 		}
-		return Utility.loadIntSetting(context, UID2SUID + uid, uid);
+		int r = Utility.loadIntSetting(context, UID2SUID + uid, uid);
+		// Log.d("communicator",
+		// "MIGRATE getSUid: uid=" + uid + " --> " + r);
+		return r;
 	}
 
 	// ------------------------------------------------------------------------

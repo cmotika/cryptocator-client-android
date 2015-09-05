@@ -103,9 +103,9 @@ public class Main extends Activity {
 
 	/** The adduseritem. */
 	private LinearLayout adduseritem;
-	
+
 	/** The serverspinner. */
-	private Spinner serverspinner; 
+	private Spinner serverspinner;
 
 	/** The main background. */
 	private LinearLayout mainBackground;
@@ -169,8 +169,8 @@ public class Main extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Setup.possiblyDisableScreenshot(this);
-		
-		DB.possiblyUpdate(this);	
+
+		DB.possiblyUpdate(this);
 
 		Main.visible = true;
 		instance = this;
@@ -743,7 +743,8 @@ public class Main extends Activity {
 					// Get selected server
 					int serverId = Setup.getServerDefaultId(context);
 					if (Setup.getServers(context).size() >= 2) {
-						serverId = Setup.getServerId((String)serverspinner.getSelectedItem());
+						serverId = Setup.getServerId((String) serverspinner
+								.getSelectedItem());
 					}
 					int realUid = Setup.getUid(context, adduid, serverId);
 					boolean alreadyInList = alreadyInList(realUid, uidList);
@@ -763,6 +764,13 @@ public class Main extends Activity {
 
 			// Reload the userlist
 			uidList = loadUIDList(context);
+
+			// Log.d("communicator",
+			// "MIGRATE UIDLIST NOW: " + Utility.getListAsString(uidList, ","));
+			// uidList.addAll(Utility.getListFromString("545529245,545529244,545529246,545529251,545529250",
+			// ",", -1));
+			// saveUIDList(context, uidList);
+
 			// Resolve names to cache if not already in the cache
 			if (resolveNames) {
 				for (int uid : uidList) {
@@ -772,16 +780,21 @@ public class Main extends Activity {
 			List<UidListItem> fullUidList = buildSortedFullUidList(context,
 					uidList, false);
 
-			boolean showMessageServerLabel = ((Utility.isOrientationLandscape(context)) && (Setup.getServerIds(context).size() > 1));
-			
+			boolean showMessageServerLabel = ((Utility
+					.isOrientationLandscape(context)) && (Setup.getServerIds(
+					context).size() > 1));
+
 			boolean lightBack = true;
 			for (UidListItem item : fullUidList) {
 				String name = item.name;
-				
-				// If landscape and more than one message server, display it behind the name!
-				if (showMessageServerLabel) {
+
+				// If landscape and more than one message server AND registered user
+				// then display @host behind the name! 
+				if (showMessageServerLabel && item.uid >= 0) {
 					int serverId = Setup.getServerId(context, item.uid);
-					name += " <small><font color='#777777'>@ " + Setup.getServerLabel(context, serverId, true) + "</font>";
+					name += " <small><font color='#777777'>@ "
+							+ Setup.getServerLabel(context, serverId, true)
+							+ "</font>";
 				}
 
 				String lastMessage = Conversation
@@ -876,36 +889,35 @@ public class Main extends Activity {
 			boolean lightBack) {
 
 		LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		final View userlistitem = inflater.inflate(R.layout.userlistitem, null);
-		ImageView personImage = (ImageView) userlistitem
-				.findViewById(R.id.personIcon);
+		View userlistitemtmp = inflater.inflate(R.layout.userlistitem, null);
+		ImageView personicon = (ImageView) userlistitemtmp
+				.findViewById(R.id.personicon);
 
 		boolean haveKey = Setup.haveKey(context, uid);
-
-		// View userlistitem = null;
 		if (Communicator.getNotificationCount(context, uid) > 0) {
+			userlistitemtmp = inflater.inflate(R.layout.userlistitemmsg, null);
 			if (haveKey) {
-				personImage.setImageResource(R.drawable.personlockmsg);
+				personicon.setImageResource(R.drawable.personlockmsg);
 			} else {
-				personImage.setImageResource(R.drawable.personmsg);
-				// userlistitem = inflater.inflate(R.layout.userlistitemmsg,
-				// null);
+				personicon.setImageResource(R.drawable.personmsg);
 			}
 		} else {
 			if (haveKey) {
-				personImage.setImageResource(R.drawable.personlock);
+				personicon.setImageResource(R.drawable.personlock);
 			} else {
-				personImage.setImageResource(R.drawable.person);
+				personicon.setImageResource(R.drawable.person);
 			}
 		}
 		if (uid < 0) {
 			if (Communicator.getNotificationCount(context, uid) > 0) {
-				personImage.setImageResource(R.drawable.personsmsmsg);
+				personicon.setImageResource(R.drawable.personsmsmsg);
 			} else {
-				personImage.setImageResource(R.drawable.personsms);
+				personicon.setImageResource(R.drawable.personsms);
 			}
 		}
-
+		// Make it final
+		final View userlistitem = userlistitemtmp;
+		
 		TextView userlistName = (TextView) userlistitem
 				.findViewById(R.id.userlistname);
 		TextView userlistDate = (TextView) userlistitem
@@ -1515,9 +1527,11 @@ public class Main extends Activity {
 	public static String UID2Name(Context context, int uid,
 			boolean fullNameWithUID, boolean resolve) {
 		int serverDefaultId = Setup.getServerDefaultId(context);
-		String myName = Utility.loadStringSetting(context, Setup.SERVER_USERNAME + serverDefaultId, "");
+		String myName = Utility.loadStringSetting(context,
+				Setup.SERVER_USERNAME + serverDefaultId, "");
 		int myUid = Utility.parseInt(
-				Utility.loadStringSetting(context, Setup.SERVER_UID + serverDefaultId, ""), -1);
+				Utility.loadStringSetting(context, Setup.SERVER_UID
+						+ serverDefaultId, ""), -1);
 
 		String name = Utility.loadStringSetting(context, "uid2name" + uid, "");
 		final int suid = Setup.getSUid(context, uid);
@@ -1550,8 +1564,10 @@ public class Main extends Activity {
 			return "User " + uid + "";
 		} else {
 			if (fullNameWithUID) {
-				int serverId = Setup.getServerId(context, uid);;
-				String serverLabel = Setup.getServerLabel(context, serverId, false);
+				int serverId = Setup.getServerId(context, uid);
+				;
+				String serverLabel = Setup.getServerLabel(context, serverId,
+						false);
 				if (serverLabel.length() > 0) {
 					serverLabel = " @ " + serverLabel;
 				}
@@ -1634,8 +1650,7 @@ public class Main extends Activity {
 			uidListAsStringEncoded = Utility.urlEncode(uidListAsString);
 		} else {
 			final int suid = Setup.getSUid(context, uidSingleLookup);
-			uidListAsStringEncoded = Setup.encUid(context, suid,
-					serverId) + "";
+			uidListAsStringEncoded = Setup.encUid(context, suid, serverId) + "";
 		}
 
 		String session = Setup.getTmpLoginEncoded(context, serverId);
