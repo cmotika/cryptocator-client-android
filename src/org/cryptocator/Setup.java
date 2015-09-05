@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Christian Motika.
+ * Copyright (c) 2015, Christian Motika. Dedicated to Sara.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -18,6 +18,15 @@
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
+ * 4. Free or commercial forks of Cryptocator are permitted as long as
+ *    both (a) and (b) are and stay fulfilled. 
+ *    (a) this license is enclosed
+ *    (b) the protocol to communicate between Cryptocator servers
+ *        and Cryptocator clients *MUST* must be fully conform with 
+ *        the documentation and (possibly updated) reference 
+ *        implementation from cryptocator.org. This is to ensure 
+ *        interconnectivity between all clients and servers. 
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -29,7 +38,7 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *  
  */
 package org.cryptocator;
 
@@ -47,7 +56,6 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -73,13 +81,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
+import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -98,7 +106,7 @@ import android.widget.TextView;
  * @since 1.2
  * 
  */
-@SuppressLint({ "TrulyRandom", "DefaultLocale" })
+@SuppressLint({ "TrulyRandom", "DefaultLocale", "UseSparseArrays" })
 public class Setup extends Activity {
 
 	// //// BASIC APP CONSTANTS //// //
@@ -306,10 +314,13 @@ public class Setup extends Activity {
 	 * When showing a conversation first show only this maximum number of
 	 * messages. Typically 50.
 	 */
-	public static final int MAX_SHOW_CONVERSATION_MESSAGES = 50;
+	public static final int MAX_SHOW_CONVERSATION_MESSAGES = 20;
 
 	/** The Constant for showing ALL messages. */
 	public static final int SHOW_ALL = -1;
+
+	/** The Constant for showing ALL messages. */
+	public static final int SHOW_MORE = 50;
 
 	/** The Constant for not applicable. */
 	public static final String NA = "N/A";
@@ -928,7 +939,7 @@ public class Setup extends Activity {
 		serverbuttonmodify.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				Utility.showToastAsync(context,
-						"Long press for modifying message servers.");
+						"Long press to modify message servers.");
 			}
 		});
 		serverbuttonmodify
@@ -963,12 +974,16 @@ public class Setup extends Activity {
 					setServerActive(context, selectedServerId, true);
 
 					// Update the server key / attachment
+					saveHaveAskedForEncryption(context, false);
 					updateServerkey(context, selectedServerId, false);
 					updateAttachmentServerLimit(context, true, selectedServerId);
 					// If the user has enabled encryption, update his key cause
-					// this was skipped - ask before if the server is still active
-					// or alrady has been flagged as non reachable by updateServerkey()!
-					if (isEncryptionEnabled(context) && isServerActive(context, selectedServerId)) {
+					// this was skipped - ask before if the server is still
+					// active
+					// or alrady has been flagged as non reachable by
+					// updateServerkey()!
+					if (isEncryptionEnabled(context)
+							&& isServerActive(context, selectedServerId)) {
 						sendCurrentKeyToServer(context, selectedServerId);
 					}
 
@@ -1679,15 +1694,18 @@ public class Setup extends Activity {
 		String uidString2 = Utility.loadStringSetting(context, Setup.SERVER_UID
 				+ selectedServerId, "");
 
-		String serverAddress = getServerLabel(context, selectedServerId, true);
+		String serverAddress = getServerLabel(context, selectedServerId, false);
 
 		if (uidString2 != null & uidString2.trim().length() > 0) {
-			uidString2 = " - UID " + uidString2 + " @ " + serverAddress; // +
-																			// " ["
-																			// +
-																			// selectedServerId
-																			// +
-																			// "]";
+			uidString2 = " - UID " + uidString2; // +
+			if (serverAddress.length() > 0) {
+				uidString2 += " @ " + serverAddress;
+			}
+		} else {
+			uidString2 = " - no account";
+			if (serverAddress.length() > 0) {
+				uidString2 += " @ " + serverAddress;
+			}
 		}
 
 		if (!accountType) {
@@ -5413,6 +5431,9 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/** The cached server ids from server address. */
+	private static HashMap<String, Integer> cachedServerIdsFromServerAddress = new HashMap<String, Integer>();
+
 	/**
 	 * Gets the server id from the server address.
 	 * 
@@ -5421,7 +5442,11 @@ public class Setup extends Activity {
 	 * @return the server id
 	 */
 	public static int getServerId(String serverAddress) {
-		return Math.abs(normalizeServer(serverAddress).hashCode());
+		if (!cachedServerIdsFromServerAddress.containsKey(serverAddress)) {
+			cachedServerIdsFromServerAddress.put(serverAddress,
+					Math.abs(normalizeServer(serverAddress).hashCode()));
+		}
+		return cachedServerIdsFromServerAddress.get(serverAddress);
 	}
 
 	// ------------------------------------------------------------------------
@@ -5451,6 +5476,9 @@ public class Setup extends Activity {
 					new ArrayList<String>(serverList), "|");
 			Utility.saveStringSetting(context, Setup.SERVERLIST,
 					separatedString);
+			// Invalidate caches
+			cachedServerIds = null;
+			cachedServers = null;
 			return true;
 		}
 		return false;
@@ -5473,9 +5501,15 @@ public class Setup extends Activity {
 		String separatedString = Utility.getListAsString(new ArrayList<String>(
 				serverList), "|");
 		Utility.saveStringSetting(context, Setup.SERVERLIST, separatedString);
+		// Invalidate caches
+		cachedServerIds = null;
+		cachedServers = null;
 	}
 
 	// ------------------------------------------------------------------------
+
+	/** The cached server ids as list. */
+	private static List<Integer> cachedServerIds = null;
 
 	/**
 	 * Gets the server ids.
@@ -5485,14 +5519,20 @@ public class Setup extends Activity {
 	 * @return the server ids
 	 */
 	public static List<Integer> getServerIds(Context context) {
-		ArrayList<Integer> returnList = new ArrayList<Integer>();
-		for (String serverAddress : getServers(context)) {
-			returnList.add(getServerId(serverAddress));
+		if (cachedServerIds == null) {
+			ArrayList<Integer> returnList = new ArrayList<Integer>();
+			for (String serverAddress : getServers(context)) {
+				returnList.add(getServerId(serverAddress));
+			}
+			cachedServerIds = returnList;
 		}
-		return returnList;
+		return new ArrayList<Integer>(cachedServerIds);
 	}
 
 	// ------------------------------------------------------------------------
+
+	/** The cached servers as list. */
+	private static List<String> cachedServers = null;
 
 	/**
 	 * Gets the list of servers.
@@ -5502,14 +5542,18 @@ public class Setup extends Activity {
 	 * @return the servers
 	 */
 	public static List<String> getServers(Context context) {
-		LinkedHashSet<String> returnList = new LinkedHashSet<String>();
+		if (cachedServers == null) {
+			LinkedHashSet<String> returnList = new LinkedHashSet<String>();
 
-		String separatedString = Utility.loadStringSetting(context,
-				Setup.SERVERLIST, null);
-		returnList = new LinkedHashSet<String>();
-		returnList.add(Setup.DEFAULT_SERVER);
-		returnList.addAll(Utility.getListFromString(separatedString, "\\|"));
-		return new ArrayList<String>(returnList);
+			String separatedString = Utility.loadStringSetting(context,
+					Setup.SERVERLIST, null);
+			returnList = new LinkedHashSet<String>();
+			returnList.add(Setup.DEFAULT_SERVER);
+			returnList
+					.addAll(Utility.getListFromString(separatedString, "\\|"));
+			cachedServers = new ArrayList<String>(returnList);
+		}
+		return new ArrayList<String>(cachedServers);
 	}
 
 	// ------------------------------------------------------------------------
@@ -5562,20 +5606,27 @@ public class Setup extends Activity {
 			boolean active) {
 		Utility.saveBooleanSetting(context, Setup.SERVER_ACTIVE + serverId,
 				active);
+		cachedServerActive.put(serverId, active);
 	}
 
 	// ------------------------------------------------------------------------
 
+	/** The cached server active flag from serverid. */
+	private static HashMap<Integer, Boolean> cachedServerActive = new HashMap<Integer, Boolean>();
+
 	public static boolean isServerActive(Context context, int serverId) {
-		String uidString = Utility.loadStringSetting(context, SERVER_UID
-				+ serverId, "");
-		boolean noAccountYet = uidString.equals("");
-		if (noAccountYet) {
+		if (!cachedServerActive.containsKey(serverId)) {
+			boolean serverActive = true;
+			String uidString = Utility.loadStringSetting(context, SERVER_UID
+					+ serverId, "");
 			// No account at this server, this server is automatically deactive
-			return false;
+			serverActive = serverActive && uidString.equals("");
+			serverActive = serverActive
+					&& Utility.loadBooleanSetting(context, Setup.SERVER_ACTIVE
+							+ serverId, SERVER_ACTIVEDEFAULT);
+			cachedServerActive.put(serverId, serverActive);
 		}
-		return Utility.loadBooleanSetting(context, Setup.SERVER_ACTIVE
-				+ serverId, SERVER_ACTIVEDEFAULT);
+		return cachedServerActive.get(serverId);
 	}
 
 	// ------------------------------------------------------------------------
@@ -5593,6 +5644,16 @@ public class Setup extends Activity {
 	 * @return the s uid
 	 */
 	public static int getUid(Context context, int sUid, int serverId) {
+		// First try to find a match in the current userlist!
+		for (int vglUid : Main.loadUIDList(context)) {
+			int vglServerId = Setup.getServerId(context, vglUid);
+			int vglSUid = Setup.getSUid(context, vglUid);
+			if (vglSUid == sUid && serverId == vglServerId) {
+				// We found the UID we were searching for!
+				return vglUid;
+			}
+		}
+		// We found nothing, so create/issue a new UID and save it!
 		int uid = Math.abs((Integer.valueOf(sUid)).hashCode())
 				+ Math.abs((Integer.valueOf(serverId).hashCode()));
 		Utility.saveIntSetting(context, UID2SUID + uid, sUid);
@@ -5601,6 +5662,9 @@ public class Setup extends Activity {
 	}
 
 	// ------------------------------------------------------------------------
+
+	/** The cached s uid mapping from uid. */
+	private static HashMap<Integer, Integer> cachedSUid = new HashMap<Integer, Integer>();
 
 	/**
 	 * Gets the suid from an UID. Note that for the userlist now internally only
@@ -5620,13 +5684,19 @@ public class Setup extends Activity {
 			// for SMS user return the uid itself
 			return uid;
 		}
-		int r = Utility.loadIntSetting(context, UID2SUID + uid, uid);
-		// Log.d("communicator",
-		// "MIGRATE getSUid: uid=" + uid + " --> " + r);
-		return r;
+		if (!cachedSUid.containsKey(uid)) {
+			int suid = Utility.loadIntSetting(context, UID2SUID + uid, uid);
+			// Log.d("communicator",
+			// "MIGRATE getSUid: uid=" + uid + " --> " + r);
+			cachedSUid.put(uid, suid);
+		}
+		return cachedSUid.get(uid);
 	}
 
 	// ------------------------------------------------------------------------
+
+	/** The cached server id mapping from uid. */
+	private static HashMap<Integer, Integer> cachedServerId = new HashMap<Integer, Integer>();
 
 	/**
 	 * Gets the server id from an UID. Note that for the userlist now internally
@@ -5645,8 +5715,12 @@ public class Setup extends Activity {
 			// for SMS user return -1
 			return -1;
 		}
-		return Utility.loadIntSetting(context, UID2SERVERID + uid,
-				getServerId(DEFAULT_SERVER));
+		if (!cachedServerId.containsKey(uid)) {
+			int serverId = Utility.loadIntSetting(context, UID2SERVERID + uid,
+					getServerId(DEFAULT_SERVER));
+			cachedServerId.put(uid, serverId);
+		}
+		return cachedServerId.get(uid);
 	}
 
 	// ------------------------------------------------------------------------
@@ -5737,6 +5811,9 @@ public class Setup extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/** The cached server label mapping from serverid. */
+	private static HashMap<Integer, String> cachedServerLabel = new HashMap<Integer, String>();
+
 	/**
 	 * Gets the server label if either forceDisplay is true or there is more
 	 * than one server configured.
@@ -5751,20 +5828,24 @@ public class Setup extends Activity {
 	 */
 	public static String getServerLabel(Context context, int serverId,
 			boolean forceDisplay) {
-		if (getServers(context).size() < 2 && !forceDisplay) {
-			return "";
-		}
-		if (serverId == -1) {
-			return "";
-		}
-		String returnLabel = getServer(context, serverId)
-				.replace("http://", "").replace("www.", "");
+		if (!cachedServerLabel.containsKey(serverId)) {
 
-		int i = returnLabel.indexOf("/");
-		if (i > 0) {
-			returnLabel = returnLabel.substring(0, i);
+			if (getServers(context).size() < 2 && !forceDisplay) {
+				return "";
+			}
+			if (serverId == -1) {
+				return "";
+			}
+			String returnLabel = getServer(context, serverId).replace(
+					"http://", "").replace("www.", "");
+
+			int i = returnLabel.indexOf("/");
+			if (i > 0) {
+				returnLabel = returnLabel.substring(0, i);
+			}
+			cachedServerLabel.put(serverId, returnLabel);
 		}
-		return returnLabel;
+		return cachedServerLabel.get(serverId);
 	}
 
 	// ------------------------------------------------------------------------

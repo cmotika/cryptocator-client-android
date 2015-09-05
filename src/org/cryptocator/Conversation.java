@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Christian Motika.
+ * Copyright (c) 2015, Christian Motika. Dedicated to Sara.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -18,6 +18,15 @@
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
+ * 4. Free or commercial forks of Cryptocator are permitted as long as
+ *    both (a) and (b) are and stay fulfilled. 
+ *    (a) this license is enclosed
+ *    (b) the protocol to communicate between Cryptocator servers
+ *        and Cryptocator clients *MUST* must be fully conform with 
+ *        the documentation and (possibly updated) reference 
+ *        implementation from cryptocator.org. This is to ensure 
+ *        interconnectivity between all clients and servers. 
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -29,7 +38,7 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *  
  */
 package org.cryptocator;
 
@@ -356,7 +365,7 @@ public class Conversation extends Activity {
 					FastScrollView.allowOneLayoutOverride = 3;
 				}
 
-				if (isSMSModeOn && keyboardVisible) {
+				if ((isSMSModeOn || hostUid < 0) && keyboardVisible) {
 					// In SMS mode and with keyboard visible, show the remaining
 					// text and the number of multipart SMS in the title
 					int smsSize = Setup.SMS_DEFAULT_SIZE;
@@ -535,11 +544,6 @@ public class Conversation extends Activity {
 							int x, int y, int oldx, int oldy, int percent,
 							int item) {
 
-						// Log.d("communicator",
-						// "@@@@ onScrollRested SCROLL ("+fastScrollView.hashCode()+") CHANGED =======> "
-						// + fastScrollView.heights.size() + ", " +
-						// fastScrollView.heightsSum);
-
 						if (percent >= 99) {
 							scrolledDown = true;
 							scrolledUp = false;
@@ -578,8 +582,6 @@ public class Conversation extends Activity {
 					public void onScrollChanged(FastScrollView fastScrollView,
 							int x, int y, int oldx, int oldy, int percent,
 							int item) {
-						// Log.d("communicator", "@@@@ onScrollChanged:" +
-						// percent);
 						int realItem = conversationSize
 								- conversationList.size() + item;
 						updateConversationTitleAsync(context, realItem + " / "
@@ -666,20 +668,14 @@ public class Conversation extends Activity {
 
 						if (screenWidthChanged) {
 							screenWidthChanged = false;
-
-							Log.d("communicator",
-									"@@@@ onGlobalLayout() screenWidthChanged -> SET NEW WIDTH TO ALL ELEMENTS! "
-											+ currentScreenWidth);
-
 							updateTextViewsWidth(currentScreenWidth);
 						}
 
 						// Allow the next layout pass!
 						FastScrollView.allowOneLayoutOverride = 3;
 
-						// Implicit allow scrollbar to update itself after
-						// changing orientation
-						// lastKeyStroke = 0;
+						// The following will also trigger a relayout, if
+						// necessary
 						fastScrollView.potentiallyRefreshState(true);
 
 						boolean showKeyboard = false;
@@ -691,7 +687,7 @@ public class Conversation extends Activity {
 							showKeyboard = true;
 						}
 
-						// if the keyboard pops up and scrolledDown == true,
+						// If the keyboard pops up and scrolledDown == true,
 						// then scroll down manually!
 						// do not do this delayed because orientation changed!
 						if (scrolledDown) {
@@ -817,7 +813,8 @@ public class Conversation extends Activity {
 										// number at this poiint
 										Communicator.updatePhonesFromServer(
 												context,
-												Main.loadUIDList(context), true, serverId);
+												Main.loadUIDList(context),
+												true, serverId);
 									} else {
 										Utility.showToastAsync(
 												context,
@@ -928,7 +925,7 @@ public class Conversation extends Activity {
 	 */
 	private void sendSecureMsg(Context context, String text) {
 		if (text.length() > 0) {
-			text = possiblyRemoveImageAttachments(context, text);
+			text = possiblyRemoveImageAttachments(context, text, hostUid);
 			boolean encrypted = Setup.encryptedSentPossible(context, hostUid);
 			if (DB.addSendMessage(context, hostUid, text, encrypted,
 					DB.TRANSPORT_INTERNET, false, DB.PRIORITY_MESSAGE)) {
@@ -950,7 +947,7 @@ public class Conversation extends Activity {
 	 */
 	private void sendUnsecureMsg(Context context, String text) {
 		if (text.length() > 0) {
-			text = possiblyRemoveImageAttachments(context, text);
+			text = possiblyRemoveImageAttachments(context, text, hostUid);
 			boolean encrypted = false;
 			if (DB.addSendMessage(context, hostUid, text, encrypted,
 					DB.TRANSPORT_INTERNET, false, DB.PRIORITY_MESSAGE)) {
@@ -1521,7 +1518,6 @@ public class Conversation extends Activity {
 		fastScrollView.clearChilds();
 		resetMapping();
 		textViews.clear();
-		conversationSize = 0;
 
 		loadConversationList(context, hostUid, maxScrollMessageItems);
 		try {
@@ -1541,6 +1537,7 @@ public class Conversation extends Activity {
 			Communicator.sendReadConfirmation(context, hostUid);
 		}
 
+		conversationSize = DB.getConversationSize(this, hostUid, true);
 		updateConversationTitle(context);
 	}
 
@@ -1992,7 +1989,7 @@ public class Conversation extends Activity {
 
 		View conversationlistitem = null;
 		ImageSmileyEditText conversationText = null;
-		
+
 		// Inflate other XMLs for me or for my conversation partner
 		if (!conversationItem.me()) {
 			conversationlistitem = inflater.inflate(R.layout.conversationitem,
@@ -2388,116 +2385,6 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
 
-	// if (option.equals(OPTIONCHATON)
-	// || (option.equals(OPTIONCHATOFF))) {
-	// boolean chatmodeOn = Utility.loadBooleanSetting(
-	// context, Setup.OPTION_CHATMODE,
-	// Setup.DEFAULT_CHATMODE);
-	// chatmodeOn = !chatmodeOn;
-	// Utility.saveBooleanSetting(context,
-	// Setup.OPTION_CHATMODE, chatmodeOn);
-	// updateSendspinner(context, dataAdapter,
-	// dataAdapterChat, dataAdapterSMS,
-	// dataAdapterChatSMS, dataAdapterNOSMS,
-	// dataAdapterNOSMSChat, dataAdapterONLYSMS,
-	// dataAdapterONLYSMSChat);
-	// if (chatmodeOn) {
-	// Utility.showToastAsync(context,
-	// "Chat mode enabled.");
-	// } else {
-	// Utility.showToastAsync(context,
-	// "Chat mode disabled.");
-	// }
-	// } else if (option.equals(OPTIONSMSON)
-	// || (option.equals(OPTIONSMSOFF))) {
-	// boolean smsmodeOn = Setup.isSMSModeOn(context, hostUid);
-	// boolean haveTelephoneNumber = Setup.havePhone(context,
-	// hostUid);
-	// if (!smsmodeOn && !haveTelephoneNumber) {
-	// if (Setup.isSMSOptionEnabled(context)) {
-	// inviteOtherUserToSMSMode(context);
-	// } else {
-	// inviteUserToSMSMode(context);
-	// }
-	// } else {
-	// // normal toggle mode
-	// smsmodeOn = !smsmodeOn;
-	// Utility.saveBooleanSetting(context,
-	// Setup.OPTION_SMSMODE + hostUid, smsmodeOn);
-	// updateSendspinner(context, dataAdapter,
-	// dataAdapterChat, dataAdapterSMS,
-	// dataAdapterChatSMS, dataAdapterNOSMS,
-	// dataAdapterNOSMSChat, dataAdapterONLYSMS,
-	// dataAdapterONLYSMSChat);
-	// if (smsmodeOn) {
-	// Utility.showToastAsync(
-	// context,
-	// "SMS mode for "
-	// + Main.UID2Name(context,
-	// hostUid, false)
-	// + " enabled.");
-	// } else {
-	// Utility.showToastAsync(
-	// context,
-	// "SMS mode for "
-	// + Main.UID2Name(context,
-	// hostUid, false)
-	// + " disabled.");
-	// }
-	// }
-	// // COPY AND PASTE FEATURES ARE CURRENTLY DISABLED FOR A
-	// // CLEANER UI
-	// //
-	// // } else if (option.equals(OPTIONCOPY)) {
-	// // String text = messageText.getText().toString();
-	// // Utility.copyToClipboard(context, text);
-	// // messageText.selectAll();
-	// // } else if (option.equals(OPTIONPASTE)) {
-	// // String text = Utility.pasteFromClipboard(context);
-	// // int i = messageText.getSelectionStart();
-	// // if (text != null) {
-	// // String prevText = messageText.getText().toString();
-	// // if (i < 0) {
-	// // // default fallback is concatenation
-	// // messageText.setText(prevText + text);
-	// // } else {
-	// // // otherwise try to fill in the text
-	// // messageText.setText(prevText.substring(0, i)
-	// // + text + prevText.substring(i));
-	// // }
-	// // messageText.setSelection(text.length()
-	// // + prevText.length());
-	// // }
-	// } else if (option.equals(OPTIONSECSMS)) {
-	// if (hostUid >= 0) {
-	// sendMessageOrPrompt(context, DB.TRANSPORT_SMS, true);
-	// } else {
-	// promptInfo(
-	// context,
-	// "No Registered User",
-	// "In order to send secure encrypted SMS or messages, your communication partner needs to be registered.");
-	// }
-	// } else if (option.equals(OPTIONSECMSG)) {
-	// if (Setup.haveKey(context, hostUid)) {
-	// sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET,
-	// true);
-	// } else {
-	// promptInfo(
-	// context,
-	// "No Encryption Possible",
-	// "In order to send secure encrypted messages or SMS, your communication partner needs to enable encryption.");
-	//
-	// }
-	// } else if (option.equals(OPTIONUSECMSG)) {
-	// sendMessageOrPrompt(context, DB.TRANSPORT_INTERNET,
-	// false);
-	// } else if (option.equals(OPTIONUSECSMS)) {
-	// sendMessageOrPrompt(context, DB.TRANSPORT_SMS, false);
-	// }
-	//
-
-	// ------------------------------------------------------------------------
-
 	private int menuEnableChat = -1;
 	private int menuDisableChat = -1;
 	private int menuEnableSMS = -1;
@@ -2713,6 +2600,9 @@ public class Conversation extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	private int menuContextShowAll = -1;
+	private int menuContextShowMore = -1;
+
 	/**
 	 * Creates the context menu for the conversation activity.
 	 * 
@@ -2723,11 +2613,20 @@ public class Conversation extends Activity {
 		if (imageContextMenuProvider == null) {
 			imageContextMenuProvider = new ImageContextMenuProvider(context,
 					null, null);
-			imageContextMenuProvider.addEntry("Show All Messages",
-					R.drawable.menushowall,
+			menuContextShowAll = imageContextMenuProvider.addEntry(
+					"Show All Messages", R.drawable.menushowall,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
 							maxScrollMessageItems = Setup.SHOW_ALL;
+							rebuildConversation(context, 200);
+							return true;
+						}
+					});
+			menuContextShowMore = imageContextMenuProvider.addEntry(
+					"Show More Messages", R.drawable.menushowall,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							maxScrollMessageItems = Setup.SHOW_MORE;
 							rebuildConversation(context, 200);
 							return true;
 						}
@@ -2780,6 +2679,18 @@ public class Conversation extends Activity {
 							return true;
 						}
 					});
+		}
+		
+		// Update
+		if (maxScrollMessageItems == Setup.SHOW_ALL) {
+			imageContextMenuProvider.setVisible(menuContextShowAll, false);
+			imageContextMenuProvider.setVisible(menuContextShowMore, false);
+		} else if (maxScrollMessageItems == Setup.SHOW_MORE) {
+			imageContextMenuProvider.setVisible(menuContextShowMore, false);
+			imageContextMenuProvider.setVisible(menuContextShowAll, true);
+		} else {
+			imageContextMenuProvider.setVisible(menuContextShowMore, true);
+			imageContextMenuProvider.setVisible(menuContextShowAll, false);
 		}
 		return imageContextMenuProvider;
 	}
@@ -3402,6 +3313,7 @@ public class Conversation extends Activity {
 						}
 					}
 				});
+		PictureImportActivity.hostUid = hostUid;
 		Intent dialogIntent = new Intent(context, PictureImportActivity.class);
 		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		byte[] bytes = Utility.getFile(attachmentPath);
@@ -3537,16 +3449,15 @@ public class Conversation extends Activity {
 	 * Possibly remove image attachments if too large. This is a convenience
 	 * method: It will not force to remove all images and it will substitue
 	 * removed images by an empty string.
-	 * 
-	 * @param context
-	 *            the context
-	 * @param text
-	 *            the text
+	 *
+	 * @param context            the context
+	 * @param text            the text
+	 * @param uid the uid
 	 * @return the string
 	 */
 	public static String possiblyRemoveImageAttachments(Context context,
-			String text) {
-		return possiblyRemoveImageAttachments(context, text, false, "");
+			String text, int uid) {
+		return possiblyRemoveImageAttachments(context, text, false, "", uid);
 	}
 
 	// -------------------------------------------------------------------------
@@ -3565,9 +3476,9 @@ public class Conversation extends Activity {
 	 * @return the string
 	 */
 	public static String possiblyRemoveImageAttachments(Context context,
-			String text, boolean forceRemoveAll, String substitute) {
+			String text, boolean forceRemoveAll, String substitute, int uid) {
 
-		int serverId = Setup.getServerId(context, hostUid);
+		int serverId = Setup.getServerId(context, uid);
 		int limit = Setup.getAttachmentServerLimit(context, serverId) * 1000;
 		if (text.length() < limit && !forceRemoveAll) {
 			Log.d("communicator",
@@ -3649,7 +3560,7 @@ public class Conversation extends Activity {
 			if (transport == DB.TRANSPORT_INTERNET) {
 				final String messageTextString2 = Conversation
 						.possiblyRemoveImageAttachments(context,
-								messageTextString);
+								messageTextString, hostUid);
 				Log.d("communicator",
 						"msgTextLEN=" + messageTextString.length());
 				Log.d("communicator",

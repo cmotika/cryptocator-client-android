@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Christian Motika.
+ * Copyright (c) 2015, Christian Motika. Dedicated to Sara.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -18,6 +18,15 @@
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
+ * 4. Free or commercial forks of Cryptocator are permitted as long as
+ *    both (a) and (b) are and stay fulfilled. 
+ *    (a) this license is enclosed
+ *    (b) the protocol to communicate between Cryptocator servers
+ *        and Cryptocator clients *MUST* must be fully conform with 
+ *        the documentation and (possibly updated) reference 
+ *        implementation from cryptocator.org. This is to ensure 
+ *        interconnectivity between all clients and servers. 
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -29,7 +38,7 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *  
  */
 package org.cryptocator;
 
@@ -205,20 +214,25 @@ public class MessageDetailsActivity extends Activity {
 		}
 		activityTitle = "Message Details" + msgIdString;
 
+		int serverId = -1;
 		if (updatedItem.me()) {
 			// from me
 			fromkey.setText("Account Key: " + Setup.getPublicKeyHash(context));
 			tokey.setText("Account Key: "
 					+ Setup.getKeyHash(context, updatedItem.to));
+			serverId = Setup.getServerId(context, updatedItem.to);
 		} else {
 			// to me
 			fromkey.setText("Account Key: "
 					+ Setup.getKeyHash(context, updatedItem.from));
 			tokey.setText("Account Key: " + Setup.getPublicKeyHash(context));
+			serverId = Setup.getServerId(context, updatedItem.from);
 		}
 
-		from.setText(Main.UID2Name(context, updatedItem.from, true));
-		to.setText(Main.UID2Name(context, updatedItem.to, true));
+		from.setText(Main.UID2Name(context, updatedItem.from, true, false,
+				serverId));
+		to.setText(Main
+				.UID2Name(context, updatedItem.to, true, false, serverId));
 
 		created.setText(DB.getDateString(updatedItem.created, true));
 		sent.setText(DB.getDateString(updatedItem.sent, true));
@@ -242,11 +256,13 @@ public class MessageDetailsActivity extends Activity {
 						+ DB.getPositionInSendingQueue(context,
 								updatedItem.transport, updatedItem.localid)
 						+ " in Sending Queue";
+				// Number of tries
+				String tries = updatedItem.tries + "x tried to send";
 				if (numTotal > 1) {
-					sendingreceiving.setText(position + "\n" + percentSent + "%, "
-							+ numSent + " / " + numTotal);
+					sendingreceiving.setText(position + "\n" + tries + "\n" + percentSent
+							+ "%, " + numSent + " / " + numTotal);
 				} else {
-					sendingreceiving.setText(position);
+					sendingreceiving.setText(position  + "\n" + tries);
 					sendingreceivingprogress.setVisibility(View.GONE);
 				}
 			}
@@ -267,9 +283,9 @@ public class MessageDetailsActivity extends Activity {
 				int percentReceived = (numReceived * 100) / numTotal;
 				if (numTotal > 1) {
 					sendingreceivingprogress.setProgress(percentReceived);
-					sendingreceiving.setText(percentReceived + "%, " + numReceived
-							+ " / " + numTotal + " {" + updatedItem.multipartid
-							+ "}");
+					sendingreceiving.setText(percentReceived + "%, "
+							+ numReceived + " / " + numTotal + " {"
+							+ updatedItem.multipartid + "}");
 				} else {
 					sendingreceivingprogress.setVisibility(View.GONE);
 				}
@@ -291,7 +307,7 @@ public class MessageDetailsActivity extends Activity {
 		} else {
 			transport.setText("SMS");
 			size.setText(((int) (Math.ceil(((double) updatedItem.text.length())
-					/ ((double) Setup.SMS_DEFAULT_SIZE_MULTIPART)))) 
+					/ ((double) Setup.SMS_DEFAULT_SIZE_MULTIPART))))
 					+ " SMS");
 		}
 		if (updatedItem.encrypted) {
@@ -397,9 +413,13 @@ public class MessageDetailsActivity extends Activity {
 
 		ImageLabelButton buttonbackup = (ImageLabelButton) dialogLayout
 				.findViewById(R.id.buttonbackup);
+		buttonbackup.setMarginUp(3);
+		buttonbackup.setMarginDown(-7);
 		buttonbackup.setTextAndImageResource("Backup", R.drawable.btnbackupsm);
 		ImageLabelButton buttonclear = (ImageLabelButton) dialogLayout
 				.findViewById(R.id.buttonclear);
+		buttonclear.setMarginUp(3);
+		buttonclear.setMarginDown(-7);
 		buttonclear.setTextAndImageResource("Clear", R.drawable.btnclear);
 
 		buttonbackup.setOnClickListener(new View.OnClickListener() {

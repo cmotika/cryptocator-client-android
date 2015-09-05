@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Christian Motika.
+ * Copyright (c) 2015, Christian Motika. Dedicated to Sara.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -18,6 +18,15 @@
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
+ * 4. Free or commercial forks of Cryptocator are permitted as long as
+ *    both (a) and (b) are and stay fulfilled. 
+ *    (a) this license is enclosed
+ *    (b) the protocol to communicate between Cryptocator servers
+ *        and Cryptocator clients *MUST* must be fully conform with 
+ *        the documentation and (possibly updated) reference 
+ *        implementation from cryptocator.org. This is to ensure 
+ *        interconnectivity between all clients and servers. 
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -29,11 +38,12 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *  
  */
 package org.cryptocator;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.cryptocator.ImageContextMenu.ImageContextMenuProvider;
@@ -467,7 +477,9 @@ public class Main extends Activity {
 	 */
 	public static void startSettings(Context context) {
 		Intent dialogIntent = new Intent(context, Setup.class);
-		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+				| Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+				| Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
 		context.startActivity(dialogIntent);
 	}
 
@@ -481,7 +493,9 @@ public class Main extends Activity {
 	 */
 	public static void startAccount(Context context) {
 		Intent dialogIntent = new Intent(context, Setup.class);
-		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+				| Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+				| Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
 		dialogIntent.putExtra("account", "account");
 		context.startActivity(dialogIntent);
 	}
@@ -639,9 +653,13 @@ public class Main extends Activity {
 	public void rebuildUserlist(final Context context,
 			final boolean resolveNames) {
 		try {
-			int serverDefaultId = Setup.getServerDefaultId(context);
+			final int serverDefaultId = Setup.getServerDefaultId(context);
 			final int myUid = DB.myUid(context, serverDefaultId);
-			String myName = Main.UID2Name(context, myUid, true, resolveNames);
+			String myName = Main.UID2Name(context, myUid, true, resolveNames,
+					serverDefaultId);
+
+			// setTitle(myName + ", " + myUid + ", " + serverDefaultId);
+
 			if (!(myName.equals("no active account")) || myUid == -1) {
 				setTitle(myName);
 			} else {
@@ -670,7 +688,9 @@ public class Main extends Activity {
 												if (!data.equals("-1")) {
 													Utility.loadStringSetting(
 															context,
-															"username", data);
+															Setup.SERVER_USERNAME
+																	+ serverDefaultId,
+															data);
 													String myName = Main
 															.UID2Name(context,
 																	myUid,
@@ -788,8 +808,9 @@ public class Main extends Activity {
 			for (UidListItem item : fullUidList) {
 				String name = item.name;
 
-				// If landscape and more than one message server AND registered user
-				// then display @host behind the name! 
+				// If landscape and more than one message server AND registered
+				// user
+				// then display @host behind the name!
 				if (showMessageServerLabel && item.uid >= 0) {
 					int serverId = Setup.getServerId(context, item.uid);
 					name += " <small><font color='#777777'>@ "
@@ -799,7 +820,7 @@ public class Main extends Activity {
 
 				String lastMessage = Conversation
 						.possiblyRemoveImageAttachments(context,
-								item.lastMessage, true, "[ image ]");
+								item.lastMessage, true, "[ image ]", -1);
 				String lastDate = DB.getDateString(item.lastMessageTimestamp,
 						false);
 				if (lastMessage == null) {
@@ -917,7 +938,7 @@ public class Main extends Activity {
 		}
 		// Make it final
 		final View userlistitem = userlistitemtmp;
-		
+
 		TextView userlistName = (TextView) userlistitem
 				.findViewById(R.id.userlistname);
 		TextView userlistDate = (TextView) userlistitem
@@ -1034,6 +1055,9 @@ public class Main extends Activity {
 	 */
 	public static boolean alreadyInList(int uid, List<Integer> uidList) {
 		for (int uiditem : uidList) {
+			Log.d("communicator", "RECEIVE ALREADYINLIST? uiditem=" + uiditem
+					+ " =?= " + uid + "= uid");
+
 			if (uiditem == uid) {
 				return true;
 			}
@@ -1163,13 +1187,17 @@ public class Main extends Activity {
 	public static List<Integer> appendUIDList(Context context,
 			String commaSeparatedListString, List<Integer> uidList) {
 		String[] array = commaSeparatedListString.split(",");
+		// ArrayList<Integer> returnList = new ArrayList<Integer>();
+		LinkedHashSet<Integer> returnList = new LinkedHashSet<Integer>();
+		returnList.addAll(uidList);
 		for (String uidString : array) {
 			int uid = Utility.parseInt(uidString, -1);
-			boolean alreadyInList = alreadyInList(uid, uidList);
-			if (uid != -1 && !alreadyInList) {
-				uidList.add(uid);
+			if (uid != -1) {
+				returnList.add(uid);
 			}
 		}
+		uidList.clear();
+		uidList.addAll(returnList);
 		return uidList;
 	}
 
@@ -1527,23 +1555,56 @@ public class Main extends Activity {
 	public static String UID2Name(Context context, int uid,
 			boolean fullNameWithUID, boolean resolve) {
 		int serverDefaultId = Setup.getServerDefaultId(context);
+		return UID2Name(context, uid, fullNameWithUID, resolve, serverDefaultId);
+	}
+
+	/**
+	 * UI d2 name for a specific server
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param fullNameWithUID
+	 *            the full name with uid
+	 * @param resolve
+	 *            the resolve
+	 * @param serverId
+	 *            the server id
+	 * @return the string
+	 */
+	public static String UID2Name(Context context, int uid,
+			boolean fullNameWithUID, boolean resolve, int serverId) {
 		String myName = Utility.loadStringSetting(context,
-				Setup.SERVER_USERNAME + serverDefaultId, "");
-		int myUid = Utility.parseInt(
-				Utility.loadStringSetting(context, Setup.SERVER_UID
-						+ serverDefaultId, ""), -1);
+				Setup.SERVER_USERNAME + serverId, "");
+		int myUid = Utility.parseInt(Utility.loadStringSetting(context,
+				Setup.SERVER_UID + serverId, ""), -1);
 
 		String name = Utility.loadStringSetting(context, "uid2name" + uid, "");
-		final int suid = Setup.getSUid(context, uid);
+		int suid = Setup.getSUid(context, uid);
 
 		if (uid == myUid || uid == DB.myUid()) {
-			if (myUid == -1 || name == null || name.equals("")) {
-				return "no active account";
-			} else if (fullNameWithUID) {
-				return myName + "  [ " + uid + " ]";
+			String suidString;
+			if (uid == DB.myUid() && myName.length() > 0) {
+				suidString = Utility.loadStringSetting(context,
+						Setup.SERVER_UID + serverId, "");
+				name = myName;
+			} else if (uid == myUid && uid != -1) {
+				suidString = uid + "";
+				name = myName;
 			} else {
-				return myName;
+				return "no active account";
 			}
+			if (fullNameWithUID) {
+				String serverLabel = Setup.getServerLabel(context, serverId,
+						false);
+				if (serverLabel.length() > 0) {
+					serverLabel = " @ " + serverLabel;
+				}
+				return name + "  [ " + suidString + " ]" + serverLabel;
+			}
+			return name;
+
 		}
 		if (uid == 0 || suid == 0) {
 			return "System";
@@ -1554,7 +1615,7 @@ public class Main extends Activity {
 			if (resolve) {
 				updateUID2Name(context, uid, null);
 			}
-			return "User " + uid + "";
+			return "User " + uid;
 		} else if (name.equals("")) {
 			// if we do not have the name yet, return the uid instead and try to
 			// find the name async for the next time!
@@ -1564,10 +1625,10 @@ public class Main extends Activity {
 			return "User " + uid + "";
 		} else {
 			if (fullNameWithUID) {
-				int serverId = Setup.getServerId(context, uid);
+				int serverIdOther = Setup.getServerId(context, uid);
 				;
-				String serverLabel = Setup.getServerLabel(context, serverId,
-						false);
+				String serverLabel = Setup.getServerLabel(context,
+						serverIdOther, false);
 				if (serverLabel.length() > 0) {
 					serverLabel = " @ " + serverLabel;
 				}

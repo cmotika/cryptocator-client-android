@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Christian Motika.
+ * Copyright (c) 2015, Christian Motika. Dedicated to Sara.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -18,6 +18,15 @@
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
+ * 4. Free or commercial forks of Cryptocator are permitted as long as
+ *    both (a) and (b) are and stay fulfilled. 
+ *    (a) this license is enclosed
+ *    (b) the protocol to communicate between Cryptocator servers
+ *        and Cryptocator clients *MUST* must be fully conform with 
+ *        the documentation and (possibly updated) reference 
+ *        implementation from cryptocator.org. This is to ensure 
+ *        interconnectivity between all clients and servers. 
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -29,7 +38,7 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *  
  */
 package org.cryptocator;
 
@@ -45,6 +54,8 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.ContactsContract;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -79,6 +90,7 @@ import android.widget.TextView;
  * @date 08/23/2015
  * 
  */
+@SuppressLint("InlinedApi")
 public class ConversationCompose extends Activity {
 
 	/** The conversation root view. */
@@ -108,6 +120,9 @@ public class ConversationCompose extends Activity {
 	/** The phone or uid. */
 	public EditText phoneOrUid;
 
+	/** The currently selected host uid. */
+	public static int hostUid = -1;
+	
 	/** The list of recipients. */
 	FastScrollView toList = null;
 
@@ -133,7 +148,8 @@ public class ConversationCompose extends Activity {
 		ConversationCompose.visible = true;
 		instance = this;
 		alive = true;
-		final Activity context = this;
+		final Activity activity = this;
+		final Context context = this;
 
 		// POSSIBLY RECEIVE SHARED- IMAGE AND TEXT DATA!
 		if (getIntent() != null) {
@@ -155,11 +171,28 @@ public class ConversationCompose extends Activity {
 					Uri imageUri = (Uri) intent
 							.getParcelableExtra(Intent.EXTRA_STREAM);
 					if (imageUri != null) {
-						String attachmentPath = Utility.getRealPathFromURI(
+						final String attachmentPath = Utility.getRealPathFromURI(
 								this, imageUri);
 						if (attachmentPath != null) {
 							try {
-								insertImage(this, attachmentPath);
+								// Do this async AFTER create so that the stack of activities
+								// is correct and after we close insert image we come back
+								// to compose!
+								
+								final Handler mUIHandler = new Handler(Looper.getMainLooper());
+								mUIHandler.post(new Thread() {
+									@Override
+									public void run() {
+										super.run();
+										final Handler handler = new Handler();
+										handler.postDelayed(new Runnable() {
+											public void run() {
+												((ConversationCompose) activity).insertImage(activity, attachmentPath);
+											}
+										}, 100);
+									}
+								});
+
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -298,7 +331,7 @@ public class ConversationCompose extends Activity {
 		});
 		attachmentbutton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				Conversation.promptImageInsert(context, getCurrentUid(context));
+				Conversation.promptImageInsert(activity, getCurrentUid(context));
 			}
 		});
 
@@ -611,7 +644,7 @@ public class ConversationCompose extends Activity {
 		if (uid < 0) {
 			// for not registered SMS users we do not prompt but just send an
 			// sms
-			sendMessageOrPrompt(context, DB.TRANSPORT_SMS, false);
+			sendMessageOrPrompt(context, DB.TRANSPORT_SMS, false, uid);
 			return;
 		}
 		// now check if SMS and encryption is available
@@ -639,7 +672,7 @@ public class ConversationCompose extends Activity {
 	private void sendMessagePrompt(final Context context, final boolean sms,
 			final boolean encryption) {
 		String name = "";
-		int uid = parsePhoneOrUid(phoneOrUid.getText().toString());
+		final int uid = parsePhoneOrUid(phoneOrUid.getText().toString());
 		if (uid != -1) {
 			name = Main.UID2Name(context, uid, false);
 		} else {
@@ -693,7 +726,7 @@ public class ConversationCompose extends Activity {
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
 										sendMessageOrPrompt(context,
-												DB.TRANSPORT_INTERNET, true);
+												DB.TRANSPORT_INTERNET, true, uid);
 										dialog.dismiss();
 									}
 								});
@@ -707,7 +740,7 @@ public class ConversationCompose extends Activity {
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
 										sendMessageOrPrompt(context,
-												DB.TRANSPORT_INTERNET, false);
+												DB.TRANSPORT_INTERNET, false, uid);
 										dialog.dismiss();
 									}
 								});
@@ -721,7 +754,7 @@ public class ConversationCompose extends Activity {
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
 										sendMessageOrPrompt(context,
-												DB.TRANSPORT_SMS, true);
+												DB.TRANSPORT_SMS, true, uid);
 										dialog.dismiss();
 									}
 								});
@@ -735,7 +768,7 @@ public class ConversationCompose extends Activity {
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
 										sendMessageOrPrompt(context,
-												DB.TRANSPORT_SMS, false);
+												DB.TRANSPORT_SMS, false, uid);
 										dialog.dismiss();
 									}
 								});
@@ -784,14 +817,14 @@ public class ConversationCompose extends Activity {
 	 *            the prompt large sms or large images
 	 */
 	private void sendMessageOrPrompt(final Context context,
-			final int transport, final boolean encrypted) {
+			final int transport, final boolean encrypted, int uid) {
 		final String messageTextString = messageText.getText().toString()
 				.trim();
 		if (messageTextString.length() > 0) {
 			if (transport == DB.TRANSPORT_INTERNET) {
 				final String messageTextString2 = Conversation
 						.possiblyRemoveImageAttachments(context,
-								messageTextString);
+								messageTextString, uid);
 				if ((messageTextString2.length() != messageTextString.length())) {
 					String title = "WARNING";
 					String text = "This message contains at least one image that exceeded server limits. "
@@ -1273,6 +1306,7 @@ public class ConversationCompose extends Activity {
 							}
 						});
 
+				PictureImportActivity.hostUid = hostUid;
 				Bitmap bitmap = (Bitmap) data.getExtras().get("data");
 				Intent dialogIntent = new Intent(this,
 						PictureImportActivity.class);
@@ -1297,10 +1331,15 @@ public class ConversationCompose extends Activity {
 	 *            the context
 	 */
 	public void goBack(Context context) {
-		// GET TO THE MAIN SCREEN IF THIS ICON IS CLICKED !
-		Intent intent = new Intent(this, Main.class);
-		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		startActivity(intent);
+		finish();
+		// // GET TO THE MAIN SCREEN IF THIS ICON IS CLICKED !
+		// Intent intent = new Intent(this, Main.class);
+		// intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) ; //
+		// Intent.FLAG_ACTIVITY_NEW_TASK |
+		// Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED |
+		// Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK |
+		// Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		// startActivity(intent);
 	}
 
 	// -------------------------------------------------------------------------
@@ -1313,6 +1352,7 @@ public class ConversationCompose extends Activity {
 	 */
 	public void updateSendButtonImage(Context context) {
 		int uid = getCurrentUid(context);
+		hostUid = uid;
 		if (uid == 0 || phoneOrUid == null || phoneOrUid.length() == 0) {
 			// system, disable
 			sendbutton.setEnabled(false);
@@ -1440,11 +1480,14 @@ public class ConversationCompose extends Activity {
 					}
 				});
 		Intent dialogIntent = new Intent(context, PictureImportActivity.class);
-		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				//Intent.FLAG_ACTIVITY_NEW_TASK);
+				// | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 		byte[] bytes = Utility.getFile(attachmentPath);
 		Bitmap bitmap = Utility.getBitmapFromBytes(bytes);
 
 		PictureImportActivity.attachmentBitmap = bitmap;
+		PictureImportActivity.hostUid = hostUid;
 		context.startActivity(dialogIntent);
 	}
 

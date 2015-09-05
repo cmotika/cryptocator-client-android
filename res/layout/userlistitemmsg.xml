@@ -41,7 +41,7 @@
                 android:layout_weight="100"
                 android:text="Delphino"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="#ffffffff"
+                android:textColor="#ffE8E8E8"
                 android:textSize="20sp" >
 
             </TextView>

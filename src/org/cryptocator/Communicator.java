@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Christian Motika.
+ * Copyright (c) 2015, Christian Motika. Dedicated to Sara.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -18,6 +18,15 @@
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
+ * 4. Free or commercial forks of Cryptocator are permitted as long as
+ *    both (a) and (b) are and stay fulfilled. 
+ *    (a) this license is enclosed
+ *    (b) the protocol to communicate between Cryptocator servers
+ *        and Cryptocator clients *MUST* must be fully conform with 
+ *        the documentation and (possibly updated) reference 
+ *        implementation from cryptocator.org. This is to ensure 
+ *        interconnectivity between all clients and servers. 
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -29,7 +38,7 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *  
  */
 package org.cryptocator;
 
@@ -229,7 +238,7 @@ public class Communicator {
 								}
 							} else {
 								// NORMAL PROCESSING - 0##...##... or
-								// 1##...##...
+								// 1##...##... (the latter means we HAVE messages to receive!)
 								String responseTail = response2.substring(3);
 								Log.d("communicator",
 										"RESPONSE HAVE PROCESS TAIL: "
@@ -330,6 +339,7 @@ public class Communicator {
 			String response, int serverId) {
 
 		String[] values = response.split("##");
+		//Log.d("communicator", " UPDATE MESSAGE RECEIVED/READ: valuesSize=" + values.length);
 		if (values.length == 2) {
 			String partReceived = values[0];
 			String partRead = values[1];
@@ -337,11 +347,15 @@ public class Communicator {
 			String[] valuesReceived = partReceived.split("#");
 			for (String valueReceived : valuesReceived) {
 				String midAndTs[] = valueReceived.split("@");
+				//Log.d("communicator", " UPDATE MESSAGE RECEIVED: midAndTs["+valueReceived+"]=" + midAndTs.length);
 				if (midAndTs.length == 2) {
 					int mid = Utility.parseInt(midAndTs[0], -1);
 					int senderUid = DB.getHostUidForMid(context, mid);
 					String ts = midAndTs[1];
-					DB.updateLargestTimestampReceived(context, ts, serverId);
+					Log.d("communicator", " UPDATE MESSAGE RECEIVED: mid=" + mid + ", senderUid=" + senderUid );
+					if (mid != -1 && serverId != -1) {
+						DB.updateLargestTimestampReceived(context, ts, serverId);
+					}
 					if (mid != -1 && senderUid != -1) {
 						boolean processSMS = false;
 						processKeyDeliveries(context, senderUid, mid,
@@ -359,13 +373,19 @@ public class Communicator {
 			String[] valuesRead = partRead.split("#");
 			for (String valueRead : valuesRead) {
 				String midAndTs[] = valueRead.split("@");
+				//Log.d("communicator", " UPDATE MESSAGE READ: midAndTs["+valueRead+"]=" + midAndTs.length);
 				if (midAndTs.length == 2) {
 					int mid = Utility.parseInt(midAndTs[0], -1);
 					int senderUid = DB.getHostUidForMid(context, mid);
-					DB.removeMappingByMid(context, mid);
 					String ts = midAndTs[1];
-					DB.updateLargestTimestampRead(context, ts, serverId);
+					Log.d("communicator", " UPDATE MESSAGE READ: mid=" + mid + ", senderUid=" + senderUid );
+					if (mid != -1 && serverId != -1) {
+						DB.updateLargestTimestampRead(context, ts, serverId);
+					}
 					if (mid != -1 && senderUid != -1) {
+						// ONLY remove the mapping if we know we processed the read confirmation!!!
+						DB.removeMappingByMid(context, mid);
+
 						DB.updateMessageRead(context, mid, ts, senderUid);
 						// FIXME: THIS SEEMS ULTRA-WRONG???? OLD CODE???
 						// DB.updateMessageSystem(context, mid, true,
@@ -618,10 +638,12 @@ public class Communicator {
 															context,
 															Setup.OPTION_IGNORE,
 															Setup.DEFAULT_IGNORE);
-											if (ignore) {
+											if (!ignore) {
 												// The user must be added to our
 												// list
-												int uid = Setup.getUid(context, newItem.from, serverId);
+												// ATTENTION. from is already
+												// converted from suid to uid!
+												int uid = newItem.from;
 												uidList.add(uid);
 												DB.ensureDBInitialized(context,
 														uidList);
@@ -633,11 +655,10 @@ public class Communicator {
 												skipBecauseOfUnknownUser = true;
 											}
 										}
-										
+
 										Log.d("communicator",
 												"RECEIVE NEXT MESSAGE skipBecauseOfUnknownUser="
 														+ skipBecauseOfUnknownUser);
-										
 
 										if (!skipBecauseOfUnknownUser
 												&& !alreadyInDB
@@ -1650,12 +1671,11 @@ public class Communicator {
 			final ConversationItem itemToSend) {
 		messageSent = false;
 
-		
 		// Guard against invalid (SMS) users...
 		if (to < 0) {
 			return;
 		}
-		
+
 		final int serverId = Setup.getServerId(context, to);
 
 		String session = Setup.getTmpLogin(context, serverId);
@@ -1860,7 +1880,7 @@ public class Communicator {
 		}
 		String completeTextWithoutImages = Conversation
 				.possiblyRemoveImageAttachments(context, completeMessage, true,
-						"[ image ]");
+						"[ image ]", -1);
 
 		int cnt = getNotificationCount(context, item.from);
 		String title = Main.UID2Name(context, item.from, false);
@@ -1963,12 +1983,17 @@ public class Communicator {
 		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			// Error resume is automatically done by getTmpLogin, not logged in
-			Utility.showToastAsync(context, "Error sending account key "
-					+ keyhash + " to server! (1)");
+			Utility.showToastAsync(
+					context,
+					"Error sending account key " + keyhash + " to "
+							+ Setup.getServerLabel(context, serverId, true)
+							+ "! (1) - Disabling Encryption!");
 			// Disable in settings
 			Utility.saveStringSetting(context, Setup.PUBKEY, null);
 			Utility.saveStringSetting(context, Setup.PRIVATEKEY, null);
 			Utility.saveBooleanSetting(context, Setup.OPTION_ENCRYPTION, false);
+			// Try to delete keys on all servers
+			Setup.disableEncryption(context);
 			return;
 		}
 
@@ -1989,12 +2014,22 @@ public class Communicator {
 							}
 						}
 						if (success) {
-							Utility.showToastAsync(context, "New account key "
-									+ keyhash + " sent to server.");
+							Utility.showToastAsync(
+									context,
+									"New account key "
+											+ keyhash
+											+ " sent to "
+											+ Setup.getServerLabel(context,
+													serverId, true) + ".");
 						} else {
-							Utility.showToastAsync(context,
-									"Error sending account " + keyhash
-											+ " key to server! (2)");
+							Utility.showToastAsync(
+									context,
+									"Error sending account "
+											+ keyhash
+											+ " key to "
+											+ Setup.getServerLabel(context,
+													serverId, true)
+											+ "! (2) - Disabling Encryption!");
 							// disable in settings
 							Utility.saveStringSetting(context, Setup.PUBKEY,
 									null);
@@ -2002,6 +2037,8 @@ public class Communicator {
 									Setup.PRIVATEKEY, null);
 							Utility.saveBooleanSetting(context,
 									Setup.OPTION_ENCRYPTION, false);
+							// Try to delete keys on all servers
+							Setup.disableEncryption(context);
 						}
 					}
 				}));
@@ -2023,8 +2060,11 @@ public class Communicator {
 		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			// Error resume is automatically done by getTmpLogin, not logged in
-			Utility.showToastAsync(context, "Error clearing account " + keyhash
-					+ " key from server! (1)");
+			Utility.showToastAsync(
+					context,
+					"Error clearing account " + keyhash + " key from "
+							+ Setup.getServerLabel(context, serverId, true)
+							+ "! (1)");
 			return;
 		}
 
@@ -2046,12 +2086,21 @@ public class Communicator {
 						}
 
 						if (success) {
-							Utility.showToastAsync(context, "Account key "
-									+ keyhash + " cleared from server.");
+							Utility.showToastAsync(
+									context,
+									"Account key "
+											+ keyhash
+											+ " cleared from "
+											+ Setup.getServerLabel(context,
+													serverId, true) + ".");
 						} else {
-							Utility.showToastAsync(context,
-									"Error clearing account key " + keyhash
-											+ " from server! (2)");
+							Utility.showToastAsync(
+									context,
+									"Error clearing account key "
+											+ keyhash
+											+ " from "
+											+ Setup.getServerLabel(context,
+													serverId, true) + "! (2)");
 						}
 
 					}
@@ -2079,8 +2128,8 @@ public class Communicator {
 			final Main.UpdateListener updateListener) {
 		for (int serverId : Setup.getServerIds(context)) {
 			if (Setup.isServerActive(context, serverId)) {
-				updateKeysFromServer(context, uidList, forceUpdate, updateListener,
-						serverId);
+				updateKeysFromServer(context, uidList, forceUpdate,
+						updateListener, serverId);
 			}
 		}
 	}
