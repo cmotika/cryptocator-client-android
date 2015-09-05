@@ -86,6 +86,7 @@ public class DB {
 	 * The globally last received mid (cached version). There is also a settings
 	 * entry to be updated: Setup.SETTINGS_DEFAULTMID.
 	 */
+	@SuppressLint("UseSparseArrays")
 	public static HashMap<Integer, Integer> lastReceivedMid = new HashMap<Integer, Integer>();
 
 	/** The SMS dummy mid. */
@@ -2204,6 +2205,7 @@ public class DB {
 	// -----------------------------------------------------------------
 
 	/** The largest timestamp received. */
+	@SuppressLint("UseSparseArrays")
 	static HashMap<Integer, Long> largestTimestampReceived = new HashMap<Integer, Long>();
 
 	/**
@@ -2315,6 +2317,7 @@ public class DB {
 	// -----------------------------------------------------------------
 
 	/** The largest timestamp read. */
+	@SuppressLint("UseSparseArrays")
 	static HashMap<Integer, Long> largestTimestampRead = new HashMap<Integer, Long>();
 
 	/**
@@ -3325,13 +3328,75 @@ public class DB {
 				addMessage(context, item.from, item.to, item.text, item.created
 						+ "", item.sent + "", item.received + "", item.read
 						+ "", item.withdraw + "", item.encrypted,
-						item.transport, item.system, 1, 1, NO_MULTIPART_ID);
+						item.transport, false, 0, 1, NO_MULTIPART_ID);
 			}
 			success = true;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return success;
+	}
+
+	// -----------------------------------------------------------------
+
+	public static void possiblyUpdate(Context context) {
+		if (Setup.getVersion(context) < Setup.VERSION_MULTISERVER) {
+			// Recovery action needed - GO FROM SINGLE SERVER VERSION TO MULTISERVER VERSION
+
+			// We must go thru the uid list, create a new uid from this then suid
+			// considering cryptocator.org as the server
+			// we then must update the database and replace 
+			// 1. our uid by -1
+			// 2. the other suid by the new uid
+			
+			String oldMyUidString = Utility.loadStringSetting(context,
+					Setup.SERVER_UID, "");
+			String newMyUidString = "-1";
+			
+			List<Integer> newUidList = new ArrayList<Integer>();
+			List<Integer> uidList = new ArrayList<Integer>();
+			String listString = Utility.loadStringSetting(context,
+					Setup.SETTINGS_USERLIST, "");
+			Main.appendUIDList(context, listString, uidList);
+			
+			for (int oldUid : uidList) {
+
+				int uid = oldUid;
+				if (oldUid > 0) {
+					int newUid = Setup.getUid(context, oldUid, Setup.getServerId("http://www.cryptocator.org"));
+					newUidList.add(newUid);
+					
+					// Copy all data from the oldUid to the newUid
+					mergeUser(context,  oldUid,	newUid);
+					uid = newUid;
+				}
+				
+				try {
+					SQLiteDatabase db = openDB(context, uid);
+
+					ContentValues values = new ContentValues();
+					values.put("fromuid", newMyUidString);
+					db.update(DB.TABLE_MESSAGES, values, "fromuid = " + oldMyUidString,
+							null);
+					values = new ContentValues();
+					values.put("touid", newMyUidString);
+					db.update(DB.TABLE_MESSAGES, values, "touid = " + oldMyUidString,
+							null);
+
+					db.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				if (oldUid > 0) {
+					dropDB(context, oldUid);	
+				}
+			}
+
+			// Save the new Uid list instead
+			
+			Setup.setVersionUpdated(context, Setup.VERSION_MULTISERVER, true, "Cryptocator updated DB to new version and needs to be restarted.");
+		}
 	}
 
 	// -----------------------------------------------------------------

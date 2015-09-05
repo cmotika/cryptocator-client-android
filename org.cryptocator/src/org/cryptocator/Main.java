@@ -51,6 +51,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.PhoneLookup;
+import android.text.Html;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -64,6 +65,7 @@ import android.view.WindowManager.LayoutParams;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 /**
@@ -101,6 +103,9 @@ public class Main extends Activity {
 
 	/** The adduseritem. */
 	private LinearLayout adduseritem;
+	
+	/** The serverspinner. */
+	private Spinner serverspinner; 
 
 	/** The main background. */
 	private LinearLayout mainBackground;
@@ -164,6 +169,8 @@ public class Main extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Setup.possiblyDisableScreenshot(this);
+		
+		DB.possiblyUpdate(this);	
 
 		Main.visible = true;
 		instance = this;
@@ -498,12 +505,14 @@ public class Main extends Activity {
 		Communicator.receiveNextMessage(context, serverId);
 		Setup.updateAttachmentAllServerLimits(context, true);
 
-		Utility.showToastAsync(context, "Refreshing....");
+		Utility.showToastAsync(context, "Refreshing...");
 		if (Main.isAlive()) {
 			Main.getInstance().mainBackground.postDelayed(new Runnable() {
 				public void run() {
 					for (int serverId : Setup.getServerIds(context)) {
-						updateUID2Name(context, uidList, serverId);
+						if (Setup.isServerActive(context, serverId)) {
+							updateUID2Name(context, uidList, serverId);
+						}
 					}
 					if (Main.isAlive()) {
 						// We have just resolved the UIDs one line before
@@ -633,7 +642,7 @@ public class Main extends Activity {
 			int serverDefaultId = Setup.getServerDefaultId(context);
 			final int myUid = DB.myUid(context, serverDefaultId);
 			String myName = Main.UID2Name(context, myUid, true, resolveNames);
-			if (!(myName.equals("no active account"))) {
+			if (!(myName.equals("no active account")) || myUid == -1) {
 				setTitle(myName);
 			} else {
 				setTitle("User " + myUid + "");
@@ -696,6 +705,7 @@ public class Main extends Activity {
 			mainInnerView.addView(adduserlistitem);
 
 			// Add user panel
+			serverspinner = ((Spinner) findViewById(R.id.serverspinner));
 			adduseritem = ((LinearLayout) findViewById(R.id.adduseritem));
 			addUserText = ((TextView) adduserlistitem
 					.findViewById(R.id.adduser_text));
@@ -730,9 +740,15 @@ public class Main extends Activity {
 						Utility.showToastAsync(context, "Nobody added.");
 						return;
 					}
-					boolean alreadyInList = alreadyInList(adduid, uidList);
-					if (adduid >= 0 && !alreadyInList) {
-						addUser(context, adduid);
+					// Get selected server
+					int serverId = Setup.getServerDefaultId(context);
+					if (Setup.getServers(context).size() >= 2) {
+						serverId = Setup.getServerId((String)serverspinner.getSelectedItem());
+					}
+					int realUid = Setup.getUid(context, adduid, serverId);
+					boolean alreadyInList = alreadyInList(realUid, uidList);
+					if (realUid >= 0 && !alreadyInList) {
+						addUser(context, realUid);
 					} else {
 						if (alreadyInList) {
 							Utility.showToastAsync(context, "user " + adduid
@@ -756,9 +772,17 @@ public class Main extends Activity {
 			List<UidListItem> fullUidList = buildSortedFullUidList(context,
 					uidList, false);
 
+			boolean showMessageServerLabel = ((Utility.isOrientationLandscape(context)) && (Setup.getServerIds(context).size() > 1));
+			
 			boolean lightBack = true;
 			for (UidListItem item : fullUidList) {
 				String name = item.name;
+				
+				// If landscape and more than one message server, display it behind the name!
+				if (showMessageServerLabel) {
+					int serverId = Setup.getServerId(context, item.uid);
+					name += " <small><font color='#777777'>@ " + Setup.getServerLabel(context, serverId, true) + "</font>";
+				}
 
 				String lastMessage = Conversation
 						.possiblyRemoveImageAttachments(context,
@@ -800,6 +824,10 @@ public class Main extends Activity {
 	 */
 	private void showHideAddUser(Context context, boolean show) {
 		if (show) {
+			Setup.updateServerSpinner(context, serverspinner);
+			if (Setup.getServers(context).size() < 2) {
+				serverspinner.setVisibility(View.GONE);
+			}
 			adduseritem.setVisibility(View.VISIBLE);
 			addUserText.setVisibility(View.GONE);
 			addUserName.setVisibility(View.VISIBLE);
@@ -885,7 +913,7 @@ public class Main extends Activity {
 		TextView userlistText = (TextView) userlistitem
 				.findViewById(R.id.userlisttext);
 
-		userlistName.setText(name);
+		userlistName.setText(Html.fromHtml(name));
 		userlistDate.setText(date);
 		userlistText.setText(lastMessage);
 
@@ -1522,7 +1550,12 @@ public class Main extends Activity {
 			return "User " + uid + "";
 		} else {
 			if (fullNameWithUID) {
-				return name + "  [ " + suid + " ]";
+				int serverId = Setup.getServerId(context, uid);;
+				String serverLabel = Setup.getServerLabel(context, serverId, false);
+				if (serverLabel.length() > 0) {
+					serverLabel = " @ " + serverLabel;
+				}
+				return name + "  [ " + suid + " ]" + serverLabel;
 			} else {
 				return name;
 			}

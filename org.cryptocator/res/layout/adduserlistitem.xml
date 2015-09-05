@@ -13,11 +13,12 @@
                 android:id="@+id/imageView1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:src="@drawable/personadd"
                 android:layout_marginLeft="20px"
                 android:layout_marginRight="20px"
-	            android:layout_marginTop="10px"
-	            android:layout_marginBottom="10px"
+	            android:layout_marginTop="15px"
+	            android:layout_marginBottom="15px"
                                  />
             
     <LinearLayout
@@ -38,15 +39,30 @@
                  >
             </TextView>
             
+                                    <LinearLayout
+                            android:layout_width="wrap_content"
+                                android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" >
+
+                            <Spinner
+                                android:id="@+id/serverspinner"
+                                android:layout_width="fill_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:textSize="30sp" />
+
              <org.cryptocator.KeyEventEditText
                       android:id="@+id/adduser_name"
-                    android:layout_width="wrap_content"
+                    android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="10px"
-                    android:layout_weight="1"
                     android:ems="10"
                     android:inputType="phone">
              </org.cryptocator.KeyEventEditText>
+                        </LinearLayout>
+            
+            
              
 
                                         <Button
@@ -54,7 +70,7 @@
                 android:layout_marginRight="20px"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
+                android:layout_gravity="center_vertical|center_horizontal"
                 android:text=" Add " />
             </LinearLayout>
             
