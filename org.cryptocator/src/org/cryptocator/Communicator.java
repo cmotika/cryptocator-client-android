@@ -125,17 +125,25 @@ public class Communicator {
 	 */
 	public static boolean messagesToSendIsUpToDate = false;
 
+
+	/** The internetfailcntbarrier after the counter reaches this number the internet is claimed to fail. */
+	public static int INTERNETFAILCNTBARRIER = 5;
+
 	/**
 	 * The connection flag tells if Internet was ok. It is evaluated in Main for
 	 * the info message.
 	 */
-	public static boolean internetOk = true;
+	public static int internetFailCnt = 0;
 
+	
+	/** The loginfailcntbarrier after the counter reaches this number the login is claimed to fail. */
+	public static int LOGINFAILCNTBARRIER = 5;
+	
 	/**
 	 * The connection flag tells if Login was ok. It is evaluated in Main for
 	 * the info message.
 	 */
-	public static boolean loginOk = true;
+	public static int loginFailCnt = 0;
 
 	/**
 	 * The connection flag tells if the account is not activated. It is
@@ -204,7 +212,7 @@ public class Communicator {
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
 						if (isResponseValid(response)) {
-							internetOk = true;
+							internetFailCnt = 0;
 							final String response2 = response;
 							// Log.d("communicator",
 							// "RECEIVED NEW MESSAGES WAITING: "
@@ -259,7 +267,7 @@ public class Communicator {
 								}
 							}
 						} else {
-							internetOk = false;
+							internetFailCnt++;
 						}
 					}
 				}));
@@ -369,7 +377,7 @@ public class Communicator {
 						// we cannot find the lastKeyMessageMid!
 						DB.updateMessageReceived(context, mid, ts, senderUid);
 						updateSentReceivedReadAsync(context, mid, senderUid,
-								false, true, false, false);
+								false, true, false, false, false);
 
 					}
 				}
@@ -385,6 +393,13 @@ public class Communicator {
 					int mid = Utility.parseInt(midAndTs[0], -1);
 					int senderUid = DB.getHostUidForMid(context, mid);
 					String ts = midAndTs[1];
+					boolean failed = false;
+					if (ts != null && ts.startsWith("-")) {
+						// This indicates a FAILED TO DECRYPT message => flag this here
+						// make ts positive, it is the read timestamp still!
+						ts = ts.substring(1);
+						failed = true;
+					}
 					Log.d("communicator", " UPDATE MESSAGE READ: mid=" + mid
 							+ ", senderUid=" + senderUid);
 					if (mid != -1 && serverId != -1) {
@@ -395,12 +410,18 @@ public class Communicator {
 						// read confirmation!!!
 						DB.removeMappingByMid(context, mid);
 
-						DB.updateMessageRead(context, mid, ts, senderUid);
-						// FIXME: THIS SEEMS ULTRA-WRONG???? OLD CODE???
-						// DB.updateMessageSystem(context, mid, true,
-						// senderUid);
-						updateSentReceivedReadAsync(context, mid, senderUid,
-								false, false, true, false);
+						if (failed) {
+							// Flag decryption failed again by using negative read TS
+							DB.updateMessageRead(context, mid, "-"+ts, senderUid);
+							updateSentReceivedReadAsync(context, mid, senderUid,
+									false, false, false, false, true);
+						} else {
+							// Everything ok
+							DB.updateMessageRead(context, mid, ts, senderUid);
+							updateSentReceivedReadAsync(context, mid, senderUid,
+									false, false, true, false, false);
+						}
+						
 					}
 				}
 			}
@@ -429,7 +450,7 @@ public class Communicator {
 	 */
 	public static void updateSentReceivedReadAsync(final Context context,
 			final int mid, final int hostUid, final boolean sent,
-			final boolean received, final boolean read, final boolean withdraw) {
+			final boolean received, final boolean read, final boolean withdraw, final boolean decryptionfailed) {
 		final Handler mUIHandler = new Handler(Looper.getMainLooper());
 		mUIHandler.post(new Thread() {
 			@Override
@@ -448,7 +469,10 @@ public class Communicator {
 							// Log.d("communicator",
 							// "WITHDRAW updateSentReceivedReadAsync() #2");
 
-							if (read) {
+							if (decryptionfailed) {
+								Conversation.setDecryptionFailed(context, mid);
+							}
+							else if (read) {
 								Conversation.setRead(context, mid);
 							} else if (received) {
 								Conversation.setReceived(context, mid);
@@ -529,12 +553,12 @@ public class Communicator {
 							if (response.equals("0")) {
 								haveNewMessages = false;
 								resposeError = false;
-								loginOk = true;
+								loginFailCnt = 0;
 								// We currently do not need to look for new
 								// messages
 							} else if (isResponsePositive(response)) {
 								resposeError = false;
-								loginOk = true;
+								loginFailCnt = 0;
 								// Log.d("communicator",
 								// "RECEIVE NEXT MESSAGE OK!!! "
 								// + response);
@@ -700,17 +724,20 @@ public class Communicator {
 												success2 = false;
 											}
 
-											if (newItem.text
-													.contains("[ invalid session key ")
-													|| newItem.text
-															.contains("[ decryption failed ]")) {
-												// We should try to update the
-												// public rsa key of this user
-												Communicator.updateKeysFromServer(
-														context,
-														Main.loadUIDList(context),
-														true, null, serverId);
-											}
+											// THE FOLLOWING IS ALEADY DONE SELECTIVELY FOR THIS
+											// USER IN HANDLETEXT!
+											// if (newItem.text
+											// .contains("[ invalid session key ")
+											// || newItem.text
+											// .contains("[ decryption failed ]"))
+											// {
+											// // We should try to update the
+											// // public rsa key of this user
+											// Communicator.updateKeysFromServer(
+											// context,
+											// Main.loadUIDList(context),
+											// true, null, serverId);
+											// }
 										} else {
 											// Discard means no live update
 											// please...
@@ -721,7 +748,7 @@ public class Communicator {
 							} else {
 								// Invalidate right away
 								Setup.invalidateTmpLogin(context, serverId);
-								loginOk = false;
+								loginFailCnt++;
 								Log.d("communicator",
 										"RECEIVE NEXT MESSAGE - LOGIN ERROR!!! "
 												+ response);
@@ -850,7 +877,7 @@ public class Communicator {
 						senderUid = -1;
 					}
 					updateSentReceivedReadAsync(context, mid, senderUid, false,
-							false, false, true);
+							false, false, true, false);
 				}
 			}
 			text = "";
@@ -953,6 +980,9 @@ public class Communicator {
 							"Received invalid session key from "
 									+ Main.UID2Name(context, newItem.from,
 											false) + ".");
+					
+					// Try to receive RSA Key (if we have internet connection...)
+					Communicator.getKeyFromServer(context, newItem.from, null, serverId);
 				}
 			} else {
 				possiblyInvalid = "invalid ";
@@ -977,8 +1007,25 @@ public class Communicator {
 			// Decrypt here
 			Key secretKey = Setup.getAESKey(context, newItem.from);
 			text = decryptAESMessage(context, text, secretKey);
+			
+			if (text == null) {
+				// DECRYPTION with current key failed, now try the backup key we might have
+				// before claiming this message to be failed to decrypted!
+				Key secretKeyBackup = Setup.getAESKeyBackup(context, newItem.from);
+				if (secretKeyBackup != null) {
+					text = decryptAESMessage(context, text, secretKey);
+				}
+			}
+			
+			// FAKE DECRYPTION ERROR HERE
+			//text = null;
 
 			if (text == null) {
+				// So ... if this still failed, then we might not have the corrent backup key
+				// or the wrong RSA key?! ... at least we will no tell the sender that we could
+				// not decrypt his message. He may then decide to resend it!
+				sendSystemMessageFailed(context, newItem.from, newItem.mid);
+				
 				text = "[ decryption failed ]";
 				int numInvalid = Utility.loadIntSetting(context,
 						"invalidkeycounter" + newItem.from, 0);
@@ -988,10 +1035,16 @@ public class Communicator {
 					// ONE TIME REQUEST NEW KEY AUTOMATICALLY ... do this only
 					// once because if we have the wrong RSA key this
 					// might trigger a cycle forever!!!
-					// DO THIS AFTER 10 Sek to allow receiving a new RSA key
-					// before .. this is NOT bullet safe!
+
+					// Invalidate the counter
 					Utility.saveIntSetting(context, "invalidkeycounter"
 							+ newItem.from, 1);
+					
+					// Try to receive RSA Key (if we have internet connection...)
+					Communicator.getKeyFromServer(context, newItem.from, null, serverId);
+					
+					// DO THIS AFTER 10 Sek to allow receiving a new RSA key
+					// before .. this is NOT bullet safe!
 					(new Thread(new Runnable() {
 						public void run() {
 							try {
@@ -1449,10 +1502,20 @@ public class Communicator {
 			Log.d("communicator", "#### SEND NEXT : TRY SMS MESSAGE ");
 		}
 
-		// Lookup only if we expect something to send
-		final ConversationItem itemToSend = DB.getNextMessage(context,
-				transport);
-
+		// If transport is INTERNET then use the NEXT server that we have messages
+		// to send for in a Round Robin fashion. If transport is SMS stick with
+		// serverId -1.
+		ConversationItem itemToSend = null; 
+		if (transport == DB.TRANSPORT_INTERNET) {
+			// Get the next message considering all servers we have an account
+			// for in a RR style.
+			itemToSend = Setup.getNextSendingServerMessage(context);
+		} else {
+			// Lookup only if we expect something to send
+			itemToSend = DB.getNextMessage(context,
+					transport, -1);
+		}
+		
 		// Log.d("communicator",
 		// "SEND NEXT QUERY sendNextMessage(), itemToSend = " + itemToSend);
 
@@ -1777,7 +1840,7 @@ public class Communicator {
 												itemToSend.to, isSentKeyMessage);
 										updateSentReceivedReadAsync(context,
 												itemToSend.mid, to, true,
-												false, false, false);
+												false, false, false, false);
 										if (!itemToSend.system) {
 											if (Conversation.isVisible()
 													&& Conversation
@@ -1998,8 +2061,8 @@ public class Communicator {
 							+ Setup.getServerLabel(context, serverId, true)
 							+ "! (1) - Disabling Encryption!");
 			// Disable in settings
-			Utility.saveStringSetting(context, Setup.PUBKEY, null);
-			Utility.saveStringSetting(context, Setup.PRIVATEKEY, null);
+			Utility.saveStringSetting(context, Setup.PUBRSAKEY, null);
+			Utility.saveStringSetting(context, Setup.PRIVATERSAKEY, null);
 			Utility.saveBooleanSetting(context, Setup.OPTION_ENCRYPTION, false);
 			// Try to delete keys on all servers
 			Setup.disableEncryption(context);
@@ -2040,10 +2103,10 @@ public class Communicator {
 													serverId, true)
 											+ "! (2) - Disabling Encryption!");
 							// disable in settings
-							Utility.saveStringSetting(context, Setup.PUBKEY,
+							Utility.saveStringSetting(context, Setup.PUBRSAKEY,
 									null);
 							Utility.saveStringSetting(context,
-									Setup.PRIVATEKEY, null);
+									Setup.PRIVATERSAKEY, null);
 							Utility.saveBooleanSetting(context,
 									Setup.OPTION_ENCRYPTION, false);
 							// Try to delete keys on all servers
@@ -2720,6 +2783,37 @@ public class Communicator {
 		if (uid >= 0 && mid != -1) {
 			DB.addSendMessage(context, uid, "R" + mid, false,
 					DB.TRANSPORT_INTERNET, true, DB.PRIORITY_READCONFIRMATION);
+			Communicator
+					.sendNewNextMessageAsync(context, DB.TRANSPORT_INTERNET);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Send system message failed. This message will tell the sender that his
+	 * message could not be decrypted.
+	 * System messages are sent over normal sending
+	 * interface, this way they will be sent automatically in order and iff
+	 * temporary login is okay. Both system messages will go to the server.
+	 * System messages can only go over internet (if available) modes: R == read
+	 * (these are processed directly by the server) A == withdraw (these are
+	 * processed and come also back as W-messages)
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param mid
+	 *            the mid
+	 */
+	public static void sendSystemMessageFailed(final Context context,
+			final int uid, final int mid) {
+		// uid = user from which we have read messages
+		// mid = largest mid that we have read
+		if (uid >= 0 && mid != -1) {
+			DB.addSendMessage(context, uid, "F" + mid, false,
+					DB.TRANSPORT_INTERNET, true, DB.PRIORITY_FAILEDTODECRYPT);
 			Communicator
 					.sendNewNextMessageAsync(context, DB.TRANSPORT_INTERNET);
 		}

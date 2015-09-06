@@ -1926,6 +1926,41 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Sets the decryption failed status for a displayed message. This is, it
+	 * has been received and tried to read but with no luck on decryption. The
+	 * read TS is therefore negative as an indicator.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 */
+	public static void setDecryptionFailed(Context context, int mid) {
+		if (!Utility.loadBooleanSetting(context, Setup.OPTION_NOREAD,
+				Setup.DEFAULT_NOREAD)) {
+			Conversation conversation = Conversation.getInstance();
+			if (Conversation.isAlive()) {
+				Mapping mappingItem = conversation.getMapping(context, mid);
+				if (mappingItem != null) {
+					// Rounded corners failed
+					mappingItem.oneline
+							.setBackgroundResource(R.drawable.rounded_cornersme_failed);
+					mappingItem.speech
+							.setImageResource(R.drawable.speechmefailed);
+
+					mappingItem.sent.setVisibility(View.GONE);
+					mappingItem.received.setVisibility(View.GONE);
+					mappingItem.read.setVisibility(View.VISIBLE);
+					mappingItem.read
+							.setImageResource(R.drawable.msgdecryptionfailed);
+				}
+			}
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
 	 * Sets the read status for a displayed message.
 	 * 
 	 * @param context
@@ -2038,7 +2073,17 @@ public class Conversation extends Activity {
 					received, read, conversationText, oneline, speech, null,
 					DB.NO_MULTIPART_ID, conversationlistitem);
 
-			if (conversationItem.read > 0
+			if (conversationItem.read < -10) {
+				// decryption failed
+				sent.setVisibility(View.GONE);
+				received.setVisibility(View.GONE);
+				read.setImageResource(R.drawable.msgdecryptionfailed);
+				
+				// Rounded corners failed
+				oneline.setBackgroundResource(R.drawable.rounded_cornersme_failed);
+				speech.setImageResource(R.drawable.speechmefailed);
+			}
+			else if (conversationItem.read > 0
 					&& !Utility.loadBooleanSetting(context,
 							Setup.OPTION_NOREAD, Setup.DEFAULT_NOREAD)) {
 				// only display read for the people that allow this
@@ -2680,7 +2725,7 @@ public class Conversation extends Activity {
 						}
 					});
 		}
-		
+
 		// Update
 		if (maxScrollMessageItems == Setup.SHOW_ALL) {
 			imageContextMenuProvider.setVisible(menuContextShowAll, false);
@@ -3449,10 +3494,13 @@ public class Conversation extends Activity {
 	 * Possibly remove image attachments if too large. This is a convenience
 	 * method: It will not force to remove all images and it will substitue
 	 * removed images by an empty string.
-	 *
-	 * @param context            the context
-	 * @param text            the text
-	 * @param uid the uid
+	 * 
+	 * @param context
+	 *            the context
+	 * @param text
+	 *            the text
+	 * @param uid
+	 *            the uid
 	 * @return the string
 	 */
 	public static String possiblyRemoveImageAttachments(Context context,

@@ -52,7 +52,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Html;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
@@ -152,6 +156,13 @@ public class MessageDetailsActivity extends Activity {
 
 		TextView from = (TextView) dialogLayout.findViewById(R.id.from);
 		TextView to = (TextView) dialogLayout.findViewById(R.id.to);
+
+		TableRow.LayoutParams lpFromTo = new TableRow.LayoutParams(200,
+				LayoutParams.WRAP_CONTENT);
+		lpFromTo.gravity = Gravity.CENTER_VERTICAL;
+		from.setLayoutParams(lpFromTo);
+		to.setLayoutParams(lpFromTo);
+
 		TextView fromkey = (TextView) dialogLayout.findViewById(R.id.fromkey);
 		TextView tokey = (TextView) dialogLayout.findViewById(R.id.tokey);
 
@@ -215,24 +226,48 @@ public class MessageDetailsActivity extends Activity {
 		activityTitle = "Message Details" + msgIdString;
 
 		int serverId = -1;
+		String fromKeyString = "";
+		String toKeyString = "";
 		if (updatedItem.me()) {
 			// from me
-			fromkey.setText("Account Key: " + Setup.getPublicKeyHash(context));
-			tokey.setText("Account Key: "
-					+ Setup.getKeyHash(context, updatedItem.to));
+			fromKeyString = "Account Key: " + Setup.getPublicKeyHash(context);
+			toKeyString = "Account Key: "
+					+ Setup.getKeyHash(context, updatedItem.to);
 			serverId = Setup.getServerId(context, updatedItem.to);
 		} else {
 			// to me
-			fromkey.setText("Account Key: "
-					+ Setup.getKeyHash(context, updatedItem.from));
-			tokey.setText("Account Key: " + Setup.getPublicKeyHash(context));
+			fromKeyString = "Account Key: "
+					+ Setup.getKeyHash(context, updatedItem.from);
+			toKeyString = "Account Key: " + Setup.getPublicKeyHash(context);
 			serverId = Setup.getServerId(context, updatedItem.from);
 		}
+		
+		String fromName = Main.UID2Name(context, updatedItem.from, true, false,
+				serverId);
+		String toName = Main
+				.UID2Name(context, updatedItem.to, true, false, serverId);
+		
+		int fromNameServerStartIndex = fromName.indexOf("@");
+		int toNameServerStartIndex = toName.indexOf("@");
+		
+		if (fromNameServerStartIndex > 0) {
+			String server = fromName.substring(fromNameServerStartIndex + 1).trim();
+			fromKeyString = "Server: " + server + "\n" + fromKeyString;
+			fromName = fromName.substring(0, fromNameServerStartIndex);
+		}
+		if (toNameServerStartIndex > 0) {
+			String server = toName.substring(toNameServerStartIndex + 1).trim();
+			toKeyString = "Server: " + server + "\n" + toKeyString;
+			toName = toName.substring(0, toNameServerStartIndex);
+		}
+		
+		fromkey.setText(fromKeyString);
+		tokey.setText(toKeyString);
 
-		from.setText(Main.UID2Name(context, updatedItem.from, true, false,
-				serverId));
-		to.setText(Main
-				.UID2Name(context, updatedItem.to, true, false, serverId));
+		
+		
+		from.setText(fromName);
+		to.setText(toName);
 
 		created.setText(DB.getDateString(updatedItem.created, true));
 		sent.setText(DB.getDateString(updatedItem.sent, true));
@@ -254,15 +289,15 @@ public class MessageDetailsActivity extends Activity {
 				sendingreceivingprogress.setProgress(percentSent);
 				String position = "#"
 						+ DB.getPositionInSendingQueue(context,
-								updatedItem.transport, updatedItem.localid)
-						+ " in Sending Queue";
+								updatedItem.transport, updatedItem.localid,
+								serverId) + " in Sending Queue";
 				// Number of tries
 				String tries = updatedItem.tries + "x tried to send";
 				if (numTotal > 1) {
-					sendingreceiving.setText(position + "\n" + tries + "\n" + percentSent
-							+ "%, " + numSent + " / " + numTotal);
+					sendingreceiving.setText(position + "\n" + tries + "\n"
+							+ percentSent + "%, " + numSent + " / " + numTotal);
 				} else {
-					sendingreceiving.setText(position  + "\n" + tries);
+					sendingreceiving.setText(position + "\n" + tries);
 					sendingreceivingprogress.setVisibility(View.GONE);
 				}
 			}
@@ -293,12 +328,23 @@ public class MessageDetailsActivity extends Activity {
 		}
 
 		if (updatedItem.smsfailed) {
-			sent.setText(DB.SMS_FAILED);
+			String failureString = " <font color='DD0000'>" + DB.SMS_FAILED
+					+ "</font>";
+			sent.setText(Html.fromHtml(failureString));
 			sendingreceivingparent.setVisibility(View.GONE);
 		}
 
 		received.setText(DB.getDateString(updatedItem.received, true));
 		read.setText(DB.getDateString(updatedItem.read, true));
+
+		if (updatedItem.read < -10) {
+			// decryption failed
+			String failureString = " <font color='#DD0000'>"
+					+ "DECRYPTION FAILED</font><BR>"
+					+ DB.getDateString(Math.abs(updatedItem.read), true);
+			read.setText(Html.fromHtml(failureString));
+		}
+
 		withdrawn.setText(DB.getDateString(updatedItem.withdraw, true));
 
 		if (updatedItem.transport == DB.TRANSPORT_INTERNET) {
@@ -549,10 +595,9 @@ public class MessageDetailsActivity extends Activity {
 
 		buttonresend.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				if (resendMessage(conversationItem)) {
-					alertDialog.dismiss();
-					activity.finish();
-				}
+				resendMessage(conversationItem);
+				alertDialog.dismiss();
+				activity.finish();
 			}
 		});
 
@@ -627,14 +672,13 @@ public class MessageDetailsActivity extends Activity {
 		Utility.setBackground(context, outerLayout, R.drawable.dolphins3light);
 		Utility.setBackground(context, buttonLayout, R.drawable.dolphins4light);
 
-		if ((!conversationItem.me())
-				|| conversationItem.transport == DB.TRANSPORT_SMS
-				|| conversationItem.withdraw > 10) {
+		if ((!updatedItem.me()) || updatedItem.transport == DB.TRANSPORT_SMS
+				|| updatedItem.withdraw > 10 || (updatedItem.read < -10)) {
 			buttonWithdraw.setEnabled(false);
 			buttonWithdraw.setVisibility(View.GONE);
 		}
 
-		if (!conversationItem.smsfailed) {
+		if (!updatedItem.smsfailed && !(updatedItem.read < -10)) {
 			buttonresend.setVisibility(View.GONE);
 		}
 	}
@@ -642,25 +686,35 @@ public class MessageDetailsActivity extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Resend SMS message. This method is currently used only for resending
-	 * previously failed SMS.
+	 * Resend failed SMS or decryption failed message.
 	 * 
 	 * @param conversationItem
 	 *            the conversation item
 	 * @return true, if successful
 	 */
-	public boolean resendMessage(ConversationItem conversationItem) {
-		String messageTextString = conversationItem.text;
-		boolean encrypted = conversationItem.encrypted;
-		int transport = conversationItem.transport;
+	public void resendMessage(ConversationItem conversationItem) {
+		final String messageTextString = conversationItem.text;
+		final boolean encrypted = conversationItem.encrypted;
+		final int transport = conversationItem.transport;
 
-		if (DB.addSendMessage(context, hostUid, messageTextString, encrypted,
-				transport, false, DB.PRIORITY_MESSAGE)) {
-			Conversation.updateConversationlistAsync(context);
-			Communicator.sendNewNextMessageAsync(context, transport);
-			return true;
-		}
-		return false;
+		// Do the following async, so that we already have scrolled back
+		// to the original position after closing the
+		// message details window before we will re-send this
+		// message.
+
+		final Handler mUIHandler = new Handler(Looper.getMainLooper());
+		mUIHandler.postDelayed(new Thread() {
+			@Override
+			public void run() {
+				super.run();
+				if (DB.addSendMessage(context, hostUid, messageTextString,
+						encrypted, transport, false, DB.PRIORITY_MESSAGE)) {
+					Conversation.updateConversationlistAsync(context);
+					Communicator.sendNewNextMessageAsync(context, transport);
+				}
+			}
+		}, 2000);
+
 	}
 
 	// ------------------------------------------------------------------------

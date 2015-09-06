@@ -104,10 +104,9 @@ public class Scheduler extends BroadcastReceiver {
 		if (action != null && action.endsWith("USER_PRESENT")) {
 			// IF THE SCREEN TURNS ON AND WE ARE STILL IN CONVERSATION ... THEN
 			// UPDATE THESE IMMEDIATELY
-
-			// We do not want sending messages here to prevent any
-			// double-sending
-			update(context, true);
+			
+			// DEBUG : SHOULD ALSO WORK WITHOUT THIS...
+			return;
 		}
 
 		// The scheduler must be called again at a later time
@@ -271,7 +270,7 @@ public class Scheduler extends BroadcastReceiver {
 			utcTime = new Date().getTime();
 			alarmUtcTime = utcTime + timeToSleep;
 
-			// Clear all schedules alarm events. 
+			// Clear all schedules alarm events.
 			AlarmManager alarmManager = (AlarmManager) context
 					.getSystemService(Service.ALARM_SERVICE);
 
@@ -297,8 +296,8 @@ public class Scheduler extends BroadcastReceiver {
 	// UPDATE
 	private static void update(final Context context, final boolean onlyReceive) {
 		// Switch to the next server in a round robin style
-		final int serverId = Setup.getServerId(Setup.getNextServer(context));
-		
+		final int serverId = Setup.getServerId(Setup.getNextReceivingServer(context));
+
 		// If a message previously sent, try to send the next message with
 		// priority
 		// only if no message is to send, try to receive a message,
@@ -351,22 +350,26 @@ public class Scheduler extends BroadcastReceiver {
 							// the message that needs to be sent
 							Communicator.sendNextMessage(context);
 						}
-						Communicator.haveNewMessagesAndReceive(context, serverId);
+						Communicator.haveNewMessagesAndReceive(context,
+								serverId);
 					} else if (Communicator.messageReceived) {
-						Communicator.haveNewMessagesAndReceive(context, serverId);
+						Communicator.haveNewMessagesAndReceive(context,
+								serverId);
 					} else if (Main.isVisible() || Conversation.isVisible()) {
 						// Only update receive info & read info if in
 						// conversation!
 						if (!onlyReceive) {
 							Communicator.sendNextMessage(context);
 						}
-						Communicator.haveNewMessagesAndReceive(context, serverId);
+						Communicator.haveNewMessagesAndReceive(context,
+								serverId);
 					} else {
 						// Background service only send & receive messages
 						if (!onlyReceive) {
 							Communicator.sendNextMessage(context);
 						}
-						Communicator.haveNewMessagesAndReceive(context, serverId);
+						Communicator.haveNewMessagesAndReceive(context,
+								serverId);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();

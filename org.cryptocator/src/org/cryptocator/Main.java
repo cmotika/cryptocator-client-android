@@ -514,7 +514,7 @@ public class Main extends Activity {
 		Communicator.updateKeysFromAllServers(context, uidList, true, null);
 		Communicator.updatePhonesFromAllServers(context, uidList, true);
 		// Force check Internet and account login information
-		int serverId = Setup.getServerId(Setup.getNextServer(context));
+		int serverId = Setup.getServerId(Setup.getNextReceivingServer(context));
 		Communicator.haveNewMessagesAndReceive(context, serverId);
 		Communicator.receiveNextMessage(context, serverId);
 		Setup.updateAttachmentAllServerLimits(context, true);
@@ -767,6 +767,20 @@ public class Main extends Activity {
 						serverId = Setup.getServerId((String) serverspinner
 								.getSelectedItem());
 					}
+
+					// Test is server is active and we have an account here!
+					if (!(Setup.isServerActive(context, serverId) && Setup
+							.isServerAccount(context, serverId))) {
+						Conversation
+								.promptInfo(
+										context,
+										"Canno Add User",
+										"You can only add a user from a server where" +
+										" you have an account. Make also sure that the" +
+										" server is currently not disabled.");
+						return;
+					}
+
 					int realUid = Setup.getUid(context, adduid, serverId);
 					boolean alreadyInList = alreadyInList(realUid, uidList);
 					if (realUid >= 0 && !alreadyInList) {
@@ -814,9 +828,9 @@ public class Main extends Activity {
 				// then display @host behind the name!
 				if (showMessageServerLabel && item.uid >= 0) {
 					int serverId = Setup.getServerId(context, item.uid);
-					name += " <small><font color='#777777'>@ "
+					name += " <font color='#777777'>@ "
 							+ Setup.getServerLabel(context, serverId, true)
-							+ "</font>";
+							+ "</font>"; // not <small>
 				}
 
 				String lastMessage = Conversation
@@ -947,6 +961,7 @@ public class Main extends Activity {
 		TextView userlistText = (TextView) userlistitem
 				.findViewById(R.id.userlisttext);
 
+		
 		userlistName.setText(Html.fromHtml(name));
 		userlistDate.setText(date);
 		userlistText.setText(lastMessage);
@@ -1255,6 +1270,8 @@ public class Main extends Activity {
 		Setup.saveKey(context, uid, null);
 		Setup.savePhone(context, uid, null, false);
 		Setup.setKeyDate(context, uid, null);
+		// Call this twice to also delete the backup AES key!
+		Setup.saveAESKey(context, uid, null);
 		Setup.saveAESKey(context, uid, null);
 		Setup.setAESKeyDate(context, uid, null, DB.TRANSPORT_INTERNET);
 		Setup.setAESKeyDate(context, uid, null, DB.TRANSPORT_SMS);
@@ -1813,13 +1830,13 @@ public class Main extends Activity {
 	 */
 	public void updateInfo(final Context context) {
 		String message = null;
-		if (!Communicator.internetOk) {
+		if (Communicator.internetFailCnt > Communicator.INTERNETFAILCNTBARRIER) {
 			message = "No Internet Connection or Server Error";
 		} else if (Setup.noAccountYet(context)) {
 			message = "No Account Defined Yet";
 		} else if (Communicator.accountNotActivated) {
 			message = "Account Not Activated - Check Your Email";
-		} else if (!Communicator.loginOk) {
+		} else if (Communicator.loginFailCnt > Communicator.LOGINFAILCNTBARRIER) {
 			message = "Login Error - Check Account Settings";
 		} else if (!Setup.isSMSDefaultApp(context, false)
 				&& (Setup.isSMSDefaultApp(context, true))) {
