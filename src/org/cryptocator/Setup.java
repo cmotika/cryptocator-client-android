@@ -979,8 +979,7 @@ public class Setup extends Activity {
 					updateAttachmentServerLimit(context, true, selectedServerId);
 					// If the user has enabled encryption, update his key cause
 					// this was skipped - ask before if the server is still
-					// active
-					// or alrady has been flagged as non reachable by
+					// active or already has been flagged as non reachable by
 					// updateServerkey()!
 					if (isEncryptionEnabled(context)
 							&& isServerActive(context, selectedServerId)) {
@@ -1654,8 +1653,9 @@ public class Setup extends Activity {
 	 */
 	private void updateServerImage(Context context, boolean userClickedActivate) {
 		boolean active = isServerActive(context, selectedServerId);
+		boolean haveaccount = isServerAccount(context, selectedServerId);
 
-		if (active) {
+		if (active && haveaccount) {
 			if (serverdisabled != null) {
 				serverdisabled.setVisibility(View.GONE);
 				if (serverdisabled.isChecked()) {
@@ -1759,7 +1759,7 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Update account locked. Count down the number of times the user cliks on
+	 * Update account locked. Count down the number of times the user clicks on
 	 * the account login information. If it was more than the initial
 	 * accountLocked valued (we count down to 0), then unlock the user
 	 * information text input fields but prompt a warning.
@@ -2164,6 +2164,7 @@ public class Setup extends Activity {
 		}
 
 		Utility.saveStringSetting(context, SERVER_UID + serverId, uidString);
+		cachedServerAccount.put(serverId, uidString.trim().length() > 0);
 		Utility.saveStringSetting(context, SERVER_EMAIL + serverId, emailString);
 		Utility.saveStringSetting(context, SERVER_PWD + serverId, pwdString);
 
@@ -2644,6 +2645,9 @@ public class Setup extends Activity {
 								// UID
 								Utility.saveStringSetting(context, SERVER_UID
 										+ serverId, newUID);
+								cachedServerAccount.put(serverId, true);
+							} else {
+								cachedServerAccount.put(serverId, false);
 							}
 							final Handler mUIHandler = new Handler(Looper
 									.getMainLooper());
@@ -3317,7 +3321,7 @@ public class Setup extends Activity {
 			// send public key to all servers
 			String keyHash = getPublicKeyHash(context);
 			for (int serverId : getServerIds(context)) {
-				if (Setup.isServerActive(context, serverId)) {
+				if (Setup.isServerAccount(context, serverId)) {
 					Communicator.sendKeyToServer(context, encodedpublicKey,
 							keyHash, serverId);
 				}
@@ -3367,7 +3371,7 @@ public class Setup extends Activity {
 		Utility.saveStringSetting(context, Setup.PUBKEY, null);
 		Utility.saveStringSetting(context, Setup.PRIVATEKEY, null);
 		for (int serverId : getServerIds(context)) {
-			if (Setup.isServerActive(context, serverId)) {
+			if (Setup.isServerAccount(context, serverId)) {
 				Communicator.clearKeyFromServer(context, keyHash, serverId);
 			}
 		}
@@ -4792,7 +4796,7 @@ public class Setup extends Activity {
 	 */
 	public static void updateAllServerkeys(final Context context) {
 		for (int serverId : getServerIds(context)) {
-			if (isServerActive(context, serverId)) {
+			if (isServerAccount(context, serverId)) {
 				updateServerkey(context, serverId, true);
 			}
 		}
@@ -4847,8 +4851,6 @@ public class Setup extends Activity {
 											"Server '"
 													+ baseUrl
 													+ "' not reachable. It will be disabled.");
-									// Disable
-									setServerActive(context, serverId, false);
 								}
 
 								// Log.d("communicator",
@@ -5277,7 +5279,7 @@ public class Setup extends Activity {
 	public static void updateAttachmentAllServerLimits(final Context context,
 			boolean forceUpdate) {
 		for (int serverId : getServerIds(context)) {
-			if (isServerActive(context, serverId)) {
+			if (isServerAccount(context, serverId)) {
 				updateAttachmentServerLimit(context, forceUpdate, serverId);
 			}
 		}
@@ -5590,7 +5592,8 @@ public class Setup extends Activity {
 			}
 			String serverAddress = serverList.get(serverIndex);
 			int serverId = getServerId(serverAddress);
-			if (isServerActive(context, serverId)) {
+			if (isServerActive(context, serverId)
+					&& isServerAccount(context, serverId)) {
 				Utility.saveIntSetting(context, Setup.SERVERLASTRRID,
 						serverIndex);
 				returnServerAddress = serverAddress;
@@ -5616,17 +5619,40 @@ public class Setup extends Activity {
 
 	public static boolean isServerActive(Context context, int serverId) {
 		if (!cachedServerActive.containsKey(serverId)) {
-			boolean serverActive = true;
-			String uidString = Utility.loadStringSetting(context, SERVER_UID
-					+ serverId, "");
-			// No account at this server, this server is automatically deactive
-			serverActive = serverActive && uidString.equals("");
-			serverActive = serverActive
-					&& Utility.loadBooleanSetting(context, Setup.SERVER_ACTIVE
-							+ serverId, SERVER_ACTIVEDEFAULT);
+			boolean serverActive = Utility.loadBooleanSetting(context,
+					Setup.SERVER_ACTIVE + serverId, SERVER_ACTIVEDEFAULT);
 			cachedServerActive.put(serverId, serverActive);
 		}
 		return cachedServerActive.get(serverId);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/** The cached server active flag from serverid. */
+	private static HashMap<Integer, Boolean> cachedServerAccount = new HashMap<Integer, Boolean>();
+
+	/**
+	 * Checks if there exists an account for this server. If no account for a
+	 * server is registered we won't check it, won't download server keys or
+	 * upload our rsa key to this server. We DO THIS for disabled servers
+	 * because we would like to enable other users of a disabled server to write
+	 * messages to us.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param serverId
+	 *            the server id
+	 * @return true, if is server account
+	 */
+	public static boolean isServerAccount(Context context, int serverId) {
+		if (!cachedServerAccount.containsKey(serverId)) {
+			String uidString = Utility.loadStringSetting(context, SERVER_UID
+					+ serverId, "");
+			// No account at this server, this server is automatically deactive
+			boolean serverAccount = !uidString.equals("");
+			cachedServerAccount.put(serverId, serverAccount);
+		}
+		return cachedServerAccount.get(serverId);
 	}
 
 	// ------------------------------------------------------------------------
@@ -5828,14 +5854,13 @@ public class Setup extends Activity {
 	 */
 	public static String getServerLabel(Context context, int serverId,
 			boolean forceDisplay) {
+		if (serverId == -1) {
+			return "";
+		}
+		if (getServers(context).size() < 2 && !forceDisplay) {
+			return "";
+		}
 		if (!cachedServerLabel.containsKey(serverId)) {
-
-			if (getServers(context).size() < 2 && !forceDisplay) {
-				return "";
-			}
-			if (serverId == -1) {
-				return "";
-			}
 			String returnLabel = getServer(context, serverId).replace(
 					"http://", "").replace("www.", "");
 

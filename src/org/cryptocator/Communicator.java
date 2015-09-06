@@ -238,7 +238,8 @@ public class Communicator {
 								}
 							} else {
 								// NORMAL PROCESSING - 0##...##... or
-								// 1##...##... (the latter means we HAVE messages to receive!)
+								// 1##...##... (the latter means we HAVE
+								// messages to receive!)
 								String responseTail = response2.substring(3);
 								Log.d("communicator",
 										"RESPONSE HAVE PROCESS TAIL: "
@@ -339,7 +340,8 @@ public class Communicator {
 			String response, int serverId) {
 
 		String[] values = response.split("##");
-		//Log.d("communicator", " UPDATE MESSAGE RECEIVED/READ: valuesSize=" + values.length);
+		// Log.d("communicator", " UPDATE MESSAGE RECEIVED/READ: valuesSize=" +
+		// values.length);
 		if (values.length == 2) {
 			String partReceived = values[0];
 			String partRead = values[1];
@@ -347,12 +349,15 @@ public class Communicator {
 			String[] valuesReceived = partReceived.split("#");
 			for (String valueReceived : valuesReceived) {
 				String midAndTs[] = valueReceived.split("@");
-				//Log.d("communicator", " UPDATE MESSAGE RECEIVED: midAndTs["+valueReceived+"]=" + midAndTs.length);
+				// Log.d("communicator",
+				// " UPDATE MESSAGE RECEIVED: midAndTs["+valueReceived+"]=" +
+				// midAndTs.length);
 				if (midAndTs.length == 2) {
 					int mid = Utility.parseInt(midAndTs[0], -1);
 					int senderUid = DB.getHostUidForMid(context, mid);
 					String ts = midAndTs[1];
-					Log.d("communicator", " UPDATE MESSAGE RECEIVED: mid=" + mid + ", senderUid=" + senderUid );
+					Log.d("communicator", " UPDATE MESSAGE RECEIVED: mid="
+							+ mid + ", senderUid=" + senderUid);
 					if (mid != -1 && serverId != -1) {
 						DB.updateLargestTimestampReceived(context, ts, serverId);
 					}
@@ -373,17 +378,21 @@ public class Communicator {
 			String[] valuesRead = partRead.split("#");
 			for (String valueRead : valuesRead) {
 				String midAndTs[] = valueRead.split("@");
-				//Log.d("communicator", " UPDATE MESSAGE READ: midAndTs["+valueRead+"]=" + midAndTs.length);
+				// Log.d("communicator",
+				// " UPDATE MESSAGE READ: midAndTs["+valueRead+"]=" +
+				// midAndTs.length);
 				if (midAndTs.length == 2) {
 					int mid = Utility.parseInt(midAndTs[0], -1);
 					int senderUid = DB.getHostUidForMid(context, mid);
 					String ts = midAndTs[1];
-					Log.d("communicator", " UPDATE MESSAGE READ: mid=" + mid + ", senderUid=" + senderUid );
+					Log.d("communicator", " UPDATE MESSAGE READ: mid=" + mid
+							+ ", senderUid=" + senderUid);
 					if (mid != -1 && serverId != -1) {
 						DB.updateLargestTimestampRead(context, ts, serverId);
 					}
 					if (mid != -1 && senderUid != -1) {
-						// ONLY remove the mapping if we know we processed the read confirmation!!!
+						// ONLY remove the mapping if we know we processed the
+						// read confirmation!!!
 						DB.removeMappingByMid(context, mid);
 
 						DB.updateMessageRead(context, mid, ts, senderUid);
@@ -2127,7 +2136,7 @@ public class Communicator {
 			final List<Integer> uidList, final boolean forceUpdate,
 			final Main.UpdateListener updateListener) {
 		for (int serverId : Setup.getServerIds(context)) {
-			if (Setup.isServerActive(context, serverId)) {
+			if (Setup.isServerAccount(context, serverId)) {
 				updateKeysFromServer(context, uidList, forceUpdate,
 						updateListener, serverId);
 			}
@@ -2287,7 +2296,7 @@ public class Communicator {
 	public static void updatePhonesFromAllServers(final Context context,
 			final List<Integer> uidList, final boolean forceUpdate) {
 		for (int serverId : Setup.getServerIds(context)) {
-			if (Setup.isServerActive(context, serverId)) {
+			if (Setup.isServerAccount(context, serverId)) {
 				updatePhonesFromServer(context, uidList, forceUpdate, serverId);
 			}
 		}
