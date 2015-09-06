@@ -524,7 +524,8 @@ public class Main extends Activity {
 			Main.getInstance().mainBackground.postDelayed(new Runnable() {
 				public void run() {
 					for (int serverId : Setup.getServerIds(context)) {
-						if (Setup.isServerActive(context, serverId)) {
+						if (Setup.isServerAccount(context, serverId)
+								&& Setup.isServerActive(context, serverId)) {
 							updateUID2Name(context, uidList, serverId);
 						}
 					}
