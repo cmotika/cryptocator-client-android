@@ -461,10 +461,13 @@ public class Setup extends Activity {
 	public static final boolean DEFAULT_SMSMODE = false;
 
 	/** The Constant PUBKEY for saving/loading the public RSA key. */
-	public static final String PUBKEY = "pk";
+	public static final String PUBRSAKEY = "pk";
 
 	/** The Constant PRIVATEKEY for saving/loading the private RSA key. */
-	public static final String PRIVATEKEY = "k";
+	public static final String PRIVATERSAKEY = "k";
+
+	/** The Constant AESKEY for session key backups. */
+	public static final String AESKEYBAK = "aesbak";
 
 	/** The Constant AESKEY for session keys. */
 	public static final String AESKEY = "aes";
@@ -499,8 +502,11 @@ public class Setup extends Activity {
 	/** The Constant SERVER_ACTIVE. */
 	public static final String SERVER_ACTIVE = "serveractive";
 
-	/** The Constant for the saved round robin server id. */
-	public static final String SERVERLASTRRID = "serverlastrrid";
+	/** The Constant for the saved round robin server id for receiving messages. */
+	public static final String SERVERLASTRRIDRECEIVE = "serverlastrridreceive";
+
+	/** The Constant for the saved round robin server id for sending messages. */
+	public static final String SERVERLASTRRIDSEND = "serverlastrridsend";
 
 	/** The Constant SERVER_ACTIVEDEFAULT for new servers. */
 	public static final boolean SERVER_ACTIVEDEFAULT = true;
@@ -1804,7 +1810,7 @@ public class Setup extends Activity {
 						.promptInfo(
 								context,
 								"Changing Login Information",
-								"You are about to change the login information!\n\nIt is very curcial that you only change your login information if this is really required! All local data on you phone is linked to your account. If you switch to another account (user) you should clear all your contacts beforehand. Also note that your old account key becomes invalid and others might get into trouble sending you encrypted messages!\n\nDo not change your login information unless you really know what you are doing!");
+								"You are about to change the login information!\n\nIt is very crucial that you only change your login information if this is really required! All local data on you phone is linked to your account. If you switch to another account (user) you should clear all your contacts beforehand. Also note that your old account key becomes invalid and others might get into trouble sending you encrypted messages!\n\nDo not change your login information unless you really know what you are doing!");
 			}
 
 			newaccount.setEnabled(true);
@@ -3312,8 +3318,9 @@ public class Setup extends Activity {
 			String encodedprivateKey = Base64.encodeToString(
 					privateKey.getEncoded(), Base64.DEFAULT);
 
-			Utility.saveStringSetting(context, Setup.PUBKEY, encodedpublicKey);
-			Utility.saveStringSetting(context, Setup.PRIVATEKEY,
+			Utility.saveStringSetting(context, Setup.PUBRSAKEY,
+					encodedpublicKey);
+			Utility.saveStringSetting(context, Setup.PRIVATERSAKEY,
 					encodedprivateKey);
 
 			Log.d("communicator", "###### encodedpublicKey=" + encodedpublicKey);
@@ -3345,7 +3352,7 @@ public class Setup extends Activity {
 	 */
 	public boolean sendCurrentKeyToServer(Context context, int serverId) {
 		String encodedpublicKey = Utility.loadStringSetting(context,
-				Setup.PUBKEY, null);
+				Setup.PUBRSAKEY, null);
 		if (encodedpublicKey == null) {
 			return false;
 		}
@@ -3368,8 +3375,8 @@ public class Setup extends Activity {
 		Utility.saveBooleanSetting(context, Setup.OPTION_ENCRYPTION, false);
 		saveHaveAskedForEncryption(context, false);
 		String keyHash = getPublicKeyHash(context);
-		Utility.saveStringSetting(context, Setup.PUBKEY, null);
-		Utility.saveStringSetting(context, Setup.PRIVATEKEY, null);
+		Utility.saveStringSetting(context, Setup.PUBRSAKEY, null);
+		Utility.saveStringSetting(context, Setup.PRIVATERSAKEY, null);
 		for (int serverId : getServerIds(context)) {
 			if (Setup.isServerAccount(context, serverId)) {
 				Communicator.clearKeyFromServer(context, keyHash, serverId);
@@ -3470,8 +3477,16 @@ public class Setup extends Activity {
 	 * @param key
 	 *            the key
 	 */
-	public static void saveAESKey(Context context, int uid, String key) {
-		Utility.saveStringSetting(context, Setup.AESKEY + uid, key);
+	public static void saveAESKey(Context context, int uid, String newAESKey) {
+		// Before saving a NEW aes key, save the current one as a backup 
+		// maybe someone sends us a message encrypted with that old key
+		// if he did not receive our updated key early enough!
+		// This is only considered to be likely in the middle of an
+		// ongoing conversation. But this can happen once an hour so
+		// we want to be prepared!
+		String currentAESKey = Setup.getAESKeyAsString(context, uid);
+		Utility.saveStringSetting(context, Setup.AESKEYBAK + uid, currentAESKey);
+		Utility.saveStringSetting(context, Setup.AESKEY + uid, newAESKey);
 	}
 
 	// -------------------------------------------------------------------------
@@ -3531,6 +3546,55 @@ public class Setup extends Activity {
 		return sks;
 	}
 
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the Backup AES key as string. The backup is the rsa key used before
+	 * the current one. If a message cannot be decrypted we first try this
+	 * backup key before claiming a fail.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the AES key as string
+	 */
+	public static String getAESKeyBackupAsString(Context context, int uid) {
+		String encodedKey = Utility.loadStringSetting(context, Setup.AESKEYBAK
+				+ uid, "");
+		return encodedKey;
+	}
+
+	/**
+	 * Gets the Backup AES key. The backup is the rsa key used before
+	 * the current one. If a message cannot be decrypted we first try this
+	 * backup key before claiming a fail.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the AES key
+	 */
+	public static Key getAESKeyBackup(Context context, int uid) {
+		String encodedKey = getAESKeyBackupAsString(context, uid);
+		try {
+			if ((encodedKey != null && encodedKey.length() != 0)) {
+				byte[] decodedKey = Base64.decode(encodedKey, Base64.DEFAULT);
+				// rebuild key using SecretKeySpec
+				Key originalKey = new SecretKeySpec(decodedKey, 0,
+						decodedKey.length, "AES");
+				// PublicKey originalKey = KeyFactory.getInstance("RSA")
+				// .generatePublic(new X509EncodedKeySpec(decodedKey));
+				return originalKey;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	
 	// -------------------------------------------------------------------------
 
 	/**
@@ -3611,7 +3675,7 @@ public class Setup extends Activity {
 	 * @return the key date
 	 */
 	public static String getKeyDate(Context context, int uid) {
-		String keycreated = Utility.loadStringSetting(context, Setup.PUBKEY
+		String keycreated = Utility.loadStringSetting(context, Setup.PUBRSAKEY
 				+ "created" + uid, "");
 		if ((keycreated == null || keycreated.length() == 0)) {
 			return null;
@@ -3632,7 +3696,7 @@ public class Setup extends Activity {
 	 *            the keycreated
 	 */
 	public static void setKeyDate(Context context, int uid, String keycreated) {
-		Utility.saveStringSetting(context, Setup.PUBKEY + "created" + uid,
+		Utility.saveStringSetting(context, Setup.PUBRSAKEY + "created" + uid,
 				keycreated);
 	}
 
@@ -3649,7 +3713,7 @@ public class Setup extends Activity {
 	 *            the key
 	 */
 	public static void saveKey(Context context, int uid, String key) {
-		Utility.saveStringSetting(context, Setup.PUBKEY + uid, key);
+		Utility.saveStringSetting(context, Setup.PUBRSAKEY + uid, key);
 	}
 
 	// -------------------------------------------------------------------------
@@ -3664,7 +3728,8 @@ public class Setup extends Activity {
 	 * @return true, if successful
 	 */
 	public static boolean haveKey(Context context, int uid) {
-		String key = Utility.loadStringSetting(context, Setup.PUBKEY + uid, "");
+		String key = Utility.loadStringSetting(context, Setup.PUBRSAKEY + uid,
+				"");
 		boolean returnValue = false;
 		if ((key != null && key.length() != 0)) {
 			returnValue = true;
@@ -3684,7 +3749,7 @@ public class Setup extends Activity {
 	 * @return the key as string
 	 */
 	public static String getKeyAsString(Context context, int uid) {
-		String encodedKey = Utility.loadStringSetting(context, Setup.PUBKEY
+		String encodedKey = Utility.loadStringSetting(context, Setup.PUBRSAKEY
 				+ uid, "");
 		return encodedKey;
 	}
@@ -3772,8 +3837,8 @@ public class Setup extends Activity {
 	 * @return the public key as string
 	 */
 	public static String getPublicKeyAsString(Context context) {
-		String encodedKey = Utility
-				.loadStringSetting(context, Setup.PUBKEY, "");
+		String encodedKey = Utility.loadStringSetting(context, Setup.PUBRSAKEY,
+				"");
 		return encodedKey;
 	}
 
@@ -3837,7 +3902,7 @@ public class Setup extends Activity {
 	 */
 	public static PrivateKey getPrivateKey(Context context) {
 		String encodedKey = Utility.loadStringSetting(context,
-				Setup.PRIVATEKEY, "");
+				Setup.PRIVATERSAKEY, "");
 		if ((encodedKey != null && encodedKey.length() != 0)) {
 			byte[] decodedKey = Base64.decode(encodedKey, Base64.DEFAULT);
 			// rebuild key using SecretKeySpec
@@ -4838,12 +4903,12 @@ public class Setup extends Activity {
 													+ getServerkeyAsString(
 															context, serverId)
 													+ "'");
-									Communicator.internetOk = true;
+									Communicator.internetFailCnt = 0;
 								} else {
-									Communicator.internetOk = false;
+									Communicator.internetFailCnt++;
 								}
 							} else {
-								Communicator.internetOk = false;
+								Communicator.internetFailCnt++;
 
 								if (!silent) {
 									Utility.showToastAsync(
@@ -5568,9 +5633,9 @@ public class Setup extends Activity {
 	 *            the context
 	 * @return the next server
 	 */
-	public static String getNextServer(Context context) {
+	public static String getNextReceivingServer(Context context) {
 		int lastServerIndex = Utility.loadIntSetting(context,
-				Setup.SERVERLASTRRID, 0);
+				Setup.SERVERLASTRRIDRECEIVE, 0);
 		String returnServerAddress = "";
 		List<String> serverList = getServers(context);
 		if (serverList.size() == 0) {
@@ -5594,13 +5659,66 @@ public class Setup extends Activity {
 			int serverId = getServerId(serverAddress);
 			if (isServerActive(context, serverId)
 					&& isServerAccount(context, serverId)) {
-				Utility.saveIntSetting(context, Setup.SERVERLASTRRID,
+				Utility.saveIntSetting(context, Setup.SERVERLASTRRIDRECEIVE,
 						serverIndex);
 				returnServerAddress = serverAddress;
 				foundActive = true;
+				break;
 			}
 		}
 		return returnServerAddress;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the next conversation item to send to a server in round robin style.
+	 * If no such server exists, then null is returned.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the next server
+	 */
+	public static ConversationItem getNextSendingServerMessage(Context context) {
+		int lastServerIndex = Utility.loadIntSetting(context,
+				Setup.SERVERLASTRRIDSEND, 0);
+		ConversationItem returnItem = null;
+		List<String> serverList = getServers(context);
+		if (serverList.size() == 0) {
+			return returnItem;
+		}
+		int serverIndex = lastServerIndex;
+		boolean foundServerWeHaveMessagesToSendTo = false;
+		boolean seenZero = false;
+		while (!foundServerWeHaveMessagesToSendTo) {
+			serverIndex++;
+			if (serverIndex >= serverList.size()) {
+				if (seenZero) {
+					// We do not want to loop forever... there is no active
+					// server!
+					break;
+				}
+				serverIndex = 0;
+				seenZero = true;
+			}
+			String serverAddress = serverList.get(serverIndex);
+			int serverId = getServerId(serverAddress);
+			// Now test if we have messages to send to THIS server, otherwise we
+			// proceed to test the next one
+			// until we reached a loop.
+			if (isServerAccount(context, serverId)) {
+				// Only test this server if we have an active account for it!
+				returnItem = DB.getNextMessage(context, DB.TRANSPORT_INTERNET,
+						serverId);
+				Utility.saveIntSetting(context, Setup.SERVERLASTRRIDSEND,
+						serverIndex);
+				if (returnItem != null) {
+					foundServerWeHaveMessagesToSendTo = true;
+					break;
+				}
+			}
+		}
+		return returnItem;
 	}
 
 	// ------------------------------------------------------------------------

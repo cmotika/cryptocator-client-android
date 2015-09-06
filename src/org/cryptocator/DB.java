@@ -110,6 +110,9 @@ public class DB {
 	/** The priority for readconfirmation. */
 	public static int PRIORITY_READCONFIRMATION = 0;
 
+	/** The priority for failed to decrypt message. */
+	public static int PRIORITY_FAILEDTODECRYPT = 0;
+
 	/** The priority for message. */
 	public static int PRIORITY_MESSAGE = 1;
 
@@ -433,7 +436,7 @@ public class DB {
 				+ "`sendingid` INTEGER PRIMARY KEY, `localid` INTEGER, `fromuid` INTEGER , "
 				+ "`touid` INTEGER , `text` VARCHAR( 2000 ) , "
 				+ "`created` VARCHAR( 50 ), "
-				+ "`sent` VARCHAR( 50 ), `encrypted` VARCHAR( 1 ), `transport` VARCHAR( 1 ), `system` VARCHAR( 1 ), `prio` INTEGER, `smsfailcnt` INTEGER, `tries` INTEGER , `lasttry` VARCHAR( 50 ), `part` INTEGER  DEFAULT 0, `parts` INTEGER DEFAULT 1 , `multipartid` VARCHAR( 5 ) DEFAULT `` );";
+				+ "`sent` VARCHAR( 50 ), `encrypted` VARCHAR( 1 ), `transport` VARCHAR( 1 ), `system` VARCHAR( 1 ), `prio` INTEGER, `smsfailcnt` INTEGER, `tries` INTEGER , `lasttry` VARCHAR( 50 ), `part` INTEGER  DEFAULT 0, `parts` INTEGER DEFAULT 1 , `multipartid` VARCHAR( 5 ) DEFAULT ``,  `serverId` INTEGER DEFAULT -1  );";
 		db.execSQL(CREATE_TABLE_MSGS);
 	}
 
@@ -756,6 +759,7 @@ public class DB {
 	 *            the mid
 	 */
 	public static void removeMappingByMid(Context context, int mid) {
+		Log.d("communicator", " UPDATE MESSAGE REMOVE MAPPING: mid=" + mid);
 		SQLiteDatabase db = openDBSent(context);
 		db.delete(TABLE_SENT, "`mid` = " + mid, null);
 		db.close();
@@ -834,7 +838,7 @@ public class DB {
 	 * @return the number of messages to send
 	 */
 	public static int getPositionInSendingQueue(Context context, int transport,
-			int localId) {
+			int localId, int serverId) {
 		int positionOfItem = -1;
 		cleanupDBSending(context);
 		SQLiteDatabase db = null;
@@ -844,6 +848,7 @@ public class DB {
 
 			String QUERY = "SELECT `localid` FROM `" + TABLE_SENDING
 					+ "` WHERE `transport` = " + transport
+					+ " AND `serverId` = " + serverId
 					+ " ORDER BY `prio` DESC, `created` ASC";
 
 			cursor = db.rawQuery(QUERY, null);
@@ -903,6 +908,40 @@ public class DB {
 			cursor.close();
 		}
 		db.close();
+		if (returnUid == -1) {
+			Log.d("communicator",
+					" UPDATE MESSAGE getHostUidForMid() returnUid still -1, now searching in all user's DBs for mid="
+							+ mid);
+
+			for (int uid : Main.loadUIDList(context)) {
+				db = openDB(context, uid);
+				QUERY = "SELECT `mid` FROM `" + TABLE_MESSAGES
+						+ "` WHERE `mid` = " + mid;
+				cursor = db.rawQuery(QUERY, null);
+				if (cursor != null && cursor.moveToFirst()) {
+					if (cursor.getCount() > 0) {
+						returnUid = uid;
+					}
+					cursor.close();
+				}
+				db.close();
+				if (returnUid != -1) {
+					// FOUND
+					break;
+				}
+			}
+
+		}
+
+		if (returnUid == -1) {
+			Log.d("communicator",
+					" UPDATE MESSAGE getHostUidForMid() NO WHERE found mid="
+							+ mid);
+		} else {
+			Log.d("communicator",
+					" UPDATE MESSAGE getHostUidForMid() found mid=" + mid
+							+ " at user uid=" + returnUid);
+		}
 		return returnUid;
 	}
 
@@ -1510,6 +1549,11 @@ public class DB {
 			values.put("part", part);
 			values.put("parts", parts);
 			values.put("multipartid", multipartid);
+			// Put it as outgoing for THIS server of the particular receipient
+			// we will ROUND ROBIN thru all possible servers on sending
+			// in case single ones fail
+			int serverId = Setup.getServerId(context, hostUid);
+			values.put("serverId", serverId);
 			SQLiteDatabase db = null;
 			try {
 				db = openDBSending(context);
@@ -2038,7 +2082,7 @@ public class DB {
 						+ ")) AND ( `system` != '1' OR `mid` = -1) AND `part` = "
 						+ DB.DEFAULT_MESSAGEPART
 						+ " ORDER BY `created` DESC, `sent` DESC "; // AND
-				
+
 				Cursor cursor = db.rawQuery(QUERY, null);
 				if (cursor != null && cursor.moveToFirst()) {
 					cachedConversationSize = cursor.getCount();
@@ -2479,103 +2523,117 @@ public class DB {
 	// -----------------------------------------------------------------
 
 	/**
-	 * Gets the next message. Gets the next message to send from DB.
+	 * Gets the next message. Gets the next message to send from DB for a
+	 * particular transport medium and a particular server (iff INTERNET is the
+	 * transport medium). If SMS is the transport medium then user -1 for the
+	 * serverID. If transport is -1 then do not consider specific transport or
+	 * servers!
 	 * 
 	 * @param context
 	 *            the context
 	 * @param transport
 	 *            the transport
+	 * @param serverId
+	 *            the server id
 	 * @return the next message
 	 */
-	static ConversationItem getNextMessage(Context context, int transport) {
+	static ConversationItem getNextMessage(Context context, int transport,
+			int serverId) {
 		ConversationItem returnItem = null;
 
-		String transportQueryPart = " AND `transport` = " + transport;
+		String transportQueryPart = " AND `transport` = " + transport
+				+ " AND `serverId` = " + serverId;
 		if (transport == -1) {
 			transportQueryPart = "";
 		}
 
 		SQLiteDatabase db = openDBSending(context);
 
-		// For sending
-		String QUERY = "SELECT `sendingid`, `localid`, `fromuid`, `touid`, `text`, `created`, `encrypted`, `transport`, `system`, `smsfailcnt`, `tries`, `lasttry`, `part`, `parts`, `multipartid`  FROM `"
-				+ TABLE_SENDING
-				+ "` WHERE `touid` != -1 AND `localid` != -1 AND `smsfailcnt` <= "
-				+ Setup.SMS_FAIL_CNT
-				+ " "
-				+ transportQueryPart
-				+ " ORDER BY `prio` DESC, `created` ASC";
+		try {
+			// For sending
+			String QUERY = "SELECT `sendingid`, `localid`, `fromuid`, `touid`, `text`, `created`, `encrypted`, `transport`, `system`, `smsfailcnt`, `tries`, `lasttry`, `part`, `parts`, `multipartid`  FROM `"
+					+ TABLE_SENDING
+					+ "` WHERE `touid` != -1 AND `localid` != -1 AND `smsfailcnt` <= "
+					+ Setup.SMS_FAIL_CNT
+					+ " "
+					+ transportQueryPart
+					+ " ORDER BY `prio` DESC, `created` ASC";
 
-		// The priority ensures that first KEYs are sent, THEN messages and only
-		// THEN read confirmations
+			// The priority ensures that first KEYs are sent, THEN messages and
+			// only
+			// THEN read confirmations
 
-		// Log.d("communicator", "SEND NEXT QUERY = " + QUERY);
+			// Log.d("communicator", "SEND NEXT QUERY = " + QUERY);
 
-		Cursor cursor = db.rawQuery(QUERY, null);
-		if (cursor != null && cursor.moveToFirst()) {
-			// Log.d("communicator", "SEND NEXT QUERY getCount = " +
-			// cursor.getCount());
-			if (cursor.getCount() > 0) {
-				returnItem = new ConversationItem();
-				int sendingid = Utility.parseInt(cursor.getString(0), -1);
-				int localid = Utility.parseInt(cursor.getString(1), -1);
-				// Log.d("communicator", "SEND NEXT QUERY localID = " +
-				// localid2);
-				// int mid = Utility.parseInt(cursor.getString(), -1);
-				int from = Utility.parseInt(cursor.getString(2), -1);
-				int to = Utility.parseInt(cursor.getString(3), -1);
-				String text = cursor.getString(4);
+			Cursor cursor = db.rawQuery(QUERY, null);
+			if (cursor != null && cursor.moveToFirst()) {
+				// Log.d("communicator", "SEND NEXT QUERY getCount = " +
+				// cursor.getCount());
+				if (cursor.getCount() > 0) {
+					returnItem = new ConversationItem();
+					int sendingid = Utility.parseInt(cursor.getString(0), -1);
+					int localid = Utility.parseInt(cursor.getString(1), -1);
+					// Log.d("communicator", "SEND NEXT QUERY localID = " +
+					// localid2);
+					// int mid = Utility.parseInt(cursor.getString(), -1);
+					int from = Utility.parseInt(cursor.getString(2), -1);
+					int to = Utility.parseInt(cursor.getString(3), -1);
+					String text = cursor.getString(4);
 
-				long created = parseTimestamp(cursor.getString(5), -1);
-				String encyptedString = cursor.getString(6);
-				int transport2 = Utility.parseInt(cursor.getString(7),
-						TRANSPORT_INTERNET);
-				int smsfailcnt = Utility.parseInt(cursor.getString(9), 0);
-				String systemString = cursor.getString(8);
-				boolean encrypted = false;
-				if (encyptedString.equals("E")) {
-					encrypted = true;
+					long created = parseTimestamp(cursor.getString(5), -1);
+					String encyptedString = cursor.getString(6);
+					int transport2 = Utility.parseInt(cursor.getString(7),
+							TRANSPORT_INTERNET);
+					int smsfailcnt = Utility.parseInt(cursor.getString(9), 0);
+					String systemString = cursor.getString(8);
+					boolean encrypted = false;
+					if (encyptedString.equals("E")) {
+						encrypted = true;
+					}
+					boolean system = false;
+					if (systemString.equals("1")) {
+						system = true;
+					}
+
+					int tries = Utility.parseInt(cursor.getString(10), 0);
+					long lasttry = parseTimestamp(cursor.getString(11), -1);
+					int part = Utility.parseInt(cursor.getString(12), 0);
+					int parts = Utility.parseInt(cursor.getString(13), 0);
+					String multipartid = cursor.getString(14);
+
+					if ((from != -1) && (to != -1)) {
+						returnItem.sendingid = sendingid;
+						returnItem.localid = localid;
+						returnItem.from = from;
+						returnItem.to = to;
+						returnItem.text = text;
+						returnItem.created = created;
+						returnItem.encrypted = encrypted;
+						returnItem.transport = transport2;
+						returnItem.system = system;
+						returnItem.smsfailcnt = smsfailcnt;
+						returnItem.isKey = text.startsWith("K");
+						returnItem.tries = tries;
+						returnItem.lasttry = lasttry;
+						returnItem.part = part;
+						returnItem.parts = parts;
+						returnItem.multipartid = multipartid;
+					}
 				}
-				boolean system = false;
-				if (systemString.equals("1")) {
-					system = true;
-				}
-
-				int tries = Utility.parseInt(cursor.getString(10), 0);
-				long lasttry = parseTimestamp(cursor.getString(11), -1);
-				int part = Utility.parseInt(cursor.getString(12), 0);
-				int parts = Utility.parseInt(cursor.getString(13), 0);
-				String multipartid = cursor.getString(14);
-
-				if ((from != -1) && (to != -1)) {
-					returnItem.sendingid = sendingid;
-					returnItem.localid = localid;
-					returnItem.from = from;
-					returnItem.to = to;
-					returnItem.text = text;
-					returnItem.created = created;
-					returnItem.encrypted = encrypted;
-					returnItem.transport = transport2;
-					returnItem.system = system;
-					returnItem.smsfailcnt = smsfailcnt;
-					returnItem.isKey = text.startsWith("K");
-					returnItem.tries = tries;
-					returnItem.lasttry = lasttry;
-					returnItem.part = part;
-					returnItem.parts = parts;
-					returnItem.multipartid = multipartid;
-				}
+				cursor.close();
 			}
-			cursor.close();
+		} catch (Exception e) {
+			rebuildDBSending(context);
 		}
 		db.close();
-		
+
 		// Possibly fix the transport if receipient is only external SMS user
 		// We should not come here but still want to guard against it
-		if (returnItem != null && returnItem.transport == DB.TRANSPORT_INTERNET && returnItem.to < 0) {
+		if (returnItem != null && returnItem.transport == DB.TRANSPORT_INTERNET
+				&& returnItem.to < 0) {
 			returnItem.transport = DB.TRANSPORT_SMS;
 		}
-		
+
 		return returnItem;
 	}
 
@@ -2980,7 +3038,8 @@ public class DB {
 	// -----------------------------------------------------------------
 
 	/**
-	 * Update message failed.
+	 * Update message failed for localid. This message is used if an SMS failed
+	 * to sent.
 	 * 
 	 * @param context
 	 *            the context

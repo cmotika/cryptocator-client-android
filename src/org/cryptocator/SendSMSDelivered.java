@@ -110,7 +110,7 @@ public class SendSMSDelivered extends BroadcastReceiver {
 					// for an SMS message!
 					Communicator.updateSentReceivedReadAsync(context, -1
 							* itemToSend.localid, itemToSend.to, false, true,
-							false, false);
+							false, false, false);
 				}
 				// Utility.showToastAsync(context, "SMS DELIVERED " + localId);
 			}

@@ -106,7 +106,7 @@ public class SendSMSSent extends BroadcastReceiver {
 					// for an SMS message!
 					Communicator.updateSentReceivedReadAsync(context, -1
 							* itemToSend.localid, itemToSend.to, true, false,
-							false, false);
+							false, false, false);
 				}
 				// Utility.showToastAsync(context, "SMS SENT " + localId);
 				SendSMS.smsSent(context, localId);
