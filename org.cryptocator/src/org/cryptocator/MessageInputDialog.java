@@ -154,6 +154,12 @@ public class MessageInputDialog extends Dialog {
 	/** The selection listener. */
 	OnSelectionListener selectionListener;
 
+	/** The show the keyboard when showing dialog. */
+	boolean showKeyboardOnShow;
+	
+	/** The select the text when showing dialog. */
+	boolean selectOnShow;
+	
 	// -------------------------------------------------------------------------
 
 	/**
@@ -182,7 +188,7 @@ public class MessageInputDialog extends Dialog {
 			OnSelectionListener selectionListener) {
 		this(context, titleMessage, textMessage, okButton0, okButton1,
 				cancelButton, defaultText, selectionListener,
-				InputType.TYPE_CLASS_TEXT);
+				InputType.TYPE_CLASS_TEXT, true, true);
 	}
 
 	// -------------------------------------------------------------------------
@@ -210,7 +216,7 @@ public class MessageInputDialog extends Dialog {
 	public MessageInputDialog(Context context, String titleMessage,
 			String textMessage, String okButton0, String okButton1,
 			String cancelButton, String defaultText,
-			OnSelectionListener selectionListener, int inputType) {
+			OnSelectionListener selectionListener, int inputType, boolean selectOnShow, boolean showKeyboardOnShow) {
 		super(context, R.style.AlertDialogCustom);
 		this.context = context;
 		this.titleMessage = titleMessage;
@@ -221,6 +227,8 @@ public class MessageInputDialog extends Dialog {
 		this.selectionListener = selectionListener;
 		this.returnText = defaultText;
 		this.inputType = inputType;
+		this.selectOnShow = selectOnShow;
+		this.showKeyboardOnShow = showKeyboardOnShow;
 	}
 
 	// -------------------------------------------------------------------------
@@ -433,14 +441,29 @@ public class MessageInputDialog extends Dialog {
 		// wmlp.gravity = Gravity.TOP | Gravity.LEFT;
 		// wmlp.x = 100; //x position
 
-		if (returnText != null && returnText.length() > 0) {
-			inputText.setText(returnText);
+		
+		inputText.setText(returnText);
+		if (selectOnShow) {
 			inputText.setSelection(0, returnText.length());
-		} else {
+		}
+		
+		if (showKeyboardOnShow) {
 			scrollView.postDelayed(new Runnable() {
 				public void run() {
 					inputText.requestFocus();
 					Utility.showKeyboardExplicit(inputText);
+				}
+			}, 100);
+		} else {
+			Utility.hideKeyboardExplicit(inputText);
+			scrollView.postDelayed(new Runnable() {
+				public void run() {
+					Utility.hideKeyboardExplicit(inputText);
+				}
+			}, 50);
+			scrollView.postDelayed(new Runnable() {
+				public void run() {
+					Utility.hideKeyboardExplicit(inputText);
 				}
 			}, 100);
 		}

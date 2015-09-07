@@ -1862,7 +1862,7 @@ public class Setup extends Activity {
 						}
 						dialog.dismiss();
 					}
-				}, 0x00000011).show();
+				}, 0x00000011, true, true).show();
 	}
 
 	// -------------------------------------------------------------------------

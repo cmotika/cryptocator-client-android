@@ -122,7 +122,7 @@ public class ConversationCompose extends Activity {
 
 	/** The currently selected host uid. */
 	public static int hostUid = -1;
-	
+
 	/** The list of recipients. */
 	FastScrollView toList = null;
 
@@ -158,6 +158,9 @@ public class ConversationCompose extends Activity {
 			String type = intent.getType();
 
 			if (Intent.ACTION_SEND.equals(action) && type != null) {
+
+				Log.d("communicator", "IMPORT " + type);
+
 				if ("text/plain".equals(type)) {
 					String sharedText = getIntent().getStringExtra(
 							Intent.EXTRA_TEXT);
@@ -168,34 +171,38 @@ public class ConversationCompose extends Activity {
 								sharedText);
 					}
 				} else if (type.startsWith("image/")) {
-					Uri imageUri = (Uri) intent
+					final Uri attachmentPath = (Uri) intent
 							.getParcelableExtra(Intent.EXTRA_STREAM);
-					if (imageUri != null) {
-						final String attachmentPath = Utility.getRealPathFromURI(
-								this, imageUri);
-						if (attachmentPath != null) {
-							try {
-								// Do this async AFTER create so that the stack of activities
-								// is correct and after we close insert image we come back
-								// to compose!
-								
-								final Handler mUIHandler = new Handler(Looper.getMainLooper());
-								mUIHandler.post(new Thread() {
-									@Override
-									public void run() {
-										super.run();
-										final Handler handler = new Handler();
-										handler.postDelayed(new Runnable() {
-											public void run() {
-												((ConversationCompose) activity).insertImage(activity, attachmentPath);
-											}
-										}, 100);
-									}
-								});
+					Log.d("communicator",
+							"IMPORT imageUri=" + attachmentPath.toString());
 
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
+					if (attachmentPath != null) {
+						try {
+							// Do this async AFTER create so that the stack
+							// of activities
+							// is correct and after we close insert image we
+							// come back
+							// to compose!
+
+							final Handler mUIHandler = new Handler(
+									Looper.getMainLooper());
+							mUIHandler.post(new Thread() {
+								@Override
+								public void run() {
+									super.run();
+									final Handler handler = new Handler();
+									handler.postDelayed(new Runnable() {
+										public void run() {
+											((ConversationCompose) activity)
+													.insertImage(activity,
+															attachmentPath); 
+										}
+									}, 100);
+								}
+							});
+
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
 					}
 				}
@@ -331,7 +338,8 @@ public class ConversationCompose extends Activity {
 		});
 		attachmentbutton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				Conversation.promptImageInsert(activity, getCurrentUid(context));
+				Conversation
+						.promptImageInsert(activity, getCurrentUid(context));
 			}
 		});
 
@@ -726,7 +734,8 @@ public class ConversationCompose extends Activity {
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
 										sendMessageOrPrompt(context,
-												DB.TRANSPORT_INTERNET, true, uid);
+												DB.TRANSPORT_INTERNET, true,
+												uid);
 										dialog.dismiss();
 									}
 								});
@@ -740,7 +749,8 @@ public class ConversationCompose extends Activity {
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
 										sendMessageOrPrompt(context,
-												DB.TRANSPORT_INTERNET, false, uid);
+												DB.TRANSPORT_INTERNET, false,
+												uid);
 										dialog.dismiss();
 									}
 								});
@@ -1275,8 +1285,7 @@ public class ConversationCompose extends Activity {
 			}
 			if (requestCode == SELECT_PICTURE) {
 				boolean ok = false;
-				String attachmentPath = Utility.getRealPathFromURI(this,
-						data.getData());
+				Uri attachmentPath = data.getData();
 				if (attachmentPath != null) {
 					try {
 						insertImage(this, attachmentPath);
@@ -1467,7 +1476,7 @@ public class ConversationCompose extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	public void insertImage(final Context context, String attachmentPath) {
+	public void insertImage(final Context context, Uri attachmentPath) {
 		final boolean keyboardWasVisible = keyboardVisible;
 		PictureImportActivity
 				.setOnPictureImportListener(new PictureImportActivity.OnPictureImportListener() {
@@ -1480,11 +1489,12 @@ public class ConversationCompose extends Activity {
 					}
 				});
 		Intent dialogIntent = new Intent(context, PictureImportActivity.class);
-		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-				//Intent.FLAG_ACTIVITY_NEW_TASK);
-				// | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-		byte[] bytes = Utility.getFile(attachmentPath);
-		Bitmap bitmap = Utility.getBitmapFromBytes(bytes);
+		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+				| Intent.FLAG_ACTIVITY_CLEAR_TASK
+				| Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		// Intent.FLAG_ACTIVITY_NEW_TASK);
+		// | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		Bitmap bitmap = Utility.getBitmapFromContentUri(this, attachmentPath);
 
 		PictureImportActivity.attachmentBitmap = bitmap;
 		PictureImportActivity.hostUid = hostUid;

@@ -416,6 +416,14 @@ public class Main extends Activity {
 							return true;
 						}
 					});
+			imageContextMenuProvider.addEntry("Refresh",
+					R.drawable.menurefresh,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							doRefresh(context);
+							return true;
+						}
+					});
 		}
 		return imageContextMenuProvider;
 	}
@@ -774,7 +782,7 @@ public class Main extends Activity {
 						Conversation
 								.promptInfo(
 										context,
-										"Canno Add User",
+										"Cannot Add User",
 										"You can only add a user from a server where" +
 										" you have an account. Make also sure that the" +
 										" server is currently not disabled.");

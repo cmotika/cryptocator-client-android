@@ -134,8 +134,14 @@ public class PictureImportActivity extends Activity {
 	/** The size2. */
 	private ImageView size2;
 
+	/** The size3. */
+	private ImageView size3;
+
 	/** The size2 highlight. */
 	private LinearLayout size2highlight;
+
+	/** The size3 highlight. */
+	private LinearLayout size3highlight;
 
 	/** The selected size. */
 	private int selectedSize = 0;
@@ -150,7 +156,7 @@ public class PictureImportActivity extends Activity {
 	private static int BACKTRANSPARENTCOLOR = Color.parseColor("#00FFFFFF");
 
 	/** The qualitydefault in %. */
-	private static int QUALITYDEFAULT = 1;
+	private static int QUALITYDEFAULT = 2;
 
 	/** The sizedefault. */
 	private static int SIZEDEFAULT = 0;
@@ -163,6 +169,9 @@ public class PictureImportActivity extends Activity {
 
 	/** The SIZE 2 in pixel. */
 	private static int SIZE2 = 400;
+
+	/** The SIZE 3 in pixel. */
+	private static int SIZE3 = 800;
 
 	/** The result. */
 	private static String result = "";
@@ -281,12 +290,16 @@ public class PictureImportActivity extends Activity {
 		size2 = (ImageView) dialogLayout.findViewById(R.id.size2);
 		size2highlight = (LinearLayout) dialogLayout
 				.findViewById(R.id.size2highlight);
+		size3 = (ImageView) dialogLayout.findViewById(R.id.size3);
+		size3highlight = (LinearLayout) dialogLayout
+				.findViewById(R.id.size3highlight);
 
 		size0highlight.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				size0highlight.setBackgroundColor(HIGHLIGHTBACK);
 				size1highlight.setBackgroundColor(BACKTRANSPARENTCOLOR);
 				size2highlight.setBackgroundColor(BACKTRANSPARENTCOLOR);
+				size3highlight.setBackgroundColor(BACKTRANSPARENTCOLOR);
 				selectedSize = SIZE0;
 				updateTemporaryResult();
 			}
@@ -296,6 +309,7 @@ public class PictureImportActivity extends Activity {
 				size0highlight.setBackgroundColor(BACKTRANSPARENTCOLOR);
 				size1highlight.setBackgroundColor(HIGHLIGHTBACK);
 				size2highlight.setBackgroundColor(BACKTRANSPARENTCOLOR);
+				size3highlight.setBackgroundColor(BACKTRANSPARENTCOLOR);
 				selectedSize = SIZE1;
 				updateTemporaryResult();
 			}
@@ -305,7 +319,18 @@ public class PictureImportActivity extends Activity {
 				size0highlight.setBackgroundColor(BACKTRANSPARENTCOLOR);
 				size1highlight.setBackgroundColor(BACKTRANSPARENTCOLOR);
 				size2highlight.setBackgroundColor(HIGHLIGHTBACK);
+				size3highlight.setBackgroundColor(BACKTRANSPARENTCOLOR);
 				selectedSize = SIZE2;
+				updateTemporaryResult();
+			}
+		});
+		size3highlight.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				size0highlight.setBackgroundColor(BACKTRANSPARENTCOLOR);
+				size1highlight.setBackgroundColor(BACKTRANSPARENTCOLOR);
+				size2highlight.setBackgroundColor(BACKTRANSPARENTCOLOR);
+				size3highlight.setBackgroundColor(HIGHLIGHTBACK);
+				selectedSize = SIZE3;
 				updateTemporaryResult();
 			}
 		});
@@ -388,10 +413,13 @@ public class PictureImportActivity extends Activity {
 				attachmentBitmap, SIZE1, SIZE1, selectedQuality);
 		Drawable drawable2 = getResizedImageAsDrawable(context,
 				attachmentBitmap, SIZE2, SIZE2, selectedQuality);
+		Drawable drawable3 = getResizedImageAsDrawable(context,
+				attachmentBitmap, SIZE3, SIZE3, selectedQuality);
 
 		size0.setImageDrawable(drawable0);
 		size1.setImageDrawable(drawable1);
 		size2.setImageDrawable(drawable2);
+		size3.setImageDrawable(drawable3);
 		updateTemporaryResult();
 	}
 
