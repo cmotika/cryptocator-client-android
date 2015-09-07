@@ -977,22 +977,10 @@ public class Setup extends Activity {
 		serverdisabled.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				if (!serverdisabled.isChecked()) {
-					setServerActive(context, selectedServerId, true);
-
-					// Update the server key / attachment
-					saveHaveAskedForEncryption(context, false);
-					updateServerkey(context, selectedServerId, false);
-					updateAttachmentServerLimit(context, true, selectedServerId);
-					// If the user has enabled encryption, update his key cause
-					// this was skipped - ask before if the server is still
-					// active or already has been flagged as non reachable by
-					// updateServerkey()!
-					if (isEncryptionEnabled(context)
-							&& isServerActive(context, selectedServerId)) {
-						sendCurrentKeyToServer(context, selectedServerId);
+					enableServer(context);
+					if (Main.isAlive()) {
+						Main.getInstance().updateInfoMessageBlockAsync(context);
 					}
-
-					updateServerImage(context, true);
 				}
 			}
 		});
@@ -1735,16 +1723,18 @@ public class Setup extends Activity {
 	public static String getBaseURL(Context context, int serverId) {
 		if (!BASESERVERADDRESSCACHED.containsKey(serverId)) {
 			String serverAddress = getServer(context, serverId);
-			if (!serverAddress.endsWith("?")) {
-				if (!serverAddress.endsWith("/")) {
-					serverAddress = serverAddress + "/";
+			if (serverAddress != null && serverAddress.trim().length() > 3) {
+				if (!serverAddress.endsWith("?")) {
+					if (!serverAddress.endsWith("/")) {
+						serverAddress = serverAddress + "/";
+					}
+					serverAddress = serverAddress + "?";
 				}
-				serverAddress = serverAddress + "?";
+				BASESERVERADDRESSCACHED.put(serverId, serverAddress);
 			}
-			BASESERVERADDRESSCACHED.put(serverId, serverAddress);
 		}
-		if (serverId == -1) {
-			return DEFAULT_SERVER;
+		if (serverId == -1 || !BASESERVERADDRESSCACHED.containsKey(serverId)) {
+			return DEFAULT_SERVER + "/?";
 		}
 		return BASESERVERADDRESSCACHED.get(serverId);
 	}
@@ -2314,6 +2304,9 @@ public class Setup extends Activity {
 										pwdchange.setText("");
 										online = true;
 										updateonline();
+										// IF LOGIN IS SUCCESSFULL => ENABLE SERVER!
+										enableServer(context);
+										
 										setErrorInfo(
 												"Login successfull.\n\nYou can now edit your username, enable sms support, change your password, or backup or restore your user list below.",
 												false);
@@ -4250,8 +4243,14 @@ public class Setup extends Activity {
 	 * @return true, if successful
 	 */
 	public static boolean noAccountYet(Context context) {
-		String uidString = Utility.loadStringSetting(context, "uid", "");
-		return (uidString == null || uidString.length() == 0);
+		boolean foundAccount = false;
+		for (int serverId : getServerIds(context)) {
+			if (Setup.isServerAccount(context, serverId)) {
+				foundAccount = true;
+				break;
+			}
+		}
+		return !foundAccount;
 	}
 
 	// ------------------------------------------------------------------------
@@ -5992,5 +5991,31 @@ public class Setup extends Activity {
 	}
 
 	// ------------------------------------------------------------------------
+	
+	/**
+	 * Enable the server.
+	 *
+	 * @param context the context
+	 */
+	public void enableServer(Context context) {
+		setServerActive(context, selectedServerId, true);
 
+		// Update the server key / attachment
+		saveHaveAskedForEncryption(context, false);
+		updateServerkey(context, selectedServerId, false);
+		updateAttachmentServerLimit(context, true, selectedServerId);
+		// If the user has enabled encryption, update his key cause
+		// this was skipped - ask before if the server is still
+		// active or already has been flagged as non reachable by
+		// updateServerkey()!
+		if (isEncryptionEnabled(context)
+				&& isServerActive(context, selectedServerId)) {
+			sendCurrentKeyToServer(context, selectedServerId);
+		}
+
+		updateServerImage(context, true);
+	}
+
+	// ------------------------------------------------------------------------
+	
 }

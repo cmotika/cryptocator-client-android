@@ -486,8 +486,7 @@ public class Main extends Activity {
 	public static void startSettings(Context context) {
 		Intent dialogIntent = new Intent(context, Setup.class);
 		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-				| Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
-				| Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+				| Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
 		context.startActivity(dialogIntent);
 	}
 
@@ -503,7 +502,7 @@ public class Main extends Activity {
 		Intent dialogIntent = new Intent(context, Setup.class);
 		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
 				| Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
-				| Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+				);
 		dialogIntent.putExtra("account", "account");
 		context.startActivity(dialogIntent);
 	}
@@ -898,6 +897,12 @@ public class Main extends Activity {
 					Utility.showKeyboardExplicit(addUserName);
 				}
 			}, 100);
+			addUserName.requestFocus();
+			addUserName.postDelayed(new Runnable() {
+				public void run() {
+					Utility.showKeyboardExplicit(addUserName);
+				}
+			}, 500);
 		} else {
 			adduseritem.setVisibility(View.GONE);
 			addUserName.postDelayed(new Runnable() {
@@ -2171,6 +2176,7 @@ public class Main extends Activity {
 	public void onResume() {
 		super.onResume();
 		if (getIntent().getBooleanExtra("EXITAPPLICATION", false)) {
+			Log.d("communicator", "EXITAPPLICATION ON REQUEST");
 			Utility.killOwnProcessDelayed(5000);
 			finish();
 		}

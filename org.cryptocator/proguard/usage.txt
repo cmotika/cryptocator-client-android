@@ -2922,9 +2922,9 @@ org.cryptocator.Communicator:
 org.cryptocator.Conversation:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
-    3393:3418:public void insertImage(android.content.Context,java.lang.String)
+    3415:3440:public void insertImage(android.content.Context,java.lang.String)
     147:147:static synthetic boolean access$32()
-org.cryptocator.Conversation$58
+org.cryptocator.Conversation$61
 org.cryptocator.ConversationCompose:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
@@ -2960,8 +2960,8 @@ org.cryptocator.ImagePressButton:
     309:310:public void activatePressImageResourceWhite()
 org.cryptocator.Main:
     private static final java.lang.String DEFAULTTEXT
-    1242:1262:public void askToDelete(android.content.Context,int)
-org.cryptocator.Main$24
+    1247:1267:public void askToDelete(android.content.Context,int)
+org.cryptocator.Main$25
 org.cryptocator.MessageDetailsActivity:
     private static final java.lang.String STARTTAG
     private static final java.lang.String ENDTAG
@@ -3113,11 +3113,11 @@ org.cryptocator.Setup:
     public static final java.lang.String LASTUPDATE_SERVER_ATTACHMENT_LIMIT
     public static final int SMS_SIZE_WARNING
     public static final int MULTIPART_MESSAGELIMIT
-    3504:3509:public static boolean haveAESKey(android.content.Context,int)
-    3875:3891:public static java.security.PublicKey getPublicKey(android.content.Context)
-    5015:5035:public static java.lang.String encText(android.content.Context,java.lang.String,int)
-    5939:5940:public static void setVersionUpdated(android.content.Context)
-    5953:5953:public static boolean isVersionUpdated(android.content.Context)
+    3497:3502:public static boolean haveAESKey(android.content.Context,int)
+    3868:3884:public static java.security.PublicKey getPublicKey(android.content.Context)
+    5014:5034:public static java.lang.String encText(android.content.Context,java.lang.String,int)
+    5938:5939:public static void setVersionUpdated(android.content.Context)
+    5952:5952:public static boolean isVersionUpdated(android.content.Context)
 org.cryptocator.Utility:
     public static final java.lang.String PREFERENCESURI
     136:136:public Utility()
