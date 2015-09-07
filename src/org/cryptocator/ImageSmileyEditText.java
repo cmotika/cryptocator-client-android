@@ -51,7 +51,6 @@ import android.graphics.drawable.Drawable;
 import android.text.Spannable;
 import android.text.style.ImageSpan;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.EditText;
 
 /**
@@ -115,11 +114,12 @@ public class ImageSmileyEditText extends EditText {
 	/** The max withd of the text field. */
 	private int maxWidth = 100;
 
-	/**
-	 * The contains images flag is needed to recompute layout only in this case
-	 * if orientation (=width) changed.
-	 */
-	private boolean containsImages = false;
+	// /**
+	// * The contains images flag is needed to recompute layout only in this
+	// case
+	// * if orientation (=width) changed.
+	// */
+	// private boolean containsImages = false;
 
 	// ------------------------------------------------------------------------
 
@@ -242,13 +242,13 @@ public class ImageSmileyEditText extends EditText {
 				text = text.substring(0, 20) + "...";
 			}
 
-			Log.d("communicator", "IMAGESMILEY updateMaxWidth(" + text
-					+ ")  maxWidth=" + maxWidth + ", newMaxWidth="
-					+ newMaxWidth + ", containsImages=" + containsImages);
+			// Log.d("communicator", "IMAGESMILEY updateMaxWidth(" + text
+			// + ")  maxWidth=" + maxWidth + ", newMaxWidth="
+			// + newMaxWidth + ", containsImages=" + containsImages);
 
 			if (newMaxWidth != maxWidth) {
 				maxWidth = newMaxWidth;
-				Log.d("communicator", "IMAGESMILEY REDRAW!!!");
+				// Log.d("communicator", "IMAGESMILEY REDRAW!!!");
 
 				// Only in this case recompute layout
 				this.setText(this.getText().toString());
@@ -307,7 +307,7 @@ public class ImageSmileyEditText extends EditText {
 	private static boolean addImages(Context context, Spannable spannable,
 			float textHeight, ImageSmileyEditText editText,
 			boolean isInputTextField) {
-		editText.containsImages = false;
+		// editText.containsImages = false;
 
 		// Taken from the acknowledged article:
 		//
@@ -362,7 +362,7 @@ public class ImageSmileyEditText extends EditText {
 		Matcher matcher = refImg.matcher(spannable);
 		while (matcher.find()) {
 			boolean set = true;
-			editText.containsImages = true;
+			// editText.containsImages = true;
 			for (ImageSpan span : spannable.getSpans(matcher.start(),
 					matcher.end(), ImageSpan.class)) {
 				if (spannable.getSpanStart(span) >= matcher.start()
@@ -388,8 +388,8 @@ public class ImageSmileyEditText extends EditText {
 				int h = bitmap.getHeight();
 				int w = bitmap.getWidth();
 
-				Log.d("communicator", "IMAGESMILEY addImages()  maxWidth="
-						+ editText.maxWidth);
+				// Log.d("communicator", "IMAGESMILEY addImages()  maxWidth="
+				// + editText.maxWidth);
 
 				if (w > editText.maxWidth) {
 					float scale = ((float) w) / ((float) editText.maxWidth);
@@ -435,10 +435,8 @@ public class ImageSmileyEditText extends EditText {
 			CharSequence text, float textHeight, ImageSmileyEditText editText,
 			boolean isInputTextField) {
 		Spannable spannable = spannableFactory.newSpannable(text);
-		Log.d("communicator", "TEXTEDIT getTextWithImages()");
-		// if (!Conversation.isTypingFast() || isInputTextField) {
+		// Log.d("communicator", "TEXTEDIT getTextWithImages()");
 		addImages(context, spannable, textHeight, editText, isInputTextField);
-		// }
 		return spannable;
 	}
 
@@ -451,7 +449,7 @@ public class ImageSmileyEditText extends EditText {
 	 */
 	@Override
 	public boolean onTextContextMenuItem(int id) {
-		Log.d("communicator", "TEXTEDIT onTextContextMenuItem()");
+		// Log.d("communicator", "TEXTEDIT onTextContextMenuItem()");
 		boolean consumed = super.onTextContextMenuItem(id);
 		switch (id) {
 		case android.R.id.cut:

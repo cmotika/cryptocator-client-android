@@ -394,7 +394,7 @@ public class Main extends Activity {
 	private ImageContextMenuProvider createAccountMenu(final Context context) {
 		if (imageAccountMenuProvider == null) {
 			imageAccountMenuProvider = new ImageContextMenuProvider(
-					context, "Accounts", context.getResources().getDrawable(R.drawable.buttonedit));
+					context, "Your Accounts", context.getResources().getDrawable(R.drawable.buttonedit));
 
 			for (final int serverId : Setup.getServerIds(context)) {
 				int myUid = DB.myUid(context, serverId);
