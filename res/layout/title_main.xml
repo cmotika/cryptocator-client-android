@@ -40,15 +40,16 @@
 
             <LinearLayout
                 android:id="@+id/titletextparent"
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:gravity="center_vertical"
                 android:layout_gravity="center_vertical"
-                android:layout_marginRight="9px"
+                android:clickable="true"
                 android:orientation="vertical" >
 
             <TextView
                 android:id="@+id/titletext"
+                android:layout_marginRight="9px"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"

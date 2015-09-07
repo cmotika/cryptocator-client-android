@@ -2922,13 +2922,13 @@ org.cryptocator.Communicator:
 org.cryptocator.Conversation:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
-    3436:3468:public void insertImage(android.content.Context,java.lang.String)
-    147:147:static synthetic boolean access$32()
-org.cryptocator.Conversation$58:
-    3225:3230:public void onCancel()
+    3465:3497:public void insertImage(android.content.Context,java.lang.String)
+    148:148:static synthetic boolean access$32()
 org.cryptocator.Conversation$60:
-    3407:3411:public void onCancel()
-org.cryptocator.Conversation$61
+    3254:3259:public void onCancel()
+org.cryptocator.Conversation$62:
+    3436:3440:public void onCancel()
+org.cryptocator.Conversation$63
 org.cryptocator.ConversationCompose:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
@@ -2969,8 +2969,6 @@ org.cryptocator.ImagePressButton:
     309:310:public void activatePressImageResourceWhite()
 org.cryptocator.Main:
     private static final java.lang.String DEFAULTTEXT
-    1317:1337:public void askToDelete(android.content.Context,int)
-org.cryptocator.Main$29
 org.cryptocator.MessageDetailsActivity:
     private static final java.lang.String STARTTAG
     private static final java.lang.String ENDTAG
