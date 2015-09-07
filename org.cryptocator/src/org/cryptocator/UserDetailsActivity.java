@@ -19,9 +19,9 @@
  * without specific prior written permission.
  *
  * 4. Free or commercial forks of Cryptocator are permitted as long as
- *    both (a) and (b) are and stay fulfilled. 
- *    (a) this license is enclosed
- *    (b) the protocol to communicate between Cryptocator servers
+ *    both (a) and (b) are and stay fulfilled: 
+ *    (a) This license is enclosed.
+ *    (b) The protocol to communicate between Cryptocator servers
  *        and Cryptocator clients *MUST* must be fully conform with 
  *        the documentation and (possibly updated) reference 
  *        implementation from cryptocator.org. This is to ensure 

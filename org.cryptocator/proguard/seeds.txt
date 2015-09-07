@@ -185,7 +185,6 @@ org.cryptocator.R$color: int invisible
 org.cryptocator.R$drawable: int additionbtn
 org.cryptocator.R$drawable: int additionbtnback
 org.cryptocator.R$drawable: int attachmentbtn
-org.cryptocator.R$drawable: int btnaccount
 org.cryptocator.R$drawable: int btnadduser
 org.cryptocator.R$drawable: int btnback
 org.cryptocator.R$drawable: int btnbackup
@@ -478,6 +477,7 @@ org.cryptocator.R$id: int titleconversation
 org.cryptocator.R$id: int titlegeneral
 org.cryptocator.R$id: int titlemain
 org.cryptocator.R$id: int titletext
+org.cryptocator.R$id: int titletextparent
 org.cryptocator.R$id: int to
 org.cryptocator.R$id: int toid
 org.cryptocator.R$id: int tokey

@@ -19,9 +19,9 @@
  * without specific prior written permission.
  *
  * 4. Free or commercial forks of Cryptocator are permitted as long as
- *    both (a) and (b) are and stay fulfilled. 
- *    (a) this license is enclosed
- *    (b) the protocol to communicate between Cryptocator servers
+ *    both (a) and (b) are and stay fulfilled: 
+ *    (a) This license is enclosed.
+ *    (b) The protocol to communicate between Cryptocator servers
  *        and Cryptocator clients *MUST* must be fully conform with 
  *        the documentation and (possibly updated) reference 
  *        implementation from cryptocator.org. This is to ensure 
@@ -69,7 +69,7 @@ import android.util.Log;
  * @date 08/23/2015
  * 
  */
-@SuppressLint("SimpleDateFormat")
+@SuppressLint({ "SimpleDateFormat", "UseSparseArrays" })
 public class DB {
 
 	/**
@@ -146,7 +146,7 @@ public class DB {
 	// -----------------------------------------------------------------
 
 	/** The active user uid. */
-	private static int myUid = -1;
+	private static HashMap<Integer, Integer> myUid = new HashMap<Integer, Integer>();
 
 	// -----------------------------------------------------------------
 
@@ -158,15 +158,15 @@ public class DB {
 	 * @return the int
 	 */
 	public static int myUid(Context context, int serverId) {
-		if (myUid < 0) {
+		if (!myUid.containsKey(serverId)) {
 			String uidString = Utility.loadStringSetting(context,
 					Setup.SERVER_UID + serverId, "");
 			try {
-				myUid = Integer.parseInt(uidString);
+				myUid.put(serverId, Integer.parseInt(uidString));
 			} catch (Exception e) {
 			}
 		}
-		return myUid;
+		return myUid.get(serverId);
 	}
 
 	/**

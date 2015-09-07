@@ -19,9 +19,9 @@
  * without specific prior written permission.
  *
  * 4. Free or commercial forks of Cryptocator are permitted as long as
- *    both (a) and (b) are and stay fulfilled. 
- *    (a) this license is enclosed
- *    (b) the protocol to communicate between Cryptocator servers
+ *    both (a) and (b) are and stay fulfilled: 
+ *    (a) This license is enclosed.
+ *    (b) The protocol to communicate between Cryptocator servers
  *        and Cryptocator clients *MUST* must be fully conform with 
  *        the documentation and (possibly updated) reference 
  *        implementation from cryptocator.org. This is to ensure 
@@ -138,6 +138,9 @@ public class Main extends Activity {
 	/** The image context menu provider for the main menu. */
 	private ImageContextMenuProvider imageContextMenuProvider = null;
 
+	/** The image context menu provider for the account menu. */
+	private ImageContextMenuProvider imageAccountMenuProvider = null;
+
 	/**
 	 * The skips ONE resume. Necessary for the add user context menu call
 	 * because we do not want to rebuild the user list if we show the add user
@@ -235,6 +238,30 @@ public class Main extends Activity {
 				composeMessage(context, null, null);
 			}
 		});
+
+		TextView titletext = (TextView) findViewById(R.id.titletext);
+		btncompose.initializePressImageResource(R.drawable.btncompose);
+		final LinearLayout titletextparent = (LinearLayout) findViewById(R.id.titletextparent);
+		titletext.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				ImageContextMenu.show(context, createAccountMenu(context));
+			}
+		});
+		titletext.setOnTouchListener(new View.OnTouchListener() {
+			@SuppressLint("ClickableViewAccessibility")
+			public boolean onTouch(View v, MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+					titletextparent.setBackgroundColor(ImagePressButton.WHITEPRESS);
+					titletextparent.postDelayed(new Runnable() {
+						public void run() {
+							titletextparent.setBackgroundColor(ImagePressButton.TRANSPARENT);
+						}
+					}, 300);
+				}
+				return false;
+			}
+		});
+
 		ImagePressButton btnadduser = (ImagePressButton) findViewById(R.id.btnadduser);
 		btnadduser.initializePressImageResource(R.drawable.btnadduser);
 		LinearLayout btnadduserparent = (LinearLayout) findViewById(R.id.btnadduserparent);
@@ -345,7 +372,7 @@ public class Main extends Activity {
 							new MessageAlertDialog.OnSelectionListener() {
 								public void selected(int button, boolean cancel) {
 									if (!cancel && button == 0) {
-										startAccount(context);
+										startAccount(context, -1);
 									}
 								}
 							}).show();
@@ -354,6 +381,47 @@ public class Main extends Activity {
 			return false;
 		}
 		return true;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Creates the account menu for the main activity.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private ImageContextMenuProvider createAccountMenu(final Context context) {
+		if (imageAccountMenuProvider == null) {
+			imageAccountMenuProvider = new ImageContextMenuProvider(
+					context, "Accounts", context.getResources().getDrawable(R.drawable.buttonedit));
+
+			for (final int serverId : Setup.getServerIds(context)) {
+				int myUid = DB.myUid(context, serverId);
+				String myName = Main.UID2Name(context, myUid, true, false,
+						serverId);
+				imageAccountMenuProvider
+						.addEntry(
+								myName,
+								R.drawable.menuaccount,
+								new ImageContextMenu.ImageContextMenuSelectionListener() {
+									public boolean onSelection(
+											ImageContextMenu instance) {
+										startAccount(context, serverId);
+										return true;
+									}
+								});
+			}
+			imageAccountMenuProvider.addEntry("Settings",
+					R.drawable.menusettings,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							startSettings(context);
+							return true;
+						}
+					});
+		}
+		return imageAccountMenuProvider;
 	}
 
 	// ------------------------------------------------------------------------
@@ -400,11 +468,11 @@ public class Main extends Activity {
 							return true;
 						}
 					});
-			imageContextMenuProvider.addEntry("Account",
+			imageContextMenuProvider.addEntry("Accounts",
 					R.drawable.menuaccount,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
-							startAccount(context);
+							startAccount(context, -1);
 							return true;
 						}
 					});
@@ -493,17 +561,20 @@ public class Main extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Start account settings.
+	 * Start account settings for an optional preferred serverId. ServerId can
+	 * be -1 for no preference.
 	 * 
 	 * @param context
 	 *            the context
+	 * @param serverId
+	 *            the server id
 	 */
-	public static void startAccount(Context context) {
+	public static void startAccount(Context context, int serverId) {
 		Intent dialogIntent = new Intent(context, Setup.class);
 		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-				| Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
-				);
+				| Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
 		dialogIntent.putExtra("account", "account");
+		dialogIntent.putExtra("serverId", serverId);
 		context.startActivity(dialogIntent);
 	}
 
@@ -782,9 +853,9 @@ public class Main extends Activity {
 								.promptInfo(
 										context,
 										"Cannot Add User",
-										"You can only add a user from a server where" +
-										" you have an account. Make also sure that the" +
-										" server is currently not disabled.");
+										"You can only add a user from a server where"
+												+ " you have an account. Make also sure that the"
+												+ " server is currently not disabled.");
 						return;
 					}
 
@@ -974,7 +1045,6 @@ public class Main extends Activity {
 		TextView userlistText = (TextView) userlistitem
 				.findViewById(R.id.userlisttext);
 
-		
 		userlistName.setText(Html.fromHtml(name));
 		userlistDate.setText(date);
 		userlistText.setText(lastMessage);

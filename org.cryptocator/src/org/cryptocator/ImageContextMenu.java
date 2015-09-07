@@ -19,13 +19,13 @@
  * without specific prior written permission.
  *
  * 4. Free or commercial forks of Cryptocator are permitted as long as
- *    both (a) and (b) are and stay fulfilled. 
- *    (a) this license is enclosed
- *    (b) the protocol to communicate between Cryptocator servers
+ *    both (a) and (b) are and stay fulfilled: 
+ *    (a) This license is enclosed.
+ *    (b) The protocol to communicate between Cryptocator servers
  *        and Cryptocator clients *MUST* must be fully conform with 
  *        the documentation and (possibly updated) reference 
  *        implementation from cryptocator.org. This is to ensure 
- *        interconnectivity between all clients and servers. 
+ *        interconnectivity between all clients and servers.  
  * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -89,7 +89,7 @@ public class ImageContextMenu extends Activity {
 
 	/** The clickduration in ms. */
 	public static int CLICKDURATION = 300;
-
+	
 	/** The activity. */
 	Activity activity = null;
 
@@ -174,6 +174,9 @@ public class ImageContextMenu extends Activity {
 
 		/** The context. */
 		private Context context;
+		
+		/** The text size. */
+		private int textSize = 20;
 
 		// ---------------------------------------------------------------------
 
@@ -190,6 +193,17 @@ public class ImageContextMenu extends Activity {
 			this.context = context;
 			this.title = title;
 			this.icon = icon;
+		}
+
+		// ---------------------------------------------------------------------
+		
+		/**
+		 * Sets a specific text size.
+		 *
+		 * @param textSize the new text size
+		 */
+		public void setTextSize(int textSize) {
+			this.textSize = textSize;
 		}
 
 		// ---------------------------------------------------------------------
@@ -493,7 +507,7 @@ public class ImageContextMenu extends Activity {
 
 		LinearLayout.LayoutParams lpCaption = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.MATCH_PARENT,
-				LinearLayout.LayoutParams.MATCH_PARENT, 2);
+				LinearLayout.LayoutParams.WRAP_CONTENT, 2);
 		lpCaption.setMargins(10, 12, 15, 12);
 
 		LinearLayout.LayoutParams lpIcon = new LinearLayout.LayoutParams(70,
@@ -523,7 +537,7 @@ public class ImageContextMenu extends Activity {
 			TextView text = new TextView(context);
 			text.setText(caption);
 			text.setLayoutParams(lpCaption);
-			text.setTextSize(20);
+			text.setTextSize(imageContextMenuProvider.textSize);
 			text.setTextColor(Color.WHITE);
 			text.setGravity(Gravity.CENTER_VERTICAL);
 
