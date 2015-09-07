@@ -104,7 +104,7 @@ public class Scheduler extends BroadcastReceiver {
 		if (action != null && action.endsWith("USER_PRESENT")) {
 			// IF THE SCREEN TURNS ON AND WE ARE STILL IN CONVERSATION ... THEN
 			// UPDATE THESE IMMEDIATELY
-			
+
 			// DEBUG : SHOULD ALSO WORK WITHOUT THIS...
 			return;
 		}
@@ -296,7 +296,8 @@ public class Scheduler extends BroadcastReceiver {
 	// UPDATE
 	private static void update(final Context context, final boolean onlyReceive) {
 		// Switch to the next server in a round robin style
-		final int serverId = Setup.getServerId(Setup.getNextReceivingServer(context));
+		final int serverId = Setup.getServerId(Setup
+				.getNextReceivingServer(context));
 
 		// If a message previously sent, try to send the next message with
 		// priority
@@ -320,6 +321,11 @@ public class Scheduler extends BroadcastReceiver {
 						Communicator.SMSToSend = (DB.getNumberOfMessagesToSend(
 								context, DB.TRANSPORT_SMS) > 0);
 						Communicator.messagesToSendIsUpToDate = true;
+						Log.d("communicator",
+								"#### Updating ... messagesToSend and SMSToSend ...");
+					} else {
+						Log.d("communicator",
+								"#### Up-to-date (messagesToSend and SMSToSend)");
 					}
 					Log.d("communicator", "#### Communicator.messagesToSend="
 							+ Communicator.messagesToSend
@@ -338,13 +344,8 @@ public class Scheduler extends BroadcastReceiver {
 					// Do this as early as possible
 					Setup.updateServerkey(context, serverId, true);
 
-					Log.d("communicator", "#### Communicator.messageSent="
-							+ Communicator.messageSent
-							+ ", Communicator.messagesToSend="
-							+ Communicator.messagesToSend);
 
-					if (Communicator.messageSent || Communicator.messagesToSend
-							|| Communicator.SMSToSend) {
+					if (Communicator.messagesToSend || Communicator.SMSToSend) {
 						if (!onlyReceive) {
 							// The server is chosen automatically depending on
 							// the message that needs to be sent
