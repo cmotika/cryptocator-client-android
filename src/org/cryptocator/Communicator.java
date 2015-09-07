@@ -1014,6 +1014,12 @@ public class Communicator {
 				Key secretKeyBackup = Setup.getAESKeyBackup(context, newItem.from);
 				if (secretKeyBackup != null) {
 					text = decryptAESMessage(context, text, secretKey);
+					
+					if (text != null) {
+						// OK we could use the backup key... anyways do request a new key now
+						Communicator.getAESKey(context, newItem.from, true,
+								newItem.transport, true, null, false, true);
+					}
 				}
 			}
 			

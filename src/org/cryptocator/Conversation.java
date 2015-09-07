@@ -1287,6 +1287,26 @@ public class Conversation extends Activity {
 					fastScrollView.setScrollBackground(R.color.gray);
 				}
 			}, 200);
+			fastScrollView.postDelayed(new Runnable() {
+				public void run() {
+					Log.d("communicator", "@@@@ SCROLL DOWN #1");
+					isKeyboardVisible(conversationRootView);
+					fastScrollView.scrollDown();
+					// foceScrollDown();
+					scrolledDown = true;
+					fastScrollView.setScrollBackground(R.color.gray);
+				}
+			}, 500);
+			fastScrollView.postDelayed(new Runnable() {
+				public void run() {
+					Log.d("communicator", "@@@@ SCROLL DOWN #1");
+					isKeyboardVisible(conversationRootView);
+					fastScrollView.scrollDown();
+					// foceScrollDown();
+					scrolledDown = true;
+					fastScrollView.setScrollBackground(R.color.gray);
+				}
+			}, 1200);
 		} else if (scrolledDown) {
 			// Log.d("communicator", "@@@@ onCreate() 2: scrolled down lock");
 			// scroll to restore position
@@ -1335,14 +1355,15 @@ public class Conversation extends Activity {
 				fastScrollView.scrollDown();
 			}
 		}, 100 + delay);
+		fastScrollView.postDelayed(new Runnable() {
+			public void run() {
+				fastScrollView.scrollDown();
+			}
+		}, 500 + delay);
 
 		Log.d("communicator", "@@@@ foceScrollDown() -> keyboardVisible="
 				+ keyboardVisible);
 
-		// Fake a keyboard entry for convenience: If the user immediately
-		// wants to start typing - he just can and will not be interrupted!
-		// :-)
-		lastKeyStroke = DB.getTimestamp();
 
 		// If keyboard is visible, then set cursor to text field!
 		if (keyboardVisible) {
@@ -1354,9 +1375,11 @@ public class Conversation extends Activity {
 					FastScrollView.allowOneLayoutOverride = 3;
 					Utility.showKeyboardExplicit(messageText);
 					messageText.requestFocus();
+					scrolledDown = true;
 				}
 			}, 200 + delay);
 		}
+		scrolledDown = true;
 	}
 
 	// -------------------------------------------------------------------------
@@ -1504,7 +1527,8 @@ public class Conversation extends Activity {
 				isKeyboardVisible(conversationRootView);
 				foceScrollDown(keyboardVisible || showKeyboard, delay);
 			}
-		}, 100);
+		}, 200);
+		scrolledDown = true;
 	}
 
 	// -------------------------------------------------------------------------
@@ -1593,7 +1617,8 @@ public class Conversation extends Activity {
 	public void updateConversationlist(final Context context) {
 		loadConversationList(context, hostUid, maxScrollMessageItems);
 		try {
-			if (!Conversation.scrolledDown) {
+			boolean isScrolledDown = Conversation.scrolledDown;
+			if (!isScrolledDown) {
 				fastScrollView.lockPosition();
 			}
 			if (conversationListDiff.size() > 0) {
@@ -1607,7 +1632,7 @@ public class Conversation extends Activity {
 			}
 			conversationSize += conversationListDiff.size();
 
-			if (!Conversation.scrolledDown) {
+			if (!isScrolledDown) {
 				fastScrollView.restoreLockedPosition();
 			} else {
 				scrollDownAfterTypingFast(false);
@@ -2971,9 +2996,6 @@ public class Conversation extends Activity {
 						}
 					}
 				}, InputType.TYPE_CLASS_TEXT, true, showKeyboard).show();
-//			Utility.hideKeyboard(this);
-//		}
-
 	}
 
 	// ------------------------------------------------------------------------

@@ -3412,7 +3412,11 @@ public class DB {
 	// -----------------------------------------------------------------
 
 	public static void possiblyUpdate(Context context) {
-		if (Setup.getVersion(context) < Setup.VERSION_MULTISERVER) {
+		String oldMyUidString = Utility.loadStringSetting(context,
+				Setup.SERVER_UID, "");
+
+		if (oldMyUidString != null && oldMyUidString.length() > 0
+				&& Setup.getVersion(context) < Setup.VERSION_MULTISERVER) {
 			// Recovery action needed - GO FROM SINGLE SERVER VERSION TO
 			// MULTISERVER VERSION
 
@@ -3423,8 +3427,6 @@ public class DB {
 			// 1. our uid by -1
 			// 2. the other suid by the new uid
 
-			String oldMyUidString = Utility.loadStringSetting(context,
-					Setup.SERVER_UID, "");
 			String newMyUidString = "-3";
 
 			List<Integer> newUidList = new ArrayList<Integer>();
