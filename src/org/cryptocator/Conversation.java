@@ -1185,6 +1185,10 @@ public class Conversation extends Activity {
 		// scroll up! this prevents!
 		// Log.d("communicator", "@@@@ onPause() LOCK POSITION ");
 		fastScrollView.lockPosition();
+		if (scrolledDown) {
+			// This trick will fore a rigorous scrolldown at onResume!
+			hasScrolled = false;
+		}
 	}
 
 	// --------------------------------------
