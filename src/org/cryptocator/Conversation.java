@@ -63,6 +63,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore.Images;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
@@ -2078,12 +2079,11 @@ public class Conversation extends Activity {
 				sent.setVisibility(View.GONE);
 				received.setVisibility(View.GONE);
 				read.setImageResource(R.drawable.msgdecryptionfailed);
-				
+
 				// Rounded corners failed
 				oneline.setBackgroundResource(R.drawable.rounded_cornersme_failed);
 				speech.setImageResource(R.drawable.speechmefailed);
-			}
-			else if (conversationItem.read > 0
+			} else if (conversationItem.read > 0
 					&& !Utility.loadBooleanSetting(context,
 							Setup.OPTION_NOREAD, Setup.DEFAULT_NOREAD)) {
 				// only display read for the people that allow this
@@ -2858,7 +2858,8 @@ public class Conversation extends Activity {
 		final int lastFound = Utility.loadIntSetting(context,
 				"lastconversationsearchfound", -1);
 
-		// String title = "Search Conversation";
+		final boolean showKeyboard = !(lastSearch != null && lastSearch.length() > 0);
+ 
 		String title = "Enter some text to search for:";
 		new MessageInputDialog(context, title, null, " Up ", "Down", "Clear",
 				lastSearch, new MessageInputDialog.OnSelectionListener() {
@@ -2875,7 +2876,7 @@ public class Conversation extends Activity {
 							Utility.saveStringSetting(context,
 									"lastconversationsearch", searchString);
 
-							// try to unmark (remove previous highlighting)
+							// Try to unmark (remove previous highlighting)
 							{
 								if (lastFound != -1) {
 									Mapping mappingItem = mapping
@@ -2890,14 +2891,15 @@ public class Conversation extends Activity {
 							}
 
 							boolean reverse = (button == MessageInputDialog.BUTTONOK0);
-							int start = scrollItem;
-							int end = conversationList.size() - 1;
+							int max = conversationList.size() - 1;
+							int start = scrollItem + 1;
+							int end = max;
 							if (start > end) {
 								start = end;
 							}
 							int incr = 1;
 							if (reverse) {
-								start = scrollItem - 2;
+								start = scrollItem;
 								end = 0;
 								if (start < end) {
 									start = end;
@@ -2907,6 +2909,12 @@ public class Conversation extends Activity {
 							if (scrollItem > -1) {
 								int foundItem = -1;
 								int mid = -1;
+								if (start > max) {
+									start = max;
+								}
+								if (end > max) {
+									end = max;
+								}
 								for (int c = start; c != end; c = c + incr) {
 									if (conversationList.get(c).text
 											.contains(searchString)) {
@@ -2941,6 +2949,9 @@ public class Conversation extends Activity {
 									}
 								}
 								if (foundItem != -1) {
+									// Disable autoscrolling!
+									Conversation.scrolledDown = false;
+									Conversation.scrolledUp = false;
 									fastScrollView.scrollToItem(foundItem);
 									Utility.showToastInUIThread(context, "'"
 											+ searchString
@@ -2959,7 +2970,9 @@ public class Conversation extends Activity {
 							}
 						}
 					}
-				}).show();
+				}, InputType.TYPE_CLASS_TEXT, true, showKeyboard).show();
+//			Utility.hideKeyboard(this);
+//		}
 
 	}
 
@@ -3150,14 +3163,10 @@ public class Conversation extends Activity {
 		if (resultCode == RESULT_OK) {
 			if (requestCode == SELECT_PICTURE) {
 				boolean ok = false;
-				String attachmentPath = Utility.getRealPathFromURI(this,
-						data.getData());
-				if (attachmentPath != null) {
-					try {
-						insertImage(this, attachmentPath);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+				try {
+					insertImage(this, data.getData());
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 				if (!ok) {
 					Utility.showToastInUIThread(this,
@@ -3341,6 +3350,42 @@ public class Conversation extends Activity {
 	/**
 	 * Prompt the image insert dialog
 	 * 
+	 * @param context
+	 *            the context
+	 */
+	public void insertImage(final Context context, Uri attachmentPath) {
+		final boolean keyboardWasVisible = keyboardVisible;
+		final boolean wasScrolledDown = scrolledDown;
+		PictureImportActivity
+				.setOnPictureImportListener(new PictureImportActivity.OnPictureImportListener() {
+					public void onImport(String encodedImage) {
+						Utility.smartPaste(messageText, encodedImage, " ", " ",
+								false, false, true);
+						if (wasScrolledDown) {
+							scrollDownNow(context, keyboardWasVisible);
+							scrollDownSoon(context, keyboardWasVisible, 2000);
+						}
+					}
+				});
+		PictureImportActivity.hostUid = hostUid;
+		Intent dialogIntent = new Intent(context, PictureImportActivity.class);
+		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		Bitmap bitmap = Utility.getBitmapFromContentUri(this, attachmentPath);
+
+		if (bitmap != null) {
+			PictureImportActivity.attachmentBitmap = bitmap;
+			context.startActivity(dialogIntent);
+		} else {
+			Utility.showToastAsync(context, "Image error.");
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Prompt the image insert dialog
+	 * 
+	 * @deprecated User insertImage() with Uri instead!
 	 * @param context
 	 *            the context
 	 */

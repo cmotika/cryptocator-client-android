@@ -2230,6 +2230,29 @@ public class Utility {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Gets the bitmap from content uri.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param imageUri
+	 *            the image uri
+	 * @return the bitmap from content uri
+	 */
+	public static Bitmap getBitmapFromContentUri(Context context, Uri imageUri) {
+		Bitmap bitmap = null;
+		try {
+			InputStream input = context.getContentResolver().openInputStream(
+					imageUri);
+			bitmap = BitmapFactory.decodeStream(input);
+		} catch (Exception e) {
+			// handle exception
+		}
+		return bitmap;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
 	 * Convert the image URI to the direct file system path of the image so that
 	 * it can be loaded.
 	 * 
@@ -2242,6 +2265,9 @@ public class Utility {
 	@SuppressWarnings("deprecation")
 	public static String getRealPathFromURI(Activity activity, Uri contentUri) {
 		String returnPath = null;
+
+		Log.d("communicator", "IMPORT getRealPathFromURI() contentUri="
+				+ contentUri.toString());
 
 		try {
 			if (Build.VERSION.SDK_INT < 19) {
@@ -2276,6 +2302,10 @@ public class Utility {
 			}
 		} catch (Exception e) {
 		}
+
+		Log.d("communicator", "IMPORT getRealPathFromURI() returnPath="
+				+ returnPath);
+
 		return returnPath;
 	}
 

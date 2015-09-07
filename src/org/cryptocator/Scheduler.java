@@ -331,7 +331,7 @@ public class Scheduler extends BroadcastReceiver {
 					// Log.d("communicator", "#### Communicator.internetOk="+
 					// Communicator.internetOk + ", Communicator.loginOk=" +
 					// Communicator.loginOk);
-					if (Main.isVisible()) {
+					if (Main.isAlive()) {
 						Main.getInstance().updateInfoMessageBlockAsync(context);
 					}
 

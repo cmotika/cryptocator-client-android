@@ -2918,52 +2918,55 @@ android.support.v4.widget.ViewDragHelper$Callback:
     148:148:public ViewDragHelper$Callback()
 org.cryptocator.BuildConfig
 org.cryptocator.Communicator:
-    87:87:public Communicator()
+    96:96:public Communicator()
 org.cryptocator.Conversation:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
+    3393:3418:public void insertImage(android.content.Context,java.lang.String)
+    147:147:static synthetic boolean access$32()
+org.cryptocator.Conversation$58
 org.cryptocator.ConversationCompose:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
     private static final int PICK_CONTACT
-    935:935:public static org.cryptocator.ConversationCompose getInstance()
-    945:945:public static boolean isVisible()
+    979:979:public static org.cryptocator.ConversationCompose getInstance()
+    989:989:public static boolean isVisible()
 org.cryptocator.ConversationItem:
-    168:177:public ConversationItem(java.lang.String,boolean)
+    176:185:public ConversationItem(java.lang.String,boolean)
 org.cryptocator.DB:
     public static final java.lang.String TABLE_MESSAGES
     public static final java.lang.String TABLE_SENDING
     public static final java.lang.String TABLE_SENT
-    64:64:public DB()
-    1522:1550:public static java.lang.String getMultipartIdSending(android.content.Context,int)
-    1568:1596:public static java.lang.String getMultipartIdReceived(android.content.Context,int,int)
-    1893:1899:public static void cleanupDB(android.content.Context,int)
-    2942:2942:public static boolean isMessageFailed(java.lang.String)
+    73:73:public DB()
+    1592:1620:public static java.lang.String getMultipartIdSending(android.content.Context,int)
+    1638:1666:public static java.lang.String getMultipartIdReceived(android.content.Context,int,int)
+    1963:1969:public static void cleanupDB(android.content.Context,int)
+    3035:3035:public static boolean isMessageFailed(java.lang.String)
 org.cryptocator.FastScrollBar:
     static final int LOCKTIMEOUT
-    154:155:public FastScrollBar(android.content.Context,android.util.AttributeSet,int)
-    168:169:public FastScrollBar(android.content.Context,android.util.AttributeSet)
+    163:164:public FastScrollBar(android.content.Context,android.util.AttributeSet,int)
+    177:178:public FastScrollBar(android.content.Context,android.util.AttributeSet)
 org.cryptocator.HttpStringRequest:
-    107:108:public void setOnResponseListener(org.cryptocator.HttpStringRequest$OnResponseListener)
+    116:117:public void setOnResponseListener(org.cryptocator.HttpStringRequest$OnResponseListener)
 org.cryptocator.ImageContextMenu:
-    364:367:public static void close()
-    377:377:public static boolean visible()
+    373:376:public static void close()
+    386:386:public static boolean visible()
 org.cryptocator.ImageContextMenu$ImageContextMenuProvider:
-    231:238:public int addEntry(java.lang.String,android.graphics.drawable.Drawable,org.cryptocator.ImageContextMenu$ImageContextMenuSelectionListener)
-    264:265:public void setEnabled(int,boolean)
+    240:247:public int addEntry(java.lang.String,android.graphics.drawable.Drawable,org.cryptocator.ImageContextMenu$ImageContextMenuSelectionListener)
+    273:274:public void setEnabled(int,boolean)
 org.cryptocator.ImagePressButton:
-    203:205:public void initializePressImageResourceWhite(int)
-    262:263:public void initializePressImageResource(int,int,int)
-    300:301:public void activatePressImageResourceWhite()
+    212:214:public void initializePressImageResourceWhite(int)
+    271:272:public void initializePressImageResource(int,int,int)
+    309:310:public void activatePressImageResourceWhite()
 org.cryptocator.Main:
     private static final java.lang.String DEFAULTTEXT
-    1135:1155:public void askToDelete(android.content.Context,int)
-org.cryptocator.Main$23
+    1242:1262:public void askToDelete(android.content.Context,int)
+org.cryptocator.Main$24
 org.cryptocator.MessageDetailsActivity:
     private static final java.lang.String STARTTAG
     private static final java.lang.String ENDTAG
 org.cryptocator.MmsReceiver:
-    55:55:public void onCreate(android.content.Context)
+    64:64:public void onCreate(android.content.Context)
 org.cryptocator.R
 org.cryptocator.R$attr
 org.cryptocator.R$color
@@ -2973,13 +2976,13 @@ org.cryptocator.R$layout
 org.cryptocator.R$string
 org.cryptocator.R$style
 org.cryptocator.Scheduler:
-    134:135:public static void setUpdateListener(org.cryptocator.Scheduler$OnUpdateListener)
-    143:144:public static void clearUpdateListener()
+    142:143:public static void setUpdateListener(org.cryptocator.Scheduler$OnUpdateListener)
+    151:152:public static void clearUpdateListener()
 org.cryptocator.ScrollViewEx:
-    202:203:public void lockPosition()
-    213:213:public boolean isLocked()
-    222:230:public void restoreLockedPosition()
-    307:310:public void stopWatchDogThread()
+    210:211:public void lockPosition()
+    221:221:public boolean isLocked()
+    230:238:public void restoreLockedPosition()
+    316:319:public void stopWatchDogThread()
 org.cryptocator.ScrollViewEx$1
 org.cryptocator.SendSMS:
     public static final int SMS_PART_LIMIT
@@ -2987,8 +2990,8 @@ org.cryptocator.SendSMS:
     public static final java.lang.String SECURESMS_ID
     public static final java.lang.String SECURESMSSENT
     public static final java.lang.String SECURESMSDELIVERED
-    62:62:public SendSMS()
-    255:257:public static synchronized void updateSendingTimestamp(android.content.Context,int)
+    71:71:public SendSMS()
+    264:266:public static synchronized void updateSendingTimestamp(android.content.Context,int)
 org.cryptocator.Setup:
     public static final int ADVANCEDSETUPCOUNTDOWNSTART
     public static final java.lang.String SETTINGS_BASEURL
@@ -3016,6 +3019,7 @@ org.cryptocator.Setup:
     public static final int ERROR_UPDATE_MAXIMUM
     public static final int MAX_SHOW_CONVERSATION_MESSAGES
     public static final int SHOW_ALL
+    public static final int SHOW_MORE
     public static final java.lang.String NA
     public static final java.lang.String ERROR_TIME_TO_WAIT
     public static final java.lang.String OPTION_ACTIVE
@@ -3062,16 +3066,28 @@ org.cryptocator.Setup:
     public static final java.lang.String HELP_POWERSAVE
     public static final java.lang.String OPTION_SMSMODE
     public static final boolean DEFAULT_SMSMODE
-    public static final java.lang.String PUBKEY
-    public static final java.lang.String PRIVATEKEY
+    public static final java.lang.String PUBRSAKEY
+    public static final java.lang.String PRIVATERSAKEY
+    public static final java.lang.String AESKEYBAK
     public static final java.lang.String AESKEY
+    public static final java.lang.String SERVERLIST
+    public static final java.lang.String SERVER_UID
+    public static final java.lang.String SERVER_EMAIL
+    public static final java.lang.String SERVER_PWD
+    public static final java.lang.String SERVER_USERNAME
+    public static final java.lang.String UID2SUID
+    public static final java.lang.String UID2SERVERID
+    public static final int DEFAULTSERVERINDEX
+    public static final java.lang.String SERVER_ACTIVE
+    public static final java.lang.String SERVERLASTRRIDRECEIVE
+    public static final java.lang.String SERVERLASTRRIDSEND
+    public static final boolean SERVER_ACTIVEDEFAULT
     public static final java.lang.String KEYEXTRAWAITCOUNTDOWN
     public static final java.lang.String LASTKEYMID
     public static final java.lang.String PHONE
     public static final java.lang.String SETTINGS_USERLIST
     public static final java.lang.String SETTINGS_USERLISTLASTMESSAGE
     public static final java.lang.String SETTINGS_USERLISTLASTMESSAGETIMESTAMP
-    public static final java.lang.String SETTINGS_HAVESENTRSAKEYYET
     public static final java.lang.String SETTINGS_PHONE
     public static final java.lang.String SETTINGS_UPDATENAME
     public static final boolean SETTINGS_DEFAULT_UPDATENAME
@@ -3097,32 +3113,36 @@ org.cryptocator.Setup:
     public static final java.lang.String LASTUPDATE_SERVER_ATTACHMENT_LIMIT
     public static final int SMS_SIZE_WARNING
     public static final int MULTIPART_MESSAGELIMIT
-    2998:3003:public static boolean haveAESKey(android.content.Context,int)
-    3319:3335:public static java.security.PublicKey getPublicKey(android.content.Context)
-    4389:4409:public static java.lang.String encText(android.content.Context,java.lang.String)
+    3504:3509:public static boolean haveAESKey(android.content.Context,int)
+    3875:3891:public static java.security.PublicKey getPublicKey(android.content.Context)
+    5015:5035:public static java.lang.String encText(android.content.Context,java.lang.String,int)
+    5939:5940:public static void setVersionUpdated(android.content.Context)
+    5953:5953:public static boolean isVersionUpdated(android.content.Context)
 org.cryptocator.Utility:
     public static final java.lang.String PREFERENCESURI
-    127:127:public Utility()
-    152:158:public static void hideSoftkeys(android.app.Activity)
-    237:247:public static java.util.HashMap buildSettingsMap(java.lang.String)
-    584:585:public static void saveDoubleSetting(android.content.Context,java.lang.String,double)
-    779:791:public static java.lang.String getData(android.content.Context,java.lang.String)
-    807:831:public static java.lang.String getContentAsString(org.apache.http.HttpResponse)
-    846:852:public static java.lang.String reencodeISO(java.lang.String)
-    865:871:public static java.lang.String convertToUTF8(java.lang.String)
-    884:890:public static java.lang.String convertFromUTF8(java.lang.String)
-    920:935:public static java.lang.String getTileNumber(double,double,int)
-    956:985:public static void updateTile(android.content.Context,android.widget.ImageView,int,double,double)
-    1100:1105:public static java.lang.String getSeconds(long)
-    1121:1126:public static java.lang.String getMilliSeconds(long)
-    1277:1288:public static void forceOverflowMenuButtons(android.content.Context)
-    1429:1437:public static java.util.List getListFromString(java.lang.String,java.lang.String,int)
-    1540:1543:public static int getScreenHeight(android.content.Context)
-    1604:1615:public static void errorVibrate(android.content.Context)
-    1627:1627:public static java.lang.String convertBASE64ToString(java.lang.String)
-    1641:1641:public static java.lang.String convertStringToBASE64(java.lang.String)
-    1783:1784:public static void killOwnProcess()
-    1883:1890:public static java.lang.String getEncodedFile(java.lang.String)
-    1983:1989:public static android.graphics.drawable.Drawable loadDrawableFromBASE64String(java.lang.String)
+    136:136:public Utility()
+    161:167:public static void hideSoftkeys(android.app.Activity)
+    246:256:public static java.util.HashMap buildSettingsMap(java.lang.String)
+    593:594:public static void saveDoubleSetting(android.content.Context,java.lang.String,double)
+    788:800:public static java.lang.String getData(android.content.Context,java.lang.String)
+    816:840:public static java.lang.String getContentAsString(org.apache.http.HttpResponse)
+    855:861:public static java.lang.String reencodeISO(java.lang.String)
+    874:880:public static java.lang.String convertToUTF8(java.lang.String)
+    893:899:public static java.lang.String convertFromUTF8(java.lang.String)
+    929:944:public static java.lang.String getTileNumber(double,double,int)
+    965:994:public static void updateTile(android.content.Context,android.widget.ImageView,int,double,double)
+    1109:1114:public static java.lang.String getSeconds(long)
+    1130:1135:public static java.lang.String getMilliSeconds(long)
+    1286:1297:public static void forceOverflowMenuButtons(android.content.Context)
+    1438:1446:public static java.util.List getListFromString(java.lang.String,java.lang.String,int)
+    1549:1552:public static int getScreenHeight(android.content.Context)
+    1613:1624:public static void errorVibrate(android.content.Context)
+    1636:1636:public static java.lang.String convertBASE64ToString(java.lang.String)
+    1650:1650:public static java.lang.String convertStringToBASE64(java.lang.String)
+    1792:1793:public static void killOwnProcess()
+    1892:1899:public static java.lang.String getEncodedFile(java.lang.String)
+    1912:1925:public static byte[] getFile(java.lang.String)
+    1992:1998:public static android.graphics.drawable.Drawable loadDrawableFromBASE64String(java.lang.String)
+    2267:2309:public static java.lang.String getRealPathFromURI(android.app.Activity,android.net.Uri)
 org.cryptocator.Utility$1
 org.cryptocator.Utility$1$1
