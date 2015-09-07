@@ -2922,7 +2922,7 @@ org.cryptocator.Communicator:
 org.cryptocator.Conversation:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
-    3415:3440:public void insertImage(android.content.Context,java.lang.String)
+    3419:3444:public void insertImage(android.content.Context,java.lang.String)
     147:147:static synthetic boolean access$32()
 org.cryptocator.Conversation$61
 org.cryptocator.ConversationCompose:
