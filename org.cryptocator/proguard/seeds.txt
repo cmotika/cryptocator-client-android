@@ -144,6 +144,8 @@ org.cryptocator.HeadlessSmsSendService
 org.cryptocator.HeadlessSmsSendService: HeadlessSmsSendService()
 org.cryptocator.ImageContextMenu
 org.cryptocator.ImageContextMenu: ImageContextMenu()
+org.cryptocator.ImageFullscreenActivity
+org.cryptocator.ImageFullscreenActivity: ImageFullscreenActivity()
 org.cryptocator.ImageLabelButton
 org.cryptocator.ImageLabelButton: ImageLabelButton(android.content.Context)
 org.cryptocator.ImageLabelButton: ImageLabelButton(android.content.Context,android.util.AttributeSet)
@@ -162,6 +164,7 @@ org.cryptocator.ImagePressButton: void setImageResource(int)
 org.cryptocator.ImagePressButton: void setImagePressResource(int)
 org.cryptocator.ImagePressButton: void setAdditionalPressWhiteView(android.view.View)
 org.cryptocator.ImageSmileyEditText
+org.cryptocator.ImageSmileyEditText: void setConversationItem(org.cryptocator.ConversationItem)
 org.cryptocator.ImageSmileyEditText: void setOnCutCopyPasteListener(org.cryptocator.ImageSmileyEditText$OnCutCopyPasteListener)
 org.cryptocator.ImageSmileyEditText: ImageSmileyEditText(android.content.Context,android.util.AttributeSet,int)
 org.cryptocator.ImageSmileyEditText: ImageSmileyEditText(android.content.Context,android.util.AttributeSet)
@@ -224,6 +227,7 @@ org.cryptocator.R$drawable: int menubackup
 org.cryptocator.R$drawable: int menuchatoff
 org.cryptocator.R$drawable: int menuchaton
 org.cryptocator.R$drawable: int menucompose
+org.cryptocator.R$drawable: int menucopy
 org.cryptocator.R$drawable: int menudelete
 org.cryptocator.R$drawable: int menukey
 org.cryptocator.R$drawable: int menumsgsec
@@ -231,6 +235,7 @@ org.cryptocator.R$drawable: int menumsgunsec
 org.cryptocator.R$drawable: int menurefresh
 org.cryptocator.R$drawable: int menusearch
 org.cryptocator.R$drawable: int menusettings
+org.cryptocator.R$drawable: int menushare
 org.cryptocator.R$drawable: int menushowall
 org.cryptocator.R$drawable: int menusmsoff
 org.cryptocator.R$drawable: int menusmson

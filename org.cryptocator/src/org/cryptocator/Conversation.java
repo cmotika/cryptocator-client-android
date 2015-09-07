@@ -208,6 +208,9 @@ public class Conversation extends Activity {
 	/** The image context menu provider for the send menu. */
 	private ImageContextMenuProvider imageSendMenuProvider = null;
 
+	/** The image context menu provider for the image menu. */
+	private ImageContextMenuProvider imageImageMenuProvider = null;
+
 	/**
 	 * The skips ONE resume. Necessary for the send context menu call because we
 	 * do not want to typical resume there.
@@ -376,8 +379,6 @@ public class Conversation extends Activity {
 					}
 
 					public void onCopy() {
-						promptImageSaveAs(context, "",
-								"Copied from message input text field.");
 					}
 				});
 
@@ -2093,6 +2094,8 @@ public class Conversation extends Activity {
 					null);
 			conversationText = (ImageSmileyEditText) conversationlistitem
 					.findViewById(R.id.conversationtext);
+			conversationText.setConversationItem(conversationItem);
+
 			// Rounded corners
 			LinearLayout oneline = (LinearLayout) conversationlistitem
 					.findViewById(R.id.oneline);
@@ -2127,6 +2130,7 @@ public class Conversation extends Activity {
 					.findViewById(R.id.msgread);
 			conversationText = (ImageSmileyEditText) conversationlistitem
 					.findViewById(R.id.conversationtext);
+			conversationText.setConversationItem(conversationItem);
 			ImageView speech = (ImageView) conversationlistitem
 					.findViewById(R.id.msgspeech);
 
@@ -2183,11 +2187,6 @@ public class Conversation extends Activity {
 					}
 
 					public void onCopy() {
-						promptImageSaveAs(
-								context,
-								buildImageTitleAddition(context,
-										conversationItem),
-								buildImageDescription(context, conversationItem));
 					}
 				});
 
@@ -2800,6 +2799,70 @@ public class Conversation extends Activity {
 	}
 
 	// ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+
+	/**
+	 * The current image to be considered by choices of the context menu bitmap.
+	 */
+	Bitmap imageImageMenuBitmap = null;
+	String imageImageMenuString = null;
+	String imageImageMenuTitleAddition = null;
+	String imageImageMenuDescription = null;
+
+	public ImageContextMenuProvider createImageContextMenu(
+			final Activity context, Bitmap bitmap, String encodedImg,
+			final String titleAddition, final String description) {
+		imageImageMenuBitmap = bitmap;
+		imageImageMenuString = encodedImg;
+		imageImageMenuTitleAddition = titleAddition;
+		imageImageMenuDescription = description;
+
+		if (imageImageMenuProvider == null) {
+			imageImageMenuProvider = new ImageContextMenuProvider(context,
+					"Image Options", context.getResources().getDrawable(
+							R.drawable.pictureimport));
+			imageImageMenuProvider.addEntry("View Fullscreen",
+					R.drawable.menushowall,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							ImageFullscreenActivity.showFullscreenImage(context, imageImageMenuBitmap);
+							return true;
+						}
+					});
+			imageImageMenuProvider.addEntry("Copy", R.drawable.menucopy,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							Utility.copyToClipboard(context,
+									"[img " + imageImageMenuString + "]");
+							Utility.showToastAsync(context,
+									"Image copied to Clipboard.");
+							return true;
+						}
+					});
+			imageImageMenuProvider.addEntry("Share", R.drawable.menushare,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							shareImage(context, imageImageMenuString);
+							return true;
+						}
+					});
+			imageImageMenuProvider.addEntry("Save", R.drawable.menubackup,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							// SAVE
+							String titleAddition = "";
+							String description = "Cryptocator Image";
+							saveImageInGallery(context, imageImageMenuString,
+									false, titleAddition, description);
+							return true;
+						}
+					});
+		}
+		return imageImageMenuProvider;
+	}
+
+	// ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
 
 	/*
 	 * (non-Javadoc)
@@ -3360,6 +3423,16 @@ public class Conversation extends Activity {
 	 */
 	public static void promptImageSaveAs(final Context context,
 			final String imageTitleAddition, final String imageDescription) {
+
+		// promptImageSaveAs(context, "",
+		// "Copied from message input text field.");
+		//
+		// promptImageSaveAs(
+		// context,
+		// buildImageTitleAddition(context,
+		// conversationItem),
+		// buildImageDescription(context, conversationItem));
+
 		final String copiedText = Utility.pasteFromClipboard(context);
 		int imgStart = copiedText.indexOf("[img ");
 		if (imgStart == -1) {

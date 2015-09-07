@@ -49,8 +49,10 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.text.Spannable;
+import android.text.style.ClickableSpan;
 import android.text.style.ImageSpan;
 import android.util.AttributeSet;
+import android.view.View;
 import android.widget.EditText;
 
 /**
@@ -84,6 +86,10 @@ public class ImageSmileyEditText extends EditText {
 	// "^^",
 	// ":)", ":P", ";)" };
 
+	private String description = null;
+
+	private String titleAddition = null;
+
 	/**
 	 * The is input text field then reduce images to tumbnails and doe not
 	 * resize!
@@ -114,12 +120,22 @@ public class ImageSmileyEditText extends EditText {
 	/** The max withd of the text field. */
 	private int maxWidth = 100;
 
-	// /**
-	// * The contains images flag is needed to recompute layout only in this
-	// case
-	// * if orientation (=width) changed.
-	// */
-	// private boolean containsImages = false;
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sets the possibly linked conversation item. This is used when calling the
+	 * context menu click action of an image to generate a proper name and
+	 * title.
+	 * 
+	 * @param conversationItem
+	 *            the new conversation item
+	 */
+	public void setConversationItem(ConversationItem conversationItem) {
+		titleAddition = Conversation.buildImageTitleAddition(this.getContext(),
+				conversationItem);
+		description = Conversation.buildImageDescription(this.getContext(),
+				conversationItem);
+	}
 
 	// ------------------------------------------------------------------------
 
@@ -304,9 +320,9 @@ public class ImageSmileyEditText extends EditText {
 	 *            the text height
 	 * @return true, if successful
 	 */
-	private static boolean addImages(Context context, Spannable spannable,
-			float textHeight, ImageSmileyEditText editText,
-			boolean isInputTextField) {
+	private static boolean addImages(final Context context,
+			Spannable spannable, float textHeight,
+			final ImageSmileyEditText editText, boolean isInputTextField) {
 		// editText.containsImages = false;
 
 		// Taken from the acknowledged article:
@@ -347,8 +363,9 @@ public class ImageSmileyEditText extends EditText {
 					drawable.setBounds(0, 0, (int) textHeight, (int) textHeight);
 					if (set) {
 						hasChanges = true;
-						spannable.setSpan(new ImageSpan(context, id),
-								matcher.start(), matcher.end(),
+						ImageSpan imageSpan = new ImageSpan(context, id);
+						spannable.setSpan(imageSpan, matcher.start(),
+								matcher.end(),
 								Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 					}
 				}
@@ -373,7 +390,7 @@ public class ImageSmileyEditText extends EditText {
 					break;
 				}
 			}
-			String encodedImg = spannable
+			final String encodedImg = spannable
 					.subSequence(matcher.start(1), matcher.end(1)).toString()
 					.trim();
 
@@ -413,6 +430,25 @@ public class ImageSmileyEditText extends EditText {
 				// end);
 				spannable.setSpan(new ImageSpan(drawable), start, end,
 						Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+				final Bitmap bitmap2 = bitmap;
+				ClickableSpan clickableSpan = new ClickableSpan() {
+					@Override
+					public void onClick(View widget) {
+						if (Conversation.isAlive()) {
+							Conversation conversation = Conversation
+									.getInstance();
+							ImageContextMenu.show(context, conversation
+									.createImageContextMenu(conversation,
+											bitmap2, encodedImg,
+											editText.titleAddition,
+											editText.description));
+						}
+					}
+				};
+				spannable.setSpan(clickableSpan, start, end,
+						Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
 			}
 		}
 		return hasChanges;
