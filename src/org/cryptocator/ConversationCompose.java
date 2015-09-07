@@ -19,9 +19,9 @@
  * without specific prior written permission.
  *
  * 4. Free or commercial forks of Cryptocator are permitted as long as
- *    both (a) and (b) are and stay fulfilled. 
- *    (a) this license is enclosed
- *    (b) the protocol to communicate between Cryptocator servers
+ *    both (a) and (b) are and stay fulfilled: 
+ *    (a) This license is enclosed.
+ *    (b) The protocol to communicate between Cryptocator servers
  *        and Cryptocator clients *MUST* must be fully conform with 
  *        the documentation and (possibly updated) reference 
  *        implementation from cryptocator.org. This is to ensure 
@@ -237,6 +237,8 @@ public class ConversationCompose extends Activity {
 		toList = (FastScrollView) findViewById(R.id.tolist);
 		toList.setSnapDown(80);
 		toList.setSnapUp(20);
+		toList
+		.setScrollBackground(Conversation.FASTSCROLLBACKSCROLLINGBACKGROUND);
 
 		messageText = ((ImageSmileyEditText) findViewById(R.id.messageText));
 		messageText.setInputTextField(true);
@@ -1313,6 +1315,12 @@ public class ConversationCompose extends Activity {
 									potentiallyShowKeyboard(context, true);
 								}
 							}
+
+							public void onCancel() {
+								if (keyboardWasVisible) {
+									potentiallyShowKeyboard(context, true);
+								}
+							}
 						});
 
 				PictureImportActivity.hostUid = hostUid;
@@ -1483,6 +1491,12 @@ public class ConversationCompose extends Activity {
 					public void onImport(String encodedImage) {
 						Utility.smartPaste(messageText, encodedImage, " ", " ",
 								false, false, true);
+						if (keyboardWasVisible) {
+							potentiallyShowKeyboard(context, true);
+						}
+					}
+
+					public void onCancel() {
 						if (keyboardWasVisible) {
 							potentiallyShowKeyboard(context, true);
 						}

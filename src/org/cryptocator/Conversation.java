@@ -19,9 +19,9 @@
  * without specific prior written permission.
  *
  * 4. Free or commercial forks of Cryptocator are permitted as long as
- *    both (a) and (b) are and stay fulfilled. 
- *    (a) this license is enclosed
- *    (b) the protocol to communicate between Cryptocator servers
+ *    both (a) and (b) are and stay fulfilled: 
+ *    (a) This license is enclosed.
+ *    (b) The protocol to communicate between Cryptocator servers
  *        and Cryptocator clients *MUST* must be fully conform with 
  *        the documentation and (possibly updated) reference 
  *        implementation from cryptocator.org. This is to ensure 
@@ -190,12 +190,12 @@ public class Conversation extends Activity {
 	 * The color of the fast scroll background when scrolling and not scroll
 	 * locked down.
 	 */
-	final int FASTSCROLLBACKSCROLLINGBACKGROUND = Color.parseColor("#44000000");
+	public static final int FASTSCROLLBACKSCROLLINGBACKGROUND = Color.parseColor("#44000000");
 
 	/**
 	 * The color of the fast scroll background when scroll locked down.
 	 */
-	final int FASTSCROLLBACKLOCKEDBACKGROUND = Color.parseColor("#00555555");
+	public static final int FASTSCROLLBACKLOCKEDBACKGROUND = Color.parseColor("#00555555");
 
 	/** The image context menu provider for the main menu. */
 	private ImageContextMenuProvider imageContextMenuProvider = null;
@@ -799,13 +799,13 @@ public class Conversation extends Activity {
 					new MessageAlertDialog.OnSelectionListener() {
 						public void selected(int button, boolean cancel) {
 							if (!cancel) {
+								int serverId = Setup.getServerId(
+										context, hostUid);
 								if (button == 0) {
 									// Turn on if possible
 									String phone = Utility
 											.getPhoneNumber(context);
 									if (phone != null && phone.length() > 0) {
-										int serverId = Setup.getServerId(
-												context, hostUid);
 										Setup.updateSMSOption(context, true,
 												serverId);
 										Setup.backup(context, true, false,
@@ -822,11 +822,11 @@ public class Conversation extends Activity {
 												"Cannot automatically read required phone number. Please enable SMS option"
 														+ " manually in account settings after login/validate!");
 										// Go to account settings
-										Main.startAccount(context);
+										Main.startAccount(context, serverId);
 									}
 								} else if (button == 1) {
 									// Go to account settings
-									Main.startAccount(context);
+									Main.startAccount(context, serverId);
 								}
 							}
 						}
@@ -3218,6 +3218,14 @@ public class Conversation extends Activity {
 											2000);
 								}
 							}
+
+							public void onCancel() {
+								if (wasScrolledDown) {
+									scrollDownNow(context, keyboardWasVisible);
+									scrollDownSoon(context, keyboardWasVisible,
+											2000);
+								}
+							}
 						});
 
 				Bitmap bitmap = (Bitmap) data.getExtras().get("data");
@@ -3392,6 +3400,13 @@ public class Conversation extends Activity {
 							scrollDownSoon(context, keyboardWasVisible, 2000);
 						}
 					}
+
+					public void onCancel() {
+						if (wasScrolledDown) {
+							scrollDownNow(context, keyboardWasVisible);
+							scrollDownSoon(context, keyboardWasVisible, 2000);
+						}
+					}
 				});
 		PictureImportActivity.hostUid = hostUid;
 		Intent dialogIntent = new Intent(context, PictureImportActivity.class);
@@ -3423,6 +3438,13 @@ public class Conversation extends Activity {
 					public void onImport(String encodedImage) {
 						Utility.smartPaste(messageText, encodedImage, " ", " ",
 								false, false, true);
+						if (wasScrolledDown) {
+							scrollDownNow(context, keyboardWasVisible);
+							scrollDownSoon(context, keyboardWasVisible, 2000);
+						}
+					}
+
+					public void onCancel() {
 						if (wasScrolledDown) {
 							scrollDownNow(context, keyboardWasVisible);
 							scrollDownSoon(context, keyboardWasVisible, 2000);

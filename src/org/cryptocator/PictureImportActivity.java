@@ -19,9 +19,9 @@
  * without specific prior written permission.
  *
  * 4. Free or commercial forks of Cryptocator are permitted as long as
- *    both (a) and (b) are and stay fulfilled. 
- *    (a) this license is enclosed
- *    (b) the protocol to communicate between Cryptocator servers
+ *    both (a) and (b) are and stay fulfilled: 
+ *    (a) This license is enclosed.
+ *    (b) The protocol to communicate between Cryptocator servers
  *        and Cryptocator clients *MUST* must be fully conform with 
  *        the documentation and (possibly updated) reference 
  *        implementation from cryptocator.org. This is to ensure 
@@ -204,12 +204,18 @@ public class PictureImportActivity extends Activity {
 	public interface OnPictureImportListener {
 
 		/**
-		 * On import.
+		 * On import is called when an image is selected for import.
 		 * 
 		 * @param encodedImage
 		 *            the encoded image
 		 */
 		void onImport(String encodedImage);
+
+		/**
+		 * On cancel is called when the dialog is dismissed and no image should
+		 * be imported.
+		 */
+		void onCancel();
 	}
 
 	// ------------------------------------------------------------------------

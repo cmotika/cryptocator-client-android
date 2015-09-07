@@ -2922,15 +2922,23 @@ org.cryptocator.Communicator:
 org.cryptocator.Conversation:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
-    3419:3444:public void insertImage(android.content.Context,java.lang.String)
+    3434:3466:public void insertImage(android.content.Context,java.lang.String)
     147:147:static synthetic boolean access$32()
+org.cryptocator.Conversation$58:
+    3223:3228:public void onCancel()
+org.cryptocator.Conversation$60:
+    3405:3409:public void onCancel()
 org.cryptocator.Conversation$61
 org.cryptocator.ConversationCompose:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
     private static final int PICK_CONTACT
-    979:979:public static org.cryptocator.ConversationCompose getInstance()
-    989:989:public static boolean isVisible()
+    981:981:public static org.cryptocator.ConversationCompose getInstance()
+    991:991:public static boolean isVisible()
+org.cryptocator.ConversationCompose$22:
+    1320:1323:public void onCancel()
+org.cryptocator.ConversationCompose$24:
+    1500:1503:public void onCancel()
 org.cryptocator.ConversationItem:
     176:185:public ConversationItem(java.lang.String,boolean)
 org.cryptocator.DB:
@@ -2949,24 +2957,27 @@ org.cryptocator.FastScrollBar:
 org.cryptocator.HttpStringRequest:
     116:117:public void setOnResponseListener(org.cryptocator.HttpStringRequest$OnResponseListener)
 org.cryptocator.ImageContextMenu:
-    373:376:public static void close()
-    386:386:public static boolean visible()
+    387:390:public static void close()
+    400:400:public static boolean visible()
 org.cryptocator.ImageContextMenu$ImageContextMenuProvider:
-    240:247:public int addEntry(java.lang.String,android.graphics.drawable.Drawable,org.cryptocator.ImageContextMenu$ImageContextMenuSelectionListener)
-    273:274:public void setEnabled(int,boolean)
+    206:207:public void setTextSize(int)
+    254:261:public int addEntry(java.lang.String,android.graphics.drawable.Drawable,org.cryptocator.ImageContextMenu$ImageContextMenuSelectionListener)
+    287:288:public void setEnabled(int,boolean)
 org.cryptocator.ImagePressButton:
     212:214:public void initializePressImageResourceWhite(int)
     271:272:public void initializePressImageResource(int,int,int)
     309:310:public void activatePressImageResourceWhite()
 org.cryptocator.Main:
     private static final java.lang.String DEFAULTTEXT
-    1247:1267:public void askToDelete(android.content.Context,int)
-org.cryptocator.Main$25
+    1317:1337:public void askToDelete(android.content.Context,int)
+org.cryptocator.Main$29
 org.cryptocator.MessageDetailsActivity:
     private static final java.lang.String STARTTAG
     private static final java.lang.String ENDTAG
 org.cryptocator.MmsReceiver:
     64:64:public void onCreate(android.content.Context)
+org.cryptocator.PictureImportActivity$OnPictureImportListener:
+    public abstract void onCancel()
 org.cryptocator.R
 org.cryptocator.R$attr
 org.cryptocator.R$color
@@ -3113,11 +3124,11 @@ org.cryptocator.Setup:
     public static final java.lang.String LASTUPDATE_SERVER_ATTACHMENT_LIMIT
     public static final int SMS_SIZE_WARNING
     public static final int MULTIPART_MESSAGELIMIT
-    3497:3502:public static boolean haveAESKey(android.content.Context,int)
-    3868:3884:public static java.security.PublicKey getPublicKey(android.content.Context)
-    5014:5034:public static java.lang.String encText(android.content.Context,java.lang.String,int)
-    5938:5939:public static void setVersionUpdated(android.content.Context)
-    5952:5952:public static boolean isVersionUpdated(android.content.Context)
+    3513:3518:public static boolean haveAESKey(android.content.Context,int)
+    3884:3900:public static java.security.PublicKey getPublicKey(android.content.Context)
+    5030:5050:public static java.lang.String encText(android.content.Context,java.lang.String,int)
+    5954:5955:public static void setVersionUpdated(android.content.Context)
+    5968:5968:public static boolean isVersionUpdated(android.content.Context)
 org.cryptocator.Utility:
     public static final java.lang.String PREFERENCESURI
     136:136:public Utility()
