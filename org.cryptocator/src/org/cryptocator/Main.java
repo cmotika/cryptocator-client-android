@@ -239,15 +239,14 @@ public class Main extends Activity {
 			}
 		});
 
-		TextView titletext = (TextView) findViewById(R.id.titletext);
-		btncompose.initializePressImageResource(R.drawable.btncompose);
+		//TextView titletext = (TextView) findViewById(R.id.titletext);
 		final LinearLayout titletextparent = (LinearLayout) findViewById(R.id.titletextparent);
-		titletext.setOnClickListener(new OnClickListener() {
+		titletextparent.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				ImageContextMenu.show(context, createAccountMenu(context));
 			}
 		});
-		titletext.setOnTouchListener(new View.OnTouchListener() {
+		titletextparent.setOnTouchListener(new View.OnTouchListener() {
 			@SuppressLint("ClickableViewAccessibility")
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -1302,39 +1301,39 @@ public class Main extends Activity {
 
 	// ------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
-
-	/**
-	 * Ask to delete a user. This method is, e.g., called from the
-	 * UserdetailsActivity.
-	 * 
-	 * @param context
-	 *            the context
-	 * @param uid
-	 *            the uid
-	 */
-	public void askToDelete(final Context context, final int uid) {
-		try {
-			final String titleMessage = "Delete "
-					+ UID2Name(context, uid, false, true);
-			final String textMessage = "Really delete "
-					+ UID2Name(context, uid, false, true)
-					+ " and all messages?";
-			new MessageAlertDialog(context, titleMessage, textMessage,
-					" Delete ", " Cancel ", null,
-					new MessageAlertDialog.OnSelectionListener() {
-						public void selected(int button, boolean cancel) {
-							if (!cancel) {
-								if (button == 0) {
-									// delete
-									deleteUser(context, uid);
-								}
-							}
-						}
-					}).show();
-		} catch (Exception e) {
-			// ignore
-		}
-	}
+	//
+	// /**
+	// * Ask to delete a user. This method is, e.g., called from the
+	// * UserdetailsActivity.
+	// *
+	// * @param context
+	// * the context
+	// * @param uid
+	// * the uid
+	// */
+	// public void askToDelete(final Context context, final int uid) {
+	// try {
+	// final String titleMessage = "Delete "
+	// + UID2Name(context, uid, false, true);
+	// final String textMessage = "Really delete "
+	// + UID2Name(context, uid, false, true)
+	// + " and all messages?";
+	// new MessageAlertDialog(context, titleMessage, textMessage,
+	// " Delete ", " Cancel ", null,
+	// new MessageAlertDialog.OnSelectionListener() {
+	// public void selected(int button, boolean cancel) {
+	// if (!cancel) {
+	// if (button == 0) {
+	// // delete
+	// deleteUser(context, uid);
+	// }
+	// }
+	// }
+	// }).show();
+	// } catch (Exception e) {
+	// // ignore
+	// }
+	// }
 
 	// ------------------------------------------------------------------------
 
@@ -2000,7 +1999,7 @@ public class Main extends Activity {
 	 * @param uid
 	 *            the uid
 	 */
-	private void promptUserClick(final Context context, final int uid) {
+	public static void promptUserClick(final Context context, final int uid) {
 		final boolean havePhone = Setup.havePhone(context, uid);
 		String title = UID2Name(context, uid, true);
 		String text = null;

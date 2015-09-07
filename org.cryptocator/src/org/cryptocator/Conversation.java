@@ -70,6 +70,7 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
@@ -163,6 +164,8 @@ public class Conversation extends Activity {
 
 	/** The message text. */
 	public ImageSmileyEditText messageText;
+
+	public TextView titletext;
 
 	/** The inflater. */
 	private LayoutInflater inflater;
@@ -293,6 +296,32 @@ public class Conversation extends Activity {
 				goBack(context);
 			}
 		});
+
+		titletext = (TextView) findViewById(R.id.titletext);
+		final LinearLayout titletextparent = (LinearLayout) findViewById(R.id.titletextparent);
+		titletextparent.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				// SHow details
+				Main.promptUserClick(context, hostUid);
+			}
+		});
+		titletextparent.setOnTouchListener(new View.OnTouchListener() {
+			@SuppressLint("ClickableViewAccessibility")
+			public boolean onTouch(View v, MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+					titletextparent
+							.setBackgroundColor(ImagePressButton.WHITEPRESS);
+					titletextparent.postDelayed(new Runnable() {
+						public void run() {
+							titletextparent
+									.setBackgroundColor(ImagePressButton.TRANSPARENT);
+						}
+					}, 300);
+				}
+				return false;
+			}
+		});
+
 		ImagePressButton btnkey = (ImagePressButton) findViewById(R.id.btnkey);
 		btnkey.initializePressImageResource(R.drawable.btnkey);
 		LinearLayout btnkeyparent = (LinearLayout) findViewById(R.id.btnkeyparent);
@@ -972,7 +1001,9 @@ public class Conversation extends Activity {
 	 *            the new title
 	 */
 	public void setTitle(String title) {
-		TextView titletext = (TextView) findViewById(R.id.titletext);
+		if (titletext == null) {
+			titletext = (TextView) findViewById(R.id.titletext);
+		}
 		titletext.setText(title);
 	}
 
@@ -2714,8 +2745,7 @@ public class Conversation extends Activity {
 							return true;
 						}
 					});
-			imageContextMenuProvider.addEntry("Backup",
-					R.drawable.menubackup,
+			imageContextMenuProvider.addEntry("Backup", R.drawable.menubackup,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
 							backup(context);
@@ -2730,8 +2760,7 @@ public class Conversation extends Activity {
 							return true;
 						}
 					});
-			imageContextMenuProvider.addEntry("Search",
-					R.drawable.menusearch,
+			imageContextMenuProvider.addEntry("Search", R.drawable.menusearch,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
 							promptSearch(context);
