@@ -96,12 +96,6 @@ import android.util.Log;
 public class Communicator {
 
 	/**
-	 * The message sent indicates that one message was sent and potentially more
-	 * need to be send.
-	 */
-	public static boolean messageSent = false;
-
-	/**
 	 * The message received indicates that one message was received and
 	 * potentially more need to be received.
 	 */
@@ -121,7 +115,8 @@ public class Communicator {
 
 	/**
 	 * If the class is killed, this flag will be false again it will be set by
-	 * the scheduler that evaluates and uses messagesToSend as a cache!
+	 * the scheduler that evaluates and uses messagesToSend as a cache! This flag is also set to
+	 * false if itemToSend != null and hence a message was (at least tried to be) sent.
 	 */
 	public static boolean messagesToSendIsUpToDate = false;
 
@@ -1474,8 +1469,6 @@ public class Communicator {
 					+ messagesToSend);
 		}
 
-		messageSent = false;
-
 		// This is a cached value. If a message is entered, then this flag is
 		// changed!
 		if (!messagesToSend && !SMSToSend) {
@@ -1484,6 +1477,7 @@ public class Communicator {
 							+ messagesToSend);
 			return;
 		}
+
 
 		// Toggle next transport type to send if both types need to be send!
 		// Sometimes one
@@ -1519,11 +1513,22 @@ public class Communicator {
 		} else {
 			// Lookup only if we expect something to send
 			itemToSend = DB.getNextMessage(context,
-					transport, -1);
+					DB.TRANSPORT_SMS, -1);
 		}
 		
-		// Log.d("communicator",
-		// "SEND NEXT QUERY sendNextMessage(), itemToSend = " + itemToSend);
+		if (itemToSend == null) {
+			if (transport == DB.TRANSPORT_INTERNET) {
+				Communicator.messagesToSend = false;
+				 Log.d("communicator",
+				 "SEND NEXT QUERY sendNextMessage() DETECTED  itemToSend = " + itemToSend + " => messagesToSend:=false");
+			} else {
+				 Log.d("communicator",
+				 "SEND NEXT QUERY sendNextMessage() DETECTED  itemToSend = " + itemToSend + " => SMStoSend:=false");
+				Communicator.SMSToSend = false;
+			}
+		}
+		
+		
 
 		if (itemToSend != null) {
 			if (!itemToSend.isKey && !Setup.extraCountDownToZero(context)) {
@@ -1747,8 +1752,6 @@ public class Communicator {
 	private static void sendMessageInternet(final Context context,
 			final int to, final String msgText, final long created,
 			final ConversationItem itemToSend) {
-		messageSent = false;
-
 		// Guard against invalid (SMS) users...
 		if (to < 0) {
 			return;
@@ -1863,7 +1866,6 @@ public class Communicator {
 										DB.removeSentMessage(context,
 												itemToSend.sendingid);
 									}
-									messageSent = true;
 									success = true;
 								}
 							} else {

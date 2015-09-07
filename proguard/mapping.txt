@@ -2614,22 +2614,21 @@ org.cryptocator.BackupActivity$5 -> org.cryptocator.e:
 org.cryptocator.BootReceiver -> org.cryptocator.BootReceiver:
     void onReceive(android.content.Context,android.content.Intent) -> onReceive
 org.cryptocator.Communicator -> org.cryptocator.f:
-    boolean messageSent -> a
-    boolean messageReceived -> b
-    boolean haveNewMessages -> c
-    boolean messagesToSend -> d
-    boolean SMSToSend -> e
-    boolean messagesToSendIsUpToDate -> f
-    int INTERNETFAILCNTBARRIER -> g
-    int internetFailCnt -> h
-    int LOGINFAILCNTBARRIER -> i
-    int loginFailCnt -> j
-    boolean accountNotActivated -> k
-    boolean lastSendInternet -> l
-    java.lang.String KEY_OK_SEPARATOR -> m
-    java.lang.String KEY_ERROR_SEPARATOR -> n
-    java.lang.String NEWLINEESCAPE -> o
-    java.lang.String HASHESCAPE -> p
+    boolean messageReceived -> a
+    boolean haveNewMessages -> b
+    boolean messagesToSend -> c
+    boolean SMSToSend -> d
+    boolean messagesToSendIsUpToDate -> e
+    int INTERNETFAILCNTBARRIER -> f
+    int internetFailCnt -> g
+    int LOGINFAILCNTBARRIER -> h
+    int loginFailCnt -> i
+    boolean accountNotActivated -> j
+    boolean lastSendInternet -> k
+    java.lang.String KEY_OK_SEPARATOR -> l
+    java.lang.String KEY_ERROR_SEPARATOR -> m
+    java.lang.String NEWLINEESCAPE -> n
+    java.lang.String HASHESCAPE -> o
     void haveNewMessagesAndReceive(android.content.Context,int) -> a
     void processKeyDeliveries(android.content.Context,int,int,boolean) -> a
     void handleReadAndReceived(android.content.Context,java.lang.String,int) -> c

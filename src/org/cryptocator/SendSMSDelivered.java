@@ -112,7 +112,7 @@ public class SendSMSDelivered extends BroadcastReceiver {
 							* itemToSend.localid, itemToSend.to, false, true,
 							false, false, false);
 				}
-				// Utility.showToastAsync(context, "SMS DELIVERED " + localId);
+				Utility.showToastAsync(context, "SMS DELIVERED " + localId);
 			}
 		}
 	}

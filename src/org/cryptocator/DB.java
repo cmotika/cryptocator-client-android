@@ -2543,6 +2543,10 @@ public class DB {
 
 		String transportQueryPart = " AND `transport` = " + transport
 				+ " AND `serverId` = " + serverId;
+		if (transport == DB.TRANSPORT_SMS) {
+			// For SMS messages the serverId is irrelevant!
+			transportQueryPart = " AND `transport` = " + transport;
+		}
 		if (transport == -1) {
 			transportQueryPart = "";
 		}
