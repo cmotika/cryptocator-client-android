@@ -2922,13 +2922,15 @@ org.cryptocator.Communicator:
 org.cryptocator.Conversation:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
-    3465:3497:public void insertImage(android.content.Context,java.lang.String)
+    3436:3464:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
+    3538:3570:public void insertImage(android.content.Context,java.lang.String)
     148:148:static synthetic boolean access$32()
-org.cryptocator.Conversation$60:
-    3254:3259:public void onCancel()
-org.cryptocator.Conversation$62:
-    3436:3440:public void onCancel()
-org.cryptocator.Conversation$63
+org.cryptocator.Conversation$64:
+    3317:3322:public void onCancel()
+org.cryptocator.Conversation$65
+org.cryptocator.Conversation$66:
+    3509:3513:public void onCancel()
+org.cryptocator.Conversation$67
 org.cryptocator.ConversationCompose:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
@@ -3130,7 +3132,6 @@ org.cryptocator.Setup:
 org.cryptocator.Utility:
     public static final java.lang.String PREFERENCESURI
     136:136:public Utility()
-    161:167:public static void hideSoftkeys(android.app.Activity)
     246:256:public static java.util.HashMap buildSettingsMap(java.lang.String)
     593:594:public static void saveDoubleSetting(android.content.Context,java.lang.String,double)
     788:800:public static java.lang.String getData(android.content.Context,java.lang.String)
@@ -3142,6 +3143,7 @@ org.cryptocator.Utility:
     965:994:public static void updateTile(android.content.Context,android.widget.ImageView,int,double,double)
     1109:1114:public static java.lang.String getSeconds(long)
     1130:1135:public static java.lang.String getMilliSeconds(long)
+    1261:1269:public static java.lang.String pasteFromClipboard(android.content.Context)
     1286:1297:public static void forceOverflowMenuButtons(android.content.Context)
     1438:1446:public static java.util.List getListFromString(java.lang.String,java.lang.String,int)
     1549:1552:public static int getScreenHeight(android.content.Context)
