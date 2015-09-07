@@ -190,12 +190,14 @@ public class Conversation extends Activity {
 	 * The color of the fast scroll background when scrolling and not scroll
 	 * locked down.
 	 */
-	public static final int FASTSCROLLBACKSCROLLINGBACKGROUND = Color.parseColor("#44000000");
+	public static final int FASTSCROLLBACKSCROLLINGBACKGROUND = Color
+			.parseColor("#44000000");
 
 	/**
 	 * The color of the fast scroll background when scroll locked down.
 	 */
-	public static final int FASTSCROLLBACKLOCKEDBACKGROUND = Color.parseColor("#00555555");
+	public static final int FASTSCROLLBACKLOCKEDBACKGROUND = Color
+			.parseColor("#00555555");
 
 	/** The image context menu provider for the main menu. */
 	private ImageContextMenuProvider imageContextMenuProvider = null;
@@ -450,8 +452,8 @@ public class Conversation extends Activity {
 											false, true);
 								}
 								if (wasKeyboardVisible) {
-									Log.d("communicator",
-											"@@@@ smileybutton->scrollDownNow()");
+									// Log.d("communicator",
+									// "@@@@ smileybutton->scrollDownNow()");
 									scrollDownNow(context, true);
 								}
 							}
@@ -799,8 +801,8 @@ public class Conversation extends Activity {
 					new MessageAlertDialog.OnSelectionListener() {
 						public void selected(int button, boolean cancel) {
 							if (!cancel) {
-								int serverId = Setup.getServerId(
-										context, hostUid);
+								int serverId = Setup.getServerId(context,
+										hostUid);
 								if (button == 0) {
 									// Turn on if possible
 									String phone = Utility
@@ -1367,7 +1369,6 @@ public class Conversation extends Activity {
 
 		Log.d("communicator", "@@@@ foceScrollDown() -> keyboardVisible="
 				+ keyboardVisible);
-
 
 		// If keyboard is visible, then set cursor to text field!
 		if (keyboardVisible) {
@@ -2713,7 +2714,7 @@ public class Conversation extends Activity {
 							return true;
 						}
 					});
-			imageContextMenuProvider.addEntry("Backup...",
+			imageContextMenuProvider.addEntry("Backup",
 					R.drawable.menubackup,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
@@ -2729,7 +2730,7 @@ public class Conversation extends Activity {
 							return true;
 						}
 					});
-			imageContextMenuProvider.addEntry("Search...",
+			imageContextMenuProvider.addEntry("Search",
 					R.drawable.menusearch,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
@@ -2737,7 +2738,7 @@ public class Conversation extends Activity {
 							return true;
 						}
 					});
-			imageContextMenuProvider.addEntry("Attach Image...",
+			imageContextMenuProvider.addEntry("Attach Image",
 					R.drawable.menuattachment,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
@@ -2887,8 +2888,9 @@ public class Conversation extends Activity {
 		final int lastFound = Utility.loadIntSetting(context,
 				"lastconversationsearchfound", -1);
 
-		final boolean showKeyboard = !(lastSearch != null && lastSearch.length() > 0);
- 
+		final boolean showKeyboard = !(lastSearch != null && lastSearch
+				.length() > 0);
+
 		String title = "Enter some text to search for:";
 		new MessageInputDialog(context, title, null, " Up ", "Down", "Clear",
 				lastSearch, new MessageInputDialog.OnSelectionListener() {
@@ -3622,9 +3624,9 @@ public class Conversation extends Activity {
 		int serverId = Setup.getServerId(context, uid);
 		int limit = Setup.getAttachmentServerLimit(context, serverId) * 1000;
 		if (text.length() < limit && !forceRemoveAll) {
-			Log.d("communicator",
-					"total text is smaller than the attachment limit : textlen="
-							+ text.length() + " < " + limit + " (limit)");
+			// Log.d("communicator",
+			// "total text is smaller than the attachment limit : textlen="
+			// + text.length() + " < " + limit + " (limit)");
 			// The total text is smaller than the attachment limit, so we do not
 			// need to erase images manually
 			return text;
@@ -3636,7 +3638,8 @@ public class Conversation extends Activity {
 		int start = text.indexOf(STARTTAG);
 
 		if (start < 0) {
-			Log.d("communicator", "possiblyRemoveImageAttachments NO images");
+			// Log.d("communicator",
+			// "possiblyRemoveImageAttachments NO images");
 			// No images to remove
 			return text;
 		}
@@ -3702,12 +3705,12 @@ public class Conversation extends Activity {
 				final String messageTextString2 = Conversation
 						.possiblyRemoveImageAttachments(context,
 								messageTextString, hostUid);
-				Log.d("communicator",
-						"msgTextLEN=" + messageTextString.length());
-				Log.d("communicator",
-						"msgText2LEN=" + messageTextString2.length());
-				Log.d("communicator", "msgText=" + messageTextString);
-				Log.d("communicator", "msgText2=" + messageTextString2);
+				// Log.d("communicator",
+				// "msgTextLEN=" + messageTextString.length());
+				// Log.d("communicator",
+				// "msgText2LEN=" + messageTextString2.length());
+				// Log.d("communicator", "msgText=" + messageTextString);
+				// Log.d("communicator", "msgText2=" + messageTextString2);
 
 				if ((messageTextString2.length() != messageTextString.length())) {
 					String title = "WARNING";

@@ -509,6 +509,7 @@ public class ImageContextMenu extends Activity {
 				LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.WRAP_CONTENT, 2);
 		lpCaption.setMargins(10, 12, 15, 12);
+		lpCaption.gravity = Gravity.CENTER_VERTICAL;
 
 		LinearLayout.LayoutParams lpIcon = new LinearLayout.LayoutParams(70,
 				LinearLayout.LayoutParams.WRAP_CONTENT, 1);

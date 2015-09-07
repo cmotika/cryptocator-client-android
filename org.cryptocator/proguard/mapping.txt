@@ -3824,8 +3824,7 @@ org.cryptocator.ImageSmileyEditText -> org.cryptocator.ImageSmileyEditText:
     java.lang.String[] smileyText -> d
     android.text.Spannable$Factory spannableFactory -> f
     int maxWidth -> g
-    boolean containsImages -> h
-    java.util.regex.Pattern[] refSmileys -> i
+    java.util.regex.Pattern[] refSmileys -> h
     void setOnCutCopyPasteListener(org.cryptocator.ImageSmileyEditText$OnCutCopyPasteListener) -> setOnCutCopyPasteListener
     void updateMaxWidth(int) -> a
     void setText(java.lang.CharSequence,android.widget.TextView$BufferType) -> setText

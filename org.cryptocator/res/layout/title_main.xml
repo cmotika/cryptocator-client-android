@@ -25,7 +25,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:layout_marginRight="9px"
                 android:orientation="vertical" >
 
                 <org.cryptocator.ImagePressButton
@@ -53,7 +52,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:layout_marginLeft="4px"
+                android:layout_marginLeft="11px"
                 android:lines="1"
                 android:maxLines="1"
                 android:text="TITLETEXT"
