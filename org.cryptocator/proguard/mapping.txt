@@ -2662,7 +2662,7 @@ org.cryptocator.Communicator -> org.cryptocator.f:
     void sendReadConfirmation(android.content.Context,int) -> f
     void sendSystemMessageRead(android.content.Context,int,int) -> a
     void sendSystemMessageFailed(android.content.Context,int,int) -> b
-    void sendSystemMessageWidthdraw(android.content.Context,int,int) -> c
+    void sendSystemMessageRevoke(android.content.Context,int,int) -> c
     boolean isResponseValid(java.lang.String) -> a
     boolean isResponsePositive(java.lang.String) -> b
     java.lang.String getResponseContent(java.lang.String) -> c
@@ -2690,7 +2690,7 @@ org.cryptocator.Communicator$2 -> org.cryptocator.j:
     boolean val$read -> e
     boolean val$received -> f
     boolean val$sent -> g
-    boolean val$withdraw -> h
+    boolean val$revoked -> h
     void run() -> run
 org.cryptocator.Communicator$2$1 -> org.cryptocator.k:
     org.cryptocator.Communicator$2 this$1 -> a
@@ -2701,7 +2701,7 @@ org.cryptocator.Communicator$2$1 -> org.cryptocator.k:
     boolean val$read -> f
     boolean val$received -> g
     boolean val$sent -> h
-    boolean val$withdraw -> i
+    boolean val$revoked -> i
     void run() -> run
 org.cryptocator.Communicator$3 -> org.cryptocator.l:
     android.content.Context val$context -> a
@@ -2745,63 +2745,66 @@ org.cryptocator.Communicator$9 -> org.cryptocator.s:
     int val$serverId -> e
     void response(java.lang.String) -> a
 org.cryptocator.Conversation -> org.cryptocator.Conversation:
-    int FIXED_INSET -> r
+    int FIXED_INSET -> t
     org.cryptocator.FastScrollView fastScrollView -> a
-    android.view.View conversationRootView -> s
-    android.widget.LinearLayout titleconversation -> t
-    java.util.List conversationList -> u
-    java.util.List conversationListDiff -> v
+    android.view.View conversationRootView -> u
+    android.widget.LinearLayout titleconversation -> v
+    java.util.List conversationList -> w
+    java.util.List conversationListDiff -> x
     android.widget.Spinner sendspinner -> b
-    java.util.HashMap mapping -> w
-    int hostUid -> x
-    boolean hasScrolled -> y
-    int scrollItem -> z
-    int maxScrollMessageItems -> A
+    java.util.HashMap mapping -> y
+    int hostUid -> z
+    boolean hasScrolled -> A
+    int scrollItem -> B
+    int maxScrollMessageItems -> C
     boolean scrolledDown -> c
-    boolean scrolledUp -> B
-    int conversationSize -> C
-    org.cryptocator.ImagePressButton sendbutton -> D
-    org.cryptocator.ImagePressButton smileybutton -> E
-    org.cryptocator.ImagePressButton attachmentbutton -> F
-    org.cryptocator.ImagePressButton additionbutton -> G
+    boolean scrolledUp -> D
+    int conversationSize -> E
+    org.cryptocator.ImagePressButton sendbutton -> F
+    org.cryptocator.ImagePressButton smileybutton -> G
+    org.cryptocator.ImagePressButton attachmentbutton -> H
+    org.cryptocator.ImagePressButton additionbutton -> I
     org.cryptocator.ImageSmileyEditText messageText -> d
     android.widget.TextView titletext -> e
-    android.view.LayoutInflater inflater -> H
-    boolean additionsVisible -> I
+    android.view.LayoutInflater inflater -> J
+    boolean additionsVisible -> K
     int lastHeight -> f
     int lastMessagTextLineCount -> g
     int currentScreenWidth -> h
     boolean screenWidthChanged -> i
     int FASTSCROLLBACKSCROLLINGBACKGROUND -> j
     int FASTSCROLLBACKLOCKEDBACKGROUND -> k
-    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageContextMenuProvider -> J
-    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageSendMenuProvider -> K
-    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageImageMenuProvider -> L
+    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageContextMenuProvider -> L
+    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageSendMenuProvider -> M
+    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageImageMenuProvider -> N
+    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageMessageMenuProvider -> O
     boolean skipResume -> l
-    java.util.List textViews -> M
-    boolean isSMSModeOn -> N
-    boolean isEncryptionOn -> O
-    org.cryptocator.Conversation instance -> P
-    boolean visible -> Q
+    java.util.List textViews -> P
+    boolean isSMSModeOn -> Q
+    boolean isEncryptionOn -> R
+    org.cryptocator.Conversation instance -> S
+    boolean visible -> T
     long lastKeyStroke -> m
-    int activeScoller -> R
-    int minWidthDiff -> S
-    int lastHeightDifferece -> T
-    boolean keyboardVisible -> U
-    int menuEnableChat -> V
-    int menuDisableChat -> W
-    int menuEnableSMS -> X
-    int menuDisableSMS -> Y
-    int menuSndSMSSec -> Z
-    int menuSndSMS -> aa
-    int menuSndMsgSec -> ab
-    int menuSndMsg -> ac
-    int menuContextShowAll -> ad
-    int menuContextShowMore -> ae
-    android.graphics.Bitmap imageImageMenuBitmap -> n
-    java.lang.String imageImageMenuString -> o
-    java.lang.String imageImageMenuTitleAddition -> p
-    java.lang.String imageImageMenuDescription -> q
+    int activeScoller -> U
+    int minWidthDiff -> V
+    int lastHeightDifferece -> W
+    boolean keyboardVisible -> X
+    int menuEnableChat -> Y
+    int menuDisableChat -> Z
+    int menuEnableSMS -> aa
+    int menuDisableSMS -> ab
+    int menuSndSMSSec -> ac
+    int menuSndSMS -> ad
+    int menuSndMsgSec -> ae
+    int menuSndMsg -> af
+    int menuContextShowAll -> ag
+    int menuContextShowMore -> ah
+    org.cryptocator.ConversationItem imageMessageMenuItem -> n
+    int imageMessageMenuRevoke -> o
+    android.graphics.Bitmap imageImageMenuBitmap -> p
+    java.lang.String imageImageMenuString -> q
+    java.lang.String imageImageMenuTitleAddition -> r
+    java.lang.String imageImageMenuDescription -> s
     void onCreate(android.os.Bundle) -> onCreate
     void onStart() -> onStart
     int getHostUid() -> a
@@ -2844,23 +2847,28 @@ org.cryptocator.Conversation -> org.cryptocator.Conversation:
     void setSent(android.content.Context,int) -> b
     void hideMultiparts(android.content.Context,java.lang.String) -> b
     void setMultipartProgress(android.content.Context,java.lang.String,int,java.lang.String) -> a
-    void setWithdrawInConversation(android.content.Context,int) -> c
+    void setRevokedInConversation(android.content.Context,int) -> c
     void setReceived(android.content.Context,int) -> d
     void setFailedAsync(android.content.Context,int) -> e
     void setFailed(android.content.Context,int) -> f
     void setDecryptionFailed(android.content.Context,int) -> g
     void setRead(android.content.Context,int) -> h
     void resetValues(int) -> a
-    android.view.View addConversationLine(android.content.Context,org.cryptocator.ConversationItem) -> c
+    android.view.View addConversationLine(android.content.Context,org.cryptocator.ConversationItem) -> e
     void possiblePromptNewSession(android.content.Context) -> q
     void sendNewSession(android.content.Context,int) -> i
     void promptNewSession(android.content.Context) -> r
-    void promptMessageDetails(android.content.Context,org.cryptocator.ConversationItem) -> d
+    void promptMessageDetails(android.content.Context,org.cryptocator.ConversationItem) -> f
     void loadConversationList(android.content.Context,int,int) -> a
     boolean isKeyboardVisible(android.view.View) -> a
     void updateSendMenu(android.content.Context) -> s
     org.cryptocator.ImageContextMenu$ImageContextMenuProvider createSendMenu(android.app.Activity) -> d
     org.cryptocator.ImageContextMenu$ImageContextMenuProvider createContextMenu(android.app.Activity) -> e
+    void showMessageMenu(android.app.Activity,org.cryptocator.ConversationItem) -> a
+    org.cryptocator.ImageContextMenu$ImageContextMenuProvider createMessageContextMenu(android.app.Activity,org.cryptocator.ConversationItem) -> b
+    void promptResend(android.content.Context,org.cryptocator.ConversationItem) -> a
+    void resendMessage(android.content.Context,org.cryptocator.ConversationItem) -> b
+    void promptRevoke(android.content.Context,int,int,int,android.app.Activity) -> a
     org.cryptocator.ImageContextMenu$ImageContextMenuProvider createImageContextMenu(android.app.Activity,android.graphics.Bitmap,java.lang.String,java.lang.String,java.lang.String) -> a
     boolean onCreateOptionsMenu(android.view.Menu) -> onCreateOptionsMenu
     boolean onKeyDown(int,android.view.KeyEvent) -> onKeyDown
@@ -2887,8 +2895,8 @@ org.cryptocator.Conversation -> org.cryptocator.Conversation:
     java.lang.String possiblyRemoveImageAttachments(android.content.Context,java.lang.String,int) -> a
     java.lang.String possiblyRemoveImageAttachments(android.content.Context,java.lang.String,boolean,java.lang.String,int) -> a
     void sendMessageOrPrompt(android.content.Context,int,boolean) -> a
-    java.lang.String buildImageTitleAddition(android.content.Context,org.cryptocator.ConversationItem) -> a
-    java.lang.String buildImageDescription(android.content.Context,org.cryptocator.ConversationItem) -> b
+    java.lang.String buildImageTitleAddition(android.content.Context,org.cryptocator.ConversationItem) -> c
+    java.lang.String buildImageDescription(android.content.Context,org.cryptocator.ConversationItem) -> d
     int access$0() -> g
     void access$1(org.cryptocator.Conversation,android.content.Context) -> a
     boolean access$2(org.cryptocator.Conversation) -> a
@@ -2915,11 +2923,11 @@ org.cryptocator.Conversation -> org.cryptocator.Conversation:
     void access$23(org.cryptocator.Conversation,int) -> b
     void access$24(org.cryptocator.Conversation,boolean,int) -> b
     android.widget.LinearLayout access$25(org.cryptocator.Conversation) -> h
-    void access$26(org.cryptocator.Conversation,android.content.Context,org.cryptocator.ConversationItem) -> a
-    void access$27(org.cryptocator.Conversation,android.content.Context) -> c
-    void access$28(org.cryptocator.Conversation,android.content.Context,int) -> a
-    void access$29(org.cryptocator.Conversation,android.content.Context) -> d
-    void access$30(int) -> c
+    void access$26(org.cryptocator.Conversation,android.content.Context) -> c
+    void access$27(org.cryptocator.Conversation,android.content.Context,int) -> a
+    void access$28(org.cryptocator.Conversation,android.content.Context) -> d
+    void access$29(int) -> c
+    void access$30(org.cryptocator.Conversation,android.content.Context,org.cryptocator.ConversationItem) -> a
     java.util.HashMap access$31(org.cryptocator.Conversation) -> i
     void access$33(android.app.Activity) -> c
     void access$34(org.cryptocator.Conversation,android.content.Context,int,boolean,java.lang.String) -> a
@@ -3044,9 +3052,8 @@ org.cryptocator.Conversation$35 -> org.cryptocator.ax:
     void onCopy() -> c
 org.cryptocator.Conversation$36 -> org.cryptocator.ay:
     org.cryptocator.Conversation this$0 -> a
-    android.content.Context val$context -> b
-    org.cryptocator.ConversationItem val$conversationItem -> c
-    boolean onLongClick(android.view.View) -> onLongClick
+    org.cryptocator.ConversationItem val$conversationItem -> b
+    void onClick(android.view.View) -> onClick
 org.cryptocator.Conversation$37 -> org.cryptocator.az:
     org.cryptocator.Conversation this$0 -> a
     void selected(int,boolean) -> a
@@ -3136,7 +3143,6 @@ org.cryptocator.Conversation$53 -> org.cryptocator.bt:
     boolean onSelection(org.cryptocator.ImageContextMenu) -> a
 org.cryptocator.Conversation$54 -> org.cryptocator.bu:
     org.cryptocator.Conversation this$0 -> a
-    android.app.Activity val$context -> b
     boolean onSelection(org.cryptocator.ImageContextMenu) -> a
 org.cryptocator.Conversation$55 -> org.cryptocator.bv:
     org.cryptocator.Conversation this$0 -> a
@@ -3144,97 +3150,140 @@ org.cryptocator.Conversation$55 -> org.cryptocator.bv:
     boolean onSelection(org.cryptocator.ImageContextMenu) -> a
 org.cryptocator.Conversation$56 -> org.cryptocator.bw:
     org.cryptocator.Conversation this$0 -> a
-    android.app.Activity val$context -> b
+    android.app.Activity val$activity -> b
     boolean onSelection(org.cryptocator.ImageContextMenu) -> a
 org.cryptocator.Conversation$57 -> org.cryptocator.bx:
     org.cryptocator.Conversation this$0 -> a
-    android.app.Activity val$context -> b
     boolean onSelection(org.cryptocator.ImageContextMenu) -> a
-org.cryptocator.Conversation$58 -> org.cryptocator.by:
+org.cryptocator.Conversation$57$1 -> org.cryptocator.by:
+    org.cryptocator.Conversation$57 this$1 -> a
+    void run() -> run
+org.cryptocator.Conversation$58 -> org.cryptocator.bz:
+    org.cryptocator.Conversation this$0 -> a
+    android.app.Activity val$activity -> b
+    boolean onSelection(org.cryptocator.ImageContextMenu) -> a
+org.cryptocator.Conversation$59 -> org.cryptocator.ca:
+    org.cryptocator.Conversation this$0 -> a
+    android.app.Activity val$activity -> b
+    boolean onSelection(org.cryptocator.ImageContextMenu) -> a
+org.cryptocator.Conversation$6 -> org.cryptocator.cb:
+    org.cryptocator.Conversation this$0 -> a
+    void onClick(android.view.View) -> onClick
+org.cryptocator.Conversation$60 -> org.cryptocator.cc:
+    org.cryptocator.Conversation this$0 -> a
+    android.app.Activity val$activity -> b
+    boolean onSelection(org.cryptocator.ImageContextMenu) -> a
+org.cryptocator.Conversation$61 -> org.cryptocator.cd:
+    android.content.Context val$context -> a
+    org.cryptocator.ConversationItem val$conversationItem -> b
+    void selected(int,boolean) -> a
+org.cryptocator.Conversation$62 -> org.cryptocator.ce:
+    android.content.Context val$context -> a
+    java.lang.String val$messageTextString -> b
+    boolean val$encrypted -> c
+    int val$transport -> d
+    void run() -> run
+org.cryptocator.Conversation$63 -> org.cryptocator.cf:
+    org.cryptocator.Conversation this$0 -> a
+    android.content.Context val$context -> b
+    int val$mid -> c
+    int val$localid -> d
+    int val$toHostUid -> e
+    void selected(int,boolean) -> a
+org.cryptocator.Conversation$64 -> org.cryptocator.cg:
     org.cryptocator.Conversation this$0 -> a
     android.app.Activity val$context -> b
     boolean onSelection(org.cryptocator.ImageContextMenu) -> a
-org.cryptocator.Conversation$59 -> org.cryptocator.bz:
+org.cryptocator.Conversation$65 -> org.cryptocator.ch:
+    org.cryptocator.Conversation this$0 -> a
+    android.app.Activity val$context -> b
+    boolean onSelection(org.cryptocator.ImageContextMenu) -> a
+org.cryptocator.Conversation$66 -> org.cryptocator.ci:
+    org.cryptocator.Conversation this$0 -> a
+    android.app.Activity val$context -> b
+    boolean onSelection(org.cryptocator.ImageContextMenu) -> a
+org.cryptocator.Conversation$67 -> org.cryptocator.cj:
+    org.cryptocator.Conversation this$0 -> a
+    android.app.Activity val$context -> b
+    boolean onSelection(org.cryptocator.ImageContextMenu) -> a
+org.cryptocator.Conversation$68 -> org.cryptocator.ck:
     org.cryptocator.Conversation this$0 -> a
     android.content.Context val$context -> b
     void run() -> run
-org.cryptocator.Conversation$6 -> org.cryptocator.ca:
-    org.cryptocator.Conversation this$0 -> a
-    void onClick(android.view.View) -> onClick
-org.cryptocator.Conversation$60 -> org.cryptocator.cb:
+org.cryptocator.Conversation$69 -> org.cryptocator.cl:
     org.cryptocator.Conversation this$0 -> a
     android.content.Context val$context -> b
     int val$lastFound -> c
     void selected(org.cryptocator.MessageInputDialog,int,boolean,java.lang.String) -> a
-org.cryptocator.Conversation$61 -> org.cryptocator.cc:
+org.cryptocator.Conversation$7 -> org.cryptocator.cm:
+    org.cryptocator.Conversation this$0 -> a
+    boolean noHangNeeded() -> a
+org.cryptocator.Conversation$70 -> org.cryptocator.cn:
     void selected(int,boolean) -> a
-org.cryptocator.Conversation$62 -> org.cryptocator.cd:
+org.cryptocator.Conversation$71 -> org.cryptocator.co:
     org.cryptocator.Conversation this$0 -> a
     android.content.Context val$context -> b
     void selected(int,boolean) -> a
-org.cryptocator.Conversation$63 -> org.cryptocator.ce:
+org.cryptocator.Conversation$72 -> org.cryptocator.cp:
     org.cryptocator.Conversation this$0 -> a
     android.content.Context val$context -> b
     java.lang.String val$titleText -> c
     void run() -> run
-org.cryptocator.Conversation$64 -> org.cryptocator.cf:
+org.cryptocator.Conversation$73 -> org.cryptocator.cq:
     org.cryptocator.Conversation this$0 -> a
     boolean val$wasScrolledDown -> b
     android.content.Context val$context -> c
     boolean val$keyboardWasVisible -> d
     void onImport(java.lang.String) -> a
-org.cryptocator.Conversation$66 -> org.cryptocator.cg:
+org.cryptocator.Conversation$75 -> org.cryptocator.cr:
     org.cryptocator.Conversation this$0 -> a
     boolean val$wasScrolledDown -> b
     android.content.Context val$context -> c
     boolean val$keyboardWasVisible -> d
     void onImport(java.lang.String) -> a
-org.cryptocator.Conversation$68 -> org.cryptocator.ch:
+org.cryptocator.Conversation$77 -> org.cryptocator.cs:
     android.app.Activity val$activity -> a
     void selected(int,boolean) -> a
-org.cryptocator.Conversation$69 -> org.cryptocator.ci:
+org.cryptocator.Conversation$78 -> org.cryptocator.ct:
     void selected(int,boolean) -> a
-org.cryptocator.Conversation$7 -> org.cryptocator.cj:
-    org.cryptocator.Conversation this$0 -> a
-    boolean noHangNeeded() -> a
-org.cryptocator.Conversation$70 -> org.cryptocator.ck:
+org.cryptocator.Conversation$79 -> org.cryptocator.cu:
     android.app.Activity val$activity -> a
     android.view.View provide(org.cryptocator.MessageAlertDialog) -> a
-org.cryptocator.Conversation$70$1 -> org.cryptocator.cl:
-    org.cryptocator.Conversation$70 this$1 -> a
+org.cryptocator.Conversation$79$1 -> org.cryptocator.cv:
+    org.cryptocator.Conversation$79 this$1 -> a
     android.app.Activity val$activity -> b
     org.cryptocator.MessageAlertDialog val$dialog -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.Conversation$70$2 -> org.cryptocator.cm:
-    org.cryptocator.Conversation$70 this$1 -> a
+org.cryptocator.Conversation$79$2 -> org.cryptocator.cw:
+    org.cryptocator.Conversation$79 this$1 -> a
     android.app.Activity val$activity -> b
     org.cryptocator.MessageAlertDialog val$dialog -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.Conversation$71 -> org.cryptocator.cn:
+org.cryptocator.Conversation$8 -> org.cryptocator.cx:
+    org.cryptocator.Conversation this$0 -> a
+    void onPaste() -> a
+    void onCut() -> b
+    void onCopy() -> c
+org.cryptocator.Conversation$80 -> org.cryptocator.cy:
     org.cryptocator.Conversation this$0 -> a
     android.content.Context val$context -> b
     int val$transport -> c
     boolean val$encrypted -> d
     java.lang.String val$messageTextString2 -> e
     void selected(int,boolean) -> a
-org.cryptocator.Conversation$72 -> org.cryptocator.co:
+org.cryptocator.Conversation$81 -> org.cryptocator.cz:
     org.cryptocator.Conversation this$0 -> a
     android.content.Context val$context -> b
     int val$transport -> c
     boolean val$encrypted -> d
     java.lang.String val$messageTextString -> e
     void selected(int,boolean) -> a
-org.cryptocator.Conversation$8 -> org.cryptocator.cp:
-    org.cryptocator.Conversation this$0 -> a
-    void onPaste() -> a
-    void onCut() -> b
-    void onCopy() -> c
-org.cryptocator.Conversation$9 -> org.cryptocator.cq:
+org.cryptocator.Conversation$9 -> org.cryptocator.da:
     org.cryptocator.Conversation this$0 -> a
     void onTextChanged(java.lang.CharSequence,int,int,int) -> onTextChanged
     void beforeTextChanged(java.lang.CharSequence,int,int,int) -> beforeTextChanged
     void afterTextChanged(android.text.Editable) -> afterTextChanged
-org.cryptocator.Conversation$Mapping -> org.cryptocator.cr:
+org.cryptocator.Conversation$Mapping -> org.cryptocator.db:
     android.view.View parent -> a
     java.lang.String multipartid -> b
     android.widget.ProgressBar progress -> c
@@ -3308,51 +3357,51 @@ org.cryptocator.ConversationCompose -> org.cryptocator.ConversationCompose:
     void access$12(org.cryptocator.ConversationCompose,android.content.Context,int,boolean,int) -> a
     void access$13(org.cryptocator.ConversationCompose,android.content.Context,int,boolean,java.lang.String) -> a
     void access$14(org.cryptocator.ConversationCompose,int,int) -> a
-org.cryptocator.ConversationCompose$1 -> org.cryptocator.cs:
+org.cryptocator.ConversationCompose$1 -> org.cryptocator.dc:
     org.cryptocator.ConversationCompose this$0 -> a
     android.app.Activity val$activity -> b
     android.net.Uri val$attachmentPath -> c
     void run() -> run
-org.cryptocator.ConversationCompose$1$1 -> org.cryptocator.ct:
+org.cryptocator.ConversationCompose$1$1 -> org.cryptocator.dd:
     org.cryptocator.ConversationCompose$1 this$1 -> a
     android.app.Activity val$activity -> b
     android.net.Uri val$attachmentPath -> c
     void run() -> run
-org.cryptocator.ConversationCompose$10 -> org.cryptocator.cu:
+org.cryptocator.ConversationCompose$10 -> org.cryptocator.de:
     org.cryptocator.ConversationCompose this$0 -> a
     android.content.Context val$context -> b
     boolean onKey(android.view.View,int,android.view.KeyEvent) -> onKey
-org.cryptocator.ConversationCompose$11 -> org.cryptocator.cv:
+org.cryptocator.ConversationCompose$11 -> org.cryptocator.df:
     org.cryptocator.ConversationCompose this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.ConversationCompose$12 -> org.cryptocator.cw:
+org.cryptocator.ConversationCompose$12 -> org.cryptocator.dg:
     org.cryptocator.ConversationCompose this$0 -> a
     android.content.Context val$context -> b
     void onTextChanged(java.lang.CharSequence,int,int,int) -> onTextChanged
     void beforeTextChanged(java.lang.CharSequence,int,int,int) -> beforeTextChanged
     void afterTextChanged(android.text.Editable) -> afterTextChanged
-org.cryptocator.ConversationCompose$13 -> org.cryptocator.cx:
+org.cryptocator.ConversationCompose$13 -> org.cryptocator.dh:
     org.cryptocator.ConversationCompose this$0 -> a
     android.content.Context val$context -> b
     void onGlobalLayout() -> onGlobalLayout
     org.cryptocator.ConversationCompose access$0(org.cryptocator.ConversationCompose$13) -> a
-org.cryptocator.ConversationCompose$13$1 -> org.cryptocator.cy:
+org.cryptocator.ConversationCompose$13$1 -> org.cryptocator.di:
     org.cryptocator.ConversationCompose$13 this$1 -> a
     void run() -> run
-org.cryptocator.ConversationCompose$14 -> org.cryptocator.cz:
+org.cryptocator.ConversationCompose$14 -> org.cryptocator.dj:
     org.cryptocator.ConversationCompose this$0 -> a
     android.content.Context val$context -> b
     android.widget.ArrayAdapter val$dataAdapterONLYSMS -> c
     android.widget.ArrayAdapter val$dataAdapterONLYSMSChat -> d
     void onItemSelected(android.widget.AdapterView,android.view.View,int,long) -> onItemSelected
     void onNothingSelected(android.widget.AdapterView) -> onNothingSelected
-org.cryptocator.ConversationCompose$15 -> org.cryptocator.da:
+org.cryptocator.ConversationCompose$15 -> org.cryptocator.dk:
     org.cryptocator.ConversationCompose this$0 -> a
     android.view.View getDropDownView(int,android.view.View,android.view.ViewGroup) -> getDropDownView
-org.cryptocator.ConversationCompose$16 -> org.cryptocator.db:
+org.cryptocator.ConversationCompose$16 -> org.cryptocator.dl:
     org.cryptocator.ConversationCompose this$0 -> a
     void selected(int,boolean) -> a
-org.cryptocator.ConversationCompose$17 -> org.cryptocator.dc:
+org.cryptocator.ConversationCompose$17 -> org.cryptocator.dm:
     org.cryptocator.ConversationCompose this$0 -> a
     android.content.Context val$context -> b
     boolean val$sms -> c
@@ -3360,107 +3409,107 @@ org.cryptocator.ConversationCompose$17 -> org.cryptocator.dc:
     int val$uid -> e
     android.view.View provide(org.cryptocator.MessageAlertDialog) -> a
     org.cryptocator.ConversationCompose access$0(org.cryptocator.ConversationCompose$17) -> a
-org.cryptocator.ConversationCompose$17$1 -> org.cryptocator.dd:
+org.cryptocator.ConversationCompose$17$1 -> org.cryptocator.dn:
     org.cryptocator.ConversationCompose$17 this$1 -> a
     android.content.Context val$context -> b
     int val$uid -> c
     org.cryptocator.MessageAlertDialog val$dialog -> d
     void onClick(android.view.View) -> onClick
-org.cryptocator.ConversationCompose$17$2 -> org.cryptocator.de:
+org.cryptocator.ConversationCompose$17$2 -> org.cryptocator.do:
     org.cryptocator.ConversationCompose$17 this$1 -> a
     android.content.Context val$context -> b
     int val$uid -> c
     org.cryptocator.MessageAlertDialog val$dialog -> d
     void onClick(android.view.View) -> onClick
-org.cryptocator.ConversationCompose$17$3 -> org.cryptocator.df:
+org.cryptocator.ConversationCompose$17$3 -> org.cryptocator.dp:
     org.cryptocator.ConversationCompose$17 this$1 -> a
     android.content.Context val$context -> b
     int val$uid -> c
     org.cryptocator.MessageAlertDialog val$dialog -> d
     void onClick(android.view.View) -> onClick
-org.cryptocator.ConversationCompose$17$4 -> org.cryptocator.dg:
+org.cryptocator.ConversationCompose$17$4 -> org.cryptocator.dq:
     org.cryptocator.ConversationCompose$17 this$1 -> a
     android.content.Context val$context -> b
     int val$uid -> c
     org.cryptocator.MessageAlertDialog val$dialog -> d
     void onClick(android.view.View) -> onClick
-org.cryptocator.ConversationCompose$18 -> org.cryptocator.dh:
+org.cryptocator.ConversationCompose$18 -> org.cryptocator.dr:
     org.cryptocator.ConversationCompose this$0 -> a
     android.content.Context val$context -> b
     int val$transport -> c
     boolean val$encrypted -> d
     java.lang.String val$messageTextString2 -> e
     void selected(int,boolean) -> a
-org.cryptocator.ConversationCompose$19 -> org.cryptocator.di:
+org.cryptocator.ConversationCompose$19 -> org.cryptocator.ds:
     org.cryptocator.ConversationCompose this$0 -> a
     android.content.Context val$context -> b
     int val$transport -> c
     boolean val$encrypted -> d
     java.lang.String val$messageTextString -> e
     void selected(int,boolean) -> a
-org.cryptocator.ConversationCompose$2 -> org.cryptocator.dj:
+org.cryptocator.ConversationCompose$2 -> org.cryptocator.dt:
     org.cryptocator.ConversationCompose this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.ConversationCompose$20 -> org.cryptocator.dk:
+org.cryptocator.ConversationCompose$20 -> org.cryptocator.du:
     org.cryptocator.ConversationCompose this$0 -> a
     int val$scrollItem -> b
     void run() -> run
-org.cryptocator.ConversationCompose$21 -> org.cryptocator.dl:
+org.cryptocator.ConversationCompose$21 -> org.cryptocator.dv:
     org.cryptocator.ConversationCompose this$0 -> a
     int val$uid -> b
     android.content.Context val$context -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.ConversationCompose$22 -> org.cryptocator.dm:
+org.cryptocator.ConversationCompose$22 -> org.cryptocator.dw:
     org.cryptocator.ConversationCompose this$0 -> a
     boolean val$keyboardWasVisible -> b
     android.content.Context val$context -> c
     void onImport(java.lang.String) -> a
-org.cryptocator.ConversationCompose$23 -> org.cryptocator.dn:
+org.cryptocator.ConversationCompose$23 -> org.cryptocator.dx:
     org.cryptocator.ConversationCompose this$0 -> a
     void run() -> run
-org.cryptocator.ConversationCompose$24 -> org.cryptocator.do:
+org.cryptocator.ConversationCompose$24 -> org.cryptocator.dy:
     org.cryptocator.ConversationCompose this$0 -> a
     boolean val$keyboardWasVisible -> b
     android.content.Context val$context -> c
     void onImport(java.lang.String) -> a
-org.cryptocator.ConversationCompose$3 -> org.cryptocator.dp:
+org.cryptocator.ConversationCompose$3 -> org.cryptocator.dz:
     org.cryptocator.ConversationCompose this$0 -> a
     void onPaste() -> a
     void onCut() -> b
     void onCopy() -> c
-org.cryptocator.ConversationCompose$4 -> org.cryptocator.dq:
+org.cryptocator.ConversationCompose$4 -> org.cryptocator.ea:
     org.cryptocator.ConversationCompose this$0 -> a
     void onTextChanged(java.lang.CharSequence,int,int,int) -> onTextChanged
     void beforeTextChanged(java.lang.CharSequence,int,int,int) -> beforeTextChanged
     void afterTextChanged(android.text.Editable) -> afterTextChanged
-org.cryptocator.ConversationCompose$5 -> org.cryptocator.dr:
+org.cryptocator.ConversationCompose$5 -> org.cryptocator.eb:
     org.cryptocator.ConversationCompose this$0 -> a
     android.widget.LinearLayout val$additions -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.ConversationCompose$6 -> org.cryptocator.ds:
+org.cryptocator.ConversationCompose$6 -> org.cryptocator.ec:
     org.cryptocator.ConversationCompose this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
     org.cryptocator.ConversationCompose access$0(org.cryptocator.ConversationCompose$6) -> a
-org.cryptocator.ConversationCompose$6$1 -> org.cryptocator.dt:
+org.cryptocator.ConversationCompose$6$1 -> org.cryptocator.ed:
     org.cryptocator.ConversationCompose$6 this$1 -> a
     boolean val$wasKeyboardVisible -> b
     android.content.Context val$context -> c
     void onSelect(java.lang.String) -> a
-org.cryptocator.ConversationCompose$7 -> org.cryptocator.du:
+org.cryptocator.ConversationCompose$7 -> org.cryptocator.ee:
     org.cryptocator.ConversationCompose this$0 -> a
     android.app.Activity val$activity -> b
     android.content.Context val$context -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.ConversationCompose$8 -> org.cryptocator.dv:
+org.cryptocator.ConversationCompose$8 -> org.cryptocator.ef:
     org.cryptocator.ConversationCompose this$0 -> a
     boolean onLongClick(android.view.View) -> onLongClick
-org.cryptocator.ConversationCompose$9 -> org.cryptocator.dw:
+org.cryptocator.ConversationCompose$9 -> org.cryptocator.eg:
     org.cryptocator.ConversationCompose this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.ConversationItem -> org.cryptocator.dx:
+org.cryptocator.ConversationItem -> org.cryptocator.eh:
     int sendingid -> a
     int localid -> b
     int mid -> c
@@ -3471,7 +3520,7 @@ org.cryptocator.ConversationItem -> org.cryptocator.dx:
     long sent -> h
     long received -> i
     long read -> j
-    long withdraw -> k
+    long revoked -> k
     boolean encrypted -> l
     int transport -> m
     boolean isKey -> n
@@ -3485,7 +3534,7 @@ org.cryptocator.ConversationItem -> org.cryptocator.dx:
     java.lang.String multipartid -> v
     boolean me() -> a
     boolean readyToProcess() -> b
-org.cryptocator.DB -> org.cryptocator.dy:
+org.cryptocator.DB -> org.cryptocator.ei:
     java.util.HashMap lastReceivedMid -> a
     int SMS_MID -> b
     int TRANSPORT_INTERNET -> c
@@ -3495,7 +3544,7 @@ org.cryptocator.DB -> org.cryptocator.dy:
     int PRIORITY_MESSAGE -> g
     int PRIORITY_KEY -> h
     long MAXTIMESTAMP -> i
-    java.lang.String WITHDRAWNTEXT -> j
+    java.lang.String REVOKEDTEXT -> j
     java.lang.String SMS_FAILED -> k
     java.lang.String NO_MULTIPART_ID -> l
     int DEFAULT_MESSAGEPART -> m
@@ -3526,7 +3575,7 @@ org.cryptocator.DB -> org.cryptocator.dy:
     void rebuildDBSending(android.content.Context) -> e
     void rebuildDBSent(android.content.Context) -> j
     void ensureDBInitialized(android.content.Context,java.util.List) -> a
-    boolean withdrawFromSending(android.content.Context,int) -> e
+    boolean revokeFromSending(android.content.Context,int) -> e
     void removeOldMappings(android.content.Context) -> f
     int clearSelective(android.content.Context,int,java.lang.String) -> a
     void removeMappingByMid(android.content.Context,int) -> f
@@ -3571,8 +3620,8 @@ org.cryptocator.DB -> org.cryptocator.dy:
     int getUidByMid(android.content.Context,int,boolean) -> c
     boolean updateOwnMessageRead(android.content.Context,int) -> s
     boolean updateMessageRead(android.content.Context,int,java.lang.String,int) -> a
-    void tryToWithdrawMessage(android.content.Context,int,int,java.lang.String,int) -> a
-    boolean updateMessageWithdrawn(android.content.Context,int,java.lang.String,int) -> b
+    void tryToRevokeMessage(android.content.Context,int,int,java.lang.String,int) -> a
+    boolean updateMessageRevoked(android.content.Context,int,java.lang.String,int) -> b
     boolean updateMessageSystem(android.content.Context,int,boolean,int) -> a
     boolean updateMessageFailed(android.content.Context,int,int) -> g
     int getfailed(android.content.Context,int) -> t
@@ -3586,29 +3635,29 @@ org.cryptocator.DB -> org.cryptocator.dy:
     void deleteUser(android.content.Context,int) -> x
     boolean mergeUser(android.content.Context,int,int) -> i
     void possiblyUpdate(android.content.Context) -> i
-org.cryptocator.DB$1 -> org.cryptocator.dz:
+org.cryptocator.DB$1 -> org.cryptocator.ej:
     android.content.Context val$context -> a
     int val$uid -> b
     void run() -> run
-org.cryptocator.DB$1$1 -> org.cryptocator.ea:
+org.cryptocator.DB$1$1 -> org.cryptocator.ek:
     org.cryptocator.DB$1 this$1 -> a
     android.content.Context val$context -> b
     int val$uid -> c
     void run() -> run
-org.cryptocator.DB$1$1$1 -> org.cryptocator.eb:
+org.cryptocator.DB$1$1$1 -> org.cryptocator.el:
     org.cryptocator.DB$1$1 this$2 -> a
     android.content.Context val$context -> b
     int val$uid -> c
     void selected(int,boolean) -> a
-org.cryptocator.DB$2 -> org.cryptocator.ec:
+org.cryptocator.DB$2 -> org.cryptocator.em:
     android.content.Context val$context -> a
     void run() -> run
-org.cryptocator.DB$MultiPartInfo -> org.cryptocator.ed:
+org.cryptocator.DB$MultiPartInfo -> org.cryptocator.en:
     java.lang.String mulitpartid -> a
     int part -> b
     int parts -> c
     java.lang.String text -> d
-org.cryptocator.FastScrollBar -> org.cryptocator.ee:
+org.cryptocator.FastScrollBar -> org.cryptocator.eo:
     long lockedTimestamp -> a
     int snapUp -> c
     int snapDown -> d
@@ -3627,7 +3676,7 @@ org.cryptocator.FastScrollBar -> org.cryptocator.ee:
     long getTimestamp() -> getTimestamp
     int getCurrentProgress() -> getCurrentProgress
     boolean onTouchEvent(android.view.MotionEvent) -> onTouchEvent
-org.cryptocator.FastScrollBar$OnScrollListener -> org.cryptocator.ef:
+org.cryptocator.FastScrollBar$OnScrollListener -> org.cryptocator.ep:
     void onScroll(int) -> a
     void onSnapScroll(int,boolean,boolean) -> a
 org.cryptocator.FastScrollView -> org.cryptocator.FastScrollView:
@@ -3686,45 +3735,45 @@ org.cryptocator.FastScrollView -> org.cryptocator.FastScrollView:
     void access$2(org.cryptocator.FastScrollView,int,boolean) -> a
     void access$3(org.cryptocator.FastScrollView) -> c
     org.cryptocator.FastScrollBar access$4(org.cryptocator.FastScrollView) -> d
-org.cryptocator.FastScrollView$1 -> org.cryptocator.eg:
+org.cryptocator.FastScrollView$1 -> org.cryptocator.eq:
     org.cryptocator.FastScrollView this$0 -> a
     void onScroll(int) -> a
     void onSnapScroll(int,boolean,boolean) -> a
-org.cryptocator.FastScrollView$2 -> org.cryptocator.eh:
+org.cryptocator.FastScrollView$2 -> org.cryptocator.er:
     org.cryptocator.FastScrollView this$0 -> a
     org.cryptocator.FastScrollView val$instance -> b
     void onScrollChanged(org.cryptocator.ScrollViewEx,int,int,int,int) -> a
     void onScrollRested(org.cryptocator.ScrollViewEx,int,int,int,int) -> b
     void onOversroll(boolean) -> a
-org.cryptocator.FastScrollView$3 -> org.cryptocator.ei:
+org.cryptocator.FastScrollView$3 -> org.cryptocator.es:
     org.cryptocator.FastScrollView this$0 -> a
     int val$lockedPosCopy -> b
     void run() -> run
-org.cryptocator.FastScrollView$4 -> org.cryptocator.ej:
+org.cryptocator.FastScrollView$4 -> org.cryptocator.et:
     org.cryptocator.FastScrollView this$0 -> a
     int val$color -> b
     void run() -> run
-org.cryptocator.FastScrollView$OnLayoutDoneListener -> org.cryptocator.ek:
+org.cryptocator.FastScrollView$OnLayoutDoneListener -> org.cryptocator.eu:
     void doneLayout() -> a
-org.cryptocator.FastScrollView$OnNoHangListener -> org.cryptocator.el:
+org.cryptocator.FastScrollView$OnNoHangListener -> org.cryptocator.ev:
     boolean noHangNeeded() -> a
-org.cryptocator.FastScrollView$OnScrollListener -> org.cryptocator.em:
+org.cryptocator.FastScrollView$OnScrollListener -> org.cryptocator.ew:
     void onScrollChanged(org.cryptocator.FastScrollView,int,int,int,int,int,int) -> b
     void onScrollRested(org.cryptocator.FastScrollView,int,int,int,int,int,int) -> a
     void onSnapScroll(int,boolean,boolean) -> a
     void onOversroll(boolean) -> a
-org.cryptocator.FastScrollView$OnSizeChangeListener -> org.cryptocator.en:
+org.cryptocator.FastScrollView$OnSizeChangeListener -> org.cryptocator.ex:
     void onSizeChange(int,int,int,int) -> a
 org.cryptocator.HeadlessSmsSendService -> org.cryptocator.HeadlessSmsSendService:
     android.os.IBinder onBind(android.content.Intent) -> onBind
-org.cryptocator.HttpStringRequest -> org.cryptocator.eo:
+org.cryptocator.HttpStringRequest -> org.cryptocator.ey:
     org.cryptocator.HttpStringRequest$OnResponseListener listener -> a
     java.lang.String getData(android.content.Context,java.lang.String,boolean) -> a
     java.lang.String getContentAsString(org.apache.http.HttpResponse) -> a
     org.cryptocator.HttpStringRequest$OnResponseListener access$0(org.cryptocator.HttpStringRequest) -> a
-org.cryptocator.HttpStringRequest$OnResponseListener -> org.cryptocator.ep:
+org.cryptocator.HttpStringRequest$OnResponseListener -> org.cryptocator.ez:
     void response(java.lang.String) -> a
-org.cryptocator.HttpStringRequest$UrlThread -> org.cryptocator.eq:
+org.cryptocator.HttpStringRequest$UrlThread -> org.cryptocator.fa:
     boolean postRequest -> a
     android.content.Context context -> b
     java.lang.String url -> c
@@ -3751,24 +3800,24 @@ org.cryptocator.ImageContextMenu -> org.cryptocator.ImageContextMenu:
     void onCreateContextMenu(android.view.ContextMenu,android.view.View,android.view.ContextMenu$ContextMenuInfo) -> onCreateContextMenu
     void onCreate(android.os.Bundle) -> onCreate
     long access$0(org.cryptocator.ImageContextMenu) -> a
-org.cryptocator.ImageContextMenu$1 -> org.cryptocator.er:
+org.cryptocator.ImageContextMenu$1 -> org.cryptocator.fb:
     org.cryptocator.ImageContextMenu this$0 -> a
     android.widget.LinearLayout val$entryLayout -> b
     org.cryptocator.ImageContextMenu$ImageContextMenuSelectionListener val$listener -> c
     void onClick(android.view.View) -> onClick
     org.cryptocator.ImageContextMenu access$0(org.cryptocator.ImageContextMenu$1) -> a
-org.cryptocator.ImageContextMenu$1$1 -> org.cryptocator.es:
+org.cryptocator.ImageContextMenu$1$1 -> org.cryptocator.fc:
     org.cryptocator.ImageContextMenu$1 this$1 -> a
     android.widget.LinearLayout val$entryLayout -> b
     boolean val$shouldClose -> c
     void run() -> run
-org.cryptocator.ImageContextMenu$2 -> org.cryptocator.et:
+org.cryptocator.ImageContextMenu$2 -> org.cryptocator.fd:
     org.cryptocator.ImageContextMenu this$0 -> a
     boolean onKey(android.content.DialogInterface,int,android.view.KeyEvent) -> onKey
-org.cryptocator.ImageContextMenu$3 -> org.cryptocator.eu:
+org.cryptocator.ImageContextMenu$3 -> org.cryptocator.fe:
     org.cryptocator.ImageContextMenu this$0 -> a
     void onCancel(android.content.DialogInterface) -> onCancel
-org.cryptocator.ImageContextMenu$ImageContextMenuProvider -> org.cryptocator.ev:
+org.cryptocator.ImageContextMenu$ImageContextMenuProvider -> org.cryptocator.ff:
     java.util.List captions -> a
     java.util.List icons -> b
     java.util.List imageContextMenuSelectionListeners -> c
@@ -3789,7 +3838,7 @@ org.cryptocator.ImageContextMenu$ImageContextMenuProvider -> org.cryptocator.ev:
     java.util.List access$2(org.cryptocator.ImageContextMenu$ImageContextMenuProvider) -> c
     java.util.List access$3(org.cryptocator.ImageContextMenu$ImageContextMenuProvider) -> d
     int access$4(org.cryptocator.ImageContextMenu$ImageContextMenuProvider) -> e
-org.cryptocator.ImageContextMenu$ImageContextMenuSelectionListener -> org.cryptocator.ew:
+org.cryptocator.ImageContextMenu$ImageContextMenuSelectionListener -> org.cryptocator.fg:
     boolean onSelection(org.cryptocator.ImageContextMenu) -> a
 org.cryptocator.ImageFullscreenActivity -> org.cryptocator.ImageFullscreenActivity:
     android.graphics.Bitmap bitmap -> a
@@ -3807,10 +3856,10 @@ org.cryptocator.ImageFullscreenActivity -> org.cryptocator.ImageFullscreenActivi
     void access$1(boolean) -> a
     android.widget.LinearLayout$LayoutParams access$2(org.cryptocator.ImageFullscreenActivity) -> a
     android.widget.LinearLayout$LayoutParams access$3(org.cryptocator.ImageFullscreenActivity) -> b
-org.cryptocator.ImageFullscreenActivity$1 -> org.cryptocator.ex:
+org.cryptocator.ImageFullscreenActivity$1 -> org.cryptocator.fh:
     org.cryptocator.ImageFullscreenActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.ImageFullscreenActivity$2 -> org.cryptocator.ey:
+org.cryptocator.ImageFullscreenActivity$2 -> org.cryptocator.fi:
     org.cryptocator.ImageFullscreenActivity this$0 -> a
     boolean onLongClick(android.view.View) -> onLongClick
 org.cryptocator.ImageLabelButton -> org.cryptocator.ImageLabelButton:
@@ -3854,12 +3903,12 @@ org.cryptocator.ImagePressButton -> org.cryptocator.ImagePressButton:
     void initializePressImageResource(int,int,int,boolean) -> a
     void deactivatePressImageResourceWhite() -> a
     void initializePressImageResource(int,int,int,int,boolean) -> a
-org.cryptocator.ImagePressButton$1 -> org.cryptocator.ez:
+org.cryptocator.ImagePressButton$1 -> org.cryptocator.fj:
     org.cryptocator.ImagePressButton this$0 -> a
     android.widget.ImageButton val$instance -> b
     boolean onTouch(android.view.View,android.view.MotionEvent) -> onTouch
     org.cryptocator.ImagePressButton access$0(org.cryptocator.ImagePressButton$1) -> a
-org.cryptocator.ImagePressButton$1$1 -> org.cryptocator.fa:
+org.cryptocator.ImagePressButton$1$1 -> org.cryptocator.fk:
     org.cryptocator.ImagePressButton$1 this$1 -> a
     android.widget.ImageButton val$instance -> b
     void run() -> run
@@ -3885,13 +3934,13 @@ org.cryptocator.ImageSmileyEditText -> org.cryptocator.ImageSmileyEditText:
     void setInputTextField(boolean) -> setInputTextField
     java.lang.String access$0(org.cryptocator.ImageSmileyEditText) -> a
     java.lang.String access$1(org.cryptocator.ImageSmileyEditText) -> b
-org.cryptocator.ImageSmileyEditText$1 -> org.cryptocator.fb:
+org.cryptocator.ImageSmileyEditText$1 -> org.cryptocator.fl:
     android.content.Context val$context -> a
     android.graphics.Bitmap val$bitmap2 -> b
     java.lang.String val$encodedImg -> c
     org.cryptocator.ImageSmileyEditText val$editText -> d
     void onClick(android.view.View) -> onClick
-org.cryptocator.ImageSmileyEditText$OnCutCopyPasteListener -> org.cryptocator.fc:
+org.cryptocator.ImageSmileyEditText$OnCutCopyPasteListener -> org.cryptocator.fm:
     void onCut() -> b
     void onCopy() -> c
     void onPaste() -> a
@@ -3899,32 +3948,37 @@ org.cryptocator.KeyEventEditText -> org.cryptocator.KeyEventEditText:
     org.cryptocator.KeyEventEditText$KeyEventEditTextEditTextKeyListener listener -> a
     void setKeyListener(org.cryptocator.KeyEventEditText$KeyEventEditTextEditTextKeyListener) -> setKeyListener
     boolean onKeyPreIme(int,android.view.KeyEvent) -> onKeyPreIme
-org.cryptocator.KeyEventEditText$KeyEventEditTextEditTextKeyListener -> org.cryptocator.fd:
+org.cryptocator.KeyEventEditText$KeyEventEditTextEditTextKeyListener -> org.cryptocator.fn:
     boolean keyEvent(int,android.view.KeyEvent) -> a
-org.cryptocator.LoginData -> org.cryptocator.fe:
+org.cryptocator.LoginData -> org.cryptocator.fo:
     java.lang.String user -> a
     java.lang.String password -> b
     java.lang.String val -> c
 org.cryptocator.Main -> org.cryptocator.Main:
-    java.util.List uidList -> b
-    android.widget.LinearLayout adduseritem -> c
-    android.widget.Spinner serverspinner -> d
-    android.widget.LinearLayout mainBackground -> e
-    android.widget.LinearLayout mainInnerView -> f
-    android.widget.TextView addUserText -> g
-    org.cryptocator.KeyEventEditText addUserName -> h
-    android.widget.Button addUserButton -> i
-    android.app.Activity context -> j
-    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageContextMenuProvider -> k
-    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageAccountMenuProvider -> l
+    java.util.List uidList -> g
+    android.widget.LinearLayout adduseritem -> h
+    android.widget.Spinner serverspinner -> i
+    android.widget.LinearLayout mainBackground -> j
+    android.widget.LinearLayout mainInnerView -> k
+    android.widget.TextView addUserText -> l
+    org.cryptocator.KeyEventEditText addUserName -> m
+    android.widget.Button addUserButton -> n
+    android.app.Activity context -> o
+    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageContextMenuProvider -> p
+    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageAccountMenuProvider -> q
     boolean skipResume -> a
-    org.cryptocator.Main instance -> m
-    boolean visible -> n
+    boolean highContrast -> b
+    int highContrastBarrierInPercent -> c
+    int TEXTCOLOEWHITE -> d
+    int TEXTCOLOEWHITEDIMMED -> e
+    int TEXTCOLOEWHITEDIMMED2 -> f
+    org.cryptocator.Main instance -> r
+    boolean visible -> s
     void onCreate(android.os.Bundle) -> onCreate
     void setTitle(java.lang.String) -> a
     boolean possiblyPromptUserIfNoAccount(android.content.Context,android.view.View) -> a
-    org.cryptocator.ImageContextMenu$ImageContextMenuProvider createAccountMenu(android.content.Context) -> h
-    org.cryptocator.ImageContextMenu$ImageContextMenuProvider createContextMenu(android.content.Context) -> i
+    org.cryptocator.ImageContextMenu$ImageContextMenuProvider createAccountMenu(android.content.Context) -> i
+    org.cryptocator.ImageContextMenu$ImageContextMenuProvider createContextMenu(android.content.Context) -> j
     boolean onCreateOptionsMenu(android.view.Menu) -> onCreateOptionsMenu
     void startSettings(android.content.Context) -> a
     void startAccount(android.content.Context,int) -> a
@@ -3974,6 +4028,7 @@ org.cryptocator.Main -> org.cryptocator.Main:
     void onResume() -> onResume
     void exitApplication(android.content.Context) -> g
     boolean onKeyDown(int,android.view.KeyEvent) -> onKeyDown
+    void updateLightSensor(android.content.Context) -> h
     android.app.Activity access$0(org.cryptocator.Main) -> a
     void access$1(org.cryptocator.Main,android.content.Context,boolean) -> a
     org.cryptocator.ImageContextMenu$ImageContextMenuProvider access$2(org.cryptocator.Main,android.content.Context) -> a
@@ -3982,56 +4037,56 @@ org.cryptocator.Main -> org.cryptocator.Main:
     org.cryptocator.KeyEventEditText access$5(org.cryptocator.Main) -> c
     android.widget.Spinner access$6(org.cryptocator.Main) -> d
     void access$7(android.content.Context,int,java.lang.String) -> b
-org.cryptocator.Main$1 -> org.cryptocator.ff:
+org.cryptocator.Main$1 -> org.cryptocator.fp:
     org.cryptocator.Main this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Main$10 -> org.cryptocator.fg:
+org.cryptocator.Main$10 -> org.cryptocator.fq:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     boolean onSelection(org.cryptocator.ImageContextMenu) -> a
-org.cryptocator.Main$11 -> org.cryptocator.fh:
+org.cryptocator.Main$11 -> org.cryptocator.fr:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     boolean onSelection(org.cryptocator.ImageContextMenu) -> a
-org.cryptocator.Main$12 -> org.cryptocator.fi:
+org.cryptocator.Main$12 -> org.cryptocator.fs:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     boolean onSelection(org.cryptocator.ImageContextMenu) -> a
-org.cryptocator.Main$13 -> org.cryptocator.fj:
+org.cryptocator.Main$13 -> org.cryptocator.ft:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     boolean onSelection(org.cryptocator.ImageContextMenu) -> a
-org.cryptocator.Main$14 -> org.cryptocator.fk:
+org.cryptocator.Main$14 -> org.cryptocator.fu:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     boolean onSelection(org.cryptocator.ImageContextMenu) -> a
-org.cryptocator.Main$15 -> org.cryptocator.fl:
+org.cryptocator.Main$15 -> org.cryptocator.fv:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     boolean onSelection(org.cryptocator.ImageContextMenu) -> a
-org.cryptocator.Main$16 -> org.cryptocator.fm:
+org.cryptocator.Main$16 -> org.cryptocator.fw:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     boolean onSelection(org.cryptocator.ImageContextMenu) -> a
-org.cryptocator.Main$17 -> org.cryptocator.fn:
+org.cryptocator.Main$17 -> org.cryptocator.fx:
     android.content.Context val$context -> a
     void run() -> run
-org.cryptocator.Main$18 -> org.cryptocator.fo:
+org.cryptocator.Main$18 -> org.cryptocator.fy:
     org.cryptocator.Main this$0 -> a
     void selected(int,boolean) -> a
-org.cryptocator.Main$19 -> org.cryptocator.fp:
+org.cryptocator.Main$19 -> org.cryptocator.fz:
     android.content.Context val$context -> a
     boolean val$resolveNames -> b
     void run() -> run
-org.cryptocator.Main$19$1 -> org.cryptocator.fq:
+org.cryptocator.Main$19$1 -> org.cryptocator.ga:
     org.cryptocator.Main$19 this$1 -> a
     android.content.Context val$context -> b
     boolean val$resolveNames -> c
     void run() -> run
-org.cryptocator.Main$2 -> org.cryptocator.fr:
+org.cryptocator.Main$2 -> org.cryptocator.gb:
     org.cryptocator.Main this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Main$20 -> org.cryptocator.fs:
+org.cryptocator.Main$20 -> org.cryptocator.gc:
     org.cryptocator.Main this$0 -> a
     int val$myUid -> b
     android.content.Context val$context -> c
@@ -4039,7 +4094,7 @@ org.cryptocator.Main$20 -> org.cryptocator.fs:
     boolean val$resolveNames -> e
     void run() -> run
     org.cryptocator.Main access$0(org.cryptocator.Main$20) -> a
-org.cryptocator.Main$20$1 -> org.cryptocator.ft:
+org.cryptocator.Main$20$1 -> org.cryptocator.gd:
     org.cryptocator.Main$20 this$1 -> a
     int val$myUid -> b
     android.content.Context val$context -> c
@@ -4047,7 +4102,7 @@ org.cryptocator.Main$20$1 -> org.cryptocator.ft:
     boolean val$resolveNames -> e
     void onUpdate(java.lang.String) -> a
     org.cryptocator.Main$20 access$0(org.cryptocator.Main$20$1) -> a
-org.cryptocator.Main$20$1$1 -> org.cryptocator.fu:
+org.cryptocator.Main$20$1$1 -> org.cryptocator.ge:
     org.cryptocator.Main$20$1 this$2 -> a
     int val$myUid -> b
     java.lang.String val$data -> c
@@ -4055,129 +4110,134 @@ org.cryptocator.Main$20$1$1 -> org.cryptocator.fu:
     int val$serverDefaultId -> e
     boolean val$resolveNames -> f
     void run() -> run
-org.cryptocator.Main$21 -> org.cryptocator.fv:
+org.cryptocator.Main$21 -> org.cryptocator.gf:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     boolean keyEvent(int,android.view.KeyEvent) -> a
-org.cryptocator.Main$22 -> org.cryptocator.fw:
+org.cryptocator.Main$22 -> org.cryptocator.gg:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Main$23 -> org.cryptocator.fx:
+org.cryptocator.Main$23 -> org.cryptocator.gh:
     org.cryptocator.Main this$0 -> a
     void run() -> run
-org.cryptocator.Main$24 -> org.cryptocator.fy:
+org.cryptocator.Main$24 -> org.cryptocator.gi:
     org.cryptocator.Main this$0 -> a
     void run() -> run
-org.cryptocator.Main$25 -> org.cryptocator.fz:
+org.cryptocator.Main$25 -> org.cryptocator.gj:
     org.cryptocator.Main this$0 -> a
     void run() -> run
-org.cryptocator.Main$26 -> org.cryptocator.ga:
+org.cryptocator.Main$26 -> org.cryptocator.gk:
     org.cryptocator.Main this$0 -> a
     android.view.View val$userlistitem -> b
     int val$backid -> c
     boolean onTouch(android.view.View,android.view.MotionEvent) -> onTouch
-org.cryptocator.Main$26$1 -> org.cryptocator.gb:
+org.cryptocator.Main$26$1 -> org.cryptocator.gl:
     org.cryptocator.Main$26 this$1 -> a
     android.view.View val$userlistitem -> b
     int val$backid -> c
     void run() -> run
-org.cryptocator.Main$27 -> org.cryptocator.gc:
+org.cryptocator.Main$27 -> org.cryptocator.gm:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     int val$uid -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.Main$28 -> org.cryptocator.gd:
+org.cryptocator.Main$28 -> org.cryptocator.gn:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     int val$uid -> c
     boolean onLongClick(android.view.View) -> onLongClick
-org.cryptocator.Main$29 -> org.cryptocator.ge:
+org.cryptocator.Main$29 -> org.cryptocator.go:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     int val$suid -> d
     int val$uid -> e
     void response(java.lang.String) -> a
-org.cryptocator.Main$3 -> org.cryptocator.gf:
+org.cryptocator.Main$3 -> org.cryptocator.gp:
     org.cryptocator.Main this$0 -> a
     android.widget.LinearLayout val$titletextparent -> b
     boolean onTouch(android.view.View,android.view.MotionEvent) -> onTouch
-org.cryptocator.Main$3$1 -> org.cryptocator.gg:
+org.cryptocator.Main$3$1 -> org.cryptocator.gq:
     org.cryptocator.Main$3 this$1 -> a
     android.widget.LinearLayout val$titletextparent -> b
     void run() -> run
-org.cryptocator.Main$30 -> org.cryptocator.gh:
+org.cryptocator.Main$30 -> org.cryptocator.gr:
     java.util.List val$uidList -> a
     int val$uidSingleLookup -> b
     android.content.Context val$context -> c
     int val$serverId -> d
     org.cryptocator.Main$UpdateListener val$updateListener -> e
     void response(java.lang.String) -> a
-org.cryptocator.Main$31 -> org.cryptocator.gi:
+org.cryptocator.Main$31 -> org.cryptocator.gs:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     void run() -> run
-org.cryptocator.Main$32 -> org.cryptocator.gj:
+org.cryptocator.Main$32 -> org.cryptocator.gt:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Main$33 -> org.cryptocator.gk:
+org.cryptocator.Main$33 -> org.cryptocator.gu:
     void selected(int,boolean) -> a
-org.cryptocator.Main$34 -> org.cryptocator.gl:
+org.cryptocator.Main$34 -> org.cryptocator.gv:
     android.content.Context val$context -> a
     int val$uid -> b
     boolean val$havePhone -> c
     android.view.View provide(org.cryptocator.MessageAlertDialog) -> a
-org.cryptocator.Main$34$1 -> org.cryptocator.gm:
+org.cryptocator.Main$34$1 -> org.cryptocator.gw:
     org.cryptocator.Main$34 this$1 -> a
     android.content.Context val$context -> b
     int val$uid -> c
     org.cryptocator.MessageAlertDialog val$dialog -> d
     void onClick(android.view.View) -> onClick
-org.cryptocator.Main$34$2 -> org.cryptocator.gn:
+org.cryptocator.Main$34$2 -> org.cryptocator.gx:
     org.cryptocator.Main$34 this$1 -> a
     android.content.Context val$context -> b
     int val$uid -> c
     org.cryptocator.MessageAlertDialog val$dialog -> d
     void onClick(android.view.View) -> onClick
-org.cryptocator.Main$34$3 -> org.cryptocator.go:
+org.cryptocator.Main$34$3 -> org.cryptocator.gy:
     org.cryptocator.Main$34 this$1 -> a
     android.content.Context val$context -> b
     int val$uid -> c
     org.cryptocator.MessageAlertDialog val$dialog -> d
     void onClick(android.view.View) -> onClick
-org.cryptocator.Main$35 -> org.cryptocator.gp:
+org.cryptocator.Main$35 -> org.cryptocator.gz:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     void run() -> run
-org.cryptocator.Main$4 -> org.cryptocator.gq:
+org.cryptocator.Main$36 -> org.cryptocator.ha:
+    android.content.Context val$context -> a
+    android.hardware.SensorManager val$manager -> b
+    void onSensorChanged(android.hardware.SensorEvent) -> onSensorChanged
+    void onAccuracyChanged(android.hardware.Sensor,int) -> onAccuracyChanged
+org.cryptocator.Main$4 -> org.cryptocator.hb:
     org.cryptocator.Main this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Main$5 -> org.cryptocator.gr:
+org.cryptocator.Main$5 -> org.cryptocator.hc:
     org.cryptocator.Main this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Main$6 -> org.cryptocator.gs:
+org.cryptocator.Main$6 -> org.cryptocator.hd:
     org.cryptocator.Main this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Main$7 -> org.cryptocator.gt:
+org.cryptocator.Main$7 -> org.cryptocator.he:
     org.cryptocator.Main this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Main$8 -> org.cryptocator.gu:
+org.cryptocator.Main$8 -> org.cryptocator.hf:
     android.content.Context val$context -> a
     void run() -> run
-org.cryptocator.Main$8$1 -> org.cryptocator.gv:
+org.cryptocator.Main$8$1 -> org.cryptocator.hg:
     org.cryptocator.Main$8 this$1 -> a
     android.content.Context val$context -> b
     void selected(int,boolean) -> a
-org.cryptocator.Main$9 -> org.cryptocator.gw:
+org.cryptocator.Main$9 -> org.cryptocator.hh:
     org.cryptocator.Main this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     boolean onSelection(org.cryptocator.ImageContextMenu) -> a
-org.cryptocator.Main$UpdateListener -> org.cryptocator.gx:
+org.cryptocator.Main$UpdateListener -> org.cryptocator.hi:
     void onUpdate(java.lang.String) -> a
-org.cryptocator.MessageAlertDialog -> org.cryptocator.gy:
+org.cryptocator.MessageAlertDialog -> org.cryptocator.hj:
     int BUTTONOK0 -> a
     int BUTTONOK1 -> b
     int BUTTONCANCEL -> c
@@ -4193,21 +4253,21 @@ org.cryptocator.MessageAlertDialog -> org.cryptocator.gy:
     org.cryptocator.MessageAlertDialog$OnInnerViewProvider innerViewProvider -> m
     android.view.View innerView -> n
     void onCreate(android.os.Bundle) -> onCreate
-org.cryptocator.MessageAlertDialog$1 -> org.cryptocator.gz:
+org.cryptocator.MessageAlertDialog$1 -> org.cryptocator.hk:
     org.cryptocator.MessageAlertDialog this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.MessageAlertDialog$2 -> org.cryptocator.ha:
+org.cryptocator.MessageAlertDialog$2 -> org.cryptocator.hl:
     org.cryptocator.MessageAlertDialog this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.MessageAlertDialog$3 -> org.cryptocator.hb:
+org.cryptocator.MessageAlertDialog$3 -> org.cryptocator.hm:
     org.cryptocator.MessageAlertDialog this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.MessageAlertDialog$4 -> org.cryptocator.hc:
+org.cryptocator.MessageAlertDialog$4 -> org.cryptocator.hn:
     org.cryptocator.MessageAlertDialog this$0 -> a
     void onDismiss(android.content.DialogInterface) -> onDismiss
-org.cryptocator.MessageAlertDialog$OnInnerViewProvider -> org.cryptocator.hd:
+org.cryptocator.MessageAlertDialog$OnInnerViewProvider -> org.cryptocator.ho:
     android.view.View provide(org.cryptocator.MessageAlertDialog) -> a
-org.cryptocator.MessageAlertDialog$OnSelectionListener -> org.cryptocator.he:
+org.cryptocator.MessageAlertDialog$OnSelectionListener -> org.cryptocator.hp:
     void selected(int,boolean) -> a
 org.cryptocator.MessageDetailsActivity -> org.cryptocator.MessageDetailsActivity:
     org.cryptocator.ConversationItem conversationItem -> a
@@ -4220,8 +4280,6 @@ org.cryptocator.MessageDetailsActivity -> org.cryptocator.MessageDetailsActivity
     android.widget.CheckBox details -> h
     android.widget.CheckBox removeImages -> i
     void onCreate(android.os.Bundle) -> onCreate
-    void resendMessage(org.cryptocator.ConversationItem) -> a
-    void askWithdraw(android.content.Context,int,int,int,android.app.Activity) -> a
     int getImageAttachmentNumber(android.content.Context,java.lang.String) -> a
     int autoSaveAllImages(android.content.Context,java.lang.String,org.cryptocator.ConversationItem) -> a
     java.lang.String extractImageAttachment(android.content.Context,java.lang.String,int) -> a
@@ -4229,78 +4287,51 @@ org.cryptocator.MessageDetailsActivity -> org.cryptocator.MessageDetailsActivity
     android.widget.CheckBox access$1(org.cryptocator.MessageDetailsActivity) -> b
     void access$2(org.cryptocator.MessageDetailsActivity,android.widget.CheckBox) -> a
     void access$3(org.cryptocator.MessageDetailsActivity,android.widget.CheckBox) -> b
-org.cryptocator.MessageDetailsActivity$1 -> org.cryptocator.hf:
+org.cryptocator.MessageDetailsActivity$1 -> org.cryptocator.hq:
     org.cryptocator.MessageDetailsActivity this$0 -> a
     android.widget.Spinner val$attachmentspinner -> b
     org.cryptocator.ConversationItem val$updatedItem -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.MessageDetailsActivity$10 -> org.cryptocator.hg:
-    org.cryptocator.MessageDetailsActivity this$0 -> a
-    void onCancel(android.content.DialogInterface) -> onCancel
-org.cryptocator.MessageDetailsActivity$11 -> org.cryptocator.hh:
-    org.cryptocator.MessageDetailsActivity this$0 -> a
-    java.lang.String val$messageTextString -> b
-    boolean val$encrypted -> c
-    int val$transport -> d
-    void run() -> run
-org.cryptocator.MessageDetailsActivity$12 -> org.cryptocator.hi:
-    org.cryptocator.MessageDetailsActivity this$0 -> a
-    android.content.Context val$context -> b
-    int val$mid -> c
-    int val$localid -> d
-    int val$toHostUid -> e
-    android.app.Activity val$activity -> f
-    void selected(int,boolean) -> a
-org.cryptocator.MessageDetailsActivity$2 -> org.cryptocator.hj:
+org.cryptocator.MessageDetailsActivity$2 -> org.cryptocator.hr:
     org.cryptocator.MessageDetailsActivity this$0 -> a
     android.widget.Spinner val$attachmentspinner -> b
     org.cryptocator.ConversationItem val$updatedItem -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.MessageDetailsActivity$3 -> org.cryptocator.hk:
+org.cryptocator.MessageDetailsActivity$3 -> org.cryptocator.hs:
     org.cryptocator.MessageDetailsActivity this$0 -> a
     int val$hostUid -> b
     org.cryptocator.ConversationItem val$updatedItem -> c
     void onClick(android.view.View) -> onClick
     org.cryptocator.MessageDetailsActivity access$0(org.cryptocator.MessageDetailsActivity$3) -> a
-org.cryptocator.MessageDetailsActivity$3$1 -> org.cryptocator.hl:
+org.cryptocator.MessageDetailsActivity$3$1 -> org.cryptocator.ht:
     org.cryptocator.MessageDetailsActivity$3 this$1 -> a
     org.cryptocator.ConversationItem val$updatedItem -> b
     java.util.List val$conversationList -> c
     void selected(int,boolean) -> a
-org.cryptocator.MessageDetailsActivity$3$2 -> org.cryptocator.hm:
+org.cryptocator.MessageDetailsActivity$3$2 -> org.cryptocator.hu:
     org.cryptocator.MessageDetailsActivity$3 this$1 -> a
     android.view.View provide(org.cryptocator.MessageAlertDialog) -> a
-org.cryptocator.MessageDetailsActivity$4 -> org.cryptocator.hn:
+org.cryptocator.MessageDetailsActivity$4 -> org.cryptocator.hv:
     org.cryptocator.MessageDetailsActivity this$0 -> a
     int val$hostUid -> b
     org.cryptocator.ConversationItem val$updatedItem -> c
     void onClick(android.view.View) -> onClick
     org.cryptocator.MessageDetailsActivity access$0(org.cryptocator.MessageDetailsActivity$4) -> a
-org.cryptocator.MessageDetailsActivity$4$1 -> org.cryptocator.ho:
+org.cryptocator.MessageDetailsActivity$4$1 -> org.cryptocator.hw:
     org.cryptocator.MessageDetailsActivity$4 this$1 -> a
     int val$hostUid -> b
     org.cryptocator.ConversationItem val$updatedItem -> c
     void selected(int,boolean) -> a
-org.cryptocator.MessageDetailsActivity$5 -> org.cryptocator.hp:
+org.cryptocator.MessageDetailsActivity$5 -> org.cryptocator.hx:
     org.cryptocator.MessageDetailsActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.MessageDetailsActivity$6 -> org.cryptocator.hq:
-    org.cryptocator.MessageDetailsActivity this$0 -> a
-    org.cryptocator.ConversationItem val$updatedItem -> b
-    void onClick(android.view.View) -> onClick
-org.cryptocator.MessageDetailsActivity$7 -> org.cryptocator.hr:
+org.cryptocator.MessageDetailsActivity$6 -> org.cryptocator.hy:
     org.cryptocator.MessageDetailsActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.MessageDetailsActivity$8 -> org.cryptocator.hs:
+org.cryptocator.MessageDetailsActivity$7 -> org.cryptocator.hz:
     org.cryptocator.MessageDetailsActivity this$0 -> a
-    void onClick(android.view.View) -> onClick
-org.cryptocator.MessageDetailsActivity$8$1 -> org.cryptocator.ht:
-    org.cryptocator.MessageDetailsActivity$8 this$1 -> a
-    void run() -> run
-org.cryptocator.MessageDetailsActivity$9 -> org.cryptocator.hu:
-    org.cryptocator.MessageDetailsActivity this$0 -> a
-    void onClick(android.view.View) -> onClick
-org.cryptocator.MessageInputDialog -> org.cryptocator.hv:
+    void onCancel(android.content.DialogInterface) -> onCancel
+org.cryptocator.MessageInputDialog -> org.cryptocator.ia:
     int BUTTONOK0 -> a
     int BUTTONOK1 -> b
     int BUTTONCANCEL -> c
@@ -4320,34 +4351,34 @@ org.cryptocator.MessageInputDialog -> org.cryptocator.hv:
     boolean selectOnShow -> q
     void setText(java.lang.String,boolean) -> a
     void onCreate(android.os.Bundle) -> onCreate
-org.cryptocator.MessageInputDialog$1 -> org.cryptocator.hw:
+org.cryptocator.MessageInputDialog$1 -> org.cryptocator.ib:
     org.cryptocator.MessageInputDialog this$0 -> a
     void run() -> run
-org.cryptocator.MessageInputDialog$2 -> org.cryptocator.hx:
+org.cryptocator.MessageInputDialog$2 -> org.cryptocator.ic:
     org.cryptocator.MessageInputDialog this$0 -> a
     org.cryptocator.MessageInputDialog val$dialog -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.MessageInputDialog$3 -> org.cryptocator.hy:
+org.cryptocator.MessageInputDialog$3 -> org.cryptocator.id:
     org.cryptocator.MessageInputDialog this$0 -> a
     org.cryptocator.MessageInputDialog val$dialog -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.MessageInputDialog$4 -> org.cryptocator.hz:
+org.cryptocator.MessageInputDialog$4 -> org.cryptocator.ie:
     org.cryptocator.MessageInputDialog this$0 -> a
     org.cryptocator.MessageInputDialog val$dialog -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.MessageInputDialog$5 -> org.cryptocator.ia:
+org.cryptocator.MessageInputDialog$5 -> org.cryptocator.if:
     org.cryptocator.MessageInputDialog this$0 -> a
     void onDismiss(android.content.DialogInterface) -> onDismiss
-org.cryptocator.MessageInputDialog$6 -> org.cryptocator.ib:
+org.cryptocator.MessageInputDialog$6 -> org.cryptocator.ig:
     org.cryptocator.MessageInputDialog this$0 -> a
     void run() -> run
-org.cryptocator.MessageInputDialog$7 -> org.cryptocator.ic:
+org.cryptocator.MessageInputDialog$7 -> org.cryptocator.ih:
     org.cryptocator.MessageInputDialog this$0 -> a
     void run() -> run
-org.cryptocator.MessageInputDialog$8 -> org.cryptocator.id:
+org.cryptocator.MessageInputDialog$8 -> org.cryptocator.ii:
     org.cryptocator.MessageInputDialog this$0 -> a
     void run() -> run
-org.cryptocator.MessageInputDialog$OnSelectionListener -> org.cryptocator.ie:
+org.cryptocator.MessageInputDialog$OnSelectionListener -> org.cryptocator.ij:
     void selected(org.cryptocator.MessageInputDialog,int,boolean,java.lang.String) -> a
 org.cryptocator.MmsReceiver -> org.cryptocator.MmsReceiver:
     void onReceive(android.content.Context,android.content.Intent) -> onReceive
@@ -4408,31 +4439,31 @@ org.cryptocator.PictureImportActivity -> org.cryptocator.PictureImportActivity:
     int access$12() -> f
     org.cryptocator.PictureImportActivity$OnPictureImportListener access$13() -> g
     java.lang.String access$14() -> h
-org.cryptocator.PictureImportActivity$1 -> org.cryptocator.if:
+org.cryptocator.PictureImportActivity$1 -> org.cryptocator.ik:
     org.cryptocator.PictureImportActivity this$0 -> a
     void onRatingChanged(android.widget.RatingBar,float,boolean) -> onRatingChanged
-org.cryptocator.PictureImportActivity$2 -> org.cryptocator.ig:
+org.cryptocator.PictureImportActivity$2 -> org.cryptocator.il:
     org.cryptocator.PictureImportActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.PictureImportActivity$3 -> org.cryptocator.ih:
+org.cryptocator.PictureImportActivity$3 -> org.cryptocator.im:
     org.cryptocator.PictureImportActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.PictureImportActivity$4 -> org.cryptocator.ii:
+org.cryptocator.PictureImportActivity$4 -> org.cryptocator.in:
     org.cryptocator.PictureImportActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.PictureImportActivity$5 -> org.cryptocator.ij:
+org.cryptocator.PictureImportActivity$5 -> org.cryptocator.io:
     org.cryptocator.PictureImportActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.PictureImportActivity$6 -> org.cryptocator.ik:
+org.cryptocator.PictureImportActivity$6 -> org.cryptocator.ip:
     org.cryptocator.PictureImportActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.PictureImportActivity$7 -> org.cryptocator.il:
+org.cryptocator.PictureImportActivity$7 -> org.cryptocator.iq:
     org.cryptocator.PictureImportActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.PictureImportActivity$8 -> org.cryptocator.im:
+org.cryptocator.PictureImportActivity$8 -> org.cryptocator.ir:
     org.cryptocator.PictureImportActivity this$0 -> a
     void onCancel(android.content.DialogInterface) -> onCancel
-org.cryptocator.PictureImportActivity$OnPictureImportListener -> org.cryptocator.in:
+org.cryptocator.PictureImportActivity$OnPictureImportListener -> org.cryptocator.is:
     void onImport(java.lang.String) -> a
 org.cryptocator.ReceiveSMS -> org.cryptocator.ReceiveSMS:
     android.telephony.SmsManager sms -> a
@@ -4446,12 +4477,12 @@ org.cryptocator.Scheduler -> org.cryptocator.Scheduler:
     void updatePendingIntent(android.content.Context) -> a
     void reschedule(android.content.Context,boolean,boolean,boolean) -> a
     void update(android.content.Context,boolean) -> a
-org.cryptocator.Scheduler$1 -> org.cryptocator.io:
+org.cryptocator.Scheduler$1 -> org.cryptocator.it:
     android.content.Context val$context -> a
     int val$serverId -> b
     boolean val$onlyReceive -> c
     void run() -> run
-org.cryptocator.Scheduler$OnUpdateListener -> org.cryptocator.ip:
+org.cryptocator.Scheduler$OnUpdateListener -> org.cryptocator.iu:
     void update() -> a
 org.cryptocator.ScrollViewEx -> org.cryptocator.ScrollViewEx:
     int lockedPos -> a
@@ -4465,11 +4496,11 @@ org.cryptocator.ScrollViewEx -> org.cryptocator.ScrollViewEx:
     void setScrollViewListener(org.cryptocator.ScrollViewEx$ScrollViewExListener) -> setScrollViewListener
     void onScrollChanged(int,int,int,int) -> onScrollChanged
     void startWatchDogThread(android.content.Context,int,org.cryptocator.ScrollViewEx$ScrollViewExListener,org.cryptocator.ScrollViewEx) -> a
-org.cryptocator.ScrollViewEx$ScrollViewExListener -> org.cryptocator.iq:
+org.cryptocator.ScrollViewEx$ScrollViewExListener -> org.cryptocator.iv:
     void onScrollChanged(org.cryptocator.ScrollViewEx,int,int,int,int) -> a
     void onScrollRested(org.cryptocator.ScrollViewEx,int,int,int,int) -> b
     void onOversroll(boolean) -> a
-org.cryptocator.ScrollViewEx$WatchDogThread -> org.cryptocator.ir:
+org.cryptocator.ScrollViewEx$WatchDogThread -> org.cryptocator.iw:
     android.content.Context context -> a
     boolean cancel -> b
     long startOrResetTimeStamp -> c
@@ -4485,7 +4516,7 @@ org.cryptocator.ScrollViewEx$WatchDogThread -> org.cryptocator.ir:
     void reset() -> a
     void cancel() -> b
     void run() -> run
-org.cryptocator.SendSMS -> org.cryptocator.is:
+org.cryptocator.SendSMS -> org.cryptocator.ix:
     boolean inService -> a
     boolean hasSignal -> b
     boolean hasSignalNew -> c
@@ -4499,14 +4530,14 @@ org.cryptocator.SendSMS -> org.cryptocator.is:
     boolean hasSignal() -> b
     boolean access$0() -> a
     void access$1(android.telephony.PhoneStateListener) -> a
-org.cryptocator.SendSMS$1 -> org.cryptocator.it:
+org.cryptocator.SendSMS$1 -> org.cryptocator.iy:
     void run() -> run
-org.cryptocator.SendSMS$1$1 -> org.cryptocator.iu:
+org.cryptocator.SendSMS$1$1 -> org.cryptocator.iz:
     org.cryptocator.SendSMS$1 this$1 -> a
     void onSignalStrengthChanged(int) -> onSignalStrengthChanged
     void onSignalStrengthsChanged(android.telephony.SignalStrength) -> onSignalStrengthsChanged
     void onServiceStateChanged(android.telephony.ServiceState) -> onServiceStateChanged
-org.cryptocator.SendSMS$SMSSendThread -> org.cryptocator.iv:
+org.cryptocator.SendSMS$SMSSendThread -> org.cryptocator.ja:
     android.content.Context context -> a
     java.lang.String number -> b
     int localId -> c
@@ -4625,11 +4656,13 @@ org.cryptocator.Setup -> org.cryptocator.Setup:
     void loadSettings(android.content.Context) -> z
     void loadServerTab(android.content.Context,int) -> S
     void updateServerImage(android.content.Context,boolean) -> g
+    java.lang.String ensureServerURLWithRequestEnding(java.lang.String) -> i
     java.lang.String getBaseURL(android.content.Context,int) -> a
     void setTitle(java.lang.String) -> a
     void updateAccountLocked(android.content.Context,boolean,int) -> e
     void updateTitleIDInfo(android.content.Context) -> a
     void promptAddServer(android.content.Context) -> A
+    void testServerPingBeforeAdd(android.content.Context,java.lang.String) -> d
     void promptDeleteServer(android.content.Context) -> B
     void promptModifyServer(android.content.Context) -> b
     void updatePhoneNumberAndButtonStates(android.content.Context,int) -> T
@@ -4781,244 +4814,280 @@ org.cryptocator.Setup -> org.cryptocator.Setup:
     android.widget.CheckBox access$30(org.cryptocator.Setup) -> s
     android.widget.LinearLayout access$31(org.cryptocator.Setup) -> t
     android.widget.LinearLayout access$32(org.cryptocator.Setup) -> u
-    android.widget.ImageButton access$33(org.cryptocator.Setup) -> v
-    android.widget.Button access$34(org.cryptocator.Setup) -> w
-    android.widget.Button access$35(org.cryptocator.Setup) -> x
-    android.widget.EditText access$36(org.cryptocator.Setup) -> y
-    android.widget.Button access$37(org.cryptocator.Setup) -> z
-    android.widget.EditText access$38() -> e
-    android.widget.EditText access$39(org.cryptocator.Setup) -> A
-    android.widget.EditText access$40(org.cryptocator.Setup) -> B
-    android.widget.Button access$41(org.cryptocator.Setup) -> C
-    android.widget.Button access$42(org.cryptocator.Setup) -> D
-    android.widget.EditText access$43(org.cryptocator.Setup) -> E
-    java.util.HashMap access$44() -> f
-    android.widget.Button access$45(org.cryptocator.Setup) -> F
-    android.widget.EditText access$46(org.cryptocator.Setup) -> G
-    android.widget.EditText access$47(org.cryptocator.Setup) -> H
-    android.widget.EditText access$48(org.cryptocator.Setup) -> I
-    android.widget.Button access$49() -> g
-    android.widget.Button access$50(org.cryptocator.Setup) -> J
-    android.widget.Button access$51() -> h
-    void access$52(android.content.Context,int) -> R
-org.cryptocator.Setup$1 -> org.cryptocator.iw:
+    void access$33(org.cryptocator.Setup,android.content.Context,java.lang.String) -> a
+    java.lang.String access$34(java.lang.String) -> h
+    android.widget.ImageButton access$35(org.cryptocator.Setup) -> v
+    android.widget.Button access$36(org.cryptocator.Setup) -> w
+    android.widget.Button access$37(org.cryptocator.Setup) -> x
+    android.widget.EditText access$38(org.cryptocator.Setup) -> y
+    android.widget.Button access$39(org.cryptocator.Setup) -> z
+    android.widget.EditText access$40() -> e
+    android.widget.EditText access$41(org.cryptocator.Setup) -> A
+    android.widget.EditText access$42(org.cryptocator.Setup) -> B
+    android.widget.Button access$43(org.cryptocator.Setup) -> C
+    android.widget.Button access$44(org.cryptocator.Setup) -> D
+    android.widget.EditText access$45(org.cryptocator.Setup) -> E
+    java.util.HashMap access$46() -> f
+    android.widget.Button access$47(org.cryptocator.Setup) -> F
+    android.widget.EditText access$48(org.cryptocator.Setup) -> G
+    android.widget.EditText access$49(org.cryptocator.Setup) -> H
+    android.widget.EditText access$50(org.cryptocator.Setup) -> I
+    android.widget.Button access$51() -> g
+    android.widget.Button access$52(org.cryptocator.Setup) -> J
+    android.widget.Button access$53() -> h
+    void access$54(android.content.Context,int) -> R
+org.cryptocator.Setup$1 -> org.cryptocator.jb:
     org.cryptocator.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$10 -> org.cryptocator.ix:
+org.cryptocator.Setup$10 -> org.cryptocator.jc:
     org.cryptocator.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$11 -> org.cryptocator.iy:
+org.cryptocator.Setup$11 -> org.cryptocator.jd:
     org.cryptocator.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$12 -> org.cryptocator.iz:
+org.cryptocator.Setup$12 -> org.cryptocator.je:
     org.cryptocator.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$12$1 -> org.cryptocator.ja:
+org.cryptocator.Setup$12$1 -> org.cryptocator.jf:
     org.cryptocator.Setup$12 this$1 -> a
     android.app.Activity val$context -> b
     void selected(org.cryptocator.MessageInputDialog,int,boolean,java.lang.String) -> a
-org.cryptocator.Setup$13 -> org.cryptocator.jb:
+org.cryptocator.Setup$13 -> org.cryptocator.jg:
     org.cryptocator.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$13$1 -> org.cryptocator.jc:
+org.cryptocator.Setup$13$1 -> org.cryptocator.jh:
     org.cryptocator.Setup$13 this$1 -> a
     void run() -> run
-org.cryptocator.Setup$14 -> org.cryptocator.jd:
+org.cryptocator.Setup$14 -> org.cryptocator.ji:
     org.cryptocator.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$15 -> org.cryptocator.je:
-    org.cryptocator.Setup this$0 -> a
-    android.content.Context val$context -> b
-    void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$16 -> org.cryptocator.jf:
+org.cryptocator.Setup$15 -> org.cryptocator.jj:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$17 -> org.cryptocator.jg:
+org.cryptocator.Setup$16 -> org.cryptocator.jk:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$18 -> org.cryptocator.jh:
+org.cryptocator.Setup$17 -> org.cryptocator.jl:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$19 -> org.cryptocator.ji:
+org.cryptocator.Setup$18 -> org.cryptocator.jm:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$2 -> org.cryptocator.jj:
-    org.cryptocator.Setup this$0 -> a
-    void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$20 -> org.cryptocator.jk:
+org.cryptocator.Setup$19 -> org.cryptocator.jn:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$21 -> org.cryptocator.jl:
+org.cryptocator.Setup$2 -> org.cryptocator.jo:
+    org.cryptocator.Setup this$0 -> a
+    void onClick(android.view.View) -> onClick
+org.cryptocator.Setup$20 -> org.cryptocator.jp:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$22 -> org.cryptocator.jm:
+org.cryptocator.Setup$21 -> org.cryptocator.jq:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$23 -> org.cryptocator.jn:
+org.cryptocator.Setup$22 -> org.cryptocator.jr:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$24 -> org.cryptocator.jo:
+org.cryptocator.Setup$23 -> org.cryptocator.js:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$25 -> org.cryptocator.jp:
+org.cryptocator.Setup$24 -> org.cryptocator.jt:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$26 -> org.cryptocator.jq:
+org.cryptocator.Setup$25 -> org.cryptocator.ju:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$27 -> org.cryptocator.jr:
+org.cryptocator.Setup$26 -> org.cryptocator.jv:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$28 -> org.cryptocator.js:
+org.cryptocator.Setup$27 -> org.cryptocator.jw:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$29 -> org.cryptocator.jt:
+org.cryptocator.Setup$28 -> org.cryptocator.jx:
+    org.cryptocator.Setup this$0 -> a
+    android.content.Context val$context -> b
+    void onClick(android.view.View) -> onClick
+org.cryptocator.Setup$29 -> org.cryptocator.jy:
     org.cryptocator.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$3 -> org.cryptocator.ju:
+org.cryptocator.Setup$3 -> org.cryptocator.jz:
     org.cryptocator.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$30 -> org.cryptocator.jv:
+org.cryptocator.Setup$30 -> org.cryptocator.ka:
     org.cryptocator.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$31 -> org.cryptocator.jw:
+org.cryptocator.Setup$31 -> org.cryptocator.kb:
     org.cryptocator.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$32 -> org.cryptocator.jx:
+org.cryptocator.Setup$32 -> org.cryptocator.kc:
     org.cryptocator.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$33 -> org.cryptocator.jy:
+org.cryptocator.Setup$33 -> org.cryptocator.kd:
     org.cryptocator.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$34 -> org.cryptocator.jz:
+org.cryptocator.Setup$34 -> org.cryptocator.ke:
     org.cryptocator.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$35 -> org.cryptocator.ka:
+org.cryptocator.Setup$35 -> org.cryptocator.kf:
     org.cryptocator.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$36 -> org.cryptocator.kb:
+org.cryptocator.Setup$36 -> org.cryptocator.kg:
     org.cryptocator.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$37 -> org.cryptocator.kc:
+org.cryptocator.Setup$37 -> org.cryptocator.kh:
     org.cryptocator.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$38 -> org.cryptocator.kd:
+org.cryptocator.Setup$38 -> org.cryptocator.ki:
     org.cryptocator.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$39 -> org.cryptocator.ke:
+org.cryptocator.Setup$39 -> org.cryptocator.kj:
     org.cryptocator.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$4 -> org.cryptocator.kf:
+org.cryptocator.Setup$4 -> org.cryptocator.kk:
     org.cryptocator.Setup this$0 -> a
     android.app.Activity val$context -> b
     boolean onLongClick(android.view.View) -> onLongClick
-org.cryptocator.Setup$40 -> org.cryptocator.kg:
+org.cryptocator.Setup$40 -> org.cryptocator.kl:
     org.cryptocator.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$41 -> org.cryptocator.kh:
+org.cryptocator.Setup$41 -> org.cryptocator.km:
     org.cryptocator.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$42 -> org.cryptocator.ki:
+org.cryptocator.Setup$42 -> org.cryptocator.kn:
     org.cryptocator.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$43 -> org.cryptocator.kj:
-    org.cryptocator.Setup this$0 -> a
-    android.content.Context val$context -> b
-    int val$serverId -> c
-    void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$44 -> org.cryptocator.kk:
+org.cryptocator.Setup$43 -> org.cryptocator.ko:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$45 -> org.cryptocator.kl:
+org.cryptocator.Setup$44 -> org.cryptocator.kp:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$46 -> org.cryptocator.km:
+org.cryptocator.Setup$45 -> org.cryptocator.kq:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$47 -> org.cryptocator.kn:
+org.cryptocator.Setup$46 -> org.cryptocator.kr:
+    org.cryptocator.Setup this$0 -> a
+    android.content.Context val$context -> b
+    int val$serverId -> c
+    void onClick(android.view.View) -> onClick
+org.cryptocator.Setup$47 -> org.cryptocator.ks:
     org.cryptocator.Setup this$0 -> a
     void onCheckedChanged(android.widget.CompoundButton,boolean) -> onCheckedChanged
-org.cryptocator.Setup$48 -> org.cryptocator.ko:
+org.cryptocator.Setup$48 -> org.cryptocator.kt:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$49 -> org.cryptocator.kp:
+org.cryptocator.Setup$49 -> org.cryptocator.ku:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$5 -> org.cryptocator.kq:
+org.cryptocator.Setup$5 -> org.cryptocator.kv:
     org.cryptocator.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$50 -> org.cryptocator.kr:
+org.cryptocator.Setup$50 -> org.cryptocator.kw:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$51 -> org.cryptocator.ks:
+org.cryptocator.Setup$51 -> org.cryptocator.kx:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$52 -> org.cryptocator.kt:
+org.cryptocator.Setup$52 -> org.cryptocator.ky:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$53 -> org.cryptocator.ku:
+org.cryptocator.Setup$53 -> org.cryptocator.kz:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$54 -> org.cryptocator.kv:
+org.cryptocator.Setup$54 -> org.cryptocator.la:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$55 -> org.cryptocator.kw:
+org.cryptocator.Setup$55 -> org.cryptocator.lb:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$56 -> org.cryptocator.kx:
+org.cryptocator.Setup$56 -> org.cryptocator.lc:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void selected(org.cryptocator.MessageInputDialog,int,boolean,java.lang.String) -> a
-org.cryptocator.Setup$57 -> org.cryptocator.ky:
+org.cryptocator.Setup$57 -> org.cryptocator.ld:
+    org.cryptocator.Setup this$0 -> a
+    java.lang.String val$randomPingToPong -> b
+    java.lang.String val$serverUrlToAdd -> c
+    android.content.Context val$context -> d
+    java.lang.String val$url2 -> e
+    void response(java.lang.String) -> a
+    org.cryptocator.Setup access$0(org.cryptocator.Setup$57) -> a
+org.cryptocator.Setup$57$1 -> org.cryptocator.le:
+    org.cryptocator.Setup$57 this$1 -> a
+    java.lang.String val$randomPingToPong -> b
+    android.content.Context val$context -> c
+    java.lang.String val$serverUrlToAdd -> d
+    void response(java.lang.String) -> a
+    org.cryptocator.Setup$57 access$0(org.cryptocator.Setup$57$1) -> a
+org.cryptocator.Setup$57$1$1 -> org.cryptocator.lf:
+    org.cryptocator.Setup$57$1 this$2 -> a
+    android.content.Context val$context -> b
+    java.lang.String val$serverUrlToAdd -> c
+    void run() -> run
+org.cryptocator.Setup$57$1$2 -> org.cryptocator.lg:
+    org.cryptocator.Setup$57$1 this$2 -> a
+    android.content.Context val$context -> b
+    java.lang.String val$serverUrlToAdd -> c
+    void run() -> run
+org.cryptocator.Setup$57$2 -> org.cryptocator.lh:
+    org.cryptocator.Setup$57 this$1 -> a
+    android.content.Context val$context -> b
+    java.lang.String val$serverUrlToAdd -> c
+    void run() -> run
+org.cryptocator.Setup$58 -> org.cryptocator.li:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void selected(int,boolean) -> a
-org.cryptocator.Setup$58 -> org.cryptocator.kz:
+org.cryptocator.Setup$59 -> org.cryptocator.lj:
     org.cryptocator.Setup this$0 -> a
     void selected(int,boolean) -> a
-org.cryptocator.Setup$59 -> org.cryptocator.la:
+org.cryptocator.Setup$6 -> org.cryptocator.lk:
+    org.cryptocator.Setup this$0 -> a
+    android.app.Activity val$context -> b
+    void onClick(android.view.View) -> onClick
+org.cryptocator.Setup$60 -> org.cryptocator.ll:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
@@ -5027,9 +5096,9 @@ org.cryptocator.Setup$59 -> org.cryptocator.la:
     java.lang.String val$reactivateurl2 -> f
     java.lang.String val$reseturl2 -> g
     void response(java.lang.String) -> a
-    org.cryptocator.Setup access$0(org.cryptocator.Setup$59) -> a
-org.cryptocator.Setup$59$1 -> org.cryptocator.lb:
-    org.cryptocator.Setup$59 this$1 -> a
+    org.cryptocator.Setup access$0(org.cryptocator.Setup$60) -> a
+org.cryptocator.Setup$60$1 -> org.cryptocator.lm:
+    org.cryptocator.Setup$60 this$1 -> a
     boolean val$positiveResponse -> b
     java.lang.String val$email2 -> c
     java.lang.String val$uid2 -> d
@@ -5041,163 +5110,159 @@ org.cryptocator.Setup$59$1 -> org.cryptocator.lb:
     java.lang.String val$reactivateurl2 -> j
     java.lang.String val$reseturl2 -> k
     void run() -> run
-org.cryptocator.Setup$59$2 -> org.cryptocator.lc:
-    org.cryptocator.Setup$59 this$1 -> a
+org.cryptocator.Setup$60$2 -> org.cryptocator.ln:
+    org.cryptocator.Setup$60 this$1 -> a
     void run() -> run
-org.cryptocator.Setup$6 -> org.cryptocator.ld:
-    org.cryptocator.Setup this$0 -> a
-    android.app.Activity val$context -> b
-    void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$60 -> org.cryptocator.le:
+org.cryptocator.Setup$61 -> org.cryptocator.lo:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     java.lang.String val$usernameString -> d
     void response(java.lang.String) -> a
-    org.cryptocator.Setup access$0(org.cryptocator.Setup$60) -> a
-org.cryptocator.Setup$60$1 -> org.cryptocator.lf:
-    org.cryptocator.Setup$60 this$1 -> a
+    org.cryptocator.Setup access$0(org.cryptocator.Setup$61) -> a
+org.cryptocator.Setup$61$1 -> org.cryptocator.lp:
+    org.cryptocator.Setup$61 this$1 -> a
     java.lang.String val$response2 -> b
     void run() -> run
-org.cryptocator.Setup$60$2 -> org.cryptocator.lg:
-    org.cryptocator.Setup$60 this$1 -> a
+org.cryptocator.Setup$61$2 -> org.cryptocator.lq:
+    org.cryptocator.Setup$61 this$1 -> a
     void run() -> run
-org.cryptocator.Setup$61 -> org.cryptocator.lh:
+org.cryptocator.Setup$62 -> org.cryptocator.lr:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     java.lang.String val$usernameString -> d
     java.lang.String val$pwdChangeString -> e
     void response(java.lang.String) -> a
-    org.cryptocator.Setup access$0(org.cryptocator.Setup$61) -> a
-org.cryptocator.Setup$61$1 -> org.cryptocator.li:
-    org.cryptocator.Setup$61 this$1 -> a
+    org.cryptocator.Setup access$0(org.cryptocator.Setup$62) -> a
+org.cryptocator.Setup$62$1 -> org.cryptocator.ls:
+    org.cryptocator.Setup$62 this$1 -> a
     java.lang.String val$response2 -> b
     android.content.Context val$context -> c
     int val$serverId -> d
     java.lang.String val$pwdChangeString -> e
     void run() -> run
-org.cryptocator.Setup$61$2 -> org.cryptocator.lj:
-    org.cryptocator.Setup$61 this$1 -> a
+org.cryptocator.Setup$62$2 -> org.cryptocator.lt:
+    org.cryptocator.Setup$62 this$1 -> a
     void run() -> run
-org.cryptocator.Setup$62 -> org.cryptocator.lk:
+org.cryptocator.Setup$63 -> org.cryptocator.lu:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     java.lang.String val$reseturl2 -> d
     void response(java.lang.String) -> a
-    org.cryptocator.Setup access$0(org.cryptocator.Setup$62) -> a
-org.cryptocator.Setup$62$1 -> org.cryptocator.ll:
-    org.cryptocator.Setup$62 this$1 -> a
+    org.cryptocator.Setup access$0(org.cryptocator.Setup$63) -> a
+org.cryptocator.Setup$63$1 -> org.cryptocator.lv:
+    org.cryptocator.Setup$63 this$1 -> a
     java.lang.String val$response2 -> b
     java.lang.String val$newUID -> c
     android.content.Context val$context -> d
     int val$serverId -> e
     java.lang.String val$reseturl2 -> f
     void run() -> run
-org.cryptocator.Setup$62$2 -> org.cryptocator.lm:
-    org.cryptocator.Setup$62 this$1 -> a
+org.cryptocator.Setup$63$2 -> org.cryptocator.lw:
+    org.cryptocator.Setup$63 this$1 -> a
     void run() -> run
-org.cryptocator.Setup$63 -> org.cryptocator.ln:
+org.cryptocator.Setup$64 -> org.cryptocator.lx:
     android.content.Context val$context -> a
     int val$serverId -> b
     void response(java.lang.String) -> a
-org.cryptocator.Setup$64 -> org.cryptocator.lo:
+org.cryptocator.Setup$65 -> org.cryptocator.ly:
     boolean val$silent -> a
     android.content.Context val$context -> b
     void response(java.lang.String) -> a
-org.cryptocator.Setup$64$1 -> org.cryptocator.lp:
-    org.cryptocator.Setup$64 this$1 -> a
+org.cryptocator.Setup$65$1 -> org.cryptocator.lz:
+    org.cryptocator.Setup$65 this$1 -> a
     java.lang.String val$response2 -> b
     boolean val$silent -> c
     android.content.Context val$context -> d
     void run() -> run
-org.cryptocator.Setup$64$2 -> org.cryptocator.lq:
-    org.cryptocator.Setup$64 this$1 -> a
+org.cryptocator.Setup$65$2 -> org.cryptocator.ma:
+    org.cryptocator.Setup$65 this$1 -> a
     boolean val$silent -> b
     android.content.Context val$context -> c
     void run() -> run
-org.cryptocator.Setup$65 -> org.cryptocator.lr:
+org.cryptocator.Setup$66 -> org.cryptocator.mb:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     void response(java.lang.String) -> a
-    org.cryptocator.Setup access$0(org.cryptocator.Setup$65) -> a
-org.cryptocator.Setup$65$1 -> org.cryptocator.ls:
-    org.cryptocator.Setup$65 this$1 -> a
+    org.cryptocator.Setup access$0(org.cryptocator.Setup$66) -> a
+org.cryptocator.Setup$66$1 -> org.cryptocator.mc:
+    org.cryptocator.Setup$66 this$1 -> a
     java.lang.String val$response2 -> b
     android.content.Context val$context -> c
     int val$serverId -> d
     void run() -> run
-org.cryptocator.Setup$65$2 -> org.cryptocator.lt:
-    org.cryptocator.Setup$65 this$1 -> a
+org.cryptocator.Setup$66$2 -> org.cryptocator.md:
+    org.cryptocator.Setup$66 this$1 -> a
     void run() -> run
-org.cryptocator.Setup$66 -> org.cryptocator.lu:
+org.cryptocator.Setup$67 -> org.cryptocator.me:
     boolean val$enable -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     java.lang.String val$phoneString2 -> d
     void response(java.lang.String) -> a
-org.cryptocator.Setup$66$1 -> org.cryptocator.lv:
-    org.cryptocator.Setup$66 this$1 -> a
+org.cryptocator.Setup$67$1 -> org.cryptocator.mf:
+    org.cryptocator.Setup$67 this$1 -> a
     java.lang.String val$response2 -> b
     boolean val$enable -> c
     android.content.Context val$context -> d
     int val$serverId -> e
     java.lang.String val$phoneString2 -> f
     void run() -> run
-org.cryptocator.Setup$66$2 -> org.cryptocator.lw:
-    org.cryptocator.Setup$66 this$1 -> a
+org.cryptocator.Setup$67$2 -> org.cryptocator.mg:
+    org.cryptocator.Setup$67 this$1 -> a
     void run() -> run
-org.cryptocator.Setup$67 -> org.cryptocator.lx:
+org.cryptocator.Setup$68 -> org.cryptocator.mh:
     android.content.Context val$context -> a
     int val$smsuserAsFallback -> b
     int val$registeredDefault -> c
     void selected(int,boolean) -> a
-org.cryptocator.Setup$68 -> org.cryptocator.ly:
+org.cryptocator.Setup$69 -> org.cryptocator.mi:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void selected(int,boolean) -> a
-org.cryptocator.Setup$69 -> org.cryptocator.lz:
-    org.cryptocator.Setup this$0 -> a
-    android.content.Context val$context -> b
-    void selected(int,boolean) -> a
-org.cryptocator.Setup$7 -> org.cryptocator.ma:
+org.cryptocator.Setup$7 -> org.cryptocator.mj:
     org.cryptocator.Setup this$0 -> a
     android.app.Activity val$context -> b
     boolean onLongClick(android.view.View) -> onLongClick
-org.cryptocator.Setup$70 -> org.cryptocator.mb:
+org.cryptocator.Setup$70 -> org.cryptocator.mk:
     org.cryptocator.Setup this$0 -> a
     android.content.Context val$context -> b
     void selected(int,boolean) -> a
-org.cryptocator.Setup$71 -> org.cryptocator.mc:
+org.cryptocator.Setup$71 -> org.cryptocator.ml:
+    org.cryptocator.Setup this$0 -> a
+    android.content.Context val$context -> b
+    void selected(int,boolean) -> a
+org.cryptocator.Setup$72 -> org.cryptocator.mm:
     android.content.Context val$context -> a
     int val$serverId -> b
     void response(java.lang.String) -> a
-org.cryptocator.Setup$72 -> org.cryptocator.md:
+org.cryptocator.Setup$73 -> org.cryptocator.mn:
     android.content.Context val$context -> a
     int val$serverId -> b
     boolean val$silent -> c
     java.lang.String val$baseUrl -> d
     void response(java.lang.String) -> a
-org.cryptocator.Setup$73 -> org.cryptocator.me:
+org.cryptocator.Setup$74 -> org.cryptocator.mo:
     android.content.Context val$context -> a
     void selected(int,boolean) -> a
-org.cryptocator.Setup$74 -> org.cryptocator.mf:
+org.cryptocator.Setup$75 -> org.cryptocator.mp:
     android.content.Context val$context -> a
     int val$serverId -> b
     long val$currentTime -> c
     void response(java.lang.String) -> a
-org.cryptocator.Setup$8 -> org.cryptocator.mg:
+org.cryptocator.Setup$8 -> org.cryptocator.mq:
     org.cryptocator.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptocator.Setup$9 -> org.cryptocator.mh:
+org.cryptocator.Setup$9 -> org.cryptocator.mr:
     org.cryptocator.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onItemSelected(android.widget.AdapterView,android.view.View,int,long) -> onItemSelected
     void onNothingSelected(android.widget.AdapterView) -> onNothingSelected
-org.cryptocator.SmileyPrompt -> org.cryptocator.mi:
+org.cryptocator.SmileyPrompt -> org.cryptocator.ms:
     int MAXSMILEYCOLUMNSLANDSCAPE -> a
     int MAXSMILEYCOLUMNSPORTRAIT -> b
     org.cryptocator.SmileyPrompt$OnSmileySelectedListener onSmileySelectedListener -> c
@@ -5205,23 +5270,23 @@ org.cryptocator.SmileyPrompt -> org.cryptocator.mi:
     void promptSmileys(android.content.Context) -> a
     android.widget.LinearLayout buildSmileyTable(android.content.Context,android.app.Dialog) -> a
     android.widget.LinearLayout access$0(org.cryptocator.SmileyPrompt,android.content.Context,android.app.Dialog) -> a
-org.cryptocator.SmileyPrompt$1 -> org.cryptocator.mj:
+org.cryptocator.SmileyPrompt$1 -> org.cryptocator.mt:
     org.cryptocator.SmileyPrompt this$0 -> a
     void selected(int,boolean) -> a
-org.cryptocator.SmileyPrompt$2 -> org.cryptocator.mk:
+org.cryptocator.SmileyPrompt$2 -> org.cryptocator.mu:
     org.cryptocator.SmileyPrompt this$0 -> a
     android.content.Context val$context -> b
     android.view.View provide(org.cryptocator.MessageAlertDialog) -> a
-org.cryptocator.SmileyPrompt$3 -> org.cryptocator.ml:
+org.cryptocator.SmileyPrompt$3 -> org.cryptocator.mv:
     org.cryptocator.SmileyPrompt this$0 -> a
     int val$orderNumber -> b
     android.app.Dialog val$dialog -> c
     void onClick(android.view.View) -> onClick
-org.cryptocator.SmileyPrompt$OnSmileySelectedListener -> org.cryptocator.mm:
+org.cryptocator.SmileyPrompt$OnSmileySelectedListener -> org.cryptocator.mw:
     void onSelect(java.lang.String) -> a
 org.cryptocator.TransitActivity -> org.cryptocator.TransitActivity:
     void onCreate(android.os.Bundle) -> onCreate
-org.cryptocator.UidListItem -> org.cryptocator.mn:
+org.cryptocator.UidListItem -> org.cryptocator.mx:
     int uid -> a
     java.lang.String name -> b
     java.lang.Long lastMessageTimestamp -> c
@@ -5253,49 +5318,49 @@ org.cryptocator.UserDetailsActivity -> org.cryptocator.UserDetailsActivity:
     void access$0(org.cryptocator.UserDetailsActivity) -> a
     void access$1(org.cryptocator.UserDetailsActivity) -> b
     void access$2(org.cryptocator.UserDetailsActivity,android.content.Context) -> a
-org.cryptocator.UserDetailsActivity$1 -> org.cryptocator.mo:
+org.cryptocator.UserDetailsActivity$1 -> org.cryptocator.my:
     org.cryptocator.UserDetailsActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.UserDetailsActivity$2 -> org.cryptocator.mp:
+org.cryptocator.UserDetailsActivity$2 -> org.cryptocator.mz:
     org.cryptocator.UserDetailsActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.UserDetailsActivity$3 -> org.cryptocator.mq:
+org.cryptocator.UserDetailsActivity$3 -> org.cryptocator.na:
     org.cryptocator.UserDetailsActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.UserDetailsActivity$4 -> org.cryptocator.mr:
+org.cryptocator.UserDetailsActivity$4 -> org.cryptocator.nb:
     org.cryptocator.UserDetailsActivity this$0 -> a
     void onCancel(android.content.DialogInterface) -> onCancel
-org.cryptocator.UserDetailsActivity$5 -> org.cryptocator.ms:
+org.cryptocator.UserDetailsActivity$5 -> org.cryptocator.nc:
     org.cryptocator.UserDetailsActivity this$0 -> a
     void onClick(android.view.View) -> onClick
     org.cryptocator.UserDetailsActivity access$0(org.cryptocator.UserDetailsActivity$5) -> a
-org.cryptocator.UserDetailsActivity$5$1 -> org.cryptocator.mt:
+org.cryptocator.UserDetailsActivity$5$1 -> org.cryptocator.nd:
     org.cryptocator.UserDetailsActivity$5 this$1 -> a
     void selected(int,boolean) -> a
-org.cryptocator.UserDetailsActivity$6 -> org.cryptocator.mu:
+org.cryptocator.UserDetailsActivity$6 -> org.cryptocator.ne:
     org.cryptocator.UserDetailsActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.UserDetailsActivity$7 -> org.cryptocator.mv:
+org.cryptocator.UserDetailsActivity$7 -> org.cryptocator.nf:
     org.cryptocator.UserDetailsActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptocator.UserDetailsActivity$8 -> org.cryptocator.mw:
+org.cryptocator.UserDetailsActivity$8 -> org.cryptocator.ng:
     org.cryptocator.UserDetailsActivity this$0 -> a
     void onUpdate(java.lang.String) -> a
     org.cryptocator.UserDetailsActivity access$0(org.cryptocator.UserDetailsActivity$8) -> a
-org.cryptocator.UserDetailsActivity$8$1 -> org.cryptocator.mx:
+org.cryptocator.UserDetailsActivity$8$1 -> org.cryptocator.nh:
     org.cryptocator.UserDetailsActivity$8 this$1 -> a
     java.lang.String val$data -> b
     void run() -> run
-org.cryptocator.UserDetailsActivity$9 -> org.cryptocator.my:
+org.cryptocator.UserDetailsActivity$9 -> org.cryptocator.ni:
     org.cryptocator.UserDetailsActivity this$0 -> a
     void onUpdate(java.lang.String) -> a
     org.cryptocator.UserDetailsActivity access$0(org.cryptocator.UserDetailsActivity$9) -> a
-org.cryptocator.UserDetailsActivity$9$1 -> org.cryptocator.mz:
+org.cryptocator.UserDetailsActivity$9$1 -> org.cryptocator.nj:
     org.cryptocator.UserDetailsActivity$9 this$1 -> a
     void run() -> run
 org.cryptocator.UserPresentReceiver -> org.cryptocator.UserPresentReceiver:
     void onReceive(android.content.Context,android.content.Intent) -> onReceive
-org.cryptocator.Utility -> org.cryptocator.na:
+org.cryptocator.Utility -> org.cryptocator.nk:
     android.content.SharedPreferences settings -> a
     void hideSoftkeys(android.app.Activity) -> a
     void hideKeyboard(android.app.Activity) -> b
@@ -5359,19 +5424,19 @@ org.cryptocator.Utility -> org.cryptocator.na:
     android.graphics.Bitmap getBitmapFromContentUri(android.content.Context,android.net.Uri) -> a
     boolean isCameraAvailable(android.content.Context) -> i
     java.lang.String getKB(int) -> c
-org.cryptocator.Utility$2 -> org.cryptocator.nb:
+org.cryptocator.Utility$2 -> org.cryptocator.nl:
     android.content.Context val$context -> a
     java.lang.String val$toastText -> b
     void run() -> run
-org.cryptocator.Utility$3 -> org.cryptocator.nc:
+org.cryptocator.Utility$3 -> org.cryptocator.nm:
     android.content.Context val$context -> a
     java.lang.String val$toastText -> b
     void run() -> run
-org.cryptocator.Utility$4 -> org.cryptocator.nd:
+org.cryptocator.Utility$4 -> org.cryptocator.nn:
     int val$milliseconds -> a
     void run() -> run
-org.cryptocator.Utility$5 -> org.cryptocator.ne:
+org.cryptocator.Utility$5 -> org.cryptocator.no:
     android.media.Ringtone val$ringtone -> a
     void run() -> run
-org.cryptocator.Utility$6 -> org.cryptocator.nf:
+org.cryptocator.Utility$6 -> org.cryptocator.np:
     void onScanCompleted(java.lang.String,android.net.Uri) -> onScanCompleted
