@@ -3974,6 +3974,7 @@ org.cryptocator.Main -> org.cryptocator.Main:
     int TEXTCOLOEWHITEDIMMED2 -> f
     org.cryptocator.Main instance -> r
     boolean visible -> s
+    android.hardware.SensorEventListener lightSensorListener -> t
     void onCreate(android.os.Bundle) -> onCreate
     void setTitle(java.lang.String) -> a
     boolean possiblyPromptUserIfNoAccount(android.content.Context,android.view.View) -> a
@@ -4208,7 +4209,6 @@ org.cryptocator.Main$35 -> org.cryptocator.gz:
     void run() -> run
 org.cryptocator.Main$36 -> org.cryptocator.ha:
     android.content.Context val$context -> a
-    android.hardware.SensorManager val$manager -> b
     void onSensorChanged(android.hardware.SensorEvent) -> onSensorChanged
     void onAccuracyChanged(android.hardware.Sensor,int) -> onAccuracyChanged
 org.cryptocator.Main$4 -> org.cryptocator.hb:
