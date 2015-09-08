@@ -316,8 +316,8 @@ public class BackupActivity extends Activity {
 					backupText.append("Read: "
 							+ DB.getDateString(item.read, false));
 					backupText.append(System.getProperty("line.separator"));
-					backupText.append("Withdrawn: "
-							+ DB.getDateString(item.withdraw, false));
+					backupText.append("Revoked: "
+							+ DB.getDateString(item.revoked, false));
 					backupText.append(System.getProperty("line.separator"));
 					if (item.transport == DB.TRANSPORT_INTERNET) {
 						backupText.append("Transport: Internet");

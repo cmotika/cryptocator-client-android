@@ -1199,7 +1199,7 @@ public class Main extends Activity {
 
 	/**
 	 * Update last message. Should be called when sending or receiving or
-	 * withdrawing messages.
+	 * revoked messages.
 	 * 
 	 * @param context
 	 *            the context

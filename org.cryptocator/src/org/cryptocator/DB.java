@@ -122,8 +122,8 @@ public class DB {
 	/** The maximal timestamp. */
 	public static long MAXTIMESTAMP = Long.MAX_VALUE;
 
-	/** The withdrawntext. */
-	public static String WITHDRAWNTEXT = "[ message withdrawn ]";
+	/** The revoked text. */
+	public static String REVOKEDTEXT = "[ message revoked ]";
 
 	/** The SMS failed. */
 	public static String SMS_FAILED = "FAILED";
@@ -636,8 +636,8 @@ public class DB {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Withdraw from sending. If a message is possibly not yet sent, we can try
-	 * to withdraw it BEFORE it got sent!
+	 * Revoked from sending. If a message is possibly not yet sent, we can try
+	 * to revoke it BEFORE it got sent!
 	 * 
 	 * @param context
 	 *            the context
@@ -645,7 +645,7 @@ public class DB {
 	 *            the local id
 	 * @return true, if successful
 	 */
-	public static boolean withdrawFromSending(Context context, int localId) {
+	public static boolean revokeFromSending(Context context, int localId) {
 		SQLiteDatabase db = null;
 		boolean success = false;
 		try {
@@ -1843,8 +1843,8 @@ public class DB {
 	 *            the received
 	 * @param read
 	 *            the read
-	 * @param withdraw
-	 *            the withdraw
+	 * @param revoke
+	 *            the revoke
 	 * @param encrypted
 	 *            the encrypted
 	 * @param transport
@@ -1861,7 +1861,7 @@ public class DB {
 	 */
 	public static int addMessage(Context context, int from, int to,
 			String text, String created, String sent, String received,
-			String read, String withdraw, boolean encrypted, int transport,
+			String read, String revoke, boolean encrypted, int transport,
 			boolean system, int part, int parts, String multipartid) {
 		int uid = from;
 		if (to != DB.myUid()) {
@@ -1898,8 +1898,8 @@ public class DB {
 		} else {
 			values.put("read", "");
 		}
-		if (withdraw != null) {
-			values.put("withdraw", withdraw);
+		if (revoke != null) {
+			values.put("withdraw", revoke);
 		} else {
 			values.put("withdraw", "");
 		}
@@ -2173,7 +2173,7 @@ public class DB {
 
 					long received = parseTimestamp(cursor.getString(7), -1);
 					long read = parseTimestamp(cursor.getString(8), -1);
-					long withdraw = parseTimestamp(cursor.getString(9), -1);
+					long revoked = parseTimestamp(cursor.getString(9), -1);
 					String encyptedString = cursor.getString(10);
 					int transport = Utility.parseInt(cursor.getString(11),
 							TRANSPORT_INTERNET);
@@ -2201,7 +2201,7 @@ public class DB {
 						item.sent = sent;
 						item.received = received;
 						item.read = read;
-						item.withdraw = withdraw;
+						item.revoked = revoked;
 						item.encrypted = encrypted;
 						item.transport = transport;
 						item.system = system;
@@ -2693,7 +2693,7 @@ public class DB {
 
 				long received = parseTimestamp(cursor.getString(7), -1);
 				long read = parseTimestamp(cursor.getString(8), -1);
-				long withdraw = parseTimestamp(cursor.getString(9), -1);
+				long revoked = parseTimestamp(cursor.getString(9), -1);
 				String encyptedString = cursor.getString(10);
 				int transport2 = Utility.parseInt(cursor.getString(11),
 						TRANSPORT_INTERNET);
@@ -2724,7 +2724,7 @@ public class DB {
 					returnItem.sent = sent;
 					returnItem.received = received;
 					returnItem.read = read;
-					returnItem.withdraw = withdraw;
+					returnItem.revoked = revoked;
 					returnItem.encrypted = encrypted;
 					returnItem.transport = transport2;
 					returnItem.system = system;
@@ -2904,9 +2904,9 @@ public class DB {
 	// -----------------------------------------------------------------
 
 	/**
-	 * Try to withdraw message. This message will try to withdraw unsent
-	 * messages, if this succeeds, it will withdraw right away. Otherwise we
-	 * send a withdraw request to the server and wait for the server response
+	 * Try to revoke message. This message will try to revoke unsent
+	 * messages, if this succeeds, it will be revoked right away. Otherwise we
+	 * send a revoke request to the server and wait for the server response
 	 * message!
 	 * 
 	 * @param context
@@ -2920,15 +2920,15 @@ public class DB {
 	 * @param hostUid
 	 *            the host uid
 	 */
-	public static void tryToWithdrawMessage(Context context, int mid,
+	public static void tryToRevokeMessage(Context context, int mid,
 			int localid, String timestamp, int hostUid) {
 		// If mid < 0 it is still a localid, but this does not mean it is not
 		// sent yet!
-		boolean withdrawBeforeSending = withdrawFromSending(context, localid);
-		if (withdrawBeforeSending) {
-			Log.d("communicator", " WITHDRAW BEFOR SENDING POSSIBLE :-)");
+		boolean revokeBeforeSending = revokeFromSending(context, localid);
+		if (revokeBeforeSending) {
+			Log.d("communicator", " REVOKE BEFORE SENDING POSSIBLE :-)");
 			ContentValues values = new ContentValues();
-			values.put("text", DB.WITHDRAWNTEXT);
+			values.put("text", DB.REVOKEDTEXT);
 			values.put("withdraw", timestamp);
 			// update
 			try {
@@ -2937,27 +2937,27 @@ public class DB {
 						null);
 				db.update("messages", values, "localid = " + localid, null);
 				// Try both
-				Conversation.setWithdrawInConversation(context, mid);
-				Conversation.setWithdrawInConversation(context, -1 * localid);
+				Conversation.setRevokedInConversation(context, mid);
+				Conversation.setRevokedInConversation(context, -1 * localid);
 				db.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		} else {
-			Log.d("communicator", " WITHDRAW BEFORE SENDING NOT POSSIBLE :-(");
+			Log.d("communicator", " REVOKE BEFORE SENDING NOT POSSIBLE :-(");
 		}
 		if (mid > -1) {
-			// Send a withdraw request just to make sure, even if we could
+			// Send a revoke request just to make sure, even if we could
 			// possibly remove it
 			// from the sending queue it may just have been sent!
-			Communicator.sendSystemMessageWidthdraw(context, hostUid, mid);
+			Communicator.sendSystemMessageRevoke(context, hostUid, mid);
 		}
 	}
 
 	// -----------------------------------------------------------------
 
 	/**
-	 * Update message withdrawn.
+	 * Update message revoked.
 	 * 
 	 * @param context
 	 *            the context
@@ -2969,17 +2969,17 @@ public class DB {
 	 *            the host uid
 	 * @return true, if successful
 	 */
-	public static boolean updateMessageWithdrawn(Context context, int mid,
+	public static boolean updateMessageRevoked(Context context, int mid,
 			String timestamp, int hostUid) {
 		boolean success = false;
 		ContentValues values = new ContentValues();
-		values.put("text", DB.WITHDRAWNTEXT);
+		values.put("text", DB.REVOKEDTEXT);
 		values.put("withdraw", timestamp);
 		// Update
 		try {
 			SQLiteDatabase db = openDB(context, hostUid);
 			db.update("messages", values, "mid = " + mid, null);
-			// Log.d("communicator", "UPDATE WITHDRAW OF MID " + mid + "= " +
+			// Log.d("communicator", "UPDATE REVOKED OF MID " + mid + "= " +
 			// timestamp +": " + rows);
 			db.close();
 			success = true;
@@ -3321,7 +3321,7 @@ public class DB {
 		values.put("sent", itemToUpdate.sent + "");
 		values.put("received", itemToUpdate.received + "");
 		values.put("read", itemToUpdate.read + "");
-		values.put("withdraw", itemToUpdate.withdraw + "");
+		values.put("withdraw", itemToUpdate.revoked + "");
 		values.put("transport", itemToUpdate.transport + "");
 		values.put("part", itemToUpdate.part);
 		values.put("parts", itemToUpdate.parts);
@@ -3403,7 +3403,7 @@ public class DB {
 				}
 				addMessage(context, item.from, item.to, item.text, item.created
 						+ "", item.sent + "", item.received + "", item.read
-						+ "", item.withdraw + "", item.encrypted,
+						+ "", item.revoked + "", item.encrypted,
 						item.transport, false, 0, 1, NO_MULTIPART_ID);
 			}
 			success = true;

@@ -52,8 +52,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.Html;
 import android.util.Log;
 import android.view.Gravity;
@@ -179,8 +177,8 @@ public class MessageDetailsActivity extends Activity {
 				.findViewById(R.id.sendingreceivingparent);
 		TextView received = (TextView) dialogLayout.findViewById(R.id.received);
 		TextView read = (TextView) dialogLayout.findViewById(R.id.read);
-		TextView withdrawn = (TextView) dialogLayout
-				.findViewById(R.id.withdrawn);
+		TextView revoked = (TextView) dialogLayout
+				.findViewById(R.id.revoked);
 
 		TextView transport = (TextView) dialogLayout
 				.findViewById(R.id.transport);
@@ -345,7 +343,7 @@ public class MessageDetailsActivity extends Activity {
 			read.setText(Html.fromHtml(failureString));
 		}
 
-		withdrawn.setText(DB.getDateString(updatedItem.withdraw, true));
+		revoked.setText(DB.getDateString(updatedItem.revoked, true));
 
 		if (updatedItem.transport == DB.TRANSPORT_INTERNET) {
 			transport.setText("Internet");
@@ -585,52 +583,10 @@ public class MessageDetailsActivity extends Activity {
 			}
 		});
 
-		Button buttonresend = (Button) dialogLayout
-				.findViewById(R.id.buttonresend);
-		Button buttonWithdraw = (Button) dialogLayout
-				.findViewById(R.id.buttonwithdraw);
-		Button buttonCopy = (Button) dialogLayout.findViewById(R.id.buttoncopy);
-		Button buttonRespond = (Button) dialogLayout
-				.findViewById(R.id.buttonrespond);
-
-		buttonresend.setOnClickListener(new View.OnClickListener() {
+		Button buttonClose = (Button) dialogLayout
+				.findViewById(R.id.buttonclose);
+		buttonClose.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				resendMessage(conversationItem);
-				alertDialog.dismiss();
-				activity.finish();
-			}
-		});
-
-		buttonWithdraw.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				// ask withdraw
-				askWithdraw(context, updatedItem.mid, updatedItem.localid,
-						updatedItem.to, activity);
-			}
-		});
-		buttonCopy.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				Utility.copyToClipboard(context, conversationItem.text);
-				alertDialog.dismiss();
-				activity.finish();
-			}
-		});
-		buttonRespond.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				String respondText = "''" + conversationItem.text + "'' -  ";
-				Conversation.getInstance().messageText.setText(respondText);
-				Conversation.getInstance().messageText.setSelection(
-						respondText.length() - 1, respondText.length() - 1);
-				Conversation.getInstance().messageText.postDelayed(
-						new Runnable() {
-							public void run() {
-								Conversation.getInstance().messageText
-										.requestFocus();
-								Utility.showKeyboardExplicit(Conversation
-										.getInstance().messageText);
-							}
-						}, 200); // 400ms important because after 200ms the
-									// resume() will hid the keyboard
 				alertDialog.dismiss();
 				activity.finish();
 			}
@@ -671,97 +627,6 @@ public class MessageDetailsActivity extends Activity {
 
 		Utility.setBackground(context, outerLayout, R.drawable.dolphins3light);
 		Utility.setBackground(context, buttonLayout, R.drawable.dolphins4light);
-
-		if ((!updatedItem.me()) || updatedItem.transport == DB.TRANSPORT_SMS
-				|| updatedItem.withdraw > 10 || (updatedItem.read < -10)) {
-			buttonWithdraw.setEnabled(false);
-			buttonWithdraw.setVisibility(View.GONE);
-		}
-
-		if (!updatedItem.smsfailed && !(updatedItem.read < -10)) {
-			buttonresend.setVisibility(View.GONE);
-		}
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Resend failed SMS or decryption failed message.
-	 * 
-	 * @param conversationItem
-	 *            the conversation item
-	 * @return true, if successful
-	 */
-	public void resendMessage(ConversationItem conversationItem) {
-		final String messageTextString = conversationItem.text;
-		final boolean encrypted = conversationItem.encrypted;
-		final int transport = conversationItem.transport;
-
-		// Do the following async, so that we already have scrolled back
-		// to the original position after closing the
-		// message details window before we will re-send this
-		// message.
-
-		final Handler mUIHandler = new Handler(Looper.getMainLooper());
-		mUIHandler.postDelayed(new Thread() {
-			@Override
-			public void run() {
-				super.run();
-				if (DB.addSendMessage(context, hostUid, messageTextString,
-						encrypted, transport, false, DB.PRIORITY_MESSAGE)) {
-					Conversation.updateConversationlistAsync(context);
-					Communicator.sendNewNextMessageAsync(context, transport);
-				}
-			}
-		}, 2000);
-
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Ask the user if he really wants to withdraw the message.
-	 * 
-	 * @param context
-	 *            the context
-	 * @param mid
-	 *            the mid
-	 * @param localid
-	 *            the localid
-	 * @param toHostUid
-	 *            the to host uid
-	 */
-	public void askWithdraw(final Context context, final int mid,
-			final int localid, final int toHostUid, final Activity activity) {
-		String titleMessage = "Withdraw Message " + mid;
-		if (mid == -1) {
-			titleMessage = "Withdraw Message *" + localid;
-		}
-		String textMessage = "Attention! Withdrawing a message should be used with"
-				+ " precaution.\n\nA withdrawn message is deleted from server. There"
-				+ " is no guarantee that it is deleted from other devices that may "
-				+ "already have received the message. All devices that connect to the "
-				+ "server are advised to"
-				+ " delete the message. Anyhow, this message may already have been "
-				+ "read by the recipient. Furthermore, withdrawing will cancel new "
-				+ "message notifications of the recipient. You should proceed only "
-				+ "if there is no alternative!\n\nDo you really want to withdraw"
-				+ " the message?";
-		new MessageAlertDialog(context, titleMessage, textMessage,
-				" Withdraw ", " Cancel ", null,
-				new MessageAlertDialog.OnSelectionListener() {
-					public void selected(int button, boolean cancel) {
-						if (!cancel) {
-							if (button == 0) {
-								// now really try to withdraw
-								DB.tryToWithdrawMessage(context, mid, localid,
-										DB.getTimestampString(), toHostUid);
-								alertDialog.dismiss();
-								activity.finish();
-							}
-						}
-					}
-				}).show();
 	}
 
 	// ------------------------------------------------------------------------

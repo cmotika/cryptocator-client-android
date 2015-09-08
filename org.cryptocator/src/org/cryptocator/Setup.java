@@ -1017,10 +1017,12 @@ public class Setup extends Activity {
 			updateServerSpinner(context, serverspinner);
 			buildServerTabs(context);
 		}
-		
+
 		if (this.getIntent().hasExtra("serverId")) {
-			// Set the preferred account on startup, per default do not change selectedServerId
-			selectedServerId = this.getIntent().getIntExtra("serverId", selectedServerId);
+			// Set the preferred account on startup, per default do not change
+			// selectedServerId
+			selectedServerId = this.getIntent().getIntExtra("serverId",
+					selectedServerId);
 			// reload login info text fields
 			loadServerTab(context, selectedServerId);
 			int index = 0;
@@ -1030,9 +1032,9 @@ public class Setup extends Activity {
 				}
 				index++;
 			}
-			Utility.showToastAsync(context, getServer(context, selectedServerId));
+			Utility.showToastAsync(context,
+					getServer(context, selectedServerId));
 		}
-
 
 		advancedsettings = (LinearLayout) findViewById(R.id.advancedsettings);
 		advancedsettings.setVisibility(View.GONE);
@@ -1479,6 +1481,8 @@ public class Setup extends Activity {
 	private void loadServerTab(final Context context, final int serverId) {
 		if (serverId == -1) {
 			// NO VALID SERVER SELECTED - HIDE EVERYTHING!
+			accountnew = (LinearLayout) findViewById(R.id.accountnew);
+			accountexisting = (LinearLayout) findViewById(R.id.accountexisting);
 			accountexisting.setVisibility(View.GONE);
 			accountnew.setVisibility(View.GONE);
 			online = false;
@@ -1729,6 +1733,26 @@ public class Setup extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
+	 * This method simply ensures that the server URL ends with "/?" in order to
+	 * add parameters for a request.
+	 * 
+	 * @param serverUrl
+	 *            the server url
+	 * @return the string
+	 */
+	private static String ensureServerURLWithRequestEnding(String serverAddress) {
+		if (!serverAddress.endsWith("?")) {
+			if (!serverAddress.endsWith("/")) {
+				serverAddress = serverAddress + "/";
+			}
+			serverAddress = serverAddress + "?";
+		}
+		return serverAddress;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
 	 * Gets the base url of a server for a serverId. Typically this is
 	 * cryptocator.org if not another server is configured.
 	 * 
@@ -1740,12 +1764,7 @@ public class Setup extends Activity {
 		if (!BASESERVERADDRESSCACHED.containsKey(serverId)) {
 			String serverAddress = getServer(context, serverId);
 			if (serverAddress != null && serverAddress.trim().length() > 3) {
-				if (!serverAddress.endsWith("?")) {
-					if (!serverAddress.endsWith("/")) {
-						serverAddress = serverAddress + "/";
-					}
-					serverAddress = serverAddress + "?";
-				}
+				serverAddress = ensureServerURLWithRequestEnding(serverAddress);
 				BASESERVERADDRESSCACHED.put(serverId, serverAddress);
 			}
 		}
@@ -1855,20 +1874,114 @@ public class Setup extends Activity {
 		String titleMessage = "New Message Server";
 		String textMessage = "Enter the URL of the new message server:";
 		new MessageInputDialog(context, titleMessage, textMessage, "Add",
-				"       Cancel      ", null,
-				"http://your-cryptocator-server-url",
+				"       Cancel      ", null, "http://www.yourserverurl",
 				new MessageInputDialog.OnSelectionListener() {
 					public void selected(MessageInputDialog dialog, int button,
 							boolean cancel, String returnText) {
 						if (!cancel) {
 							if (button == 0) {
-								addServer(context, returnText);
+								testServerPingBeforeAdd(context, returnText);
 								updateServerSpinner(context, serverspinner);
 							}
 						}
 						dialog.dismiss();
 					}
 				}, 0x00000011, true, true).show();
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Test server before add. First do a ping then a post ping.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void testServerPingBeforeAdd(final Context context,
+			final String serverUrlToAdd) {
+		final String randomPingToPong = Utility.getRandomString(5);
+
+		String url = ensureServerURLWithRequestEnding(serverUrlToAdd)
+				+ "cmd=ping&val=" + randomPingToPong;
+		final String url2 = url;
+		@SuppressWarnings("unused")
+		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
+				url2, new HttpStringRequest.OnResponseListener() {
+					public void response(String response) {
+						if (response.endsWith(randomPingToPong)) {
+							// That was our ping... okay, now test the same for
+							// the POST
+							String url = ensureServerURLWithRequestEnding(serverUrlToAdd)
+									+ "cmd=pingpost&val=" + randomPingToPong;
+							HttpStringRequest httpStringRequest = (new HttpStringRequest(
+									context, url2, true,
+									new HttpStringRequest.OnResponseListener() {
+										public void response(String response) {
+											if (response
+													.endsWith(randomPingToPong)) {
+												// That was our ping... okay, we
+												// can add the server
+												final Handler mUIHandler = new Handler(
+														Looper.getMainLooper());
+												mUIHandler.post(new Thread() {
+													@Override
+													public void run() {
+														addServer(context,
+																serverUrlToAdd);
+														Utility.showToastAsync(
+																context,
+																"Server '"
+																		+ serverUrlToAdd
+																		+ "' added.");
+														updateServerSpinner(
+																context,
+																serverspinner);
+													}
+												});
+											} else {
+												// No luck with pinging using
+												// POST, do not add
+												final Handler mUIHandler = new Handler(
+														Looper.getMainLooper());
+												mUIHandler.post(new Thread() {
+													@Override
+													public void run() {
+														Utility.copyToClipboard(
+																context,
+																serverUrlToAdd);
+														Utility.showToastAsync(
+																context,
+																"Server '"
+																		+ serverUrlToAdd
+																		+ "' did not answer to POST request."
+																		+ " Please check URL. Maybe a 'www.' "
+																		+ "is missing?  URL copied to Clipboard.");
+													}
+												});
+											}
+										}
+									}));
+						} else {
+							// No luck with pinging using GET, do not add
+							final Handler mUIHandler = new Handler(Looper
+									.getMainLooper());
+							mUIHandler.post(new Thread() {
+								@Override
+								public void run() {
+									Utility.copyToClipboard(context,
+											serverUrlToAdd);
+									Utility.showToastAsync(
+											context,
+											"Server '"
+													+ serverUrlToAdd
+													+ "' did not answer to GET request."
+													+ " Please check URL. URL copied to Clipboard.");
+								}
+							});
+						}
+					}
+				}));
+
 	}
 
 	// -------------------------------------------------------------------------
@@ -1976,7 +2089,7 @@ public class Setup extends Activity {
 	// Utility.saveStringSetting(context, "email",
 	// null);
 	// Utility.saveStringSetting(context, "pwd", null);
-	// // now really try to withdraw
+	// // now really try to revoke
 	// Main.exitApplication(context);
 	// } else {
 	// advancedsettings.setVisibility(View.GONE);
@@ -2320,9 +2433,10 @@ public class Setup extends Activity {
 										pwdchange.setText("");
 										online = true;
 										updateonline();
-										// IF LOGIN IS SUCCESSFULL => ENABLE SERVER!
+										// IF LOGIN IS SUCCESSFULL => ENABLE
+										// SERVER!
 										enableServer(context);
-										
+
 										setErrorInfo(
 												"Login successfull.\n\nYou can now edit your username, enable sms support, change your password, or backup or restore your user list below.",
 												false);
@@ -3487,7 +3601,7 @@ public class Setup extends Activity {
 	 *            the key
 	 */
 	public static void saveAESKey(Context context, int uid, String newAESKey) {
-		// Before saving a NEW aes key, save the current one as a backup 
+		// Before saving a NEW aes key, save the current one as a backup
 		// maybe someone sends us a message encrypted with that old key
 		// if he did not receive our updated key early enough!
 		// This is only considered to be likely in the middle of an
@@ -3575,9 +3689,9 @@ public class Setup extends Activity {
 	}
 
 	/**
-	 * Gets the Backup AES key. The backup is the rsa key used before
-	 * the current one. If a message cannot be decrypted we first try this
-	 * backup key before claiming a fail.
+	 * Gets the Backup AES key. The backup is the rsa key used before the
+	 * current one. If a message cannot be decrypted we first try this backup
+	 * key before claiming a fail.
 	 * 
 	 * @param context
 	 *            the context
@@ -3603,7 +3717,6 @@ public class Setup extends Activity {
 		return null;
 	}
 
-	
 	// -------------------------------------------------------------------------
 
 	/**
@@ -6007,11 +6120,12 @@ public class Setup extends Activity {
 	}
 
 	// ------------------------------------------------------------------------
-	
+
 	/**
 	 * Enable the server.
-	 *
-	 * @param context the context
+	 * 
+	 * @param context
+	 *            the context
 	 */
 	public void enableServer(Context context) {
 		setServerActive(context, selectedServerId, true);
@@ -6033,5 +6147,5 @@ public class Setup extends Activity {
 	}
 
 	// ------------------------------------------------------------------------
-	
+
 }
