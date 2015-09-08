@@ -117,6 +117,9 @@ public class Setup extends Activity {
 	/** The version multiserver. */
 	public static int VERSION_MULTISERVER = 2;
 
+	/** The version multiserver with revoke column. */
+	public static int VERSION_MULTISERVERREVOKE = 3;
+
 	/** The programversion may lead to recovery actions for database changes. */
 	public static int VERSION_CURRENT = VERSION_MULTISERVER;
 

@@ -697,22 +697,4 @@
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
-
-    <LinearLayout
-        android:id="@+id/messagedetailsbuttons"
-        android:layout_width="fill_parent"
-        android:layout_height="60sp"
-        android:layout_gravity="center_horizontal"
-        android:gravity="center_vertical|center_horizontal"
-        android:orientation="horizontal" >
-
-        <Button
-            android:id="@+id/buttonclose"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="40px"
-            android:layout_marginRight="40px"
-            android:text=" Close " />
-    </LinearLayout>
-
 </LinearLayout>

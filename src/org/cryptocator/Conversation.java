@@ -1238,6 +1238,8 @@ public class Conversation extends Activity {
 	@Override
 	public void onResume() {
 		super.onResume();
+		// For large conversations with images this is needed
+		System.gc();
 		if (!Conversation.isAlive()) {
 			// this class instance was lost, close it
 			Conversation.visible = false;
@@ -2210,6 +2212,17 @@ public class Conversation extends Activity {
 		if (conversationItem.transport == DB.TRANSPORT_INTERNET) {
 			sms.setVisibility(View.GONE);
 		}
+		
+		OnLongClickListener longClickListener = new OnLongClickListener() {
+			public boolean onLongClick(View v) {
+				promptMessageDetails(context, conversationItem);
+				return true;
+			}
+		};
+		conversationlistitem.setLongClickable(true);
+		conversationlistitem.setOnLongClickListener(longClickListener);
+		conversationTime.setLongClickable(true);
+		conversationTime.setOnLongClickListener(longClickListener);
 
 		OnClickListener clickListener = new OnClickListener() {
 			public void onClick(View v) {
