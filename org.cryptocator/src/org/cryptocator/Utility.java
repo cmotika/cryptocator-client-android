@@ -1937,26 +1937,32 @@ public class Utility {
 	public static Bitmap getBitmapFromBytes(byte[] bytes) {
 		Bitmap bitmap = null;
 		try {
-			if (Build.VERSION.SDK_INT < 19) {
-				bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-			} else {
-				try {
+			try {
+				if (Build.VERSION.SDK_INT < 19) {
 					bitmap = BitmapFactory.decodeByteArray(bytes, 0,
 							bytes.length);
-				} catch (Exception e) {
-					// Fallback
-					e.printStackTrace();
+				} else {
 					try {
 						bitmap = BitmapFactory.decodeByteArray(bytes, 0,
 								bytes.length);
-					} catch (Exception e2) {
-						// fail slient
-						e2.printStackTrace();
-						return null;
+					} catch (Exception e) {
+						// Fallback
+						e.printStackTrace();
+						try {
+							bitmap = BitmapFactory.decodeByteArray(bytes, 0,
+									bytes.length);
+						} catch (Exception e2) {
+							// fail slient
+							e2.printStackTrace();
+							return null;
+						}
 					}
 				}
+			} catch (OutOfMemoryError e) {
+				System.gc();
 			}
 		} catch (Exception e) {
+			System.gc();
 		}
 		return bitmap;
 	}

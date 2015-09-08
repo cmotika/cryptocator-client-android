@@ -2922,15 +2922,15 @@ org.cryptocator.Communicator:
 org.cryptocator.Conversation:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
-    3660:3688:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
-    3762:3794:public void insertImage(android.content.Context,java.lang.String)
+    3673:3701:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
+    3775:3807:public void insertImage(android.content.Context,java.lang.String)
     148:148:static synthetic boolean access$32()
-org.cryptocator.Conversation$73:
-    3541:3546:public void onCancel()
-org.cryptocator.Conversation$74
-org.cryptocator.Conversation$75:
-    3733:3737:public void onCancel()
-org.cryptocator.Conversation$76
+org.cryptocator.Conversation$74:
+    3554:3559:public void onCancel()
+org.cryptocator.Conversation$75
+org.cryptocator.Conversation$76:
+    3746:3750:public void onCancel()
+org.cryptocator.Conversation$77
 org.cryptocator.ConversationCompose:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
@@ -2948,10 +2948,10 @@ org.cryptocator.DB:
     public static final java.lang.String TABLE_SENDING
     public static final java.lang.String TABLE_SENT
     73:73:public DB()
-    1592:1620:public static java.lang.String getMultipartIdSending(android.content.Context,int)
-    1638:1666:public static java.lang.String getMultipartIdReceived(android.content.Context,int,int)
-    1963:1969:public static void cleanupDB(android.content.Context,int)
-    3039:3039:public static boolean isMessageFailed(java.lang.String)
+    1606:1634:public static java.lang.String getMultipartIdSending(android.content.Context,int)
+    1652:1680:public static java.lang.String getMultipartIdReceived(android.content.Context,int,int)
+    1977:1983:public static void cleanupDB(android.content.Context,int)
+    3052:3052:public static boolean isMessageFailed(java.lang.String)
 org.cryptocator.FastScrollBar:
     static final int LOCKTIMEOUT
     163:164:public FastScrollBar(android.content.Context,android.util.AttributeSet,int)
@@ -3124,11 +3124,11 @@ org.cryptocator.Setup:
     public static final java.lang.String LASTUPDATE_SERVER_ATTACHMENT_LIMIT
     public static final int SMS_SIZE_WARNING
     public static final int MULTIPART_MESSAGELIMIT
-    3627:3632:public static boolean haveAESKey(android.content.Context,int)
-    3997:4013:public static java.security.PublicKey getPublicKey(android.content.Context)
-    5143:5163:public static java.lang.String encText(android.content.Context,java.lang.String,int)
-    6067:6068:public static void setVersionUpdated(android.content.Context)
-    6081:6081:public static boolean isVersionUpdated(android.content.Context)
+    3630:3635:public static boolean haveAESKey(android.content.Context,int)
+    4000:4016:public static java.security.PublicKey getPublicKey(android.content.Context)
+    5146:5166:public static java.lang.String encText(android.content.Context,java.lang.String,int)
+    6070:6071:public static void setVersionUpdated(android.content.Context)
+    6084:6084:public static boolean isVersionUpdated(android.content.Context)
 org.cryptocator.Utility:
     public static final java.lang.String PREFERENCESURI
     136:136:public Utility()
@@ -3153,7 +3153,7 @@ org.cryptocator.Utility:
     1792:1793:public static void killOwnProcess()
     1892:1899:public static java.lang.String getEncodedFile(java.lang.String)
     1912:1925:public static byte[] getFile(java.lang.String)
-    1992:1998:public static android.graphics.drawable.Drawable loadDrawableFromBASE64String(java.lang.String)
-    2267:2309:public static java.lang.String getRealPathFromURI(android.app.Activity,android.net.Uri)
+    1998:2004:public static android.graphics.drawable.Drawable loadDrawableFromBASE64String(java.lang.String)
+    2273:2315:public static java.lang.String getRealPathFromURI(android.app.Activity,android.net.Uri)
 org.cryptocator.Utility$1
 org.cryptocator.Utility$1$1

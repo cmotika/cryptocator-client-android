@@ -404,15 +404,29 @@ public class DB {
 		db.setVersion(1);
 		db.setLocale(Locale.getDefault());
 
+		// final String CREATE_TABLE_MSGS = "CREATE TABLE IF NOT EXISTS  `"
+		// + TABLE_MESSAGES
+		// + "` ("
+		// +
+		// "`localid` INTEGER PRIMARY KEY, `mid` INTEGER , `fromuid` INTEGER , "
+		// + "`touid` INTEGER , `text` VARCHAR( 2000 ) , "
+		// + "`created` VARCHAR( 50 ), "
+		// +
+		// "`sent` VARCHAR( 50 ) , `received` VARCHAR( 50 ), `read` VARCHAR( 50 ), `revoked` VARCHAR( 50 ), `encrypted` VARCHAR( 1 ), `transport` VARCHAR( 1 ), `system` VARCHAR( 1 ) , `part` INTEGER DEFAULT "
+		// + DB.DEFAULT_MESSAGEPART
+		// +
+		// " , `parts` INTEGER DEFAULT 1, `multipartid` VARCHAR( 5 ) DEFAULT ``);";
+
 		final String CREATE_TABLE_MSGS = "CREATE TABLE IF NOT EXISTS  `"
 				+ TABLE_MESSAGES
 				+ "` ("
 				+ "`localid` INTEGER PRIMARY KEY, `mid` INTEGER , `fromuid` INTEGER , "
 				+ "`touid` INTEGER , `text` VARCHAR( 2000 ) , "
 				+ "`created` VARCHAR( 50 ), "
-				+ "`sent` VARCHAR( 50 ) , `received` VARCHAR( 50 ), `read` VARCHAR( 50 ), `withdraw` VARCHAR( 50 ), `encrypted` VARCHAR( 1 ), `transport` VARCHAR( 1 ), `system` VARCHAR( 1 ) , `part` INTEGER DEFAULT "
+				+ "`sent` VARCHAR( 50 ) , `received` VARCHAR( 50 ), `read` VARCHAR( 50 ), `revoked` VARCHAR( 50 ), `encrypted` VARCHAR( 1 ), `transport` VARCHAR( 1 ), `system` VARCHAR( 1 ) , `part` INTEGER DEFAULT "
 				+ DB.DEFAULT_MESSAGEPART
 				+ " , `parts` INTEGER DEFAULT 1, `multipartid` VARCHAR( 5 ) DEFAULT ``);";
+
 		db.execSQL(CREATE_TABLE_MSGS);
 	}
 
@@ -1899,9 +1913,9 @@ public class DB {
 			values.put("read", "");
 		}
 		if (revoke != null) {
-			values.put("withdraw", revoke);
+			values.put("revoked", revoke);
 		} else {
-			values.put("withdraw", "");
+			values.put("revoked", "");
 		}
 		if (system) {
 			values.put("system", "1");
@@ -2069,7 +2083,7 @@ public class DB {
 			SQLiteDatabase db = openDB(context, hostUid);
 
 			try {
-				String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `withdraw`, `encrypted`, `transport`, `system`, `part` FROM `"
+				String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `revoked`, `encrypted`, `transport`, `system`, `part` FROM `"
 						+ TABLE_MESSAGES
 						+ "` WHERE ((`fromuid` = "
 						+ myUid()
@@ -2126,7 +2140,7 @@ public class DB {
 		}
 
 		try {
-			String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `withdraw`, `encrypted`, `transport`, `system`, `part`, `parts`, `multipartid` FROM `"
+			String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `revoked`, `encrypted`, `transport`, `system`, `part`, `parts`, `multipartid` FROM `"
 					+ TABLE_MESSAGES
 					+ "` WHERE ((`fromuid` = "
 					+ myUid()
@@ -2665,7 +2679,7 @@ public class DB {
 		SQLiteDatabase db = openDB(context, uid);
 
 		// for display specific message
-		String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `withdraw`, `encrypted`, `transport`, `system`, `parts`, `multipartid`  FROM `"
+		String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `revoked`, `encrypted`, `transport`, `system`, `parts`, `multipartid`  FROM `"
 				+ TABLE_MESSAGES
 				+ "` WHERE `localid` = "
 				+ localid
@@ -2904,10 +2918,9 @@ public class DB {
 	// -----------------------------------------------------------------
 
 	/**
-	 * Try to revoke message. This message will try to revoke unsent
-	 * messages, if this succeeds, it will be revoked right away. Otherwise we
-	 * send a revoke request to the server and wait for the server response
-	 * message!
+	 * Try to revoke message. This message will try to revoke unsent messages,
+	 * if this succeeds, it will be revoked right away. Otherwise we send a
+	 * revoke request to the server and wait for the server response message!
 	 * 
 	 * @param context
 	 *            the context
@@ -2929,7 +2942,7 @@ public class DB {
 			Log.d("communicator", " REVOKE BEFORE SENDING POSSIBLE :-)");
 			ContentValues values = new ContentValues();
 			values.put("text", DB.REVOKEDTEXT);
-			values.put("withdraw", timestamp);
+			values.put("revoked", timestamp);
 			// update
 			try {
 				SQLiteDatabase db = openDB(context, hostUid);
@@ -2974,7 +2987,7 @@ public class DB {
 		boolean success = false;
 		ContentValues values = new ContentValues();
 		values.put("text", DB.REVOKEDTEXT);
-		values.put("withdraw", timestamp);
+		values.put("revoked", timestamp);
 		// Update
 		try {
 			SQLiteDatabase db = openDB(context, hostUid);
@@ -3321,7 +3334,7 @@ public class DB {
 		values.put("sent", itemToUpdate.sent + "");
 		values.put("received", itemToUpdate.received + "");
 		values.put("read", itemToUpdate.read + "");
-		values.put("withdraw", itemToUpdate.revoked + "");
+		values.put("revoked", itemToUpdate.revoked + "");
 		values.put("transport", itemToUpdate.transport + "");
 		values.put("part", itemToUpdate.part);
 		values.put("parts", itemToUpdate.parts);
@@ -3419,75 +3432,139 @@ public class DB {
 		String oldMyUidString = Utility.loadStringSetting(context,
 				Setup.SERVER_UID, "");
 
-		if (oldMyUidString != null && oldMyUidString.length() > 0
-				&& Setup.getVersion(context) < Setup.VERSION_MULTISERVER) {
-			// Recovery action needed - GO FROM SINGLE SERVER VERSION TO
-			// MULTISERVER VERSION
+		if (oldMyUidString != null && oldMyUidString.length() > 0) {
 
-			// We must go thru the uid list, create a new uid from this then
-			// suid
-			// considering cryptocator.org as the server
-			// we then must update the database and replace
-			// 1. our uid by -1
-			// 2. the other suid by the new uid
+			if (Setup.getVersion(context) < Setup.VERSION_MULTISERVER) {
+				// Recovery action needed - GO FROM SINGLE SERVER VERSION TO
+				// MULTISERVER VERSION
 
-			String newMyUidString = "-3";
+				// We must go thru the uid list, create a new uid from this then
+				// suid
+				// considering cryptocator.org as the server
+				// we then must update the database and replace
+				// 1. our uid by -1
+				// 2. the other suid by the new uid
 
-			List<Integer> newUidList = new ArrayList<Integer>();
-			List<Integer> uidList = new ArrayList<Integer>();
-			String listString = Utility.loadStringSetting(context,
-					Setup.SETTINGS_USERLIST, "");
-			Main.appendUIDList(context, listString, uidList);
+				String newMyUidString = "-3";
 
-			for (int oldUid : uidList) {
+				List<Integer> newUidList = new ArrayList<Integer>();
+				List<Integer> uidList = new ArrayList<Integer>();
+				String listString = Utility.loadStringSetting(context,
+						Setup.SETTINGS_USERLIST, "");
+				Main.appendUIDList(context, listString, uidList);
 
-				int uid = oldUid;
-				if (oldUid > 0) {
-					int newUid = Setup.getUid(context, oldUid,
-							Setup.getServerId(Setup.DEFAULT_SERVER));
-					newUidList.add(newUid);
+				for (int oldUid : uidList) {
 
-					// Copy all data from the oldUid to the newUid
-					mergeUser(context, oldUid, newUid);
-					uid = newUid;
-				} else {
-					// SMS user keep their
-					newUidList.add(oldUid);
+					int uid = oldUid;
+					if (oldUid > 0) {
+						int newUid = Setup.getUid(context, oldUid,
+								Setup.getServerId(Setup.DEFAULT_SERVER));
+						newUidList.add(newUid);
+
+						// Copy all data from the oldUid to the newUid
+						mergeUser(context, oldUid, newUid);
+						uid = newUid;
+					} else {
+						// SMS user keep their
+						newUidList.add(oldUid);
+					}
+
+					try {
+						SQLiteDatabase db = openDB(context, uid);
+
+						ContentValues values = new ContentValues();
+						values.put("fromuid", newMyUidString);
+						db.update(DB.TABLE_MESSAGES, values, "fromuid = "
+								+ oldMyUidString, null);
+						values = new ContentValues();
+						values.put("touid", newMyUidString);
+						db.update(DB.TABLE_MESSAGES, values, "touid = "
+								+ oldMyUidString, null);
+
+						db.close();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					if (oldUid > 0) {
+						dropDB(context, oldUid);
+					}
 				}
 
-				try {
-					SQLiteDatabase db = openDB(context, uid);
+				// Save the new Uid list instead
+				Log.d("communicator",
+						"MIGRATE OLD: " + Utility.getListAsString(uidList, ","));
+				Log.d("communicator",
+						"MIGRATE NEW: "
+								+ Utility.getListAsString(newUidList, ","));
 
-					ContentValues values = new ContentValues();
-					values.put("fromuid", newMyUidString);
-					db.update(DB.TABLE_MESSAGES, values, "fromuid = "
-							+ oldMyUidString, null);
-					values = new ContentValues();
-					values.put("touid", newMyUidString);
-					db.update(DB.TABLE_MESSAGES, values, "touid = "
-							+ oldMyUidString, null);
+				Utility.saveStringSetting(context, Setup.SETTINGS_USERLIST,
+						Utility.getListAsString(newUidList, ","));
 
-					db.close();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-
-				if (oldUid > 0) {
-					dropDB(context, oldUid);
-				}
+				Setup.setVersionUpdated(context, Setup.VERSION_MULTISERVER,
+						true,
+						"Cryptocator updated DB to new version and needs to be restarted.");
 			}
 
-			// Save the new Uid list instead
-			Log.d("communicator",
-					"MIGRATE OLD: " + Utility.getListAsString(uidList, ","));
-			Log.d("communicator",
-					"MIGRATE NEW: " + Utility.getListAsString(newUidList, ","));
+			if (Setup.getVersion(context) < Setup.VERSION_MULTISERVERREVOKE) {
+				// Rename message table column revoked to revoke
 
-			Utility.saveStringSetting(context, Setup.SETTINGS_USERLIST,
-					Utility.getListAsString(newUidList, ","));
+				List<Integer> uidList = new ArrayList<Integer>();
+				String listString = Utility.loadStringSetting(context,
+						Setup.SETTINGS_USERLIST, "");
+				Main.appendUIDList(context, listString, uidList);
+				int i = 0;
+				for (int uid : uidList) {
+					String name = Main.UID2Name(context, uid, false);
+					Utility.showToastAsync(context, "Testing DB[" + i
+							+ "] for " + name);
+					try {
+						SQLiteDatabase db = openDB(context, uid);
+						// check if column name is old
+						boolean error = true;
+						try {
+							db.rawQuery("SELECT `withdraw` from "
+									+ TABLE_MESSAGES, null);
+							error = false;
+						} catch (Exception e) {
+							error = true;
+						}
+						if (!error) {
+							// We have an old column update now
+							Utility.showToastAsync(context, "Now Updating DB["
+									+ i + "] for " + name);
+							db.execSQL("BEGIN TRANSACTION;");
+							db.execSQL("ALTER TABLE " + TABLE_MESSAGES
+									+ " RENAME TO BACKUP" + TABLE_MESSAGES
+									+ ";");
+							final String CREATE_TABLE_MSGS = "CREATE TABLE IF NOT EXISTS  `"
+									+ TABLE_MESSAGES
+									+ "` ("
+									+ "`localid` INTEGER PRIMARY KEY, `mid` INTEGER , `fromuid` INTEGER , "
+									+ "`touid` INTEGER , `text` VARCHAR( 2000 ) , "
+									+ "`created` VARCHAR( 50 ), "
+									+ "`sent` VARCHAR( 50 ) , `received` VARCHAR( 50 ), `read` VARCHAR( 50 ), `revoked` VARCHAR( 50 ), `encrypted` VARCHAR( 1 ), `transport` VARCHAR( 1 ), `system` VARCHAR( 1 ) , `part` INTEGER DEFAULT "
+									+ DB.DEFAULT_MESSAGEPART
+									+ " , `parts` INTEGER DEFAULT 1, `multipartid` VARCHAR( 5 ) DEFAULT ``);";
+							db.execSQL(CREATE_TABLE_MSGS);
+							db.execSQL("INSERT INTO "
+									+ TABLE_MESSAGES
+									+ "(`mid`,`fromuid`,`touid`,`text`,`created`,`sent`,`received`,`read`,`revoked`,`encrypted`,`transport`,`system`,`part`) SELECT `mid`,`fromuid`,`touid`,`text`,`created`,`sent`,`received`,`read`,`withdraw`,`encrypted`,`transport`,`system`,`part` FROM BACKUP"
+									+ TABLE_MESSAGES + ";");
+							db.execSQL("DROP TABLE BACKUP" + TABLE_MESSAGES
+									+ ";");
+							db.execSQL("COMMIT;");
+						}
+						db.close();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				Setup.setVersionUpdated(context,
+						Setup.VERSION_MULTISERVERREVOKE, true,
+						"Cryptocator updated DB to new version and needs to be restarted.");
 
-			Setup.setVersionUpdated(context, Setup.VERSION_MULTISERVER, true,
-					"Cryptocator updated DB to new version and needs to be restarted.");
+			}
 		}
 	}
 

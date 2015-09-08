@@ -349,7 +349,6 @@ org.cryptocator.R$id: int buttonbackup
 org.cryptocator.R$id: int buttoncancel
 org.cryptocator.R$id: int buttonclear
 org.cryptocator.R$id: int buttonclearsending
-org.cryptocator.R$id: int buttonclose
 org.cryptocator.R$id: int buttondebugprint
 org.cryptocator.R$id: int buttondeletedatabase
 org.cryptocator.R$id: int buttonpictureimport
@@ -410,7 +409,6 @@ org.cryptocator.R$id: int maininnerview
 org.cryptocator.R$id: int mainscrollview
 org.cryptocator.R$id: int mainsettingsinnerlayout
 org.cryptocator.R$id: int messageText
-org.cryptocator.R$id: int messagedetailsbuttons
 org.cryptocator.R$id: int messagedetailscrollview
 org.cryptocator.R$id: int messagedetailsmain
 org.cryptocator.R$id: int msglocked

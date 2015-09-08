@@ -147,8 +147,6 @@ public class MessageDetailsActivity extends Activity {
 				R.layout.activity_messagedetails, null);
 		LinearLayout outerLayout = (LinearLayout) dialogLayout
 				.findViewById(R.id.messagedetailsmain);
-		LinearLayout buttonLayout = (LinearLayout) dialogLayout
-				.findViewById(R.id.messagedetailsbuttons);
 
 		// -------------
 
@@ -583,15 +581,6 @@ public class MessageDetailsActivity extends Activity {
 			}
 		});
 
-		Button buttonClose = (Button) dialogLayout
-				.findViewById(R.id.buttonclose);
-		buttonClose.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				alertDialog.dismiss();
-				activity.finish();
-			}
-		});
-
 		// -------------
 
 		builder.setTitle(activityTitle);
@@ -626,7 +615,6 @@ public class MessageDetailsActivity extends Activity {
 		// window.setAttributes(lp);
 
 		Utility.setBackground(context, outerLayout, R.drawable.dolphins3light);
-		Utility.setBackground(context, buttonLayout, R.drawable.dolphins4light);
 	}
 
 	// ------------------------------------------------------------------------
