@@ -164,7 +164,7 @@ public class Main extends Activity {
 	 * If the light sensor value is higher than 90% of the so far maximum value,
 	 * then high contrast will be set to true.
 	 */
-	public static int highContrastBarrierInPercent = 90;
+	public static int highContrastBarrierInPercent = 95;
 
 	/** The Constant TEXTCOLOEWHITE. */
 	public static final int TEXTCOLOEWHITE = Color.parseColor("#FFFFFFFF");
@@ -213,12 +213,6 @@ public class Main extends Activity {
 		Setup.possiblyDisableScreenshot(this);
 
 		DB.possiblyUpdate(this);
-
-		// This will possibly update the high contrast value if the device has
-		// such
-		// a sensor and is outside. In this case we display the names and text
-		// with a BRIGHT WHITE instead of the default DIMMED WHITE.
-		updateLightSensor(this);
 
 		Main.visible = true;
 		instance = this;
@@ -2281,6 +2275,11 @@ public class Main extends Activity {
 	 */
 	@Override
 	public void onStop() {
+		final SensorManager manager = (SensorManager) context
+				.getSystemService(Context.SENSOR_SERVICE);
+		if (lightSensorListener != null) {
+			manager.unregisterListener(lightSensorListener);
+		}
 		super.onStop();
 		Main.visible = false;
 	}
@@ -2295,6 +2294,12 @@ public class Main extends Activity {
 	@Override
 	public void onResume() {
 		super.onResume();
+		// This will possibly update the high contrast value if the device has
+		// such
+		// a sensor and is outside. In this case we display the names and text
+		// with a BRIGHT WHITE instead of the default DIMMED WHITE.
+		updateLightSensor(this);
+
 		if (getIntent().getBooleanExtra("EXITAPPLICATION", false)) {
 			Log.d("communicator", "EXITAPPLICATION ON REQUEST");
 			Utility.killOwnProcessDelayed(5000);
@@ -2371,6 +2376,8 @@ public class Main extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	private static SensorEventListener lightSensorListener = null;
+
 	/**
 	 * Update light sensor.
 	 * 
@@ -2384,63 +2391,53 @@ public class Main extends Activity {
 					.getSystemService(Context.SENSOR_SERVICE);
 			Sensor sensor = manager.getDefaultSensor(Sensor.TYPE_LIGHT);
 
-			manager.registerListener(new SensorEventListener() {
-				public void onSensorChanged(SensorEvent event) {
-					if (event.sensor.getType() == Sensor.TYPE_LIGHT) {
-						String value = String.valueOf(event.values[0]);
-
-						final int intValue = (int) (Float.parseFloat(value));
-						// if (Main.isAlive()) {
-						// final Handler mUIHandler = new Handler(Looper
-						// .getMainLooper());
-						// mUIHandler.post(new Thread() {
-						// @Override
-						// public void run() {
-						// Main.getInstance().setTitle(intValue + "");
-						// }
-						// });
-						// }
-
-						int maxValue = Utility.loadIntSetting(context,
-								"LIGHTMAXVAL", 0);
-						if (intValue > 100) {
-							if (intValue > maxValue) {
-								Utility.saveIntSetting(context, "LIGHTMAXVAL",
-										intValue);
-								highContrast = true;
-							} else {
-								// Check if we are above the barrier
-								int barrierValue = (highContrastBarrierInPercent * maxValue) / 100;
-								if (intValue > barrierValue) {
-									if (!highContrast) {
-										highContrast = true;
-										Main.getInstance().rebuildUserlist(
-												context, false);
-									}
+			if (lightSensorListener == null) {
+				lightSensorListener = new SensorEventListener() {
+					public void onSensorChanged(SensorEvent event) {
+						if (event.sensor.getType() == Sensor.TYPE_LIGHT) {
+							String value = String.valueOf(event.values[0]);
+							final int intValue = (int) (Float.parseFloat(value));
+							int maxValue = Utility.loadIntSetting(context,
+									"LIGHTMAXVAL", 0);
+							if (intValue > 100) {
+								if (intValue > maxValue) {
+									Utility.saveIntSetting(context, "LIGHTMAXVAL",
+											intValue);
+									highContrast = true;
 								} else {
-									if (highContrast) {
-										highContrast = false;
-										Main.getInstance().rebuildUserlist(
-												context, false);
+									// Check if we are above the barrier
+									int barrierValue = (highContrastBarrierInPercent * maxValue) / 100;
+									if (intValue > barrierValue) {
+										if (!highContrast) {
+											highContrast = true;
+											Main.getInstance().rebuildUserlist(
+													context, false);
+										}
+									} else {
+										if (highContrast) {
+											highContrast = false;
+											Main.getInstance().rebuildUserlist(
+													context, false);
+										}
 									}
 								}
 							}
+
+							// Only aquire the light sensor value once
+							// not constantly
+							//manager.unregisterListener(this);
 						}
 
-						// Only aquire the light sensor value once
-						// not constantly
-						manager.unregisterListener(this);
 					}
 
-				}
-
-				public void onAccuracyChanged(Sensor sensor, int accuracy) {
-				}
-			}, sensor, SensorManager.SENSOR_DELAY_FASTEST);
+					public void onAccuracyChanged(Sensor sensor, int accuracy) {
+					}
+				};
+			}
+			manager.registerListener(lightSensorListener, sensor, SensorManager.SENSOR_DELAY_NORMAL);
 		} catch (Exception e) {
 			// ignore sensor errors
 		}
 	}
-
 	// ------------------------------------------------------------------------
 }
