@@ -55,6 +55,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.graphics.Typeface;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -148,6 +153,30 @@ public class Main extends Activity {
 	 */
 	public static boolean skipResume = false;
 
+	/**
+	 * The high contrast will be set by a possibly existing light sensor. If the
+	 * light, e.g., outside is very bright we want a better readablity and
+	 * change the text color to WHITE instead of the default VERY LIGHT GRAY.
+	 */
+	public static boolean highContrast = false;
+
+	/**
+	 * If the light sensor value is higher than 90% of the so far maximum value,
+	 * then high contrast will be set to true.
+	 */
+	public static int highContrastBarrierInPercent = 90;
+
+	/** The Constant TEXTCOLOEWHITE. */
+	public static final int TEXTCOLOEWHITE = Color.parseColor("#FFFFFFFF");
+
+	/** The Constant TEXTCOLOEWHITEDIMMED. */
+	public static final int TEXTCOLOEWHITEDIMMED = Color
+			.parseColor("#FFE8E8E8");
+
+	/** The Constant TEXTCOLOEWHITEDIMMED. */
+	public static final int TEXTCOLOEWHITEDIMMED2 = Color
+			.parseColor("#CCDDDDDD");
+
 	// ------------------------------------------------------------------------
 
 	/**
@@ -184,6 +213,12 @@ public class Main extends Activity {
 		Setup.possiblyDisableScreenshot(this);
 
 		DB.possiblyUpdate(this);
+
+		// This will possibly update the high contrast value if the device has
+		// such
+		// a sensor and is outside. In this case we display the names and text
+		// with a BRIGHT WHITE instead of the default DIMMED WHITE.
+		updateLightSensor(this);
 
 		Main.visible = true;
 		instance = this;
@@ -239,7 +274,7 @@ public class Main extends Activity {
 			}
 		});
 
-		//TextView titletext = (TextView) findViewById(R.id.titletext);
+		// TextView titletext = (TextView) findViewById(R.id.titletext);
 		final LinearLayout titletextparent = (LinearLayout) findViewById(R.id.titletextparent);
 		titletextparent.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
@@ -250,10 +285,12 @@ public class Main extends Activity {
 			@SuppressLint("ClickableViewAccessibility")
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					titletextparent.setBackgroundColor(ImagePressButton.WHITEPRESS);
+					titletextparent
+							.setBackgroundColor(ImagePressButton.WHITEPRESS);
 					titletextparent.postDelayed(new Runnable() {
 						public void run() {
-							titletextparent.setBackgroundColor(ImagePressButton.TRANSPARENT);
+							titletextparent
+									.setBackgroundColor(ImagePressButton.TRANSPARENT);
 						}
 					}, 300);
 				}
@@ -392,8 +429,9 @@ public class Main extends Activity {
 	 */
 	private ImageContextMenuProvider createAccountMenu(final Context context) {
 		if (imageAccountMenuProvider == null) {
-			imageAccountMenuProvider = new ImageContextMenuProvider(
-					context, "Your Accounts", context.getResources().getDrawable(R.drawable.buttonedit));
+			imageAccountMenuProvider = new ImageContextMenuProvider(context,
+					"Your Accounts", context.getResources().getDrawable(
+							R.drawable.buttonedit));
 
 			for (final int serverId : Setup.getServerIds(context)) {
 				int myUid = DB.myUid(context, serverId);
@@ -587,6 +625,7 @@ public class Main extends Activity {
 	 *            the context
 	 */
 	public static void doRefresh(final Context context) {
+		updateLightSensor(context);
 		Main.getInstance().updateInfoMessageBlockAsync(context);
 		Communicator.updateKeysFromAllServers(context, uidList, true, null);
 		Communicator.updatePhonesFromAllServers(context, uidList, true);
@@ -1043,6 +1082,18 @@ public class Main extends Activity {
 				.findViewById(R.id.userlistdate);
 		TextView userlistText = (TextView) userlistitem
 				.findViewById(R.id.userlisttext);
+
+		if (highContrast) {
+			userlistName.setTypeface(null, Typeface.BOLD);
+			userlistDate.setTypeface(null, Typeface.BOLD);
+			userlistName.setTextColor(TEXTCOLOEWHITE);
+			userlistDate.setTextColor(TEXTCOLOEWHITE);
+			userlistText.setTextColor(TEXTCOLOEWHITE);
+		} else {
+			userlistName.setTextColor(TEXTCOLOEWHITEDIMMED);
+			userlistDate.setTextColor(TEXTCOLOEWHITEDIMMED);
+			userlistText.setTextColor(TEXTCOLOEWHITEDIMMED2);
+		}
 
 		userlistName.setText(Html.fromHtml(name));
 		userlistDate.setText(date);
@@ -2317,6 +2368,79 @@ public class Main extends Activity {
 			return super.onKeyDown(keyCode, event);
 		}
 	}
+
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Update light sensor.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public static void updateLightSensor(final Context context) {
+		try {
+
+			final SensorManager manager = (SensorManager) context
+					.getSystemService(Context.SENSOR_SERVICE);
+			Sensor sensor = manager.getDefaultSensor(Sensor.TYPE_LIGHT);
+
+			manager.registerListener(new SensorEventListener() {
+				public void onSensorChanged(SensorEvent event) {
+					if (event.sensor.getType() == Sensor.TYPE_LIGHT) {
+						String value = String.valueOf(event.values[0]);
+
+						final int intValue = (int) (Float.parseFloat(value));
+						// if (Main.isAlive()) {
+						// final Handler mUIHandler = new Handler(Looper
+						// .getMainLooper());
+						// mUIHandler.post(new Thread() {
+						// @Override
+						// public void run() {
+						// Main.getInstance().setTitle(intValue + "");
+						// }
+						// });
+						// }
+
+						int maxValue = Utility.loadIntSetting(context,
+								"LIGHTMAXVAL", 0);
+						if (intValue > 100) {
+							if (intValue > maxValue) {
+								Utility.saveIntSetting(context, "LIGHTMAXVAL",
+										intValue);
+								highContrast = true;
+							} else {
+								// Check if we are above the barrier
+								int barrierValue = (highContrastBarrierInPercent * maxValue) / 100;
+								if (intValue > barrierValue) {
+									if (!highContrast) {
+										highContrast = true;
+										Main.getInstance().rebuildUserlist(
+												context, false);
+									}
+								} else {
+									if (highContrast) {
+										highContrast = false;
+										Main.getInstance().rebuildUserlist(
+												context, false);
+									}
+								}
+							}
+						}
+
+						// Only aquire the light sensor value once
+						// not constantly
+						manager.unregisterListener(this);
+					}
+
+				}
+
+				public void onAccuracyChanged(Sensor sensor, int accuracy) {
+				}
+			}, sensor, SensorManager.SENSOR_DELAY_FASTEST);
+		} catch (Exception e) {
+			// ignore sensor errors
+		}
+	}
+
+	// ------------------------------------------------------------------------
 }
