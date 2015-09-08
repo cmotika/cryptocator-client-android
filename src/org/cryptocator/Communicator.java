@@ -440,12 +440,12 @@ public class Communicator {
 	 *            the received
 	 * @param read
 	 *            the read
-	 * @param withdraw
-	 *            the withdraw
+	 * @param revoked
+	 *            the revoked
 	 */
 	public static void updateSentReceivedReadAsync(final Context context,
 			final int mid, final int hostUid, final boolean sent,
-			final boolean received, final boolean read, final boolean withdraw, final boolean decryptionfailed) {
+			final boolean received, final boolean read, final boolean revoked, final boolean decryptionfailed) {
 		final Handler mUIHandler = new Handler(Looper.getMainLooper());
 		mUIHandler.post(new Thread() {
 			@Override
@@ -455,14 +455,14 @@ public class Communicator {
 				handler.postDelayed(new Runnable() {
 					public void run() {
 						// Log.d("communicator",
-						// "WITHDRAW updateSentReceivedReadAsync() #1 "
-						// + withdraw + ", "
+						// "REVOKE updateSentReceivedReadAsync() #1 "
+						// + revoke + ", "
 						// + Conversation.getHostUid() + " == "
 						// + hostUid + ", " + Conversation.active);
 						if (Conversation.isAlive()
 								&& (Conversation.getHostUid() == hostUid || hostUid == -1)) {
 							// Log.d("communicator",
-							// "WITHDRAW updateSentReceivedReadAsync() #2");
+							// "REVOKE updateSentReceivedReadAsync() #2");
 
 							if (decryptionfailed) {
 								Conversation.setDecryptionFailed(context, mid);
@@ -475,12 +475,12 @@ public class Communicator {
 								Conversation.setSent(context, mid);
 							}
 						}
-						if (withdraw) {
+						if (revoked) {
 							if (Conversation.getInstance() != null
 									&& (Conversation.getHostUid() == hostUid || hostUid == -1)) {
 								// Log.d("communicator",
-								// "WITHDRAW updateSentReceivedReadAsync() #3");
-								Conversation.setWithdrawInConversation(context,
+								// "REVOKE updateSentReceivedReadAsync() #3");
+								Conversation.setRevokedInConversation(context,
 										mid);
 							}
 							// for precaution: clear system notifications
@@ -494,9 +494,9 @@ public class Communicator {
 						}
 						// If message is sent, we possibly want the update the
 						// userlist if it is visible!
-						if (withdraw || sent) {
+						if (revoked || sent) {
 							if (Main.getInstance() != null) {
-								// in the withdraw case we also want to update
+								// in the revoked case we also want to update
 								// the first line!
 								Main.getInstance().rebuildUserlist(context,
 										false);
@@ -843,26 +843,26 @@ public class Communicator {
 	public static String handleReceivedText(final Context context, String text,
 			final ConversationItem newItem, int serverId) {
 		if (text.startsWith("W")) {
-			// W == withdraw
-			// this is a withdraw message followed my the mid to withdraw
+			// W == revoke
+			// this is a revoked message followed my the mid to revoke
 			String midString = text.substring(1);
 			// Flag this W-Message as system message
 			DB.updateMessageSystem(context, newItem.mid, true, newItem.from);
 			if (midString != null & midString.length() > 0) {
 				int mid = Utility.parseInt(midString, -1);
 				if (mid > -1) {
-					// WITHDRAWN NOTIFICATION!
+					// REVOKED NOTIFICATION!
 					// now we have correct values and should update the
 					// database
 					int hostUid = newItem.from;
 					newItem.system = true;
-					DB.updateMessageWithdrawn(context, mid, newItem.created
+					DB.updateMessageRevoked(context, mid, newItem.created
 							+ "", hostUid);
 					Main.updateLastMessage(context, hostUid,
-							"[ message withdrawn ]", DB.getTimestamp());
+							DB.REVOKEDTEXT, DB.getTimestamp());
 					// If the senderUid will always be the table/hostUid of the
 					// conversation
-					// where the message to withdraw resides. If we sent the
+					// where the message to revoke resides. If we sent the
 					// message then
 					// we can look thi up under the mid in this table senderUid
 					// in order to
@@ -1775,6 +1775,7 @@ public class Communicator {
 
 		Log.d("communicator", "SEND NEXT MESSAGE msgText=" + msgText);
 
+		
 		url = Setup.getBaseURL(context, serverId) + "cmd=send&session="
 				+ Utility.urlEncode(session) + "&host=" + encUid + "&val="
 				+ Utility.urlEncode(created + "#" + msgText);
@@ -1796,13 +1797,22 @@ public class Communicator {
 		// }));
 
 		Log.d("communicator", "SEND NEXT MESSAGE: " + url);
+		
+		// Send read confirmations, failed flags, revoke cmd with simple GET request
+		boolean usePOSTRequest = true;
+		if (msgText.startsWith("R") || msgText.startsWith("F") || msgText.startsWith("A")) {
+			usePOSTRequest = false;
+		}
+
+		Log.d("communicator", "SEND NEXT MESSAGE: usePOSTRequest=" + usePOSTRequest);
+
 		final String url2 = url;
 		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
-				url2, true, new HttpStringRequest.OnResponseListener() {
+				url2, usePOSTRequest, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
-						// Log.d("communicator",
-						// "SEND NEXT MESSAGE RESPONSE: " + response);
+						 Log.d("communicator",
+						 "SEND NEXT MESSAGE RESPONSE: " + response);
 						
 						boolean success = false;
 						boolean resposeError = true;
@@ -2777,7 +2787,7 @@ public class Communicator {
 	 * interface, this way they will be sent automatically in order and iff
 	 * temporary login is okay. Both system messages will go to the server.
 	 * System messages can only go over internet (if available) modes: R == read
-	 * (these are processed directly by the server) A == withdraw (these are
+	 * (these are processed directly by the server) A == revoke (these are
 	 * processed and come also back as W-messages)
 	 * 
 	 * @param context
@@ -2808,7 +2818,7 @@ public class Communicator {
 	 * interface, this way they will be sent automatically in order and iff
 	 * temporary login is okay. Both system messages will go to the server.
 	 * System messages can only go over internet (if available) modes: R == read
-	 * (these are processed directly by the server) A == withdraw (these are
+	 * (these are processed directly by the server) A == revoke (these are
 	 * processed and come also back as W-messages)
 	 * 
 	 * @param context
@@ -2837,7 +2847,7 @@ public class Communicator {
 	 * sending interface, this way they will be sent automatically in order and
 	 * iff temporary login is okay. Both system messages will go to the server.
 	 * System messages can only go over internet (if available) modes: R == read
-	 * (these are processed directly by the server) A == withdraw (these are
+	 * (these are processed directly by the server) A == revoke (these are
 	 * processed and come also back as W-messages)
 	 * 
 	 * @param context
@@ -2847,9 +2857,9 @@ public class Communicator {
 	 * @param mid
 	 *            the mid
 	 */
-	public static void sendSystemMessageWidthdraw(final Context context,
+	public static void sendSystemMessageRevoke(final Context context,
 			final int uid, final int mid) {
-		Utility.showToastAsync(context, "Withdraw request for message " + mid
+		Utility.showToastAsync(context, "Revoke request for message " + mid
 				+ "...");
 
 		if (uid >= 0 && mid != -1) {

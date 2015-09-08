@@ -253,6 +253,8 @@ public class HttpStringRequest {
 			String postUrl = urlWithParams[0];
 			boolean hasParams = urlWithParams.length > 1;
 
+			//postUrl = "http://www.cryptocator.com/";
+			
 			Log.d("communicator", "POST REQUEST: URL=" + postUrl);
 
 			HttpPost request = new HttpPost();
@@ -283,6 +285,10 @@ public class HttpStringRequest {
 						}
 					}
 
+//					nameValuePairs.add(new BasicNameValuePair("cmd",
+//							"test"));
+
+					
 					try {
 						HttpEntity entity = new UrlEncodedFormEntity(
 								nameValuePairs);

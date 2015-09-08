@@ -211,6 +211,9 @@ public class Conversation extends Activity {
 	/** The image context menu provider for the image menu. */
 	private ImageContextMenuProvider imageImageMenuProvider = null;
 
+	/** The image context menu provider for the message menu. */
+	private ImageContextMenuProvider imageMessageMenuProvider = null;
+
 	/**
 	 * The skips ONE resume. Necessary for the send context menu call because we
 	 * do not want to typical resume there.
@@ -1901,19 +1904,19 @@ public class Conversation extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Sets the withdraw status for a displayed message.
+	 * Sets the revoked status for a displayed message.
 	 * 
 	 * @param context
 	 *            the context
 	 * @param mid
 	 *            the mid
 	 */
-	public static void setWithdrawInConversation(Context context, int mid) {
+	public static void setRevokedInConversation(Context context, int mid) {
 		Conversation conversation = Conversation.getInstance();
 		if (Conversation.isAlive()) {
 			Mapping mappingItem = conversation.getMapping(context, mid);
 			if (mappingItem != null) {
-				mappingItem.text.setText(DB.WITHDRAWNTEXT);
+				mappingItem.text.setText(DB.REVOKEDTEXT);
 			}
 		}
 	}
@@ -2208,14 +2211,16 @@ public class Conversation extends Activity {
 			sms.setVisibility(View.GONE);
 		}
 
-		OnLongClickListener longClickListener = new OnLongClickListener() {
-			public boolean onLongClick(View arg0) {
-				promptMessageDetails(context, conversationItem);
-				return true;
+		OnClickListener clickListener = new OnClickListener() {
+			public void onClick(View v) {
+				if (Conversation.isAlive()) {
+					showMessageMenu(Conversation.getInstance(),
+							conversationItem);
+				}
 			}
 		};
-		conversationlistitem.setOnLongClickListener(longClickListener);
-		conversationTime.setOnLongClickListener(longClickListener);
+		conversationlistitem.setOnClickListener(clickListener);
+		conversationTime.setOnClickListener(clickListener);
 
 		long time = conversationItem.sent;
 		if (time < 0) {
@@ -2774,6 +2779,14 @@ public class Conversation extends Activity {
 							return true;
 						}
 					});
+			imageContextMenuProvider.addEntry("Clear Message Input",
+					R.drawable.menuclearinput,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							messageText.setText("");
+							return true;
+						}
+					});
 			imageContextMenuProvider.addEntry("Refresh",
 					R.drawable.menurefresh,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
@@ -2796,6 +2809,216 @@ public class Conversation extends Activity {
 			imageContextMenuProvider.setVisible(menuContextShowAll, false);
 		}
 		return imageContextMenuProvider;
+	}
+
+	// ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Show the message menu for one conversation item.
+	 * 
+	 * @param activity
+	 *            the activity
+	 * @param item
+	 *            the item
+	 */
+	public void showMessageMenu(Activity activity, ConversationItem item) {
+		ImageContextMenu.show(activity,
+				createMessageContextMenu(activity, item));
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * The current image to be considered by choices of the context menu bitmap.
+	 */
+	ConversationItem imageMessageMenuItem = null;
+	int imageMessageMenuRevoke = -1;
+
+	public ImageContextMenuProvider createMessageContextMenu(
+			final Activity activity, ConversationItem item) {
+		imageMessageMenuItem = item;
+
+		if (imageMessageMenuProvider == null) {
+			imageMessageMenuProvider = new ImageContextMenuProvider(activity,
+					"Message Options", activity.getResources().getDrawable(
+							R.drawable.message));
+			imageMessageMenuProvider.addEntry("Copy", R.drawable.menucopy,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							// COPY
+							Utility.copyToClipboard(activity,
+									imageMessageMenuItem.text);
+							return true;
+						}
+					});
+			imageMessageMenuProvider.addEntry("Respond",
+					R.drawable.menurespond,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							// Respond
+							String respondText = "''"
+									+ imageMessageMenuItem.text + "'' -  ";
+							Conversation.getInstance().messageText
+									.setText(respondText);
+							Conversation.getInstance().messageText
+									.setSelection(respondText.length() - 1,
+											respondText.length() - 1);
+							Conversation.getInstance().messageText.postDelayed(
+									new Runnable() {
+										public void run() {
+											Conversation.getInstance().messageText
+													.requestFocus();
+											Utility.showKeyboardExplicit(Conversation
+													.getInstance().messageText);
+										}
+									}, 400); // 400ms important because after
+												// 200ms the
+												// resume() will hid the
+												// keyboard
+							return true;
+						}
+					});
+			imageMessageMenuProvider.addEntry("Resend", R.drawable.menurefresh,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							// Resend
+							promptResend(activity, imageMessageMenuItem);
+							return true;
+						}
+					});
+			imageMessageMenuRevoke = imageMessageMenuProvider.addEntry(
+					"Revoke", R.drawable.menurevoke,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							// Revoke
+							promptRevoke(activity, imageMessageMenuItem.mid,
+									imageMessageMenuItem.localid,
+									imageMessageMenuItem.to, activity);
+							return true;
+						}
+					});
+			imageMessageMenuProvider.addEntry("Details", R.drawable.menuinfo,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							// Details
+							promptMessageDetails(activity, imageMessageMenuItem);
+							return true;
+						}
+					});
+		}
+
+		// Enable revoke only for Internet messages
+		imageMessageMenuProvider.setVisible(imageMessageMenuRevoke,
+				item.transport != DB.TRANSPORT_SMS);
+
+		return imageMessageMenuProvider;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Prompt before resending the message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param conversationItem
+	 *            the conversation item
+	 */
+	public static void promptResend(final Context context,
+			final ConversationItem conversationItem) {
+		String titleMessage = "Resend Message ";
+		String textMessage = "Do you really want to resend this message another time?";
+		new MessageAlertDialog(context, titleMessage, textMessage, " Resend ",
+				" Cancel ", null, new MessageAlertDialog.OnSelectionListener() {
+					public void selected(int button, boolean cancel) {
+						if (!cancel) {
+							if (button == 0) {
+								// now really resend
+								resendMessage(context, conversationItem);
+							}
+						}
+					}
+				}).show();
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Resend failed SMS or decryption failed message.
+	 * 
+	 * @param conversationItem
+	 *            the conversation item
+	 * @return true, if successful
+	 */
+	public static void resendMessage(final Context context,
+			ConversationItem conversationItem) {
+		final String messageTextString = conversationItem.text;
+		final boolean encrypted = conversationItem.encrypted;
+		final int transport = conversationItem.transport;
+
+		// Do the following async, so that we already have scrolled back
+		// to the original position after closing the
+		// message details window before we will re-send this
+		// message.
+
+		final Handler mUIHandler = new Handler(Looper.getMainLooper());
+		mUIHandler.postDelayed(new Thread() {
+			@Override
+			public void run() {
+				super.run();
+				if (DB.addSendMessage(context, hostUid, messageTextString,
+						encrypted, transport, false, DB.PRIORITY_MESSAGE)) {
+					Conversation.updateConversationlistAsync(context);
+					Communicator.sendNewNextMessageAsync(context, transport);
+				}
+			}
+		}, 2000);
+
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Ask the user if he really wants to revoke the message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param mid
+	 *            the mid
+	 * @param localid
+	 *            the localid
+	 * @param toHostUid
+	 *            the to host uid
+	 */
+	public void promptRevoke(final Context context, final int mid,
+			final int localid, final int toHostUid, final Activity activity) {
+		String titleMessage = "Revoke Message " + mid;
+		if (mid == -1) {
+			titleMessage = "Revoke Message *" + localid;
+		}
+		String textMessage = "Attention! Revoking a message should be used with"
+				+ " precaution.\n\nA revoked message is deleted from server. There"
+				+ " is no guarantee that it is deleted from other devices that may "
+				+ "already have received the message. All devices that connect to the "
+				+ "server are advised to"
+				+ " delete the message. Anyhow, this message may already have been "
+				+ "read by the recipient. Furthermore, revoking will cancel new "
+				+ "message notifications of the recipient. You should proceed only "
+				+ "if there is no alternative!\n\nDo you really want to revoke"
+				+ " the message?";
+		new MessageAlertDialog(context, titleMessage, textMessage, " Revoke ",
+				" Cancel ", null, new MessageAlertDialog.OnSelectionListener() {
+					public void selected(int button, boolean cancel) {
+						if (!cancel) {
+							if (button == 0) {
+								// now really try to revoke
+								DB.tryToRevokeMessage(context, mid, localid,
+										DB.getTimestampString(), toHostUid);
+							}
+						}
+					}
+				}).show();
 	}
 
 	// ------------------------------------------------------------------------
@@ -2825,15 +3048,16 @@ public class Conversation extends Activity {
 					R.drawable.menushowall,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
-							ImageFullscreenActivity.showFullscreenImage(context, imageImageMenuBitmap);
+							ImageFullscreenActivity.showFullscreenImage(
+									context, imageImageMenuBitmap);
 							return true;
 						}
 					});
 			imageImageMenuProvider.addEntry("Copy", R.drawable.menucopy,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
-							Utility.copyToClipboard(context,
-									"[img " + imageImageMenuString + "]");
+							Utility.copyToClipboard(context, "[img "
+									+ imageImageMenuString + "]");
 							Utility.showToastAsync(context,
 									"Image copied to Clipboard.");
 							return true;

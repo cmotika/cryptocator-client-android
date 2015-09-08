@@ -95,8 +95,8 @@ public class ConversationItem {
 	/** The read timestamp. */
 	public long read;
 
-	/** The withdraw timestamp. */
-	public long withdraw;
+	/** The revoked timestamp. */
+	public long revoked;
 
 	/** The encrypted flag. */
 	public boolean encrypted = false;
@@ -108,7 +108,7 @@ public class ConversationItem {
 	public boolean isKey = false;
 
 	/**
-	 * The flag for a system message, e.g., read confirmations or withdraw
+	 * The flag for a system message, e.g., read confirmations or revoked
 	 * requests.
 	 */
 	public boolean system = false;
