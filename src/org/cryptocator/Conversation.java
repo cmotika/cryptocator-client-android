@@ -1163,6 +1163,14 @@ public class Conversation extends Activity {
 	@Override
 	public void onDestroy() {
 		Conversation.visible = false;
+		// Try some freeing of memory
+		resetMapping();
+		fastScrollView.clearChilds();
+		conversationList.clear();
+		conversationListDiff.clear();
+		textViews.clear();
+		// For large conversations with images this is needed
+		System.gc();
 		super.onDestroy();
 		/*
 		 * Note: do not count on this method being called as a place for saving
@@ -1202,6 +1210,10 @@ public class Conversation extends Activity {
 				Utility.showToastShortAsync(this, "Draft saved.");
 			}
 		}
+		// Try some freeing of memory
+		conversationListDiff.clear();
+		// For large conversations with images this is needed
+		System.gc();
 		super.onStop();
 	}
 
@@ -1215,6 +1227,7 @@ public class Conversation extends Activity {
 	@Override
 	protected void onPause() {
 		Conversation.visible = false;
+		System.gc();
 		super.onPause();
 		// Necessary for the following situation:
 		// if scrolled to somewhere and changing focused activity, the
@@ -1585,6 +1598,8 @@ public class Conversation extends Activity {
 		fastScrollView.clearChilds();
 		resetMapping();
 		textViews.clear();
+		// For large conversations with images this is needed
+		System.gc();
 
 		loadConversationList(context, hostUid, maxScrollMessageItems);
 		try {
@@ -1673,6 +1688,10 @@ public class Conversation extends Activity {
 				}
 			}
 			conversationSize += conversationListDiff.size();
+
+			// For large conversations with images this is needed
+			conversationListDiff.clear();
+			System.gc();
 
 			if (!isScrolledDown) {
 				fastScrollView.restoreLockedPosition();
@@ -2212,7 +2231,7 @@ public class Conversation extends Activity {
 		if (conversationItem.transport == DB.TRANSPORT_INTERNET) {
 			sms.setVisibility(View.GONE);
 		}
-		
+
 		OnLongClickListener longClickListener = new OnLongClickListener() {
 			public boolean onLongClick(View v) {
 				promptMessageDetails(context, conversationItem);
@@ -3142,9 +3161,11 @@ public class Conversation extends Activity {
 	 */
 	public void goBack(Context context) {
 		// GET TO THE MAIN SCREEN IF THIS ICON IS CLICKED !
-		Intent intent = new Intent(this, Main.class);
-		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		startActivity(intent);
+		finish();
+		System.gc();
+		// Intent intent = new Intent(this, Main.class);
+		// intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		// startActivity(intent);
 	}
 
 	// -------------------------------------------------------------------------
