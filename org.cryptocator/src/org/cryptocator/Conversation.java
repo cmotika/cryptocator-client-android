@@ -636,19 +636,25 @@ public class Conversation extends Activity {
 
 				});
 
-		fastScrollView
-				.setOnSizeChangeListener(new FastScrollView.OnSizeChangeListener() {
-					public void onSizeChange(int w, int h, int oldw, int oldh) {
-						if (currentScreenWidth != w) {
-							screenWidthChanged = true;
-						}
-						currentScreenWidth = w;
-						// Log.d("communicator", "######## SCROLL CHANGED X");
-						// if the keyboard pops up and scrolledDown == true,
-						// then scroll down manually!
-						scrollDownAfterTypingFast(false);
-					}
-				});
+		// The following piece of code was only needed if we hide/show the
+		// scroll view. Unfortunately it it not correct code because after
+		// coming back from an full screen image it is triggered and
+		// sporadically triggers a scroll down when we do not want that. So
+		// better leave it out or correct it in the future.
+		//
+		// fastScrollView
+		// .setOnSizeChangeListener(new FastScrollView.OnSizeChangeListener() {
+		// public void onSizeChange(int w, int h, int oldw, int oldh) {
+		// if (currentScreenWidth != w) {
+		// screenWidthChanged = true;
+		// }
+		// currentScreenWidth = w;
+		// // Log.d("communicator", "######## SCROLL CHANGED X");
+		// // if the keyboard pops up and scrolledDown == true,
+		// // then scroll down manually!
+		// scrollDownAfterTypingFast(false);
+		// }
+		// });
 
 		// The following code is necessary to FORCE further scrolling down if
 		// the virtual keyboard
@@ -1333,7 +1339,7 @@ public class Conversation extends Activity {
 			// "@@@@ onCreate() 1: not scrolled  down before");
 			fastScrollView.postDelayed(new Runnable() {
 				public void run() {
-					Log.d("communicator", "@@@@ SCROLL DOWN #1");
+					// Log.d("communicator", "@@@@ SCROLL DOWN #1");
 					isKeyboardVisible(conversationRootView);
 					fastScrollView.scrollDown();
 					// foceScrollDown();
@@ -1343,7 +1349,7 @@ public class Conversation extends Activity {
 			}, 200);
 			fastScrollView.postDelayed(new Runnable() {
 				public void run() {
-					Log.d("communicator", "@@@@ SCROLL DOWN #1");
+					// Log.d("communicator", "@@@@ SCROLL DOWN #1");
 					isKeyboardVisible(conversationRootView);
 					fastScrollView.scrollDown();
 					// foceScrollDown();
@@ -1353,7 +1359,7 @@ public class Conversation extends Activity {
 			}, 500);
 			fastScrollView.postDelayed(new Runnable() {
 				public void run() {
-					Log.d("communicator", "@@@@ SCROLL DOWN #1");
+					// Log.d("communicator", "@@@@ SCROLL DOWN #1");
 					isKeyboardVisible(conversationRootView);
 					fastScrollView.scrollDown();
 					// foceScrollDown();
@@ -2887,25 +2893,29 @@ public class Conversation extends Activity {
 							LinearLayout.LayoutParams.WRAP_CONTENT);
 					lpInfoText.setMargins(25, 8, 25, 8);
 					imageMessageMenuInfoText.setLayoutParams(lpInfoText);
-					infoTextBox.setBackgroundColor(Setup.COLOR_MAIN_BLUEDARKEST);
+					infoTextBox
+							.setBackgroundColor(Setup.COLOR_MAIN_BLUEDARKEST);
 					imageMessageMenuInfoText.setTextColor(Color.WHITE);
 					imageMessageMenuInfoText.setTextSize(14);
 					LinearLayout infoTextLine = new LinearLayout(context);
 					infoTextLine.setBackgroundColor(Setup.COLOR_BLUELINE);
 					infoTextLine.setLayoutParams(lpInfoTextLine);
-					android.view.ViewGroup.LayoutParams params = infoTextLine.getLayoutParams();
+					android.view.ViewGroup.LayoutParams params = infoTextLine
+							.getLayoutParams();
 					params.height = 2;
 					infoTextBox.addView(infoTextLine);
-					
+
 					String infoText = "";
 					infoText += "        Sent:  "
-							+ DB.getDateString(imageMessageMenuItem.sent, true) + "\n";
+							+ DB.getDateString(imageMessageMenuItem.sent, true)
+							+ "\n";
 					infoText += "Received:  "
-							+ DB.getDateString(imageMessageMenuItem.received, true) + "\n";
+							+ DB.getDateString(imageMessageMenuItem.received,
+									true) + "\n";
 					infoText += "       Read:  "
 							+ DB.getDateString(imageMessageMenuItem.read, true);
 					imageMessageMenuInfoText.setText(infoText);
-					
+
 					return infoTextBox;
 				}
 			};
