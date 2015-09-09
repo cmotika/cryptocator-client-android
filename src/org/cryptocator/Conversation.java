@@ -270,6 +270,22 @@ public class Conversation extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * The listener interface for receiving onSend events. The class that is
+	 * interested in processing a onSend event implements this interface, and
+	 * the object created with that class is registered with a component using
+	 * the component's <code>addonSendListener<code> method. When
+	 * the onSend event occurs, that object's appropriate
+	 * method is invoked.
+	 * 
+	 * @see onSendEvent
+	 */
+	interface OnSendListener {
+		void onSend(boolean success, boolean encrypted, int transport);
+	}
+
+	// ------------------------------------------------------------------------
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -2913,8 +2929,13 @@ public class Conversation extends Activity {
 						infoText += "        Sent:  "
 								+ DB.getDateString(updatedItem.sent, true)
 								+ "\n";
-						infoText += "Received:  "
-								+ DB.getDateString(updatedItem.received, true)
+						if (!updatedItem.me()) {
+							infoText += "Received:  ";
+						} else {
+							infoText += "Delivered:  ";
+						}
+						infoText += DB
+								.getDateString(updatedItem.received, true)
 								+ "\n";
 						infoText += "       Read:  "
 								+ DB.getDateString(updatedItem.read, true);
@@ -3024,55 +3045,115 @@ public class Conversation extends Activity {
 	 */
 	public static void promptResend(final Context context,
 			final ConversationItem conversationItem) {
-		String titleMessage = "Resend Message ";
-		String textMessage = "Do you really want to resend this message another time?";
-		new MessageAlertDialog(context, titleMessage, textMessage, " Resend ",
-				" Cancel ", null, new MessageAlertDialog.OnSelectionListener() {
-					public void selected(int button, boolean cancel) {
-						if (!cancel) {
-							if (button == 0) {
-								// now really resend
-								resendMessage(context, conversationItem);
+
+		String messageTextString = conversationItem.text;
+		int uid = conversationItem.to;
+
+		// now check if SMS and encryption is available
+		int serverId = Setup.getServerId(context, uid);
+		boolean mySMSAvailable = Setup.isSMSOptionEnabled(context, serverId);
+		boolean otherSMSAvailable = Setup.havePhone(context, uid);
+		boolean sms = mySMSAvailable && otherSMSAvailable;
+		boolean encryption = Setup.isEncryptionAvailable(context, uid);
+
+		final String name = Main.UID2Name(context, uid, false);
+
+		ConversationCompose.sendMessagePrompt(context, sms, encryption, uid,
+				name, messageTextString, new OnSendListener() {
+					public void onSend(boolean success, boolean encrypted,
+							int transport) {
+						if (success) {
+							String messageOrSMS1 = "Message";
+							if (conversationItem.transport != DB.TRANSPORT_INTERNET) {
+								messageOrSMS1 = "SMS";
 							}
+							String messageOrSMS2 = "message";
+							if (transport != DB.TRANSPORT_INTERNET) {
+								messageOrSMS2 = "SMS";
+							}
+							String encryptedString = "";
+							if (encrypted) {
+								encryptedString = "encrypted ";
+							}
+							Utility.showToastAsync(context, messageOrSMS1 + " "
+									+ conversationItem.localid + " resent as "
+									+ encryptedString + messageOrSMS2 + " to "
+									+ name + ".");
+
+							final Handler mUIHandler = new Handler(Looper
+									.getMainLooper());
+							mUIHandler.postDelayed(new Thread() {
+								@Override
+								public void run() {
+									super.run();
+									Conversation
+											.updateConversationlistAsync(context);
+								}
+							}, 2000);
+						} else {
+							String messageOrSMS1 = "Message";
+							if (conversationItem.transport != DB.TRANSPORT_INTERNET) {
+								messageOrSMS1 = "SMS";
+							}
+							Utility.showToastAsync(context, messageOrSMS1 + " "
+									+ conversationItem.localid + " "
+									+ "could not be resent.");
 						}
+
 					}
-				}).show();
+				});
+
+		// String titleMessage = "Resend Message ";
+		// String textMessage =
+		// "Do you really want to resend this message another time?";
+		// new MessageAlertDialog(context, titleMessage, textMessage,
+		// " Resend ",
+		// " Cancel ", null, new MessageAlertDialog.OnSelectionListener() {
+		// public void selected(int button, boolean cancel) {
+		// if (!cancel) {
+		// if (button == 0) {
+		// // now really resend
+		// resendMessage(context, conversationItem);
+		// }
+		// }
+		// }
+		// }).show();
 	}
 
 	// ------------------------------------------------------------------------
 
-	/**
-	 * Resend failed SMS or decryption failed message.
-	 * 
-	 * @param conversationItem
-	 *            the conversation item
-	 * @return true, if successful
-	 */
-	public static void resendMessage(final Context context,
-			ConversationItem conversationItem) {
-		final String messageTextString = conversationItem.text;
-		final boolean encrypted = conversationItem.encrypted;
-		final int transport = conversationItem.transport;
-
-		// Do the following async, so that we already have scrolled back
-		// to the original position after closing the
-		// message details window before we will re-send this
-		// message.
-
-		final Handler mUIHandler = new Handler(Looper.getMainLooper());
-		mUIHandler.postDelayed(new Thread() {
-			@Override
-			public void run() {
-				super.run();
-				if (DB.addSendMessage(context, hostUid, messageTextString,
-						encrypted, transport, false, DB.PRIORITY_MESSAGE)) {
-					Conversation.updateConversationlistAsync(context);
-					Communicator.sendNewNextMessageAsync(context, transport);
-				}
-			}
-		}, 2000);
-
-	}
+	// /**
+	// * Resend failed SMS or decryption failed message.
+	// *
+	// * @param conversationItem
+	// * the conversation item
+	// * @return true, if successful
+	// */
+	// public static void resendMessage(final Context context,
+	// ConversationItem conversationItem) {
+	// final String messageTextString = conversationItem.text;
+	// final boolean encrypted = conversationItem.encrypted;
+	// final int transport = conversationItem.transport;
+	//
+	// // Do the following async, so that we already have scrolled back
+	// // to the original position after closing the
+	// // message details window before we will re-send this
+	// // message.
+	//
+	// final Handler mUIHandler = new Handler(Looper.getMainLooper());
+	// mUIHandler.postDelayed(new Thread() {
+	// @Override
+	// public void run() {
+	// super.run();
+	// if (DB.addSendMessage(context, hostUid, messageTextString,
+	// encrypted, transport, false, DB.PRIORITY_MESSAGE)) {
+	// Conversation.updateConversationlistAsync(context);
+	// Communicator.sendNewNextMessageAsync(context, transport);
+	// }
+	// }
+	// }, 2000);
+	//
+	// }
 
 	// ------------------------------------------------------------------------
 

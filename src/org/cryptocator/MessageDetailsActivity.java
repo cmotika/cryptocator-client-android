@@ -176,6 +176,8 @@ public class MessageDetailsActivity extends Activity {
 		TextView serverMessageID = (TextView) dialogLayout
 				.findViewById(R.id.serverMessageID);
 		TextView received = (TextView) dialogLayout.findViewById(R.id.received);
+		TextView receivedtext = (TextView) dialogLayout
+				.findViewById(R.id.receivedtext);
 		TextView read = (TextView) dialogLayout.findViewById(R.id.read);
 		TextView revoked = (TextView) dialogLayout.findViewById(R.id.revoked);
 
@@ -332,6 +334,10 @@ public class MessageDetailsActivity extends Activity {
 					+ "</font>";
 			sent.setText(Html.fromHtml(failureString));
 			sendingreceivingparent.setVisibility(View.GONE);
+		}
+
+		if (updatedItem.me()) {
+			receivedtext.setText("Delivered: ");
 		}
 
 		received.setText(DB.getDateString(updatedItem.received, true));

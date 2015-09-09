@@ -2922,25 +2922,25 @@ org.cryptocator.Communicator:
 org.cryptocator.Conversation:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
-    3759:3787:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
-    3861:3893:public void insertImage(android.content.Context,java.lang.String)
+    3840:3868:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
+    3942:3974:public void insertImage(android.content.Context,java.lang.String)
     148:148:static synthetic boolean access$32()
-org.cryptocator.Conversation$76:
-    3640:3645:public void onCancel()
-org.cryptocator.Conversation$77
-org.cryptocator.Conversation$78:
-    3832:3836:public void onCancel()
-org.cryptocator.Conversation$79
+org.cryptocator.Conversation$75:
+    3721:3726:public void onCancel()
+org.cryptocator.Conversation$76
+org.cryptocator.Conversation$77:
+    3913:3917:public void onCancel()
+org.cryptocator.Conversation$78
 org.cryptocator.ConversationCompose:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
     private static final int PICK_CONTACT
-    981:981:public static org.cryptocator.ConversationCompose getInstance()
-    991:991:public static boolean isVisible()
-org.cryptocator.ConversationCompose$22:
-    1320:1323:public void onCancel()
-org.cryptocator.ConversationCompose$24:
-    1500:1503:public void onCancel()
+    1013:1013:public static org.cryptocator.ConversationCompose getInstance()
+    1023:1023:public static boolean isVisible()
+org.cryptocator.ConversationCompose$23:
+    1352:1355:public void onCancel()
+org.cryptocator.ConversationCompose$25:
+    1532:1535:public void onCancel()
 org.cryptocator.ConversationItem:
     176:185:public ConversationItem(java.lang.String,boolean)
 org.cryptocator.DB:
