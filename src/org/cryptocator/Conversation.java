@@ -636,25 +636,22 @@ public class Conversation extends Activity {
 
 				});
 
-		// The following piece of code was only needed if we hide/show the
-		// scroll view. Unfortunately it it not correct code because after
-		// coming back from an full screen image it is triggered and
-		// sporadically triggers a scroll down when we do not want that. So
-		// better leave it out or correct it in the future.
-		//
-		// fastScrollView
-		// .setOnSizeChangeListener(new FastScrollView.OnSizeChangeListener() {
-		// public void onSizeChange(int w, int h, int oldw, int oldh) {
-		// if (currentScreenWidth != w) {
-		// screenWidthChanged = true;
-		// }
-		// currentScreenWidth = w;
-		// // Log.d("communicator", "######## SCROLL CHANGED X");
-		// // if the keyboard pops up and scrolledDown == true,
-		// // then scroll down manually!
-		// scrollDownAfterTypingFast(false);
-		// }
-		// });
+		// The following piece of code is necessary for dealing with width changes.
+		fastScrollView
+				.setOnSizeChangeListener(new FastScrollView.OnSizeChangeListener() {
+					public void onSizeChange(int w, int h, int oldw, int oldh) {
+						if (currentScreenWidth != w) {
+							screenWidthChanged = true;
+						}
+						currentScreenWidth = w;
+						// Log.d("communicator", "######## SCROLL CHANGED X");
+						// if the keyboard pops up and scrolledDown == true,
+						// then scroll down manually!
+						if (keyboardVisible && scrolledDown) {
+							scrollDownAfterTypingFast(false);
+						}
+					}
+				});
 
 		// The following code is necessary to FORCE further scrolling down if
 		// the virtual keyboard
