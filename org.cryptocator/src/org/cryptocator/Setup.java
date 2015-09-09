@@ -686,8 +686,20 @@ public class Setup extends Activity {
 
 	/** Split a message if the part size is larger than this constant */
 	public static final int MULTIPART_MESSAGELIMIT = 450;
-
-	// ------------------------------------------------------------------------
+	
+	/** The Constant COLOR_MAIN_BLUE. */
+	public static final int COLOR_MAIN_BLUE = Color.parseColor("#FF5DA9FE");
+	
+	/** The Constant COLOR_MAIN_BLUEDARK a darker version. */
+	public static final int COLOR_MAIN_BLUEDARK = Color.parseColor("#ff0077ff");
+	
+	/** The Constant COLOR_MAIN_BLUEDARK an even darker version. */
+	public static final int COLOR_MAIN_BLUEDARKEST = Color.parseColor("#445DA9FE");
+	
+	/** The Constant COLOR_BLUELINE. */
+	public static final int COLOR_BLUELINE = Color.parseColor("#FF00CCFF");
+	
+		// ------------------------------------------------------------------------
 
 	/** The active. */
 	private CheckBox active;

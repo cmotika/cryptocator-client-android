@@ -1163,11 +1163,11 @@ public class Communicator {
 									&& newItem.readyToProcess()) {
 								if (newItem.transport == DB.TRANSPORT_INTERNET) {
 									Utility.showToastShortAsync(context,
-											"New message " + newItem.mid
+											"New message " + newItem.localid
 													+ " received.");
 								} else {
 									Utility.showToastShortAsync(context,
-											"New SMS received.");
+											"New SMS "+newItem.localid+" received.");
 								}
 							}
 
@@ -1868,9 +1868,15 @@ public class Communicator {
 													&& Conversation
 															.getHostUid() == itemToSend.to
 													&& !Conversation.scrolledDown) {
-												Utility.showToastShortAsync(
-														context,
-														"Message sent.");
+												if (itemToSend.transport == DB.TRANSPORT_INTERNET) {
+													Utility.showToastShortAsync(
+															context,
+															"Message "+itemToSend.localid+" sent.");
+												} else {
+													Utility.showToastShortAsync(
+															context,
+															"SMS "+itemToSend.localid+" sent.");
+												}
 											}
 										}
 										DB.removeSentMessage(context,

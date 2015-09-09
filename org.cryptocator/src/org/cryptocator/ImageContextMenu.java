@@ -89,7 +89,7 @@ public class ImageContextMenu extends Activity {
 
 	/** The clickduration in ms. */
 	public static int CLICKDURATION = 300;
-	
+
 	/** The activity. */
 	Activity activity = null;
 
@@ -119,6 +119,23 @@ public class ImageContextMenu extends Activity {
 	 * little bit later.
 	 */
 	private long showTime = 0;
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * The Interface ExtendedEntryViewProvider.
+	 */
+	interface ExtendedEntryViewProvider {
+
+		/**
+		 * Provide view.
+		 * 
+		 * @param context
+		 *            the context
+		 * @return the view
+		 */
+		View provideView(Context context);
+	}
 
 	// ------------------------------------------------------------------------
 
@@ -157,6 +174,9 @@ public class ImageContextMenu extends Activity {
 		/** The icons. */
 		private List<Drawable> icons = new ArrayList<Drawable>();
 
+		/** The views for extended entries. */
+		private List<ExtendedEntryViewProvider> viewProviders = new ArrayList<ExtendedEntryViewProvider>();
+
 		/** The image context menu selection listeners. */
 		private List<ImageContextMenuSelectionListener> imageContextMenuSelectionListeners = new ArrayList<ImageContextMenuSelectionListener>();
 
@@ -174,7 +194,7 @@ public class ImageContextMenu extends Activity {
 
 		/** The context. */
 		private Context context;
-		
+
 		/** The text size. */
 		private int textSize = 20;
 
@@ -196,11 +216,24 @@ public class ImageContextMenu extends Activity {
 		}
 
 		// ---------------------------------------------------------------------
-		
+
+		/**
+		 * Sets or renewes the title of the context menu.
+		 * 
+		 * @param title
+		 *            the new title
+		 */
+		public void setTitle(String title) {
+			this.title = title;
+		}
+
+		// ---------------------------------------------------------------------
+
 		/**
 		 * Sets a specific text size.
-		 *
-		 * @param textSize the new text size
+		 * 
+		 * @param textSize
+		 *            the new text size
 		 */
 		public void setTextSize(int textSize) {
 			this.textSize = textSize;
@@ -226,6 +259,7 @@ public class ImageContextMenu extends Activity {
 			captions.add(caption);
 			Drawable icon = context.getResources().getDrawable(iconResource);
 			icons.add(icon);
+			viewProviders.add(null);
 			imageContextMenuSelectionListeners
 					.add(imageContextMenuSelectionListener);
 			int handle = captions.size() - 1;
@@ -253,6 +287,36 @@ public class ImageContextMenu extends Activity {
 				ImageContextMenuSelectionListener imageContextMenuSelectionListener) {
 			captions.add(caption);
 			icons.add(icon);
+			viewProviders.add(null);
+			imageContextMenuSelectionListeners
+					.add(imageContextMenuSelectionListener);
+			int handle = captions.size() - 1;
+			entryVisible.put(handle, true);
+			entryEnabled.put(handle, true);
+			return handle;
+		}
+
+		// ---------------------------------------------------------------------
+
+		/**
+		 * Adds an enhanced entry to this context menu returning a handle id for
+		 * enabling/disabling or changing visibility of this context menu entry.
+		 * An extended entry only contains of an arbitrary view that can be
+		 * used, e.g., to display additional information. Caption and icon of
+		 * this entry will be null.
+		 * 
+		 * @param viewProvider
+		 *            the view provider
+		 * @param imageContextMenuSelectionListener
+		 *            the image context menu selection listener
+		 * @return the int
+		 */
+		public int addEntry(
+				ExtendedEntryViewProvider viewProvider,
+				ImageContextMenuSelectionListener imageContextMenuSelectionListener) {
+			captions.add(null);
+			icons.add(null);
+			viewProviders.add(viewProvider);
 			imageContextMenuSelectionListeners
 					.add(imageContextMenuSelectionListener);
 			int handle = captions.size() - 1;
@@ -290,7 +354,8 @@ public class ImageContextMenu extends Activity {
 		// ---------------------------------------------------------------------
 
 		/**
-		 * Gets the caption of an context menu entry.
+		 * Gets the caption of an context menu entry or null if this is an
+		 * extended entry.
 		 * 
 		 * @param handle
 		 *            the handle
@@ -303,7 +368,8 @@ public class ImageContextMenu extends Activity {
 		// ---------------------------------------------------------------------
 
 		/**
-		 * Gets the icon of an context menu entry.
+		 * Gets the icon of an context menu entry or null if this is an extended
+		 * entry.
 		 * 
 		 * @param handle
 		 *            the handle
@@ -311,6 +377,40 @@ public class ImageContextMenu extends Activity {
 		 */
 		public Drawable getIcon(int handle) {
 			return icons.get(handle);
+		}
+
+		// ---------------------------------------------------------------------
+
+		/**
+		 * Gets the view of an extended context menu entry or null if this is
+		 * not an extended entry.
+		 * 
+		 * @param handle
+		 *            the handle
+		 * @return the icon
+		 */
+		public ExtendedEntryViewProvider getViewProvider(int handle) {
+			return viewProviders.get(handle);
+		}
+
+		// ---------------------------------------------------------------------
+
+		/**
+		 * Gets the view of an extended context menu entry or null if this is
+		 * not an extended entry.
+		 * 
+		 * @param handle
+		 *            the handle
+		 * @return the icon
+		 */
+		public boolean setViewProvider(int handle, ExtendedEntryViewProvider viewProvider) {
+			try {
+				viewProviders.remove(handle);
+				viewProviders.add(handle, viewProvider);
+			} catch (Exception e) {
+				return false;
+			}
+			return true;
 		}
 
 		// ---------------------------------------------------------------------
@@ -500,10 +600,10 @@ public class ImageContextMenu extends Activity {
 		builder.setTitle(imageContextMenuProvider.title);
 		builder.setIcon(imageContextMenuProvider.icon);
 
-		LinearLayout.LayoutParams lpEntry = new LinearLayout.LayoutParams(
-				LinearLayout.LayoutParams.MATCH_PARENT,
-				LinearLayout.LayoutParams.WRAP_CONTENT);
-		lpEntry.setMargins(20, 20, 20, 20);
+		// LinearLayout.LayoutParams lpEntry = new LinearLayout.LayoutParams(
+		// LinearLayout.LayoutParams.MATCH_PARENT,
+		// LinearLayout.LayoutParams.WRAP_CONTENT);
+		// lpEntry.setMargins(20, 20, 20, 20);
 
 		LinearLayout.LayoutParams lpCaption = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.MATCH_PARENT,
@@ -525,22 +625,38 @@ public class ImageContextMenu extends Activity {
 				continue;
 			}
 
-			String caption = imageContextMenuProvider.getCaption(i);
-			Drawable icon = imageContextMenuProvider.getIcon(i);
-			final ImageContextMenuSelectionListener listener = imageContextMenuProvider.imageContextMenuSelectionListeners
-					.get(i);
-
 			final LinearLayout entryLayout = new LinearLayout(context);
 			entryLayout.setOrientation(LinearLayout.HORIZONTAL);
 			entryLayout.setGravity(Gravity.LEFT);
 
-			// Caption
-			TextView text = new TextView(context);
-			text.setText(caption);
-			text.setLayoutParams(lpCaption);
-			text.setTextSize(imageContextMenuProvider.textSize);
-			text.setTextColor(Color.WHITE);
-			text.setGravity(Gravity.CENTER_VERTICAL);
+			ExtendedEntryViewProvider viewProvider = imageContextMenuProvider.getViewProvider(i);
+			if (viewProvider != null) {
+				// Handle extended entry
+				entryLayout.addView(viewProvider.provideView(context));
+			} else {
+				// Handle normal entry
+				String caption = imageContextMenuProvider.getCaption(i);
+				Drawable icon = imageContextMenuProvider.getIcon(i);
+				// Caption
+				TextView text = new TextView(context);
+				text.setText(caption);
+				text.setLayoutParams(lpCaption);
+				text.setTextSize(imageContextMenuProvider.textSize);
+				text.setTextColor(Color.WHITE);
+				text.setGravity(Gravity.CENTER_VERTICAL);
+				if (!imageContextMenuProvider.isEnabled(i)) {
+					text.setTextColor(Color.GRAY);
+				}
+				// Icon
+				ImageView img = new ImageView(context);
+				img.setImageDrawable(icon);
+				img.setLayoutParams(lpIcon);
+				entryLayout.addView(img);
+				entryLayout.addView(text);
+			}
+
+			final ImageContextMenuSelectionListener listener = imageContextMenuProvider.imageContextMenuSelectionListeners
+					.get(i);
 
 			if (imageContextMenuProvider.isEnabled(i)) {
 				// Click selection listener
@@ -562,17 +678,7 @@ public class ImageContextMenu extends Activity {
 						}, CLICKDURATION);
 					}
 				});
-			} else {
-				text.setTextColor(Color.GRAY);
 			}
-
-			// Icon
-			ImageView img = new ImageView(context);
-			img.setImageDrawable(icon);
-			img.setLayoutParams(lpIcon);
-
-			entryLayout.addView(img);
-			entryLayout.addView(text);
 
 			outerLayout.setBackgroundColor(BACKGROUND);
 

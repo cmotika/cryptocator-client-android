@@ -375,6 +375,7 @@ org.cryptocator.R$id: int fastscrollview
 org.cryptocator.R$id: int from
 org.cryptocator.R$id: int fromfirst
 org.cryptocator.R$id: int fromid
+org.cryptocator.R$id: int fromidinfo
 org.cryptocator.R$id: int fromkey
 org.cryptocator.R$id: int helpactive
 org.cryptocator.R$id: int helpautosave
@@ -450,6 +451,7 @@ org.cryptocator.R$id: int sendingreceivingprogess
 org.cryptocator.R$id: int sendingreceivingtitle
 org.cryptocator.R$id: int sendspinner
 org.cryptocator.R$id: int sent
+org.cryptocator.R$id: int serverMessageID
 org.cryptocator.R$id: int serverbuttonadd
 org.cryptocator.R$id: int serverbuttondelete
 org.cryptocator.R$id: int serverbuttonmodify
@@ -487,6 +489,7 @@ org.cryptocator.R$id: int titletext
 org.cryptocator.R$id: int titletextparent
 org.cryptocator.R$id: int to
 org.cryptocator.R$id: int toid
+org.cryptocator.R$id: int toidinfo
 org.cryptocator.R$id: int tokey
 org.cryptocator.R$id: int tolast
 org.cryptocator.R$id: int tolist

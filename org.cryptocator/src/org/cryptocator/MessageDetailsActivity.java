@@ -173,10 +173,11 @@ public class MessageDetailsActivity extends Activity {
 																// sending/receiving
 		TableRow sendingreceivingparent = (TableRow) dialogLayout
 				.findViewById(R.id.sendingreceivingparent);
+		TextView serverMessageID = (TextView) dialogLayout
+				.findViewById(R.id.serverMessageID);
 		TextView received = (TextView) dialogLayout.findViewById(R.id.received);
 		TextView read = (TextView) dialogLayout.findViewById(R.id.read);
-		TextView revoked = (TextView) dialogLayout
-				.findViewById(R.id.revoked);
+		TextView revoked = (TextView) dialogLayout.findViewById(R.id.revoked);
 
 		TextView transport = (TextView) dialogLayout
 				.findViewById(R.id.transport);
@@ -215,11 +216,15 @@ public class MessageDetailsActivity extends Activity {
 			return;
 		}
 
-		String msgIdString = " [ " + updatedItem.mid + " ]";
-		if (updatedItem.mid == -1) {
-			msgIdString = " [ *" + updatedItem.localid + " ]";
-		}
+		// On the device always user the local id to address messages, even for
+		// search or backup purpose
+		String msgIdString = "  [ " + updatedItem.localid + " ]";
 		activityTitle = "Message Details" + msgIdString;
+		if (updatedItem.mid == -1) {
+			serverMessageID.setText("N/A");
+		} else {
+			serverMessageID.setText(updatedItem.mid + "");
+		}
 
 		int serverId = -1;
 		String fromKeyString = "";
@@ -237,17 +242,18 @@ public class MessageDetailsActivity extends Activity {
 			toKeyString = "Account Key: " + Setup.getPublicKeyHash(context);
 			serverId = Setup.getServerId(context, updatedItem.from);
 		}
-		
+
 		String fromName = Main.UID2Name(context, updatedItem.from, true, false,
 				serverId);
-		String toName = Main
-				.UID2Name(context, updatedItem.to, true, false, serverId);
-		
+		String toName = Main.UID2Name(context, updatedItem.to, true, false,
+				serverId);
+
 		int fromNameServerStartIndex = fromName.indexOf("@");
 		int toNameServerStartIndex = toName.indexOf("@");
-		
+
 		if (fromNameServerStartIndex > 0) {
-			String server = fromName.substring(fromNameServerStartIndex + 1).trim();
+			String server = fromName.substring(fromNameServerStartIndex + 1)
+					.trim();
 			fromKeyString = "Server: " + server + "\n" + fromKeyString;
 			fromName = fromName.substring(0, fromNameServerStartIndex);
 		}
@@ -256,12 +262,10 @@ public class MessageDetailsActivity extends Activity {
 			toKeyString = "Server: " + server + "\n" + toKeyString;
 			toName = toName.substring(0, toNameServerStartIndex);
 		}
-		
+
 		fromkey.setText(fromKeyString);
 		tokey.setText(toKeyString);
 
-		
-		
 		from.setText(fromName);
 		to.setText(toName);
 
