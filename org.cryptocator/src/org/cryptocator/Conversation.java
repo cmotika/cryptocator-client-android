@@ -636,7 +636,8 @@ public class Conversation extends Activity {
 
 				});
 
-		// The following piece of code is necessary for dealing with width changes.
+		// The following piece of code is necessary for dealing with width
+		// changes.
 		fastScrollView
 				.setOnSizeChangeListener(new FastScrollView.OnSizeChangeListener() {
 					public void onSizeChange(int w, int h, int oldw, int oldh) {
@@ -2903,14 +2904,21 @@ public class Conversation extends Activity {
 					infoTextBox.addView(infoTextLine);
 
 					String infoText = "";
-					infoText += "        Sent:  "
-							+ DB.getDateString(imageMessageMenuItem.sent, true)
-							+ "\n";
-					infoText += "Received:  "
-							+ DB.getDateString(imageMessageMenuItem.received,
-									true) + "\n";
-					infoText += "       Read:  "
-							+ DB.getDateString(imageMessageMenuItem.read, true);
+
+					// Get updated information about this conversation item
+					final ConversationItem updatedItem = DB.getMessage(context,
+							imageMessageMenuItem.localid, hostUid,
+							DB.DEFAULT_MESSAGEPART);
+					if (updatedItem != null) {
+						infoText += "        Sent:  "
+								+ DB.getDateString(updatedItem.sent, true)
+								+ "\n";
+						infoText += "Received:  "
+								+ DB.getDateString(updatedItem.received, true)
+								+ "\n";
+						infoText += "       Read:  "
+								+ DB.getDateString(updatedItem.read, true);
+					}
 					imageMessageMenuInfoText.setText(infoText);
 
 					return infoTextBox;
