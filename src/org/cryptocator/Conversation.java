@@ -1210,8 +1210,6 @@ public class Conversation extends Activity {
 				Utility.showToastShortAsync(this, "Draft saved.");
 			}
 		}
-		// Try some freeing of memory
-		conversationListDiff.clear();
 		// For large conversations with images this is needed
 		System.gc();
 		super.onStop();
@@ -1688,10 +1686,6 @@ public class Conversation extends Activity {
 				}
 			}
 			conversationSize += conversationListDiff.size();
-
-			// For large conversations with images this is needed
-			conversationListDiff.clear();
-			System.gc();
 
 			if (!isScrolledDown) {
 				fastScrollView.restoreLockedPosition();
@@ -2866,15 +2860,69 @@ public class Conversation extends Activity {
 	 */
 	ConversationItem imageMessageMenuItem = null;
 	int imageMessageMenuRevoke = -1;
+	TextView imageMessageMenuInfoText = null;
 
 	public ImageContextMenuProvider createMessageContextMenu(
 			final Activity activity, ConversationItem item) {
 		imageMessageMenuItem = item;
 
 		if (imageMessageMenuProvider == null) {
+			ImageContextMenu.ExtendedEntryViewProvider infoViewProvider = new ImageContextMenu.ExtendedEntryViewProvider() {
+				public View provideView(Context context) {
+					LinearLayout infoTextBox = new LinearLayout(context);
+					infoTextBox.setOrientation(LinearLayout.VERTICAL);
+					imageMessageMenuInfoText = new TextView(context);
+					infoTextBox.addView(imageMessageMenuInfoText);
+					LinearLayout.LayoutParams lpInfoTextBox = new LinearLayout.LayoutParams(
+							LinearLayout.LayoutParams.MATCH_PARENT,
+							LinearLayout.LayoutParams.WRAP_CONTENT);
+					lpInfoTextBox.setMargins(0, 0, 0, 0);
+					LinearLayout.LayoutParams lpInfoTextLine = new LinearLayout.LayoutParams(
+							LinearLayout.LayoutParams.MATCH_PARENT,
+							LinearLayout.LayoutParams.WRAP_CONTENT);
+					lpInfoTextLine.setMargins(0, 0, 0, 0);
+					infoTextBox.setLayoutParams(lpInfoTextBox);
+					LinearLayout.LayoutParams lpInfoText = new LinearLayout.LayoutParams(
+							LinearLayout.LayoutParams.MATCH_PARENT,
+							LinearLayout.LayoutParams.WRAP_CONTENT);
+					lpInfoText.setMargins(25, 8, 25, 8);
+					imageMessageMenuInfoText.setLayoutParams(lpInfoText);
+					infoTextBox.setBackgroundColor(Setup.COLOR_MAIN_BLUEDARKEST);
+					imageMessageMenuInfoText.setTextColor(Color.WHITE);
+					imageMessageMenuInfoText.setTextSize(14);
+					LinearLayout infoTextLine = new LinearLayout(context);
+					infoTextLine.setBackgroundColor(Setup.COLOR_BLUELINE);
+					infoTextLine.setLayoutParams(lpInfoTextLine);
+					android.view.ViewGroup.LayoutParams params = infoTextLine.getLayoutParams();
+					params.height = 2;
+					infoTextBox.addView(infoTextLine);
+					
+					String infoText = "";
+					infoText += "        Sent:  "
+							+ DB.getDateString(imageMessageMenuItem.sent, true) + "\n";
+					infoText += "Received:  "
+							+ DB.getDateString(imageMessageMenuItem.received, true) + "\n";
+					infoText += "       Read:  "
+							+ DB.getDateString(imageMessageMenuItem.read, true);
+					imageMessageMenuInfoText.setText(infoText);
+					
+					return infoTextBox;
+				}
+			};
+
 			imageMessageMenuProvider = new ImageContextMenuProvider(activity,
-					"Message Options", activity.getResources().getDrawable(
+					"Message N/A", activity.getResources().getDrawable(
 							R.drawable.message));
+
+			imageMessageMenuProvider.addEntry(infoViewProvider,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							// Details
+							promptMessageDetails(activity, imageMessageMenuItem);
+							return true;
+						}
+					});
+
 			imageMessageMenuProvider.addEntry("Copy", R.drawable.menucopy,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
@@ -2943,6 +2991,8 @@ public class Conversation extends Activity {
 		// Enable revoke only for Internet messages
 		imageMessageMenuProvider.setVisible(imageMessageMenuRevoke,
 				item.transport != DB.TRANSPORT_SMS);
+		imageMessageMenuProvider.setTitle("Message  [ "
+				+ imageMessageMenuItem.localid + " ]");
 
 		return imageMessageMenuProvider;
 	}
@@ -3181,6 +3231,7 @@ public class Conversation extends Activity {
 		int serverId = Setup.getServerId(context, hostUid);
 		Communicator.haveNewMessagesAndReceive(this, serverId);
 		Utility.showToastShortAsync(this, "Refreshing...");
+		System.gc();
 	}
 
 	// ------------------------------------------------------------------------
@@ -3289,7 +3340,7 @@ public class Conversation extends Activity {
 							}
 							if (scrollItem > -1) {
 								int foundItem = -1;
-								int mid = -1;
+								int lmid = -1;
 								if (start > max) {
 									start = max;
 								}
@@ -3303,14 +3354,11 @@ public class Conversation extends Activity {
 										// Try to mark / highlight
 										ConversationItem item = conversationList
 												.get(c);
-										mid = item.mid;
-										if (mid == -1) {
-											mid = -1 * item.localid;
-										}
-										if (lastFound != mid) {
+										lmid = -1 * item.localid;
+										if (lastFound != lmid) {
 											// Otherwise search on...
 											Mapping mappingItem = mapping
-													.get(mid);
+													.get(lmid);
 											if (mappingItem != null) {
 												EditText editText = mappingItem.text;
 												if (editText != null) {
@@ -3320,7 +3368,7 @@ public class Conversation extends Activity {
 											Utility.saveIntSetting(
 													context,
 													"lastconversationsearchfound",
-													mid);
+													lmid);
 											break;
 										} else {
 											foundItem = -1; // We did not find
@@ -3334,11 +3382,13 @@ public class Conversation extends Activity {
 									Conversation.scrolledDown = false;
 									Conversation.scrolledUp = false;
 									fastScrollView.scrollToItem(foundItem);
-									Utility.showToastInUIThread(context, "'"
-											+ searchString
-											+ "' found in message "
-											+ (mid + "").replace("-", "*")
-											+ ".");
+									Utility.showToastInUIThread(
+											context,
+											"'"
+													+ searchString
+													+ "' found in message "
+													+ (-1 * lmid + "").replace(
+															"-", "*") + ".");
 								} else {
 									String updown = "(down)";
 									if (reverse) {

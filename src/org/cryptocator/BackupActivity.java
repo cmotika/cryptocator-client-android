@@ -62,6 +62,7 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 /**
  * The BackupActivity class is responsible for displaying a backup dialog to let
@@ -150,7 +151,12 @@ public class BackupActivity extends Activity {
 		final EditText fromText = (EditText) dialogLayout
 				.findViewById(R.id.fromid);
 		final EditText toText = (EditText) dialogLayout.findViewById(R.id.toid);
+		final TextView fromTextInfo = (TextView) dialogLayout
+				.findViewById(R.id.fromidinfo);
+		final TextView toTextInfo = (TextView) dialogLayout
+				.findViewById(R.id.toidinfo);
 
+		
 		final CheckBox first = (CheckBox) dialogLayout
 				.findViewById(R.id.fromfirst);
 		final CheckBox last = (CheckBox) dialogLayout.findViewById(R.id.tolast);
@@ -163,8 +169,8 @@ public class BackupActivity extends Activity {
 		DB.loadConversation(context, hostUid, conversationList, -1);
 
 		if (conversationList.size() > 0) {
-			lastMid = conversationList.get(conversationList.size() - 1).mid;
-			firstMid = conversationList.get(0).mid;
+			lastMid = conversationList.get(conversationList.size() - 1).localid;
+			firstMid = conversationList.get(0).localid;
 		}
 		fromText.setText(firstMid + "");
 		toText.setText(lastMid + "");
@@ -175,8 +181,10 @@ public class BackupActivity extends Activity {
 				fromText.setText(firstMid + "");
 				if (isChecked) {
 					fromText.setVisibility(View.GONE);
+					fromTextInfo.setVisibility(View.GONE);
 				} else {
 					fromText.setVisibility(View.VISIBLE);
+					fromTextInfo.setVisibility(View.VISIBLE);
 				}
 			}
 		});
@@ -186,7 +194,9 @@ public class BackupActivity extends Activity {
 				toText.setText(lastMid + "");
 				if (isChecked) {
 					toText.setVisibility(View.GONE);
+					toTextInfo.setVisibility(View.GONE);
 				} else {
+					toTextInfo.setVisibility(View.VISIBLE);
 					toText.setVisibility(View.VISIBLE);
 				}
 			}
@@ -202,21 +212,12 @@ public class BackupActivity extends Activity {
 		buttonBackup.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 
-				int fromMid = Utility.parseInt(fromText.getText().toString(),
+				int fromLid = Utility.parseInt(fromText.getText().toString(),
 						-1);
-				int toMid = Utility.parseInt(toText.getText().toString(), -1);
+				int toLid = Utility.parseInt(toText.getText().toString(), -1);
 
-				int fromLocal = DB.getHostLocalIdByMid(context, fromMid,
-						hostUid);
-				if (fromLocal == -1) {
-					fromLocal = fromMid;
-				}
-				int toLocal = DB.getHostLocalIdByMid(context, toMid, hostUid);
-				if (toLocal == -1) {
-					toLocal = toMid;
-				}
 
-				doBackup(context, fromLocal, toLocal, conversationList,
+				doBackup(context, fromLid, toLid, conversationList,
 						details.isChecked(), removeimages.isChecked());
 
 				activity.finish();

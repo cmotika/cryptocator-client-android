@@ -2922,15 +2922,15 @@ org.cryptocator.Communicator:
 org.cryptocator.Conversation:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
-    3673:3701:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
-    3775:3807:public void insertImage(android.content.Context,java.lang.String)
+    3744:3772:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
+    3846:3878:public void insertImage(android.content.Context,java.lang.String)
     148:148:static synthetic boolean access$32()
-org.cryptocator.Conversation$74:
-    3554:3559:public void onCancel()
-org.cryptocator.Conversation$75
 org.cryptocator.Conversation$76:
-    3746:3750:public void onCancel()
+    3625:3630:public void onCancel()
 org.cryptocator.Conversation$77
+org.cryptocator.Conversation$78:
+    3817:3821:public void onCancel()
+org.cryptocator.Conversation$79
 org.cryptocator.ConversationCompose:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
@@ -2959,12 +2959,13 @@ org.cryptocator.FastScrollBar:
 org.cryptocator.HttpStringRequest:
     116:117:public void setOnResponseListener(org.cryptocator.HttpStringRequest$OnResponseListener)
 org.cryptocator.ImageContextMenu:
-    387:390:public static void close()
-    400:400:public static boolean visible()
+    487:490:public static void close()
+    500:500:public static boolean visible()
 org.cryptocator.ImageContextMenu$ImageContextMenuProvider:
-    206:207:public void setTextSize(int)
-    254:261:public int addEntry(java.lang.String,android.graphics.drawable.Drawable,org.cryptocator.ImageContextMenu$ImageContextMenuSelectionListener)
-    287:288:public void setEnabled(int,boolean)
+    239:240:public void setTextSize(int)
+    288:296:public int addEntry(java.lang.String,android.graphics.drawable.Drawable,org.cryptocator.ImageContextMenu$ImageContextMenuSelectionListener)
+    351:352:public void setEnabled(int,boolean)
+    408:413:public boolean setViewProvider(int,org.cryptocator.ImageContextMenu$ExtendedEntryViewProvider)
 org.cryptocator.ImagePressButton:
     212:214:public void initializePressImageResourceWhite(int)
     271:272:public void initializePressImageResource(int,int,int)
@@ -3124,11 +3125,11 @@ org.cryptocator.Setup:
     public static final java.lang.String LASTUPDATE_SERVER_ATTACHMENT_LIMIT
     public static final int SMS_SIZE_WARNING
     public static final int MULTIPART_MESSAGELIMIT
-    3630:3635:public static boolean haveAESKey(android.content.Context,int)
-    4000:4016:public static java.security.PublicKey getPublicKey(android.content.Context)
-    5146:5166:public static java.lang.String encText(android.content.Context,java.lang.String,int)
-    6070:6071:public static void setVersionUpdated(android.content.Context)
-    6084:6084:public static boolean isVersionUpdated(android.content.Context)
+    3642:3647:public static boolean haveAESKey(android.content.Context,int)
+    4012:4028:public static java.security.PublicKey getPublicKey(android.content.Context)
+    5158:5178:public static java.lang.String encText(android.content.Context,java.lang.String,int)
+    6082:6083:public static void setVersionUpdated(android.content.Context)
+    6096:6096:public static boolean isVersionUpdated(android.content.Context)
 org.cryptocator.Utility:
     public static final java.lang.String PREFERENCESURI
     136:136:public Utility()
