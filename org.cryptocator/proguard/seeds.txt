@@ -439,6 +439,7 @@ org.cryptocator.R$id: int quicktype
 org.cryptocator.R$id: int read
 org.cryptocator.R$id: int receiveallsms
 org.cryptocator.R$id: int received
+org.cryptocator.R$id: int receivedtext
 org.cryptocator.R$id: int removeimages
 org.cryptocator.R$id: int restore
 org.cryptocator.R$id: int revoked

@@ -161,10 +161,10 @@ public class Main extends Activity {
 	public static boolean highContrast = false;
 
 	/**
-	 * If the light sensor value is higher than 90% of the so far maximum value,
+	 * If the light sensor value is higher than 98% of the so far maximum value,
 	 * then high contrast will be set to true.
 	 */
-	public static int highContrastBarrierInPercent = 95;
+	public static int highContrastBarrierInPercent = 98;
 
 	/** The Constant TEXTCOLOEWHITE. */
 	public static final int TEXTCOLOEWHITE = Color.parseColor("#FFFFFFFF");

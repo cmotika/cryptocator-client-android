@@ -195,7 +195,7 @@ public class ConversationCompose extends Activity {
 										public void run() {
 											((ConversationCompose) activity)
 													.insertImage(activity,
-															attachmentPath); 
+															attachmentPath);
 										}
 									}, 100);
 								}
@@ -237,8 +237,7 @@ public class ConversationCompose extends Activity {
 		toList = (FastScrollView) findViewById(R.id.tolist);
 		toList.setSnapDown(80);
 		toList.setSnapUp(20);
-		toList
-		.setScrollBackground(Conversation.FASTSCROLLBACKSCROLLINGBACKGROUND);
+		toList.setScrollBackground(Conversation.FASTSCROLLBACKSCROLLINGBACKGROUND);
 
 		messageText = ((ImageSmileyEditText) findViewById(R.id.messageText));
 		messageText.setInputTextField(true);
@@ -654,7 +653,8 @@ public class ConversationCompose extends Activity {
 		if (uid < 0) {
 			// for not registered SMS users we do not prompt but just send an
 			// sms
-			sendMessageOrPrompt(context, DB.TRANSPORT_SMS, false, uid);
+			sendMessageOrPrompt(context, DB.TRANSPORT_SMS, false, uid,
+					messageText.getText().toString().trim(), getSendListener(context, uid));
 			return;
 		}
 		// now check if SMS and encryption is available
@@ -682,19 +682,44 @@ public class ConversationCompose extends Activity {
 	private void sendMessagePrompt(final Context context, final boolean sms,
 			final boolean encryption) {
 		String name = "";
-		final int uid = parsePhoneOrUid(phoneOrUid.getText().toString());
+		int uid = parsePhoneOrUid(phoneOrUid.getText().toString());
 		if (uid != -1) {
 			name = Main.UID2Name(context, uid, false);
 		} else {
+			// Create a user if he did not exist!
 			int backupUid = ReceiveSMS.getUidByPhoneOrCreateUser(context,
-					phoneOrUid.getText().toString(), false);
+					phoneOrUid.getText().toString(), true);
 			if (backupUid != -1) {
+				uid = backupUid;
 				name = Main.UID2Name(context, backupUid, false);
 			}
 		}
 
+		final String messageTextString = messageText.getText().toString()
+				.trim();
+		
+		sendMessagePrompt(context, sms, encryption, uid, name,
+				messageTextString, getSendListener(context, uid));
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Send message prompt.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param sms
+	 *            the sms
+	 * @param encryption
+	 *            the encryption
+	 */
+	public static void sendMessagePrompt(final Context context,
+			final boolean sms, final boolean encryption, final int uid,
+			final String name, final String messageTextString, final Conversation.OnSendListener sendListener) {
+
 		String title = "Send Message to " + name;
-		String text = "Send the new message encrypted or not encrypted and via Internet or SMS?";
+		String text = "Send the message encrypted or not encrypted and via Internet or SMS?";
 		if (sms && !encryption) {
 			text = "Send the new message (unencrypted) via Internet or SMS?";
 		} else if (!sms && encryption) {
@@ -737,7 +762,7 @@ public class ConversationCompose extends Activity {
 									public void onClick(View v) {
 										sendMessageOrPrompt(context,
 												DB.TRANSPORT_INTERNET, true,
-												uid);
+												uid, messageTextString, sendListener);
 										dialog.dismiss();
 									}
 								});
@@ -752,7 +777,7 @@ public class ConversationCompose extends Activity {
 									public void onClick(View v) {
 										sendMessageOrPrompt(context,
 												DB.TRANSPORT_INTERNET, false,
-												uid);
+												uid, messageTextString, sendListener);
 										dialog.dismiss();
 									}
 								});
@@ -766,7 +791,8 @@ public class ConversationCompose extends Activity {
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
 										sendMessageOrPrompt(context,
-												DB.TRANSPORT_SMS, true, uid);
+												DB.TRANSPORT_SMS, true, uid,
+												messageTextString, sendListener);
 										dialog.dismiss();
 									}
 								});
@@ -780,7 +806,8 @@ public class ConversationCompose extends Activity {
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
 										sendMessageOrPrompt(context,
-												DB.TRANSPORT_SMS, false, uid);
+												DB.TRANSPORT_SMS, false, uid,
+												messageTextString, sendListener);
 										dialog.dismiss();
 									}
 								});
@@ -816,6 +843,45 @@ public class ConversationCompose extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
+	 * Gets a send listener for the ConversationCompose activity.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the send listener
+	 */
+	Conversation.OnSendListener getSendListener(final Context context, final int uid) {
+		final String name = Main.UID2Name(context, uid, false);
+		Conversation.OnSendListener sendListener = 
+		new Conversation.OnSendListener() {
+			public void onSend(boolean success, boolean encrypted, int transport) {
+				if (success) {
+					String encryptedText = "";
+					if (!encrypted) {
+						encryptedText = "unsecure ";
+					}
+					if (transport == DB.TRANSPORT_INTERNET) {
+						Utility.showToastInUIThread(context, "Sending " + encryptedText
+								+ "message to " + name + ".");
+					} else {
+						Utility.showToastInUIThread(context, "Sending " + encryptedText
+								+ "SMS to " + name + ".");
+					}
+					messageText.setText("");
+					phoneOrUid.setText("");
+					Utility.saveStringSetting(context, "cachedraftcompose", "");
+					Utility.saveStringSetting(context, "cachedraftcomposephone", "");
+					finish();
+				}
+			}
+		};
+		return sendListener;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
 	 * Send message or prompt the user if the message is too large for SMS or
 	 * contains too large images for Internet/server limits.
 	 * 
@@ -828,10 +894,10 @@ public class ConversationCompose extends Activity {
 	 * @param promptLargeSMSOrLargeImages
 	 *            the prompt large sms or large images
 	 */
-	private void sendMessageOrPrompt(final Context context,
-			final int transport, final boolean encrypted, int uid) {
-		final String messageTextString = messageText.getText().toString()
-				.trim();
+	private static void sendMessageOrPrompt(final Context context,
+			final int transport, final boolean encrypted, final int uid,
+			final String messageTextString,
+			final Conversation.OnSendListener sendListener) {
 		if (messageTextString.length() > 0) {
 			if (transport == DB.TRANSPORT_INTERNET) {
 				final String messageTextString2 = Conversation
@@ -847,7 +913,8 @@ public class ConversationCompose extends Activity {
 								public void selected(int button, boolean cancel) {
 									if (button == MessageAlertDialog.BUTTONOK0) {
 										sendMessage(context, transport,
-												encrypted, messageTextString2);
+												encrypted, messageTextString2,
+												uid, sendListener);
 									}
 								}
 							}).show();
@@ -866,7 +933,8 @@ public class ConversationCompose extends Activity {
 								public void selected(int button, boolean cancel) {
 									if (button == MessageAlertDialog.BUTTONOK0) {
 										sendMessage(context, transport,
-												encrypted, messageTextString);
+												encrypted, messageTextString,
+												uid, sendListener);
 									}
 								}
 							}).show();
@@ -874,7 +942,8 @@ public class ConversationCompose extends Activity {
 				}
 			}
 			// Message is not too long and not contains too large images
-			sendMessage(context, transport, encrypted, messageTextString);
+			sendMessage(context, transport, encrypted, messageTextString, uid,
+					sendListener);
 		}
 	}
 
@@ -890,33 +959,9 @@ public class ConversationCompose extends Activity {
 	 * @param encrypted
 	 *            the encrypted
 	 */
-	private void sendMessage(final Context context, final int transport,
-			final boolean encrypted, final String messageTextString) {
-
-		// this is the main uid we first try
-		int uid = parsePhoneOrUid(phoneOrUid.getText().toString());
-
-		// Log.d("communicator", "######## sendMessage uid=" + uid);
-
-		// if a phone number is entered then take the backup uid
-		if (uid == -1) {
-			String phoneString = phoneOrUid.getText().toString();
-			// Log.d("communicator", "######## sendMessage phoneString="
-			// + phoneString);
-			if (phoneString == null || phoneString.trim().length() == 0) {
-				return;
-			}
-			// try to find user... or create a new one
-			int backupUid = ReceiveSMS.getUidByPhoneOrCreateUser(context,
-					phoneString, true);
-			// Log.d("communicator", "######## sendMessage backupUid="
-			// + backupUid);
-			uid = backupUid;
-		}
-
-		String name = Main.UID2Name(context, uid, false);
-		// Log.d("communicator", "######## sendMessage name=" + name);
-
+	private static void sendMessage(final Context context, final int transport,
+			final boolean encrypted, final String messageTextString,
+			final int uid, final Conversation.OnSendListener sendListener) {
 		if (uid != -1) {
 			// Log.d("communicator",
 			// "######## sendMessage SENDING NOW... transport="
@@ -924,22 +969,9 @@ public class ConversationCompose extends Activity {
 			if (DB.addSendMessage(context, uid, messageTextString, encrypted,
 					transport, false, DB.PRIORITY_MESSAGE)) {
 				Communicator.sendNewNextMessageAsync(context, transport);
-				String encryptedText = "";
-				if (!encrypted) {
-					encryptedText = "unsecure ";
-				}
-				if (transport == DB.TRANSPORT_INTERNET) {
-					Utility.showToastInUIThread(context, "Sending "
-							+ encryptedText + "message to " + name + ".");
-				} else {
-					Utility.showToastInUIThread(context, "Sending "
-							+ encryptedText + "SMS to " + name + ".");
-				}
-				messageText.setText("");
-				phoneOrUid.setText("");
-				Utility.saveStringSetting(context, "cachedraftcompose", "");
-				Utility.saveStringSetting(context, "cachedraftcomposephone", "");
-				finish();
+				sendListener.onSend(true, encrypted, transport);
+			} else {
+				sendListener.onSend(false, encrypted, transport);
 			}
 		}
 	}
