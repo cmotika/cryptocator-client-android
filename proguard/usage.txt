@@ -2922,14 +2922,14 @@ org.cryptocator.Communicator:
 org.cryptocator.Conversation:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
-    3865:3893:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
-    3967:3999:public void insertImage(android.content.Context,java.lang.String)
+    3866:3894:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
+    3968:4000:public void insertImage(android.content.Context,java.lang.String)
     148:148:static synthetic boolean access$32()
 org.cryptocator.Conversation$74:
-    3746:3751:public void onCancel()
+    3747:3752:public void onCancel()
 org.cryptocator.Conversation$75
 org.cryptocator.Conversation$76:
-    3938:3942:public void onCancel()
+    3939:3943:public void onCancel()
 org.cryptocator.Conversation$77
 org.cryptocator.ConversationCompose:
     private static final int SELECT_PICTURE

@@ -3403,6 +3403,7 @@ public class Conversation extends Activity {
 	 * @param context
 	 *            the context
 	 */
+	@SuppressLint("DefaultLocale")
 	public void promptSearch(final Context context) {
 
 		String lastSearch = Utility.loadStringSetting(context,
@@ -3469,8 +3470,8 @@ public class Conversation extends Activity {
 									end = max;
 								}
 								for (int c = start; c != end; c = c + incr) {
-									if (conversationList.get(c).text
-											.contains(searchString)) {
+									if (conversationList.get(c).text.toLowerCase()
+											.contains(searchString.toLowerCase())) {
 										foundItem = c;
 										// Try to mark / highlight
 										ConversationItem item = conversationList
