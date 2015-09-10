@@ -232,6 +232,9 @@ public class Conversation extends Activity {
 	/** The is encryption on. */
 	private boolean isEncryptionOn = false;
 
+	/** The list of all images. */
+	private List<Bitmap> images = new ArrayList<Bitmap>();
+
 	// ------------------------------------------------------------------------
 
 	/**
@@ -799,6 +802,10 @@ public class Conversation extends Activity {
 	 *            the width
 	 */
 	private void updateTextViewsWidth(int width) {
+		// We MUST clear the list of images here and coall GC!
+		images.clear();
+		System.gc();
+		// The list of images will be filled with updateTextViewWidth again!
 		for (ImageSmileyEditText textView : textViews) {
 			updateTextViewWidth(textView, width);
 		}
@@ -1189,6 +1196,7 @@ public class Conversation extends Activity {
 		conversationList.clear();
 		conversationListDiff.clear();
 		textViews.clear();
+		images.clear();
 		// For large conversations with images this is needed
 		System.gc();
 		super.onDestroy();
@@ -1616,6 +1624,7 @@ public class Conversation extends Activity {
 		fastScrollView.clearChilds();
 		resetMapping();
 		textViews.clear();
+		images.clear();
 		// For large conversations with images this is needed
 		System.gc();
 
@@ -2216,17 +2225,20 @@ public class Conversation extends Activity {
 		// Set the current width
 		updateTextViewWidth(conversationText, currentScreenWidth);
 
-		conversationText
-				.setOnCutCopyPasteListener(new ImageSmileyEditText.OnCutCopyPasteListener() {
-					public void onPaste() {
-					}
-
-					public void onCut() {
-					}
-
-					public void onCopy() {
-					}
-				});
+		// Currently not needed
+		//
+		// conversationText
+		// .setOnCutCopyPasteListener(new
+		// ImageSmileyEditText.OnCutCopyPasteListener() {
+		// public void onPaste() {
+		// }
+		//
+		// public void onCut() {
+		// }
+		//
+		// public void onCopy() {
+		// }
+		// });
 
 		TextView conversationTime = (TextView) conversationlistitem
 				.findViewById(R.id.conversationtime);
@@ -2896,9 +2908,9 @@ public class Conversation extends Activity {
 							LinearLayout.LayoutParams.WRAP_CONTENT);
 					lpInfoTextBox.setMargins(0, 0, 0, 0);
 					infoTextBox.setLayoutParams(lpInfoTextBox);
-					//infoTextBox.setBackgroundColor(Color.YELLOW);
+					// infoTextBox.setBackgroundColor(Color.YELLOW);
 					infoTextBox
-					.setBackgroundColor(Setup.COLOR_MAIN_BLUEDARKEST);
+							.setBackgroundColor(Setup.COLOR_MAIN_BLUEDARKEST);
 
 					LinearLayout infoTextBoxInner = new LinearLayout(context);
 					LinearLayout.LayoutParams lpInfoTextBoxInner = new LinearLayout.LayoutParams(
@@ -2906,8 +2918,8 @@ public class Conversation extends Activity {
 							LinearLayout.LayoutParams.WRAP_CONTENT);
 					infoTextBoxInner.setLayoutParams(lpInfoTextBoxInner);
 					infoTextBoxInner.setGravity(Gravity.CENTER_HORIZONTAL);
-					//infoTextBoxInner.setBackgroundColor(Color.CYAN);
-					
+					// infoTextBoxInner.setBackgroundColor(Color.CYAN);
+
 					imageMessageMenuInfoText = new TextView(context);
 					LinearLayout.LayoutParams lpInfoText = new LinearLayout.LayoutParams(
 							LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -2916,8 +2928,8 @@ public class Conversation extends Activity {
 					imageMessageMenuInfoText.setLayoutParams(lpInfoText);
 					imageMessageMenuInfoText.setTextColor(Color.WHITE);
 					imageMessageMenuInfoText.setTextSize(14);
-					//imageMessageMenuInfoText.setBackgroundColor(Color.GREEN);
-					
+					// imageMessageMenuInfoText.setBackgroundColor(Color.GREEN);
+
 					// The separator
 					LinearLayout infoTextLine = new LinearLayout(context);
 					infoTextLine.setBackgroundColor(Setup.COLOR_BLUELINE);
@@ -2927,7 +2939,7 @@ public class Conversation extends Activity {
 					lpInfoTextLine.setMargins(0, 0, 0, 0);
 					lpInfoTextLine.height = 2;
 					infoTextLine.setLayoutParams(lpInfoTextLine);
-	
+
 					infoTextBoxInner.addView(imageMessageMenuInfoText);
 					infoTextBox.addView(infoTextBoxInner);
 					infoTextBox.addView(infoTextLine);
@@ -3219,14 +3231,16 @@ public class Conversation extends Activity {
 	String imageImageMenuString = null;
 	String imageImageMenuTitleAddition = null;
 	String imageImageMenuDescription = null;
+	int imageImageMenuImageIndex = -1;
 
 	public ImageContextMenuProvider createImageContextMenu(
 			final Activity context, Bitmap bitmap, String encodedImg,
-			final String titleAddition, final String description) {
+			final String titleAddition, final String description, int imageIndex) {
 		imageImageMenuBitmap = bitmap;
 		imageImageMenuString = encodedImg;
 		imageImageMenuTitleAddition = titleAddition;
 		imageImageMenuDescription = description;
+		imageImageMenuImageIndex = imageIndex;
 
 		if (imageImageMenuProvider == null) {
 			imageImageMenuProvider = new ImageContextMenuProvider(context,
@@ -3237,7 +3251,8 @@ public class Conversation extends Activity {
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
 							ImageFullscreenActivity.showFullscreenImage(
-									context, imageImageMenuBitmap);
+									context, imageImageMenuBitmap,
+									imageImageMenuImageIndex);
 							return true;
 						}
 					});
@@ -4344,6 +4359,82 @@ public class Conversation extends Activity {
 		String date = DB.getDateString(time, false);
 
 		return SMSorInternet + " " + sentReceived + " @ " + date + ".";
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the images size.
+	 * 
+	 * @return the images size
+	 */
+	public int getImagesSize() {
+		return images.size();
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Checks if is last image.
+	 * 
+	 * @param imageIndex
+	 *            the image index
+	 * @return true, if is last image
+	 */
+	public boolean isLastImage(int imageIndex) {
+		return (getImagesSize() == imageIndex + 1);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Internally used by the ImageSimleyEditText to register a new image. The
+	 * return value is the index. This is needed to know the position in the
+	 * list of images.
+	 * 
+	 * @param imageSpan
+	 *            the image span
+	 * @return the int
+	 */
+	public int registerImage(Bitmap imageBitmap) {
+		images.add(imageBitmap);
+		return images.size() - 1;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Shows the next image and returns its imageIndex.
+	 * 
+	 * @param imageIndex
+	 *            the image index
+	 * @return the int
+	 */
+	public void showNextImage(Context context, int imageIndex) {
+		if (!isLastImage(imageIndex)) {
+			imageIndex++;
+		}
+		Bitmap bitmap = images.get(imageIndex);
+		ImageFullscreenActivity
+				.showFullscreenImage(context, bitmap, imageIndex);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Shows the next image and returns its imageIndex.
+	 * 
+	 * @param imageIndex
+	 *            the image index
+	 * @return the int
+	 */
+	public void showPreviousImage(Context context, int imageIndex) {
+		if (imageIndex > 0) {
+			imageIndex--;
+		}
+		Bitmap bitmap = images.get(imageIndex);
+		ImageFullscreenActivity
+				.showFullscreenImage(context, bitmap, imageIndex);
 	}
 
 	// ------------------------------------------------------------------------

@@ -59,7 +59,9 @@ import android.widget.EditText;
  * The ImageSmileyEditText class is a EditText component for displaying messages
  * in the conversation class. It is capable of parsing and substituting textual
  * smileys with graphical ones. The copied text will still have the textual
- * smileys in it for convenience.
+ * smileys in it for convenience. It registeres all images in
+ * Conversation.images (so that we can later swipe between them in fullscreen
+ * mode) and it registers a clickable span image context menu from conversation.
  * 
  * Special thanks and acknowledgments to user
  * http://stackoverflow.com/users/755804/18446744073709551615 and his answer in
@@ -431,6 +433,14 @@ public class ImageSmileyEditText extends EditText {
 				spannable.setSpan(new ImageSpan(drawable), start, end,
 						Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
+				int imageIndex = -1;
+				if (Conversation.isAlive()) {
+					imageIndex = Conversation.getInstance().registerImage(
+							bitmap);
+					// Log.d("communicator", "IMAGE[" + imageIndex
+					// + "] ADD: start=" + start + ", end=" + end);
+				}
+				final int imageIndex2 = imageIndex;
 				final Bitmap bitmap2 = bitmap;
 				ClickableSpan clickableSpan = new ClickableSpan() {
 					@Override
@@ -442,7 +452,7 @@ public class ImageSmileyEditText extends EditText {
 									.createImageContextMenu(conversation,
 											bitmap2, encodedImg,
 											editText.titleAddition,
-											editText.description));
+											editText.description, imageIndex2));
 						}
 					}
 				};
