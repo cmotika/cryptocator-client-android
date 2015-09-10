@@ -686,20 +686,27 @@ public class Setup extends Activity {
 
 	/** Split a message if the part size is larger than this constant */
 	public static final int MULTIPART_MESSAGELIMIT = 450;
-	
+
 	/** The Constant COLOR_MAIN_BLUE. */
 	public static final int COLOR_MAIN_BLUE = Color.parseColor("#FF5DA9FE");
-	
+
 	/** The Constant COLOR_MAIN_BLUEDARK a darker version. */
 	public static final int COLOR_MAIN_BLUEDARK = Color.parseColor("#ff0077ff");
-	
+
 	/** The Constant COLOR_MAIN_BLUEDARK an even darker version. */
-	public static final int COLOR_MAIN_BLUEDARKEST = Color.parseColor("#445DA9FE");
-	
+	public static final int COLOR_MAIN_BLUEDARKEST = Color
+			.parseColor("#445DA9FE");
+
 	/** The Constant COLOR_BLUELINE. */
 	public static final int COLOR_BLUELINE = Color.parseColor("#FF00CCFF");
-	
-		// ------------------------------------------------------------------------
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * The flag if a restart required. When closing this activoity, a restart is
+	 * performed!
+	 */
+	private boolean restartRequiredFlag = false;
 
 	/** The active. */
 	private CheckBox active;
@@ -983,16 +990,17 @@ public class Setup extends Activity {
 
 		serverimage.setOnLongClickListener(new OnLongClickListener() {
 			public boolean onLongClick(View v) {
-				boolean active = isServerActive(context, selectedServerId);
+				boolean active = isServerActive(context, selectedServerId,
+						false);
 				setServerActive(context, selectedServerId, !active);
-				updateServerImage(context, false);
+				updateServerImage(context, false, false);
 				return false;
 			}
 		});
 		serverdisabled.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				if (!serverdisabled.isChecked()) {
-					enableServer(context);
+					enableServer(context, false);
 					if (Main.isAlive()) {
 						Main.getInstance().updateInfoMessageBlockAsync(context);
 					}
@@ -1047,8 +1055,8 @@ public class Setup extends Activity {
 				}
 				index++;
 			}
-			Utility.showToastAsync(context,
-					getServer(context, selectedServerId));
+			// Utility.showToastAsync(context,
+			// getServer(context, selectedServerId));
 		}
 
 		advancedsettings = (LinearLayout) findViewById(R.id.advancedsettings);
@@ -1669,7 +1677,7 @@ public class Setup extends Activity {
 			e.printStackTrace();
 		}
 
-		updateServerImage(context, false);
+		updateServerImage(context, false, false);
 	}
 
 	// ------------------------------------------------------------------------
@@ -1680,9 +1688,12 @@ public class Setup extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	private void updateServerImage(Context context, boolean userClickedActivate) {
-		boolean active = isServerActive(context, selectedServerId);
-		boolean haveaccount = isServerAccount(context, selectedServerId);
+	private void updateServerImage(Context context,
+			boolean userClickedActivate, boolean forceRefresh) {
+
+		boolean active = isServerActive(context, selectedServerId, forceRefresh);
+		boolean haveaccount = isServerAccount(context, selectedServerId,
+				forceRefresh);
 
 		if (active && haveaccount) {
 			if (serverdisabled != null) {
@@ -1705,7 +1716,7 @@ public class Setup extends Activity {
 								"Server Not Active",
 								"You need a valid account and an "
 										+ "Internet connection in order to activate a server.\n\nIf you do not have an "
-										+ "account for this server yet, create one first below. After that try to "
+										+ "account for this server yet, create one first below. After that, try to "
 										+ "activate the server again.");
 			}
 			if (serverdisabled != null) {
@@ -2209,7 +2220,8 @@ public class Setup extends Activity {
 	 * @param isError
 	 *            the is error
 	 */
-	static void setErrorInfo(Context context, String message, boolean isError) {
+	static void setErrorInfo(final Context context, String message,
+			boolean isError) {
 		if (error == null || info == null) {
 			// Not visible only send this as toast
 			if (message != null && message.length() > 0) {
@@ -2232,6 +2244,12 @@ public class Setup extends Activity {
 				info.setText(message);
 				info.requestFocus();
 			}
+			info.postDelayed(new Runnable() {
+				public void run() {
+					// Hide the info after 3 sec + 1 sec per 20 characters
+					setErrorInfo(context, null, false);
+				}
+			}, 3000 + (1000 * (message.length() / 20)));
 			if (uid != null) {
 				uid.requestFocus();
 				Utility.hideKeyboardExplicit(uid);
@@ -2311,7 +2329,7 @@ public class Setup extends Activity {
 		LoginData loginData = calculateLoginVal(context, uidString,
 				emailString, pwdString, serverId);
 		if (loginData == null) {
-			setErrorInfo("Encryption error, try again after restarting the App!");
+			setErrorInfo("Encryption error, try again or restart the app.");
 			login.setEnabled(true);
 			return;
 		}
@@ -2321,7 +2339,7 @@ public class Setup extends Activity {
 		String uidStringEnc = Communicator.encryptServerMessage(context,
 				uidString, serverKey);
 		if (uidStringEnc == null) {
-			setErrorInfo("Encryption error. Try again after restarting the App.");
+			setErrorInfo("Encryption error. Try again or restart the app.");
 			login.setEnabled(true);
 			return;
 		}
@@ -2329,7 +2347,7 @@ public class Setup extends Activity {
 		String emailStringEnd = Communicator.encryptServerMessage(context,
 				emailString, serverKey);
 		if (emailStringEnd == null) {
-			setErrorInfo("Encryption error. Try again after restarting the App.");
+			setErrorInfo("Encryption error. Try again or restart the app.");
 			login.setEnabled(true);
 			return;
 		}
@@ -2407,10 +2425,10 @@ public class Setup extends Activity {
 										// DETECT UID=CHANGE ===> EXIT
 										// APPLICATION!
 										if (!uidBefore.equals(uidR)) {
+											restartRequiredFlag = true;
 											Utility.showToastAsync(
 													context,
 													"Account/UID changed. Cryptocator must be re-started in order to operate properly...");
-											Main.exitApplication(context);
 										}
 									} else {
 										uidR = tmpUid + "";
@@ -2439,6 +2457,8 @@ public class Setup extends Activity {
 										uid.setText(uid2);
 										user.setText(username2);
 										Utility.saveStringSetting(context,
+												SERVER_UID + serverId, uid2);
+										Utility.saveStringSetting(context,
 												SERVER_USERNAME + serverId,
 												username2);
 										if (tmpUid > 0) {
@@ -2450,7 +2470,7 @@ public class Setup extends Activity {
 										updateonline();
 										// IF LOGIN IS SUCCESSFULL => ENABLE
 										// SERVER!
-										enableServer(context);
+										enableServer(context, true);
 
 										setErrorInfo(
 												"Login successfull.\n\nYou can now edit your username, enable sms support, change your password, or backup or restore your user list below.",
@@ -2520,7 +2540,7 @@ public class Setup extends Activity {
 		String usernameStringEnc = Communicator.encryptServerMessage(context,
 				usernameString, serverKey);
 		if (usernameStringEnc == null) {
-			setErrorInfo("Encryption error. Try again after restarting the App.");
+			setErrorInfo("Encryption error. Try again or restart the app.");
 			updateuser.setEnabled(true);
 			return;
 		}
@@ -2528,7 +2548,7 @@ public class Setup extends Activity {
 
 		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
-			setErrorInfo("Session error. Try again after restarting the App.");
+			setErrorInfo("Session error. Try again after restarting the app.");
 			updateuser.setEnabled(true);
 			// error resume is automatically done by getTmpLogin, not logged in
 			return;
@@ -2621,7 +2641,7 @@ public class Setup extends Activity {
 		String pwdChangeStringEnc = Communicator.encryptServerMessage(context,
 				pwdChangeString, serverKey);
 		if (pwdChangeStringEnc == null) {
-			setErrorInfo("Encryption error. Try again after restarting the App.");
+			setErrorInfo("Encryption error. Try again or restart the app.");
 			updatepwd.setEnabled(true);
 			return;
 		}
@@ -2629,7 +2649,7 @@ public class Setup extends Activity {
 
 		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
-			setErrorInfo("Session error. Try again after restarting the App.");
+			setErrorInfo("Session error. Try again after restarting the app.");
 			updatepwd.setEnabled(true);
 			// error resume is automatically done by getTmpLogin, not logged in
 			return;
@@ -2742,7 +2762,7 @@ public class Setup extends Activity {
 		emailString = Communicator.encryptServerMessage(context, emailString,
 				serverKey);
 		if (emailString == null) {
-			setErrorInfo("Encryption error. Have you specified a valid email address? Try again after restarting the App.");
+			setErrorInfo("Encryption error. Have you specified a valid email address? Try again or restart the app.");
 			create.setEnabled(true);
 			return;
 		}
@@ -2751,7 +2771,7 @@ public class Setup extends Activity {
 		pwdString = Communicator.encryptServerMessage(context, pwdString,
 				serverKey);
 		if (pwdString == null) {
-			setErrorInfo("Encryption error. Have you specified a valid password? Try again after restarting the App.");
+			setErrorInfo("Encryption error. Have you specified a valid password? Try again or restart the app.");
 			create.setEnabled(true);
 			return;
 		}
@@ -2760,7 +2780,7 @@ public class Setup extends Activity {
 		usernameString = Communicator.encryptServerMessage(context,
 				usernameString, serverKey);
 		if (usernameString == null) {
-			setErrorInfo("Encryption error. Have you specified a valid username? Try again after restarting the App.");
+			setErrorInfo("Encryption error. Have you specified a valid username? Try again after restart the app.");
 			create.setEnabled(true);
 			return;
 		}
@@ -2844,8 +2864,7 @@ public class Setup extends Activity {
 												"Your new UID is "
 														+ newUID
 														+ ". Cryptocator must be re-started in order to operate properly...");
-										Main.exitApplication(context);
-
+										restartRequiredFlag = true;
 									} else {
 										if (response2.equals("-17")) {
 											setErrorInfo("This server currently does not permit any new registrations.");
@@ -3246,7 +3265,7 @@ public class Setup extends Activity {
 				phoneString, serverKey);
 		if (phoneStringEnc == null) {
 			setErrorInfo(context,
-					"Encryption error. Try again after restarting the App.");
+					"Encryption error. Try again or restart the app.");
 			enablesmsoption.setEnabled(true);
 			return;
 		}
@@ -3255,7 +3274,7 @@ public class Setup extends Activity {
 		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			setErrorInfo(context,
-					"Session error. Try again after restarting the App.");
+					"Session error. Try again or restart the app.");
 			enablesmsoption.setEnabled(true);
 			// error resume is automatically done by getTmpLogin, not logged in
 			return;
@@ -3466,7 +3485,7 @@ public class Setup extends Activity {
 			// send public key to all servers
 			String keyHash = getPublicKeyHash(context);
 			for (int serverId : getServerIds(context)) {
-				if (Setup.isServerAccount(context, serverId)) {
+				if (Setup.isServerAccount(context, serverId, true)) {
 					Communicator.sendKeyToServer(context, encodedpublicKey,
 							keyHash, serverId);
 				}
@@ -3516,7 +3535,7 @@ public class Setup extends Activity {
 		Utility.saveStringSetting(context, Setup.PUBRSAKEY, null);
 		Utility.saveStringSetting(context, Setup.PRIVATERSAKEY, null);
 		for (int serverId : getServerIds(context)) {
-			if (Setup.isServerAccount(context, serverId)) {
+			if (Setup.isServerAccount(context, serverId, true)) {
 				Communicator.clearKeyFromServer(context, keyHash, serverId);
 			}
 		}
@@ -4327,7 +4346,7 @@ public class Setup extends Activity {
 			final String textMessage = "Encrypted messages are a main feature of this messaging service. Unencrypted plaintext messages can be possibly read by anyone observing your internet connection.\n\n"
 					+ "Do you really want to disable encryption and only send and receive plaintext messages? ";
 			new MessageAlertDialog(context, titleMessage, textMessage,
-					" Disable Encryption ", " Cancel ", null,
+					"Still Disable", "Cancel", null,
 					new MessageAlertDialog.OnSelectionListener() {
 						public void selected(int button, boolean cancel) {
 							encryption.setChecked(true);
@@ -4389,7 +4408,7 @@ public class Setup extends Activity {
 	public static boolean noAccountYet(Context context) {
 		boolean foundAccount = false;
 		for (int serverId : getServerIds(context)) {
-			if (Setup.isServerAccount(context, serverId)) {
+			if (Setup.isServerAccount(context, serverId, false)) {
 				foundAccount = true;
 				break;
 			}
@@ -5004,7 +5023,7 @@ public class Setup extends Activity {
 	 */
 	public static void updateAllServerkeys(final Context context) {
 		for (int serverId : getServerIds(context)) {
-			if (isServerAccount(context, serverId)) {
+			if (isServerAccount(context, serverId, false)) {
 				updateServerkey(context, serverId, true);
 			}
 		}
@@ -5487,7 +5506,7 @@ public class Setup extends Activity {
 	public static void updateAttachmentAllServerLimits(final Context context,
 			boolean forceUpdate) {
 		for (int serverId : getServerIds(context)) {
-			if (isServerAccount(context, serverId)) {
+			if (isServerAccount(context, serverId, false)) {
 				updateAttachmentServerLimit(context, forceUpdate, serverId);
 			}
 		}
@@ -5800,8 +5819,8 @@ public class Setup extends Activity {
 			}
 			String serverAddress = serverList.get(serverIndex);
 			int serverId = getServerId(serverAddress);
-			if (isServerActive(context, serverId)
-					&& isServerAccount(context, serverId)) {
+			if (isServerActive(context, serverId, false)
+					&& isServerAccount(context, serverId, false)) {
 				Utility.saveIntSetting(context, Setup.SERVERLASTRRIDRECEIVE,
 						serverIndex);
 				returnServerAddress = serverAddress;
@@ -5849,7 +5868,7 @@ public class Setup extends Activity {
 			// Now test if we have messages to send to THIS server, otherwise we
 			// proceed to test the next one
 			// until we reached a loop.
-			if (isServerAccount(context, serverId)) {
+			if (isServerAccount(context, serverId, false)) {
 				// Only test this server if we have an active account for it!
 				returnItem = DB.getNextMessage(context, DB.TRANSPORT_INTERNET,
 						serverId);
@@ -5878,8 +5897,9 @@ public class Setup extends Activity {
 	/** The cached server active flag from serverid. */
 	private static HashMap<Integer, Boolean> cachedServerActive = new HashMap<Integer, Boolean>();
 
-	public static boolean isServerActive(Context context, int serverId) {
-		if (!cachedServerActive.containsKey(serverId)) {
+	public static boolean isServerActive(Context context, int serverId,
+			boolean forceRefresh) {
+		if (!cachedServerActive.containsKey(serverId) || forceRefresh) {
 			boolean serverActive = Utility.loadBooleanSetting(context,
 					Setup.SERVER_ACTIVE + serverId, SERVER_ACTIVEDEFAULT);
 			cachedServerActive.put(serverId, serverActive);
@@ -5905,8 +5925,9 @@ public class Setup extends Activity {
 	 *            the server id
 	 * @return true, if is server account
 	 */
-	public static boolean isServerAccount(Context context, int serverId) {
-		if (!cachedServerAccount.containsKey(serverId)) {
+	public static boolean isServerAccount(Context context, int serverId,
+			boolean forceRefresh) {
+		if (!cachedServerAccount.containsKey(serverId) || forceRefresh) {
 			String uidString = Utility.loadStringSetting(context, SERVER_UID
 					+ serverId, "");
 			// No account at this server, this server is automatically deactive
@@ -6137,28 +6158,49 @@ public class Setup extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Enable the server.
+	 * Enable the server. If forceRefresh is true, then do it with a small
+	 * delay.
 	 * 
 	 * @param context
 	 *            the context
 	 */
-	public void enableServer(Context context) {
+	public void enableServer(final Context context, final boolean forceRefresh) {
 		setServerActive(context, selectedServerId, true);
 
 		// Update the server key / attachment
 		saveHaveAskedForEncryption(context, false);
 		updateServerkey(context, selectedServerId, false);
 		updateAttachmentServerLimit(context, true, selectedServerId);
+
 		// If the user has enabled encryption, update his key cause
 		// this was skipped - ask before if the server is still
 		// active or already has been flagged as non reachable by
 		// updateServerkey()!
 		if (isEncryptionEnabled(context)
-				&& isServerActive(context, selectedServerId)) {
+				&& isServerActive(context, selectedServerId, forceRefresh)) {
 			sendCurrentKeyToServer(context, selectedServerId);
 		}
 
-		updateServerImage(context, true);
+		updateServerImage(context, true, forceRefresh);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onStop()
+	 */
+	@Override
+	public void onStop() {
+		if (restartRequiredFlag) {
+			Utility.showToastAsync(
+					this,
+					"Account/UID changed. Cryptocator must be re-started in order to operate properly...");
+			Main.exitApplication(this);
+		}
+		System.gc();
+		super.onStop();
 	}
 
 	// ------------------------------------------------------------------------
