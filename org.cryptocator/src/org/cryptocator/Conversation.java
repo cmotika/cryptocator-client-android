@@ -3519,6 +3519,11 @@ public class Conversation extends Activity {
 									Utility.showToastInUIThread(context, "'"
 											+ searchString + "' not found "
 											+ updown + ".");
+									// Clear so that we find the last item the next time again!
+									Utility.saveIntSetting(
+											context,
+											"lastconversationsearchfound",
+											-1);
 								}
 							}
 						}
