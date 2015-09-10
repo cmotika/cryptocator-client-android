@@ -325,6 +325,7 @@ public class ImageSmileyEditText extends EditText {
 	private static boolean addImages(final Context context,
 			Spannable spannable, float textHeight,
 			final ImageSmileyEditText editText, boolean isInputTextField) {
+		
 		// editText.containsImages = false;
 
 		// Taken from the acknowledged article:
@@ -434,11 +435,11 @@ public class ImageSmileyEditText extends EditText {
 						Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
 				int imageIndex = -1;
-				if (Conversation.isAlive()) {
+				if (Conversation.isAlive() && !isInputTextField) {
 					imageIndex = Conversation.getInstance().registerImage(
-							bitmap);
-					// Log.d("communicator", "IMAGE[" + imageIndex
-					// + "] ADD: start=" + start + ", end=" + end);
+							bitmap, 1);
+//					 Log.d("communicator", "IMAGE[" + imageIndex
+//					 + "] ADD: start=" + start + ", end=" + end);
 				}
 				final int imageIndex2 = imageIndex;
 				final Bitmap bitmap2 = bitmap;
