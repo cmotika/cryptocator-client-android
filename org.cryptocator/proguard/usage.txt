@@ -2948,10 +2948,10 @@ org.cryptocator.DB:
     public static final java.lang.String TABLE_SENDING
     public static final java.lang.String TABLE_SENT
     73:73:public DB()
-    1606:1634:public static java.lang.String getMultipartIdSending(android.content.Context,int)
-    1652:1680:public static java.lang.String getMultipartIdReceived(android.content.Context,int,int)
-    1977:1983:public static void cleanupDB(android.content.Context,int)
-    3052:3052:public static boolean isMessageFailed(java.lang.String)
+    1610:1638:public static java.lang.String getMultipartIdSending(android.content.Context,int)
+    1656:1684:public static java.lang.String getMultipartIdReceived(android.content.Context,int,int)
+    1981:1987:public static void cleanupDB(android.content.Context,int)
+    3056:3056:public static boolean isMessageFailed(java.lang.String)
 org.cryptocator.FastScrollBar:
     static final int LOCKTIMEOUT
     163:164:public FastScrollBar(android.content.Context,android.util.AttributeSet,int)
@@ -3127,11 +3127,11 @@ org.cryptocator.Setup:
     public static final java.lang.String LASTUPDATE_SERVER_ATTACHMENT_LIMIT
     public static final int SMS_SIZE_WARNING
     public static final int MULTIPART_MESSAGELIMIT
-    3642:3647:public static boolean haveAESKey(android.content.Context,int)
-    4012:4028:public static java.security.PublicKey getPublicKey(android.content.Context)
-    5158:5178:public static java.lang.String encText(android.content.Context,java.lang.String,int)
-    6082:6083:public static void setVersionUpdated(android.content.Context)
-    6096:6096:public static boolean isVersionUpdated(android.content.Context)
+    3661:3666:public static boolean haveAESKey(android.content.Context,int)
+    4031:4047:public static java.security.PublicKey getPublicKey(android.content.Context)
+    5177:5197:public static java.lang.String encText(android.content.Context,java.lang.String,int)
+    6103:6104:public static void setVersionUpdated(android.content.Context)
+    6117:6117:public static boolean isVersionUpdated(android.content.Context)
 org.cryptocator.Utility:
     public static final java.lang.String PREFERENCESURI
     136:136:public Utility()

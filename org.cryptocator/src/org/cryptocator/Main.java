@@ -161,10 +161,10 @@ public class Main extends Activity {
 	public static boolean highContrast = false;
 
 	/**
-	 * If the light sensor value is higher than 98% of the so far maximum value,
+	 * If the light sensor value is higher than 990/1000 of the so far maximum value,
 	 * then high contrast will be set to true.
 	 */
-	public static int highContrastBarrierInPercent = 98;
+	public static int highContrastBarrierInPermille = 990;
 
 	/** The Constant TEXTCOLOEWHITE. */
 	public static final int TEXTCOLOEWHITE = Color.parseColor("#FFFFFFFF");
@@ -357,7 +357,10 @@ public class Main extends Activity {
 		if (uidList.size() == 0 && !Setup.isUIDDefined(context)) {
 			possiblyPromptUserIfNoAccount(this, mainBackground);
 		} else {
-			Setup.possiblyPromptNoEncryption(context);
+			// Only prompt to enable encryption if the account has been activated!!!
+			if (!Communicator.accountNotActivated) {
+				Setup.possiblyPromptNoEncryption(context);
+			}
 		}
 
 		// Cleanup old mappings between mid and uid (recipient of our messages)
@@ -634,8 +637,8 @@ public class Main extends Activity {
 			Main.getInstance().mainBackground.postDelayed(new Runnable() {
 				public void run() {
 					for (int serverId : Setup.getServerIds(context)) {
-						if (Setup.isServerAccount(context, serverId)
-								&& Setup.isServerActive(context, serverId)) {
+						if (Setup.isServerAccount(context, serverId, true)
+								&& Setup.isServerActive(context, serverId, true)) {
 							updateUID2Name(context, uidList, serverId);
 						}
 					}
@@ -879,8 +882,8 @@ public class Main extends Activity {
 					}
 
 					// Test is server is active and we have an account here!
-					if (!(Setup.isServerActive(context, serverId) && Setup
-							.isServerAccount(context, serverId))) {
+					if (!(Setup.isServerActive(context, serverId, true) && Setup
+							.isServerAccount(context, serverId, true))) {
 						Conversation
 								.promptInfo(
 										context,
@@ -2452,7 +2455,7 @@ public class Main extends Activity {
 									highContrast = true;
 								} else {
 									// Check if we are above the barrier
-									int barrierValue = (highContrastBarrierInPercent * maxValue) / 100;
+									int barrierValue = (highContrastBarrierInPermille * maxValue) / 1000;
 									if (intValue > barrierValue) {
 										if (!highContrast) {
 											highContrast = true;

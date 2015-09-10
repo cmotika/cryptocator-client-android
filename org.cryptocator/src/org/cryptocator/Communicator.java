@@ -2226,7 +2226,7 @@ public class Communicator {
 			final List<Integer> uidList, final boolean forceUpdate,
 			final Main.UpdateListener updateListener) {
 		for (int serverId : Setup.getServerIds(context)) {
-			if (Setup.isServerAccount(context, serverId)) {
+			if (Setup.isServerAccount(context, serverId, false)) {
 				updateKeysFromServer(context, uidList, forceUpdate,
 						updateListener, serverId);
 			}
@@ -2386,7 +2386,7 @@ public class Communicator {
 	public static void updatePhonesFromAllServers(final Context context,
 			final List<Integer> uidList, final boolean forceUpdate) {
 		for (int serverId : Setup.getServerIds(context)) {
-			if (Setup.isServerAccount(context, serverId)) {
+			if (Setup.isServerAccount(context, serverId, false)) {
 				updatePhonesFromServer(context, uidList, forceUpdate, serverId);
 			}
 		}

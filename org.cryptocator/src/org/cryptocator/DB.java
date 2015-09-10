@@ -158,15 +158,19 @@ public class DB {
 	 * @return the int
 	 */
 	public static int myUid(Context context, int serverId) {
-		if (!myUid.containsKey(serverId)) {
-			String uidString = Utility.loadStringSetting(context,
-					Setup.SERVER_UID + serverId, "");
-			try {
-				myUid.put(serverId, Integer.parseInt(uidString));
-			} catch (Exception e) {
+		try {
+			if (!myUid.containsKey(serverId)) {
+				String uidString = Utility.loadStringSetting(context,
+						Setup.SERVER_UID + serverId, "");
+				try {
+					myUid.put(serverId, Integer.parseInt(uidString));
+				} catch (Exception e) {
+				}
 			}
+			return myUid.get(serverId);
+		} catch(Exception e) {
+			return -1;
 		}
-		return myUid.get(serverId);
 	}
 
 	/**
