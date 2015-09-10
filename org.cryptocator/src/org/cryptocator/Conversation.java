@@ -4413,6 +4413,8 @@ public class Conversation extends Activity {
 	public void showNextImage(Context context, int imageIndex) {
 		if (!isLastImage(imageIndex)) {
 			imageIndex++;
+		} else {
+			Utility.showToastShortAsync(context, "Last Image.");
 		}
 		Bitmap bitmap = images.get(imageIndex);
 		ImageFullscreenActivity
@@ -4431,6 +4433,8 @@ public class Conversation extends Activity {
 	public void showPreviousImage(Context context, int imageIndex) {
 		if (imageIndex > 0) {
 			imageIndex--;
+		} else {
+			Utility.showToastShortAsync(context, "First Image.");
 		}
 		Bitmap bitmap = images.get(imageIndex);
 		ImageFullscreenActivity
