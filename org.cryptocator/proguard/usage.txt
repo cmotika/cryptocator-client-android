@@ -2922,15 +2922,15 @@ org.cryptocator.Communicator:
 org.cryptocator.Conversation:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
-    3840:3868:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
-    3942:3974:public void insertImage(android.content.Context,java.lang.String)
+    3865:3893:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
+    3967:3999:public void insertImage(android.content.Context,java.lang.String)
     148:148:static synthetic boolean access$32()
-org.cryptocator.Conversation$75:
-    3721:3726:public void onCancel()
-org.cryptocator.Conversation$76
-org.cryptocator.Conversation$77:
-    3913:3917:public void onCancel()
-org.cryptocator.Conversation$78
+org.cryptocator.Conversation$74:
+    3746:3751:public void onCancel()
+org.cryptocator.Conversation$75
+org.cryptocator.Conversation$76:
+    3938:3942:public void onCancel()
+org.cryptocator.Conversation$77
 org.cryptocator.ConversationCompose:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
@@ -2966,6 +2966,8 @@ org.cryptocator.ImageContextMenu$ImageContextMenuProvider:
     288:296:public int addEntry(java.lang.String,android.graphics.drawable.Drawable,org.cryptocator.ImageContextMenu$ImageContextMenuSelectionListener)
     351:352:public void setEnabled(int,boolean)
     408:413:public boolean setViewProvider(int,org.cryptocator.ImageContextMenu$ExtendedEntryViewProvider)
+org.cryptocator.ImageFullscreenActivity:
+    public static final int SWIPE_DISTANCE
 org.cryptocator.ImagePressButton:
     212:214:public void initializePressImageResourceWhite(int)
     271:272:public void initializePressImageResource(int,int,int)

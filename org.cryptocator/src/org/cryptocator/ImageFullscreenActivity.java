@@ -42,6 +42,7 @@
  */
 package org.cryptocator;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -49,6 +50,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -66,8 +68,14 @@ import android.widget.LinearLayout;
  */
 public class ImageFullscreenActivity extends Activity {
 
+	/** The Constant SWIPE_DISTANCE used for detecting a swipe left or right. */
+	public static final int SWIPE_DISTANCE = 100;
+
 	/** The bitmap to displaye. */
 	public static Bitmap bitmap = null;
+
+	/** The bitmap to displaye. */
+	public static int imageIndex = -1;
 
 	/** The image view. */
 	ImageView imageView;
@@ -89,9 +97,15 @@ public class ImageFullscreenActivity extends Activity {
 
 	/** The lp image zoomed. */
 	private LinearLayout.LayoutParams lpImageZoomed = null;
-	
+
 	/** The visible. */
 	public static boolean visible = false;
+
+	/**
+	 * The swipe start position. This is the position where the touch event
+	 * happens.
+	 */
+	private int swipeStartPosition = -1;
 
 	// ------------------------------------------------------------------------
 
@@ -103,7 +117,7 @@ public class ImageFullscreenActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		visible = true;
 
 		context = this;
@@ -173,6 +187,45 @@ public class ImageFullscreenActivity extends Activity {
 				return true;
 			}
 		});
+
+		outerLayout.setOnTouchListener(new View.OnTouchListener() {
+			@SuppressLint("ClickableViewAccessibility")
+			public boolean onTouch(View v, MotionEvent event) {
+				switch (event.getAction()) {
+				case MotionEvent.ACTION_DOWN:
+					swipeStartPosition = (int) event.getX();
+					break;
+				case MotionEvent.ACTION_UP:
+					int swipeEndPosition = (int) event.getX();
+
+					boolean swipedLeftToRight = swipeEndPosition
+							- swipeStartPosition > SWIPE_DISTANCE;
+					boolean swipedRightToLeft = swipeStartPosition
+							- swipeEndPosition > SWIPE_DISTANCE;
+
+					if (swipedLeftToRight) {
+						if (Conversation.isAlive()) {
+							Conversation.getInstance().showPreviousImage(
+									context, imageIndex);
+						}
+						finish();
+						return true;
+					}
+
+					if (swipedRightToLeft) {
+						if (Conversation.isAlive()) {
+							Conversation.getInstance().showNextImage(context,
+									imageIndex);
+						}
+						finish();
+						return true;
+					}
+
+				}
+				return false;
+			}
+		});
+
 	}
 
 	// ------------------------------------------------------------------------
@@ -198,12 +251,14 @@ public class ImageFullscreenActivity extends Activity {
 	 * @param bitmap
 	 *            the bitmap
 	 */
-	public static void showFullscreenImage(Context context, Bitmap bitmap) {
+	public static void showFullscreenImage(Context context, Bitmap bitmap,
+			int imageIndex) {
 		Intent dialogIntent = new Intent(context, ImageFullscreenActivity.class);
 		ImageFullscreenActivity.bitmap = bitmap;
+		ImageFullscreenActivity.imageIndex = imageIndex;
 		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		context.startActivity(dialogIntent);
-
+		// Utility.showToastShortAsync(context, "Image " + imageIndex);
 	}
 
 	// ------------------------------------------------------------------------
