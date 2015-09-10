@@ -2057,13 +2057,56 @@ public class Main extends Activity {
 				}, new MessageAlertDialog.OnInnerViewProvider() {
 
 					public View provide(final MessageAlertDialog dialog) {
+
+						LinearLayout outerLayout = new LinearLayout(context);
+						outerLayout.setOrientation(LinearLayout.VERTICAL);
+						
+						LinearLayout infoTextBoxInner = new LinearLayout(context);
+						LinearLayout.LayoutParams lpInfoTextBoxInner = new LinearLayout.LayoutParams(
+								LinearLayout.LayoutParams.MATCH_PARENT,
+								LinearLayout.LayoutParams.WRAP_CONTENT);
+						infoTextBoxInner.setLayoutParams(lpInfoTextBoxInner);
+						infoTextBoxInner.setGravity(Gravity.CENTER_HORIZONTAL);
+
+						TextView infoText = new TextView(context);
+						LinearLayout.LayoutParams lpInfoText = new LinearLayout.LayoutParams(
+								LinearLayout.LayoutParams.WRAP_CONTENT,
+								LinearLayout.LayoutParams.WRAP_CONTENT);
+						lpInfoText.setMargins(25, 30, 25, 8);
+						infoText.setLayoutParams(lpInfoText);
+						infoText.setTextColor(Color.GRAY);
+						infoText.setTextSize(13);
+						infoTextBoxInner.addView(infoText);
+						
+						// Session information
+						String sessionInfo = "";
+						long keyCreatedTSInternet = Setup.getAESKeyDate(context, uid,
+								DB.TRANSPORT_INTERNET);
+						long keyCreatedTS = keyCreatedTSInternet;
+						long keyCreatedTSSMS = Setup.getAESKeyDate(context, uid,
+								DB.TRANSPORT_SMS);
+						if ((keyCreatedTSSMS != 0) && (keyCreatedTSInternet == 0)) {
+							keyCreatedTS = keyCreatedTSSMS;
+						}
+						long keyOutdatedTS = keyCreatedTS + Setup.AES_KEY_TIMEOUT_SENDING;
+						sessionInfo += "Current Session Key: " + MessageDetailsActivity.getSessionKeyDisplayInfo(context, uid) + "\n";
+						sessionInfo += "Session Key Created: " + DB.getDateString(keyCreatedTS, true) + "\n";
+						sessionInfo += "Session Key Expires: " + DB.getDateString(keyOutdatedTS, true);
+						if (uid >= 0) {
+							// Only display info for registered users
+							infoText.setText(sessionInfo);
+						} else {
+							infoText.setText("No registered user.\nNo encryption available.");
+						}
+						
+						
 						LinearLayout buttonLayout = new LinearLayout(context);
 						buttonLayout.setOrientation(LinearLayout.HORIZONTAL);
 						buttonLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 
 						LinearLayout.LayoutParams lpButtons = new LinearLayout.LayoutParams(
 								130, 140);
-						lpButtons.setMargins(2, 30, 2, 30);
+						lpButtons.setMargins(2, 20, 2, 30);
 
 						ImageLabelButton composeButton = new ImageLabelButton(
 								context);
@@ -2129,7 +2172,10 @@ public class Main extends Activity {
 						}
 						buttonLayout.addView(editButton);
 
-						return buttonLayout;
+						
+						outerLayout.addView(infoTextBoxInner);
+						outerLayout.addView(buttonLayout);
+						return outerLayout;
 					}
 				}).show();
 	}

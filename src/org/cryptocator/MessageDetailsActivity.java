@@ -375,31 +375,20 @@ public class MessageDetailsActivity extends Activity {
 		Log.d("communicator", " KEYUPDATE: getLastSentKeyMessage-mid=" + mid
 				+ ", getLastSentKeyMessage-localid=" + localid);
 
-		String forTransport = "";
+		
 		long keyCreatedTSInternet = Setup.getAESKeyDate(context, hostUid,
 				DB.TRANSPORT_INTERNET);
 		long keyCreatedTS = keyCreatedTSInternet;
 		long keyCreatedTSSMS = Setup.getAESKeyDate(context, hostUid,
 				DB.TRANSPORT_SMS);
-
-		Log.d("communicator", " KEYUPDATE: keyCreatedTSInternet="
-				+ keyCreatedTSInternet + ", keyCreatedTSSMS=" + keyCreatedTSSMS);
-
-		if (keyCreatedTSInternet != 0 && keyCreatedTSSMS != 0) {
-			forTransport = "Internet + SMS";
-		} else if (keyCreatedTSInternet != 0) {
-			forTransport = "Internet";
-		} else if (keyCreatedTSSMS != 0) {
-			forTransport = "SMS";
+		if ((keyCreatedTSSMS != 0) && (keyCreatedTSInternet == 0)) {
 			keyCreatedTS = keyCreatedTSSMS;
-		} else {
-			forTransport = "";
 		}
 		long keyOutdatedTS = keyCreatedTS + Setup.AES_KEY_TIMEOUT_SENDING;
+		
+		keyhash.setText(getSessionKeyDisplayInfo(context, hostUid));
 		keycreated.setText(DB.getDateString(keyCreatedTS, true));
 		keyexpires.setText(DB.getDateString(keyOutdatedTS, true));
-		String keyhashstring = Setup.getAESKeyHash(context, hostUid);
-		keyhash.setText(keyhashstring + " - " + forTransport);
 
 		if (hostUid < 0) {
 			// SMS user only - hide key info, there cannot be any key!
@@ -625,6 +614,35 @@ public class MessageDetailsActivity extends Activity {
 		// window.setAttributes(lp);
 
 		Utility.setBackground(context, outerLayout, R.drawable.dolphins3light);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the session key display info for the user details dialog and the
+	 * user prompt dialog.
+	 * 
+	 * @param hostUid
+	 *            the host uid
+	 * @return the session key display info
+	 */
+	public static String getSessionKeyDisplayInfo(Context context, int hostUid) {
+		String forTransport = "";
+		long keyCreatedTSInternet = Setup.getAESKeyDate(context, hostUid,
+				DB.TRANSPORT_INTERNET);
+		long keyCreatedTSSMS = Setup.getAESKeyDate(context, hostUid,
+				DB.TRANSPORT_SMS);
+		if (keyCreatedTSInternet != 0 && keyCreatedTSSMS != 0) {
+			forTransport = "Internet + SMS";
+		} else if (keyCreatedTSInternet != 0) {
+			forTransport = "Internet";
+		} else if (keyCreatedTSSMS != 0) {
+			forTransport = "SMS";
+		} else {
+			forTransport = "";
+		}
+		String keyhashstring = Setup.getAESKeyHash(context, hostUid);
+		return keyhashstring + " - " + forTransport;
 	}
 
 	// ------------------------------------------------------------------------
