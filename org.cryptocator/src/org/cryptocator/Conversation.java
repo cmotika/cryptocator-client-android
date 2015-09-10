@@ -44,6 +44,7 @@ package org.cryptocator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -233,7 +234,7 @@ public class Conversation extends Activity {
 	private boolean isEncryptionOn = false;
 
 	/** The list of all images. */
-	private List<Bitmap> images = new ArrayList<Bitmap>();
+	private LinkedHashSet<Bitmap> images = new LinkedHashSet<Bitmap>();
 
 	// ------------------------------------------------------------------------
 
@@ -2990,6 +2991,8 @@ public class Conversation extends Activity {
 							// COPY
 							Utility.copyToClipboard(activity,
 									imageMessageMenuItem.text);
+							Utility.showToastAsync(activity,
+									"Message copied to Clipboard.");
 							return true;
 						}
 					});
@@ -3470,8 +3473,9 @@ public class Conversation extends Activity {
 									end = max;
 								}
 								for (int c = start; c != end; c = c + incr) {
-									if (conversationList.get(c).text.toLowerCase()
-											.contains(searchString.toLowerCase())) {
+									if (conversationList.get(c).text
+											.toLowerCase().contains(
+													searchString.toLowerCase())) {
 										foundItem = c;
 										// Try to mark / highlight
 										ConversationItem item = conversationList
@@ -3519,11 +3523,10 @@ public class Conversation extends Activity {
 									Utility.showToastInUIThread(context, "'"
 											+ searchString + "' not found "
 											+ updown + ".");
-									// Clear so that we find the last item the next time again!
-									Utility.saveIntSetting(
-											context,
-											"lastconversationsearchfound",
-											-1);
+									// Clear so that we find the last item the
+									// next time again!
+									Utility.saveIntSetting(context,
+											"lastconversationsearchfound", -1);
 								}
 							}
 						}
@@ -4402,7 +4405,7 @@ public class Conversation extends Activity {
 	 *            the image span
 	 * @return the int
 	 */
-	public int registerImage(Bitmap imageBitmap) {
+	public int registerImage(Bitmap imageBitmap, int localid) {
 		images.add(imageBitmap);
 		return images.size() - 1;
 	}
@@ -4422,7 +4425,7 @@ public class Conversation extends Activity {
 		} else {
 			Utility.showToastShortAsync(context, "Last Image.");
 		}
-		Bitmap bitmap = images.get(imageIndex);
+		Bitmap bitmap = (Bitmap) images.toArray()[imageIndex];
 		ImageFullscreenActivity
 				.showFullscreenImage(context, bitmap, imageIndex);
 	}
@@ -4442,7 +4445,7 @@ public class Conversation extends Activity {
 		} else {
 			Utility.showToastShortAsync(context, "First Image.");
 		}
-		Bitmap bitmap = images.get(imageIndex);
+		Bitmap bitmap = (Bitmap) images.toArray()[imageIndex];
 		ImageFullscreenActivity
 				.showFullscreenImage(context, bitmap, imageIndex);
 	}

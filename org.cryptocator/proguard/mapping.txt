@@ -2784,7 +2784,7 @@ org.cryptocator.Conversation -> org.cryptocator.Conversation:
     java.util.List textViews -> R
     boolean isSMSModeOn -> S
     boolean isEncryptionOn -> T
-    java.util.List images -> U
+    java.util.LinkedHashSet images -> U
     org.cryptocator.Conversation instance -> V
     boolean visible -> W
     long lastKeyStroke -> m
@@ -2903,7 +2903,7 @@ org.cryptocator.Conversation -> org.cryptocator.Conversation:
     java.lang.String buildImageDescription(android.content.Context,org.cryptocator.ConversationItem) -> c
     int getImagesSize() -> g
     boolean isLastImage(int) -> b
-    int registerImage(android.graphics.Bitmap) -> a
+    int registerImage(android.graphics.Bitmap,int) -> a
     void showNextImage(android.content.Context,int) -> k
     void showPreviousImage(android.content.Context,int) -> l
     int access$0() -> h
