@@ -2891,32 +2891,45 @@ public class Conversation extends Activity {
 				public View provideView(Context context) {
 					LinearLayout infoTextBox = new LinearLayout(context);
 					infoTextBox.setOrientation(LinearLayout.VERTICAL);
-					imageMessageMenuInfoText = new TextView(context);
-					infoTextBox.addView(imageMessageMenuInfoText);
 					LinearLayout.LayoutParams lpInfoTextBox = new LinearLayout.LayoutParams(
 							LinearLayout.LayoutParams.MATCH_PARENT,
 							LinearLayout.LayoutParams.WRAP_CONTENT);
 					lpInfoTextBox.setMargins(0, 0, 0, 0);
+					infoTextBox.setLayoutParams(lpInfoTextBox);
+					//infoTextBox.setBackgroundColor(Color.YELLOW);
+					infoTextBox
+					.setBackgroundColor(Setup.COLOR_MAIN_BLUEDARKEST);
+
+					LinearLayout infoTextBoxInner = new LinearLayout(context);
+					LinearLayout.LayoutParams lpInfoTextBoxInner = new LinearLayout.LayoutParams(
+							LinearLayout.LayoutParams.MATCH_PARENT,
+							LinearLayout.LayoutParams.WRAP_CONTENT);
+					infoTextBoxInner.setLayoutParams(lpInfoTextBoxInner);
+					infoTextBoxInner.setGravity(Gravity.CENTER_HORIZONTAL);
+					//infoTextBoxInner.setBackgroundColor(Color.CYAN);
+					
+					imageMessageMenuInfoText = new TextView(context);
+					LinearLayout.LayoutParams lpInfoText = new LinearLayout.LayoutParams(
+							LinearLayout.LayoutParams.WRAP_CONTENT,
+							LinearLayout.LayoutParams.WRAP_CONTENT);
+					lpInfoText.setMargins(25, 8, 25, 8);
+					imageMessageMenuInfoText.setLayoutParams(lpInfoText);
+					imageMessageMenuInfoText.setTextColor(Color.WHITE);
+					imageMessageMenuInfoText.setTextSize(14);
+					//imageMessageMenuInfoText.setBackgroundColor(Color.GREEN);
+					
+					// The separator
+					LinearLayout infoTextLine = new LinearLayout(context);
+					infoTextLine.setBackgroundColor(Setup.COLOR_BLUELINE);
 					LinearLayout.LayoutParams lpInfoTextLine = new LinearLayout.LayoutParams(
 							LinearLayout.LayoutParams.MATCH_PARENT,
 							LinearLayout.LayoutParams.WRAP_CONTENT);
 					lpInfoTextLine.setMargins(0, 0, 0, 0);
-					infoTextBox.setLayoutParams(lpInfoTextBox);
-					LinearLayout.LayoutParams lpInfoText = new LinearLayout.LayoutParams(
-							LinearLayout.LayoutParams.MATCH_PARENT,
-							LinearLayout.LayoutParams.WRAP_CONTENT);
-					lpInfoText.setMargins(25, 8, 25, 8);
-					imageMessageMenuInfoText.setLayoutParams(lpInfoText);
-					infoTextBox
-							.setBackgroundColor(Setup.COLOR_MAIN_BLUEDARKEST);
-					imageMessageMenuInfoText.setTextColor(Color.WHITE);
-					imageMessageMenuInfoText.setTextSize(14);
-					LinearLayout infoTextLine = new LinearLayout(context);
-					infoTextLine.setBackgroundColor(Setup.COLOR_BLUELINE);
+					lpInfoTextLine.height = 2;
 					infoTextLine.setLayoutParams(lpInfoTextLine);
-					android.view.ViewGroup.LayoutParams params = infoTextLine
-							.getLayoutParams();
-					params.height = 2;
+	
+					infoTextBoxInner.addView(imageMessageMenuInfoText);
+					infoTextBox.addView(infoTextBoxInner);
 					infoTextBox.addView(infoTextLine);
 
 					String infoText = "";
@@ -3171,18 +3184,15 @@ public class Conversation extends Activity {
 	 */
 	public void promptRevoke(final Context context, final int mid,
 			final int localid, final int toHostUid, final Activity activity) {
-		String titleMessage = "Revoke Message " + mid;
-		if (mid == -1) {
-			titleMessage = "Revoke Message *" + localid;
-		}
+		String titleMessage = "Revoke Message " + localid;
 		String textMessage = "Attention! Revoking a message should be used with"
-				+ " precaution.\n\nA revoked message is deleted from server. There"
-				+ " is no guarantee that it is deleted from other devices that may "
-				+ "already have received the message. All devices that connect to the "
+				+ " precaution!\n\nA revoked message is deleted from server. There"
+				+ " is no guarantee that it is deleted from other devices if it "
+				+ "already has been delivered. Still, all devices that connect to the "
 				+ "server are advised to"
 				+ " delete the message. Anyhow, this message may already have been "
-				+ "read by the recipient. Furthermore, revoking will cancel new "
-				+ "message notifications of the recipient. You should proceed only "
+				+ "read by the recipient! Furthermore, revoking will cancel and may corrupt new "
+				+ "message notifications of the recipient! Therefore, you should proceed ONLY "
 				+ "if there is no alternative!\n\nDo you really want to revoke"
 				+ " the message?";
 		new MessageAlertDialog(context, titleMessage, textMessage, " Revoke ",
