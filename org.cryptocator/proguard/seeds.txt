@@ -400,7 +400,6 @@ org.cryptocator.R$id: int info
 org.cryptocator.R$id: int infolistitem
 org.cryptocator.R$id: int infolistitemtext
 org.cryptocator.R$id: int inputlayout
-org.cryptocator.R$id: int inputlayout2
 org.cryptocator.R$id: int keycreated
 org.cryptocator.R$id: int keycreatedrow
 org.cryptocator.R$id: int keyexpires
@@ -526,6 +525,7 @@ org.cryptocator.R$layout: int infolistitem
 org.cryptocator.R$layout: int setup_account
 org.cryptocator.R$layout: int setup_settings
 org.cryptocator.R$layout: int title_conversation
+org.cryptocator.R$layout: int title_conversation_compose
 org.cryptocator.R$layout: int title_general
 org.cryptocator.R$layout: int title_main
 org.cryptocator.R$layout: int tolistitem
