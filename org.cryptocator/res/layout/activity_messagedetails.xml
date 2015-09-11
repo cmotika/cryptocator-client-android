@@ -1,0 +1,735 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/settingsbackground"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <ScrollView
+        android:id="@+id/messagedetailscrollview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.8" >
+
+        <LinearLayout
+            android:id="@+id/messagedetailsmain"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical" >
+
+            <TableLayout
+                android:id="@+id/tableLayout1"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" >
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="From:"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/from"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="delphino [ 3 ]"
+                        android:textSize="16sp" >
+                    </TextView>
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text=""
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/fromkey"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="Account Key: "
+                        android:textSize="12sp" >
+                    </TextView>
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="To:"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/to"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="delphino [ 3 ]"
+                        android:textSize="16sp" >
+                    </TextView>
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text=""
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/tokey"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="Account Key: "
+                        android:textSize="12sp" >
+                    </TextView>
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="Created:"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/created"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/sendingreceivingparent"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:id="@+id/sendingreceivingtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="Sending:"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:gravity="left"
+                        android:orientation="vertical" >
+
+                        <TextView
+                            android:id="@+id/sendingreceiving"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="1px"
+                            android:layout_marginLeft="5px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="0px"
+                            android:text="senidng.... [ 3 ]"
+                            android:textColor="#FFFFFFFF"
+                            android:textSize="16sp" >
+                        </TextView>
+
+                        <ProgressBar
+                            android:id="@+id/sendingreceivingprogess"
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="5px"
+                            android:layout_marginRight="20px" />
+                    </LinearLayout>
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="Sent:"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/sent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:id="@+id/receivedtext"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="Received:"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/received"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="Read:"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/read"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/revokedrow"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="Revoked:"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/revoked"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="Transport:"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/transport"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+                </TableRow>
+
+                                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="Server MID:"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView 
+                        android:id="@+id/serverMessageID"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+                </TableRow>
+                
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="Encrypted:"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/encrypted"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="Size:"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/size"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="delphino [ 3 ]"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="16sp" >
+                    </TextView>
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/keyhashrow"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="Session Key:"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/keyhash"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="delphino [ 3 ]"
+                        android:textSize="16sp" >
+                    </TextView>
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/keycreatedrow"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="Key Created:"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/keycreated"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="delphino [ 3 ]"
+                        android:textSize="16sp" >
+                    </TextView>
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/keyexpiresrow"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginTop="0px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="Key Expires:"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/keyexpires"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="5px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="delphino [ 3 ]"
+                        android:textSize="16sp" >
+                    </TextView>
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/attachmentsrow1"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20px"
+                    android:padding="0dip" >
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginBottom="20px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="0px"
+                        android:layout_marginTop="20px"
+                        android:background="@android:color/darker_gray"
+                        android:orientation="horizontal" />
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginBottom="20px"
+                        android:layout_marginLeft="0px"
+                        android:layout_marginRight="0px"
+                        android:layout_marginTop="20px"
+                        android:background="@android:color/darker_gray"
+                        android:orientation="horizontal" />
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/attachmentsrow2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20px"
+                    android:padding="0dip" >
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="15px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:src="@drawable/pictureimport"
+                        android:textSize="16sp" >
+                    </ImageView>
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:orientation="vertical" >
+
+                        <Spinner
+                            android:id="@+id/attachmentspinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="20px"
+                            android:layout_marginRight="20px" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:clickable="true"
+                            android:orientation="horizontal" >
+
+                            <Button
+                                android:id="@+id/buttonsave"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="20px"
+                                android:text="Save" />
+
+                            <Button
+                                android:id="@+id/buttonshare"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="20px"
+                                android:text="Share" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </TableRow>
+            </TableLayout>
+
+            <LinearLayout
+                android:id="@+id/oneline"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="20px"
+                android:layout_marginLeft="10px"
+                android:layout_marginRight="10px"
+                android:layout_marginTop="20px"
+                android:background="@android:color/darker_gray"
+                android:orientation="horizontal" />
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical|center_horizontal"
+                android:orientation="horizontal" >
+
+                <org.cryptocator.ImageLabelButton
+                    android:id="@+id/buttonbackup"
+                    android:layout_width="120dp"
+                    android:layout_height="72dp"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginRight="10px"
+                    android:layout_marginTop="10px"
+                    android:src="@drawable/btnbackupsm"
+                    android:text="Backup" />
+
+                <org.cryptocator.ImageLabelButton
+                    android:id="@+id/buttonclear"
+                    android:layout_width="120dp"
+                    android:layout_height="72dp"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginTop="10px"
+                    android:src="@drawable/btnclear"
+                    android:text="Clear" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

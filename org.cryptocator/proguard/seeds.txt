@@ -1,0 +1,562 @@
+android.support.v4.app.BackStackState
+android.support.v4.app.BackStackState: android.os.Parcelable$Creator CREATOR
+android.support.v4.app.Fragment$SavedState
+android.support.v4.app.Fragment$SavedState: android.os.Parcelable$Creator CREATOR
+android.support.v4.app.FragmentManagerState
+android.support.v4.app.FragmentManagerState: android.os.Parcelable$Creator CREATOR
+android.support.v4.app.FragmentState
+android.support.v4.app.FragmentState: android.os.Parcelable$Creator CREATOR
+android.support.v4.app.FragmentTabHost: void setOnTabChangedListener(android.widget.TabHost$OnTabChangeListener)
+android.support.v4.app.FragmentTabHost$SavedState
+android.support.v4.app.FragmentTabHost$SavedState: android.os.Parcelable$Creator CREATOR
+android.support.v4.content.ModernAsyncTask$Status: android.support.v4.content.ModernAsyncTask$Status[] values()
+android.support.v4.content.ModernAsyncTask$Status: android.support.v4.content.ModernAsyncTask$Status valueOf(java.lang.String)
+android.support.v4.media.MediaDescriptionCompat
+android.support.v4.media.MediaDescriptionCompat: android.os.Parcelable$Creator CREATOR
+android.support.v4.media.MediaMetadataCompat
+android.support.v4.media.MediaMetadataCompat: android.os.Parcelable$Creator CREATOR
+android.support.v4.media.RatingCompat
+android.support.v4.media.RatingCompat: android.os.Parcelable$Creator CREATOR
+android.support.v4.media.session.MediaSessionCompat$QueueItem
+android.support.v4.media.session.MediaSessionCompat$QueueItem: android.os.Parcelable$Creator CREATOR
+android.support.v4.media.session.MediaSessionCompat$ResultReceiverWrapper
+android.support.v4.media.session.MediaSessionCompat$ResultReceiverWrapper: android.os.Parcelable$Creator CREATOR
+android.support.v4.media.session.MediaSessionCompat$Token
+android.support.v4.media.session.MediaSessionCompat$Token: android.os.Parcelable$Creator CREATOR
+android.support.v4.media.session.ParcelableVolumeInfo
+android.support.v4.media.session.ParcelableVolumeInfo: android.os.Parcelable$Creator CREATOR
+android.support.v4.media.session.PlaybackStateCompat
+android.support.v4.media.session.PlaybackStateCompat: android.os.Parcelable$Creator CREATOR
+android.support.v4.media.session.PlaybackStateCompat$CustomAction
+android.support.v4.media.session.PlaybackStateCompat$CustomAction: android.os.Parcelable$Creator CREATOR
+android.support.v4.view.PagerTabStrip: void setTabIndicatorColor(int)
+android.support.v4.view.PagerTabStrip: void setTabIndicatorColorResource(int)
+android.support.v4.view.PagerTabStrip: int getTabIndicatorColor()
+android.support.v4.view.PagerTabStrip: void setTextSpacing(int)
+android.support.v4.view.PagerTabStrip: void setBackgroundDrawable(android.graphics.drawable.Drawable)
+android.support.v4.view.PagerTabStrip: void setBackgroundColor(int)
+android.support.v4.view.PagerTabStrip: void setBackgroundResource(int)
+android.support.v4.view.PagerTabStrip: void setDrawFullUnderline(boolean)
+android.support.v4.view.PagerTabStrip: boolean getDrawFullUnderline()
+android.support.v4.view.PagerTabStrip: int getMinHeight()
+android.support.v4.view.PagerTitleStrip: void setSingleLineAllCaps(android.widget.TextView)
+android.support.v4.view.PagerTitleStrip: void setTextSpacing(int)
+android.support.v4.view.PagerTitleStrip: int getTextSpacing()
+android.support.v4.view.PagerTitleStrip: void setNonPrimaryAlpha(float)
+android.support.v4.view.PagerTitleStrip: void setTextColor(int)
+android.support.v4.view.PagerTitleStrip: void setGravity(int)
+android.support.v4.view.PagerTitleStrip: int getMinHeight()
+android.support.v4.view.ViewPager: void setScrollState(int)
+android.support.v4.view.ViewPager: void setAdapter(android.support.v4.view.PagerAdapter)
+android.support.v4.view.ViewPager: android.support.v4.view.PagerAdapter getAdapter()
+android.support.v4.view.ViewPager: void setOnAdapterChangeListener(android.support.v4.view.ViewPager$OnAdapterChangeListener)
+android.support.v4.view.ViewPager: int getClientWidth()
+android.support.v4.view.ViewPager: void setCurrentItem(int)
+android.support.v4.view.ViewPager: int getCurrentItem()
+android.support.v4.view.ViewPager: void setOnPageChangeListener(android.support.v4.view.ViewPager$OnPageChangeListener)
+android.support.v4.view.ViewPager: void setChildrenDrawingOrderEnabledCompat(boolean)
+android.support.v4.view.ViewPager: int getOffscreenPageLimit()
+android.support.v4.view.ViewPager: void setOffscreenPageLimit(int)
+android.support.v4.view.ViewPager: void setPageMargin(int)
+android.support.v4.view.ViewPager: int getPageMargin()
+android.support.v4.view.ViewPager: void setPageMarginDrawable(android.graphics.drawable.Drawable)
+android.support.v4.view.ViewPager: void setPageMarginDrawable(int)
+android.support.v4.view.ViewPager: void setScrollingCacheEnabled(boolean)
+android.support.v4.view.ViewPager$SavedState
+android.support.v4.view.ViewPager$SavedState: android.os.Parcelable$Creator CREATOR
+android.support.v4.widget.DrawerLayout: void setScrimColor(int)
+android.support.v4.widget.DrawerLayout: void setDrawerListener(android.support.v4.widget.DrawerLayout$DrawerListener)
+android.support.v4.widget.DrawerLayout: void setDrawerLockMode(int)
+android.support.v4.widget.DrawerLayout: void setStatusBarBackground(android.graphics.drawable.Drawable)
+android.support.v4.widget.DrawerLayout: android.graphics.drawable.Drawable getStatusBarBackgroundDrawable()
+android.support.v4.widget.DrawerLayout: void setStatusBarBackground(int)
+android.support.v4.widget.DrawerLayout: void setStatusBarBackgroundColor(int)
+android.support.v4.widget.DrawerLayout$SavedState
+android.support.v4.widget.DrawerLayout$SavedState: android.os.Parcelable$Creator CREATOR
+android.support.v4.widget.NestedScrollView: void setNestedScrollingEnabled(boolean)
+android.support.v4.widget.NestedScrollView: int getNestedScrollAxes()
+android.support.v4.widget.NestedScrollView: float getTopFadingEdgeStrength()
+android.support.v4.widget.NestedScrollView: float getBottomFadingEdgeStrength()
+android.support.v4.widget.NestedScrollView: int getMaxScrollAmount()
+android.support.v4.widget.NestedScrollView: void setFillViewport(boolean)
+android.support.v4.widget.NestedScrollView: void setSmoothScrollingEnabled(boolean)
+android.support.v4.widget.NestedScrollView: float getVerticalScrollFactorCompat()
+android.support.v4.widget.NestedScrollView: int getScrollRange()
+android.support.v4.widget.NestedScrollView$SavedState
+android.support.v4.widget.NestedScrollView$SavedState: android.os.Parcelable$Creator CREATOR
+android.support.v4.widget.SlidingPaneLayout: void setParallaxDistance(int)
+android.support.v4.widget.SlidingPaneLayout: int getParallaxDistance()
+android.support.v4.widget.SlidingPaneLayout: void setSliderFadeColor(int)
+android.support.v4.widget.SlidingPaneLayout: int getSliderFadeColor()
+android.support.v4.widget.SlidingPaneLayout: void setCoveredFadeColor(int)
+android.support.v4.widget.SlidingPaneLayout: int getCoveredFadeColor()
+android.support.v4.widget.SlidingPaneLayout: void setPanelSlideListener(android.support.v4.widget.SlidingPaneLayout$PanelSlideListener)
+android.support.v4.widget.SlidingPaneLayout: void setShadowDrawable(android.graphics.drawable.Drawable)
+android.support.v4.widget.SlidingPaneLayout: void setShadowDrawableLeft(android.graphics.drawable.Drawable)
+android.support.v4.widget.SlidingPaneLayout: void setShadowDrawableRight(android.graphics.drawable.Drawable)
+android.support.v4.widget.SlidingPaneLayout: void setShadowResource(int)
+android.support.v4.widget.SlidingPaneLayout: void setShadowResourceLeft(int)
+android.support.v4.widget.SlidingPaneLayout: void setShadowResourceRight(int)
+android.support.v4.widget.SlidingPaneLayout$SavedState
+android.support.v4.widget.SlidingPaneLayout$SavedState: android.os.Parcelable$Creator CREATOR
+android.support.v4.widget.SwipeRefreshLayout: void setColorViewAlpha(int)
+android.support.v4.widget.SwipeRefreshLayout: void setSize(int)
+android.support.v4.widget.SwipeRefreshLayout: void setOnRefreshListener(android.support.v4.widget.SwipeRefreshLayout$OnRefreshListener)
+android.support.v4.widget.SwipeRefreshLayout: void setRefreshing(boolean)
+android.support.v4.widget.SwipeRefreshLayout: void setAnimationProgress(float)
+android.support.v4.widget.SwipeRefreshLayout: void setProgressBackgroundColor(int)
+android.support.v4.widget.SwipeRefreshLayout: void setProgressBackgroundColorSchemeResource(int)
+android.support.v4.widget.SwipeRefreshLayout: void setProgressBackgroundColorSchemeColor(int)
+android.support.v4.widget.SwipeRefreshLayout: void setColorScheme(int[])
+android.support.v4.widget.SwipeRefreshLayout: void setColorSchemeResources(int[])
+android.support.v4.widget.SwipeRefreshLayout: void setColorSchemeColors(int[])
+android.support.v4.widget.SwipeRefreshLayout: void setDistanceToTriggerSync(int)
+android.support.v4.widget.SwipeRefreshLayout: int getProgressCircleDiameter()
+org.cryptocator.BackupActivity
+org.cryptocator.BackupActivity: BackupActivity()
+org.cryptocator.BootReceiver
+org.cryptocator.BootReceiver: BootReceiver()
+org.cryptocator.Conversation
+org.cryptocator.Conversation: Conversation()
+org.cryptocator.ConversationCompose
+org.cryptocator.ConversationCompose: ConversationCompose()
+org.cryptocator.FastScrollBar: void setOnScrollListener(org.cryptocator.FastScrollBar$OnScrollListener)
+org.cryptocator.FastScrollBar: void setThumb(android.graphics.drawable.Drawable)
+org.cryptocator.FastScrollBar: void setSnapDown(int)
+org.cryptocator.FastScrollBar: void setSnapUp(int)
+org.cryptocator.FastScrollBar: void setProgress(int)
+org.cryptocator.FastScrollBar: long getTimestamp()
+org.cryptocator.FastScrollBar: int getCurrentProgress()
+org.cryptocator.FastScrollView
+org.cryptocator.FastScrollView: void setOnLayoutDoneListener(org.cryptocator.FastScrollView$OnLayoutDoneListener)
+org.cryptocator.FastScrollView: void setOnScrollListener(org.cryptocator.FastScrollView$OnScrollListener)
+org.cryptocator.FastScrollView: void setOnSizeChangeListener(org.cryptocator.FastScrollView$OnSizeChangeListener)
+org.cryptocator.FastScrollView: void setOnNoHangListener(org.cryptocator.FastScrollView$OnNoHangListener)
+org.cryptocator.FastScrollView: FastScrollView(android.content.Context,android.util.AttributeSet)
+org.cryptocator.FastScrollView: FastScrollView(android.content.Context)
+org.cryptocator.FastScrollView: int getMaxPosition()
+org.cryptocator.FastScrollView: int getMaxHeight()
+org.cryptocator.FastScrollView: int getVisibleHeight()
+org.cryptocator.FastScrollView: void setScrollBackground(int)
+org.cryptocator.FastScrollView: void setSnapDown(int)
+org.cryptocator.FastScrollView: void setSnapUp(int)
+org.cryptocator.HeadlessSmsSendService
+org.cryptocator.HeadlessSmsSendService: HeadlessSmsSendService()
+org.cryptocator.ImageContextMenu
+org.cryptocator.ImageContextMenu: ImageContextMenu()
+org.cryptocator.ImageFullscreenActivity
+org.cryptocator.ImageFullscreenActivity: ImageFullscreenActivity()
+org.cryptocator.ImageLabelButton
+org.cryptocator.ImageLabelButton: ImageLabelButton(android.content.Context)
+org.cryptocator.ImageLabelButton: ImageLabelButton(android.content.Context,android.util.AttributeSet)
+org.cryptocator.ImageLabelButton: ImageLabelButton(android.content.Context,android.util.AttributeSet,int)
+org.cryptocator.ImageLabelButton: void setMarginDown(int)
+org.cryptocator.ImageLabelButton: void setMarginUp(int)
+org.cryptocator.ImageLabelButton: void setTextColor(int)
+org.cryptocator.ImageLabelButton: void setImageURI(android.net.Uri)
+org.cryptocator.ImageLabelButton: void setImageResource(int)
+org.cryptocator.ImageLabelButton: void setImageResourceInternal(int)
+org.cryptocator.ImagePressButton
+org.cryptocator.ImagePressButton: ImagePressButton(android.content.Context)
+org.cryptocator.ImagePressButton: ImagePressButton(android.content.Context,android.util.AttributeSet)
+org.cryptocator.ImagePressButton: ImagePressButton(android.content.Context,android.util.AttributeSet,int)
+org.cryptocator.ImagePressButton: void setImageResource(int)
+org.cryptocator.ImagePressButton: void setImagePressResource(int)
+org.cryptocator.ImagePressButton: void setAdditionalPressWhiteView(android.view.View)
+org.cryptocator.ImageSmileyEditText
+org.cryptocator.ImageSmileyEditText: void setConversationItem(org.cryptocator.ConversationItem)
+org.cryptocator.ImageSmileyEditText: void setOnCutCopyPasteListener(org.cryptocator.ImageSmileyEditText$OnCutCopyPasteListener)
+org.cryptocator.ImageSmileyEditText: ImageSmileyEditText(android.content.Context,android.util.AttributeSet,int)
+org.cryptocator.ImageSmileyEditText: ImageSmileyEditText(android.content.Context,android.util.AttributeSet)
+org.cryptocator.ImageSmileyEditText: ImageSmileyEditText(android.content.Context)
+org.cryptocator.ImageSmileyEditText: void setInputTextField(boolean)
+org.cryptocator.KeyEventEditText
+org.cryptocator.KeyEventEditText: void setKeyListener(org.cryptocator.KeyEventEditText$KeyEventEditTextEditTextKeyListener)
+org.cryptocator.KeyEventEditText: KeyEventEditText(android.content.Context)
+org.cryptocator.KeyEventEditText: KeyEventEditText(android.content.Context,android.util.AttributeSet)
+org.cryptocator.KeyEventEditText: KeyEventEditText(android.content.Context,android.util.AttributeSet,int)
+org.cryptocator.Main
+org.cryptocator.Main: Main()
+org.cryptocator.MessageDetailsActivity
+org.cryptocator.MessageDetailsActivity: MessageDetailsActivity()
+org.cryptocator.MmsReceiver
+org.cryptocator.MmsReceiver: MmsReceiver()
+org.cryptocator.PictureImportActivity
+org.cryptocator.PictureImportActivity: PictureImportActivity()
+org.cryptocator.R$color: int gray
+org.cryptocator.R$color: int invisible
+org.cryptocator.R$drawable: int additionbtn
+org.cryptocator.R$drawable: int additionbtnback
+org.cryptocator.R$drawable: int attachmentbtn
+org.cryptocator.R$drawable: int btnadduser
+org.cryptocator.R$drawable: int btnback
+org.cryptocator.R$drawable: int btnbackup
+org.cryptocator.R$drawable: int btnbackupsm
+org.cryptocator.R$drawable: int btnclear
+org.cryptocator.R$drawable: int btncompose
+org.cryptocator.R$drawable: int btnedit
+org.cryptocator.R$drawable: int btnkey
+org.cryptocator.R$drawable: int btnmenu
+org.cryptocator.R$drawable: int btnrefresh
+org.cryptocator.R$drawable: int btnsearch
+org.cryptocator.R$drawable: int buttonedit
+org.cryptocator.R$drawable: int buttoneditsms
+org.cryptocator.R$drawable: int call
+org.cryptocator.R$drawable: int callsms
+org.cryptocator.R$drawable: int compose
+org.cryptocator.R$drawable: int composesms
+org.cryptocator.R$drawable: int darkback
+org.cryptocator.R$drawable: int darkerback
+org.cryptocator.R$drawable: int dolphins1
+org.cryptocator.R$drawable: int dolphins2
+org.cryptocator.R$drawable: int dolphins3
+org.cryptocator.R$drawable: int dolphins3blue
+org.cryptocator.R$drawable: int dolphins3light
+org.cryptocator.R$drawable: int dolphins4
+org.cryptocator.R$drawable: int dolphins4light
+org.cryptocator.R$drawable: int frameback
+org.cryptocator.R$drawable: int help
+org.cryptocator.R$drawable: int ic_launcher
+org.cryptocator.R$drawable: int lightback
+org.cryptocator.R$drawable: int lighterback
+org.cryptocator.R$drawable: int lightestback
+org.cryptocator.R$drawable: int menuaccount
+org.cryptocator.R$drawable: int menuadduser
+org.cryptocator.R$drawable: int menuadduserext
+org.cryptocator.R$drawable: int menuattachment
+org.cryptocator.R$drawable: int menubackup
+org.cryptocator.R$drawable: int menuchatoff
+org.cryptocator.R$drawable: int menuchaton
+org.cryptocator.R$drawable: int menuclearinput
+org.cryptocator.R$drawable: int menucompose
+org.cryptocator.R$drawable: int menucopy
+org.cryptocator.R$drawable: int menudelete
+org.cryptocator.R$drawable: int menuinfo
+org.cryptocator.R$drawable: int menukey
+org.cryptocator.R$drawable: int menumsgsec
+org.cryptocator.R$drawable: int menumsgunsec
+org.cryptocator.R$drawable: int menurefresh
+org.cryptocator.R$drawable: int menurespond
+org.cryptocator.R$drawable: int menurevoke
+org.cryptocator.R$drawable: int menusearch
+org.cryptocator.R$drawable: int menusettings
+org.cryptocator.R$drawable: int menushare
+org.cryptocator.R$drawable: int menushowall
+org.cryptocator.R$drawable: int menusmsoff
+org.cryptocator.R$drawable: int menusmson
+org.cryptocator.R$drawable: int menusmssec
+org.cryptocator.R$drawable: int menusmsunsec
+org.cryptocator.R$drawable: int message
+org.cryptocator.R$drawable: int msg
+org.cryptocator.R$drawable: int msgdecryptionfailed
+org.cryptocator.R$drawable: int msgerror
+org.cryptocator.R$drawable: int msginfo
+org.cryptocator.R$drawable: int msginfosms
+org.cryptocator.R$drawable: int msglocked
+org.cryptocator.R$drawable: int msglocked2
+org.cryptocator.R$drawable: int msgread
+org.cryptocator.R$drawable: int msgreceived
+org.cryptocator.R$drawable: int msgsent
+org.cryptocator.R$drawable: int msgsmall24x24
+org.cryptocator.R$drawable: int person
+org.cryptocator.R$drawable: int personadd
+org.cryptocator.R$drawable: int personlock
+org.cryptocator.R$drawable: int personlockmsg
+org.cryptocator.R$drawable: int personmsg
+org.cryptocator.R$drawable: int personsmall
+org.cryptocator.R$drawable: int personsms
+org.cryptocator.R$drawable: int personsmsmsg
+org.cryptocator.R$drawable: int personsmssmall
+org.cryptocator.R$drawable: int phone
+org.cryptocator.R$drawable: int phoneneutral
+org.cryptocator.R$drawable: int phonesms
+org.cryptocator.R$drawable: int photobtn
+org.cryptocator.R$drawable: int pictureimport
+org.cryptocator.R$drawable: int rounded_corners
+org.cryptocator.R$drawable: int rounded_corners_alert
+org.cryptocator.R$drawable: int rounded_corners_shaddow
+org.cryptocator.R$drawable: int rounded_cornersme
+org.cryptocator.R$drawable: int rounded_cornersme_failed
+org.cryptocator.R$drawable: int rounded_cornersme_shaddow
+org.cryptocator.R$drawable: int s0
+org.cryptocator.R$drawable: int s1
+org.cryptocator.R$drawable: int s10
+org.cryptocator.R$drawable: int s11
+org.cryptocator.R$drawable: int s12
+org.cryptocator.R$drawable: int s13
+org.cryptocator.R$drawable: int s14
+org.cryptocator.R$drawable: int s2
+org.cryptocator.R$drawable: int s3
+org.cryptocator.R$drawable: int s4
+org.cryptocator.R$drawable: int s5
+org.cryptocator.R$drawable: int s6
+org.cryptocator.R$drawable: int s7
+org.cryptocator.R$drawable: int s8
+org.cryptocator.R$drawable: int s9
+org.cryptocator.R$drawable: int scrollbarhandle4
+org.cryptocator.R$drawable: int send
+org.cryptocator.R$drawable: int senddisabled
+org.cryptocator.R$drawable: int sendlock
+org.cryptocator.R$drawable: int sendsms
+org.cryptocator.R$drawable: int sendsmslock
+org.cryptocator.R$drawable: int server
+org.cryptocator.R$drawable: int serverdisabled
+org.cryptocator.R$drawable: int smileybtn
+org.cryptocator.R$drawable: int sms
+org.cryptocator.R$drawable: int sms2
+org.cryptocator.R$drawable: int speech
+org.cryptocator.R$drawable: int speechalert
+org.cryptocator.R$drawable: int speechme
+org.cryptocator.R$drawable: int speechmefailed
+org.cryptocator.R$drawable: int update
+org.cryptocator.R$drawable: int updatesms
+org.cryptocator.R$id: int accountexisting
+org.cryptocator.R$id: int accountheader
+org.cryptocator.R$id: int accountnew
+org.cryptocator.R$id: int accountonline
+org.cryptocator.R$id: int accountsection
+org.cryptocator.R$id: int active
+org.cryptocator.R$id: int additionbutton
+org.cryptocator.R$id: int additionbuttonparent
+org.cryptocator.R$id: int additions
+org.cryptocator.R$id: int adduser_button
+org.cryptocator.R$id: int adduser_name
+org.cryptocator.R$id: int adduser_text
+org.cryptocator.R$id: int adduseritem
+org.cryptocator.R$id: int advancedsettings
+org.cryptocator.R$id: int attachmentbutton
+org.cryptocator.R$id: int attachmentbuttonparent
+org.cryptocator.R$id: int attachmentspinner
+org.cryptocator.R$id: int attachmentsrow1
+org.cryptocator.R$id: int attachmentsrow2
+org.cryptocator.R$id: int autosave
+org.cryptocator.R$id: int backup
+org.cryptocator.R$id: int backupbuttons
+org.cryptocator.R$id: int backupmain
+org.cryptocator.R$id: int backupscrollview
+org.cryptocator.R$id: int btnadduser
+org.cryptocator.R$id: int btnadduserparent
+org.cryptocator.R$id: int btnback
+org.cryptocator.R$id: int btnbackparent
+org.cryptocator.R$id: int btncompose
+org.cryptocator.R$id: int btncomposeparent
+org.cryptocator.R$id: int btnkey
+org.cryptocator.R$id: int btnkeyparent
+org.cryptocator.R$id: int btnmenu
+org.cryptocator.R$id: int btnmenuparent
+org.cryptocator.R$id: int btnrefresh
+org.cryptocator.R$id: int btnrefreshparent
+org.cryptocator.R$id: int btnsearch
+org.cryptocator.R$id: int btnsearchparent
+org.cryptocator.R$id: int buttonbackup
+org.cryptocator.R$id: int buttoncancel
+org.cryptocator.R$id: int buttonclear
+org.cryptocator.R$id: int buttonclearsending
+org.cryptocator.R$id: int buttondebugprint
+org.cryptocator.R$id: int buttondeletedatabase
+org.cryptocator.R$id: int buttonpictureimport
+org.cryptocator.R$id: int buttonsave
+org.cryptocator.R$id: int buttonshare
+org.cryptocator.R$id: int chatmode
+org.cryptocator.R$id: int conversationRootView
+org.cryptocator.R$id: int conversationprogress
+org.cryptocator.R$id: int conversationtext
+org.cryptocator.R$id: int conversationtime
+org.cryptocator.R$id: int create
+org.cryptocator.R$id: int created
+org.cryptocator.R$id: int demo
+org.cryptocator.R$id: int details
+org.cryptocator.R$id: int deviceid
+org.cryptocator.R$id: int disablesmsoption
+org.cryptocator.R$id: int email
+org.cryptocator.R$id: int emailnew
+org.cryptocator.R$id: int enablesmsoption
+org.cryptocator.R$id: int encrypted
+org.cryptocator.R$id: int encryption
+org.cryptocator.R$id: int error
+org.cryptocator.R$id: int fastscrollview
+org.cryptocator.R$id: int from
+org.cryptocator.R$id: int fromfirst
+org.cryptocator.R$id: int fromid
+org.cryptocator.R$id: int fromidinfo
+org.cryptocator.R$id: int fromkey
+org.cryptocator.R$id: int helpactive
+org.cryptocator.R$id: int helpautosave
+org.cryptocator.R$id: int helpchatmode
+org.cryptocator.R$id: int helpencryption
+org.cryptocator.R$id: int helpignore
+org.cryptocator.R$id: int helpnoread
+org.cryptocator.R$id: int helpnoscreenshots
+org.cryptocator.R$id: int helpnotification
+org.cryptocator.R$id: int helppowersave
+org.cryptocator.R$id: int helpquicktype
+org.cryptocator.R$id: int helpreceiveallsms
+org.cryptocator.R$id: int helpsmileys
+org.cryptocator.R$id: int helptone
+org.cryptocator.R$id: int helpvibrate
+org.cryptocator.R$id: int ignore
+org.cryptocator.R$id: int imageView1
+org.cryptocator.R$id: int info
+org.cryptocator.R$id: int infolistitem
+org.cryptocator.R$id: int infolistitemtext
+org.cryptocator.R$id: int inputlayout
+org.cryptocator.R$id: int keycreated
+org.cryptocator.R$id: int keycreatedrow
+org.cryptocator.R$id: int keyexpires
+org.cryptocator.R$id: int keyexpiresrow
+org.cryptocator.R$id: int keyhash
+org.cryptocator.R$id: int keyhashrow
+org.cryptocator.R$id: int login
+org.cryptocator.R$id: int mainbackground
+org.cryptocator.R$id: int maininnerview
+org.cryptocator.R$id: int mainscrollview
+org.cryptocator.R$id: int mainsettingsinnerlayout
+org.cryptocator.R$id: int messageText
+org.cryptocator.R$id: int messagedetailscrollview
+org.cryptocator.R$id: int messagedetailsmain
+org.cryptocator.R$id: int msglocked
+org.cryptocator.R$id: int msgread
+org.cryptocator.R$id: int msgreceived
+org.cryptocator.R$id: int msgsent
+org.cryptocator.R$id: int msgsms
+org.cryptocator.R$id: int msgspeech
+org.cryptocator.R$id: int newaccount
+org.cryptocator.R$id: int noread
+org.cryptocator.R$id: int noscreenshots
+org.cryptocator.R$id: int notification
+org.cryptocator.R$id: int oneline
+org.cryptocator.R$id: int personicon
+org.cryptocator.R$id: int phone
+org.cryptocator.R$id: int phonebutton
+org.cryptocator.R$id: int pictureimportbuttons
+org.cryptocator.R$id: int pictureimportmain
+org.cryptocator.R$id: int pictureimportscrollview
+org.cryptocator.R$id: int powersave
+org.cryptocator.R$id: int pwd
+org.cryptocator.R$id: int pwdchange
+org.cryptocator.R$id: int pwdnew
+org.cryptocator.R$id: int quality
+org.cryptocator.R$id: int qualitytext
+org.cryptocator.R$id: int quicktype
+org.cryptocator.R$id: int read
+org.cryptocator.R$id: int receiveallsms
+org.cryptocator.R$id: int received
+org.cryptocator.R$id: int receivedtext
+org.cryptocator.R$id: int removeimages
+org.cryptocator.R$id: int restore
+org.cryptocator.R$id: int revoked
+org.cryptocator.R$id: int revokedrow
+org.cryptocator.R$id: int sendbutton
+org.cryptocator.R$id: int sendbuttonparent
+org.cryptocator.R$id: int sendingreceiving
+org.cryptocator.R$id: int sendingreceivingparent
+org.cryptocator.R$id: int sendingreceivingprogess
+org.cryptocator.R$id: int sendingreceivingtitle
+org.cryptocator.R$id: int sendspinner
+org.cryptocator.R$id: int sent
+org.cryptocator.R$id: int serverMessageID
+org.cryptocator.R$id: int serverbuttonadd
+org.cryptocator.R$id: int serverbuttondelete
+org.cryptocator.R$id: int serverbuttonmodify
+org.cryptocator.R$id: int serverdisabled
+org.cryptocator.R$id: int serverimage
+org.cryptocator.R$id: int serverspinner
+org.cryptocator.R$id: int settingsbackground
+org.cryptocator.R$id: int settingssection
+org.cryptocator.R$id: int size
+org.cryptocator.R$id: int size0
+org.cryptocator.R$id: int size0highlight
+org.cryptocator.R$id: int size1
+org.cryptocator.R$id: int size1highlight
+org.cryptocator.R$id: int size2
+org.cryptocator.R$id: int size2highlight
+org.cryptocator.R$id: int size3
+org.cryptocator.R$id: int size3highlight
+org.cryptocator.R$id: int sizetext
+org.cryptocator.R$id: int sizetextback
+org.cryptocator.R$id: int smileybutton
+org.cryptocator.R$id: int smileybuttonparent
+org.cryptocator.R$id: int smileys
+org.cryptocator.R$id: int tableLayout1
+org.cryptocator.R$id: int textexisting2
+org.cryptocator.R$id: int textexisting22
+org.cryptocator.R$id: int textexisting2223
+org.cryptocator.R$id: int textexisting223
+org.cryptocator.R$id: int textexisting224
+org.cryptocator.R$id: int textlogin3
+org.cryptocator.R$id: int textnew
+org.cryptocator.R$id: int titleconversation
+org.cryptocator.R$id: int titlegeneral
+org.cryptocator.R$id: int titlemain
+org.cryptocator.R$id: int titletext
+org.cryptocator.R$id: int titletextparent
+org.cryptocator.R$id: int to
+org.cryptocator.R$id: int toid
+org.cryptocator.R$id: int toidinfo
+org.cryptocator.R$id: int tokey
+org.cryptocator.R$id: int tolast
+org.cryptocator.R$id: int tolist
+org.cryptocator.R$id: int tone
+org.cryptocator.R$id: int transport
+org.cryptocator.R$id: int uid
+org.cryptocator.R$id: int updatepwd
+org.cryptocator.R$id: int updateuser
+org.cryptocator.R$id: int user
+org.cryptocator.R$id: int usericon
+org.cryptocator.R$id: int userlistdate
+org.cryptocator.R$id: int userlistname
+org.cryptocator.R$id: int userlisttext
+org.cryptocator.R$id: int usernew
+org.cryptocator.R$id: int userradio
+org.cryptocator.R$id: int vibrate
+org.cryptocator.R$id: int widget44
+org.cryptocator.R$id: int widget46
+org.cryptocator.R$layout: int activity_backup
+org.cryptocator.R$layout: int activity_conversation
+org.cryptocator.R$layout: int activity_conversation_compose
+org.cryptocator.R$layout: int activity_main
+org.cryptocator.R$layout: int activity_messagedetails
+org.cryptocator.R$layout: int activity_pictureimport
+org.cryptocator.R$layout: int activity_setup
+org.cryptocator.R$layout: int adduserlistitem
+org.cryptocator.R$layout: int conversationitem
+org.cryptocator.R$layout: int conversationitemme
+org.cryptocator.R$layout: int infolistitem
+org.cryptocator.R$layout: int setup_account
+org.cryptocator.R$layout: int setup_settings
+org.cryptocator.R$layout: int title_conversation
+org.cryptocator.R$layout: int title_conversation_compose
+org.cryptocator.R$layout: int title_general
+org.cryptocator.R$layout: int title_main
+org.cryptocator.R$layout: int tolistitem
+org.cryptocator.R$layout: int userlistitem
+org.cryptocator.R$layout: int userlistitemmsg
+org.cryptocator.R$string: int app_name
+org.cryptocator.R$style: int AlertDialogCustom
+org.cryptocator.R$style: int AlertDialogCustomOther
+org.cryptocator.R$style: int AutoCompleteTextViewLight
+org.cryptocator.R$style: int NoTitlebar
+org.cryptocator.R$style: int Theme_Light_NoTitleBar_Workaround
+org.cryptocator.R$style: int Theme_Transparent
+org.cryptocator.R$style: int Widget_DropDownItemLight
+org.cryptocator.ReceiveSMS
+org.cryptocator.ReceiveSMS: ReceiveSMS()
+org.cryptocator.Scheduler
+org.cryptocator.Scheduler: Scheduler()
+org.cryptocator.ScrollViewEx
+org.cryptocator.ScrollViewEx: ScrollViewEx(android.content.Context)
+org.cryptocator.ScrollViewEx: ScrollViewEx(android.content.Context,android.util.AttributeSet,int)
+org.cryptocator.ScrollViewEx: ScrollViewEx(android.content.Context,android.util.AttributeSet)
+org.cryptocator.ScrollViewEx: void setScrollViewListener(org.cryptocator.ScrollViewEx$ScrollViewExListener)
+org.cryptocator.SendSMSDelivered
+org.cryptocator.SendSMSDelivered: SendSMSDelivered()
+org.cryptocator.SendSMSSent
+org.cryptocator.SendSMSSent: SendSMSSent()
+org.cryptocator.Setup
+org.cryptocator.Setup: Setup()
+org.cryptocator.TransitActivity
+org.cryptocator.TransitActivity: TransitActivity()
+org.cryptocator.UserDetailsActivity
+org.cryptocator.UserDetailsActivity: UserDetailsActivity()
+org.cryptocator.UserPresentReceiver
+org.cryptocator.UserPresentReceiver: UserPresentReceiver()

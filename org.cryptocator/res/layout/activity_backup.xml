@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/settingsbackground"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <ScrollView
+        android:id="@+id/backupscrollview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.8" >
+
+        <LinearLayout
+            android:id="@+id/backupmain"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:orientation="vertical" >
+
+            <TableLayout
+                android:id="@+id/tableLayout1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" >
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20px"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="5px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="From Message:"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:orientation="vertical" >
+
+                        <EditText
+                            android:id="@+id/fromid"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="5px"
+                            android:layout_marginLeft="5px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="0px"
+                            android:ems="10"
+                            android:inputType="phone"
+                            android:text="delphino [ 3 ]"
+                            android:textSize="16sp" >
+                        </EditText>
+
+                        <TextView
+                            android:id="@+id/fromidinfo"
+                        android:layout_width="260px"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="5px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="Enter a message ID (MID) number. You can optain an MID from the message details if you click left or right beside an message."
+                        android:textSize="14sp" >
+                   	 </TextView>
+                    
+                        <CheckBox
+                            android:id="@+id/fromfirst"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="5px"
+                            android:layout_marginLeft="5px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="0px"
+                            android:text="First Message"
+                            android:textSize="16sp" >
+                        </CheckBox>
+                    </LinearLayout>
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="0dip" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginBottom="5px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="5px"
+                        android:layout_marginTop="0px"
+                        android:gravity="right"
+                        android:text="To Message:"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:orientation="vertical" >
+
+                        <EditText
+                            android:id="@+id/toid"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="5px"
+                            android:layout_marginLeft="5px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="0px"
+                            android:ems="10"
+                            android:inputType="phone"
+                            android:text="delphino [ 3 ]"
+                            android:textSize="16sp" >
+                        </EditText>
+                        
+                        <TextView
+                            android:id="@+id/toidinfo"
+                        android:layout_width="260px"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="5px"
+                        android:layout_marginLeft="10px"
+                        android:layout_marginRight="20px"
+                        android:layout_marginTop="0px"
+                        android:text="Enter a message ID (MID) number. You can optain an MID from the message details if you click left or right beside an message."
+                        android:textSize="14sp" >
+                   	 </TextView>                        
+
+                        <CheckBox
+                            android:id="@+id/tolast"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="5px"
+                            android:layout_marginLeft="5px"
+                            android:layout_marginRight="20px"
+                            android:layout_marginTop="0px"
+                            android:text="Last Message"
+                            android:textSize="16sp" >
+                        </CheckBox>
+                    </LinearLayout>
+                </TableRow>
+            </TableLayout>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical|center_horizontal"
+                android:orientation="horizontal" >
+
+                <CheckBox
+                    android:id="@+id/details"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginLeft="20px"
+                    android:layout_marginRight="20px"
+                    android:layout_marginTop="40px"
+                    android:text="Include Message Details"
+                    android:textSize="16sp" >
+                </CheckBox>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical|center_horizontal"
+                android:orientation="horizontal" >
+
+                <CheckBox
+                    android:id="@+id/removeimages"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="40px"
+                    android:layout_marginLeft="20px"
+                    android:layout_marginRight="20px"
+                    android:layout_marginTop="20px"
+                    android:text="Remove Images"
+                    android:textSize="16sp" >
+                </CheckBox>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/backupbuttons"
+        android:layout_width="fill_parent"
+        android:layout_height="60sp"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_vertical|center_horizontal"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/buttonbackup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Backup to Clipboard" />
+
+        <Button
+            android:id="@+id/buttoncancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="    Cancel    " />
+    </LinearLayout>
+
+</LinearLayout>

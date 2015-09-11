@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/conversationRootView"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity" >
+
+
+
+ 
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="center_vertical|center_horizontal"
+        android:layout_weight="2000" >
+
+        <view
+            android:id="@+id/tolist"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_marginBottom="10px"
+            android:layout_marginLeft="5px"
+            android:layout_marginRight="0px"
+            android:layout_marginTop="10px"
+            android:layout_weight="2000"
+            class="org.cryptocator.FastScrollView" />
+
+        <!--
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:layout_marginBottom="20px"
+            android:layout_marginLeft="80px"
+            android:layout_marginRight="80px"
+            android:layout_marginTop="20px"
+            android:gravity="center"
+            android:text="Compose a new unencrypted SMS message here. Add a phone number at the top.\n\nInvite this user to use Cryptocator in order to exchange secure messages!"
+            android:textSize="16sp" >
+        </TextView>
+        -->
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/inputlayout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="60dp"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0px"
+            android:layout_marginTop="0px"
+            android:layout_weight="1"
+            android:orientation="horizontal" >
+
+            <LinearLayout
+                android:id="@+id/additionbuttonparent"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_gravity="bottom"
+                android:orientation="vertical" >
+
+                <org.cryptocator.ImagePressButton
+                    android:id="@+id/additionbutton"
+                    android:layout_width="38px"
+                    android:layout_height="70px"
+                    android:layout_gravity="bottom"
+                    android:layout_marginBottom="0px"
+                    android:layout_marginTop="0px"
+                    android:layout_weight="1"
+                    android:background="@drawable/additionbtnback"
+                    android:minWidth="20px"
+                    android:src="@drawable/additionbtn"
+                    android:text="" >
+                </org.cryptocator.ImagePressButton>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/additions"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_gravity="bottom"
+                android:layout_marginLeft="0px"
+                android:layout_marginRight="0px"
+                android:orientation="vertical" >
+
+                <LinearLayout
+                    android:id="@+id/smileybuttonparent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="2px"
+                    android:layout_marginRight="5px"
+                    android:layout_weight="50"
+                    android:orientation="vertical" >
+
+                    <org.cryptocator.ImagePressButton
+                        android:id="@+id/smileybutton"
+                        android:layout_width="70px"
+                        android:layout_height="43px"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginBottom="4px"
+                        android:layout_marginTop="0px"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:minWidth="100px"
+                        android:src="@drawable/smileybtn"
+                        android:text="" >
+                    </org.cryptocator.ImagePressButton>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/attachmentbuttonparent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="2px"
+                    android:layout_marginRight="5px"
+                    android:layout_weight="50"
+                    android:orientation="vertical" >
+
+                    <org.cryptocator.ImagePressButton
+                        android:id="@+id/attachmentbutton"
+                        android:layout_width="70px"
+                        android:layout_height="43px"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginBottom="4px"
+                        android:layout_marginTop="0px"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:minWidth="100px"
+                        android:src="@drawable/attachmentbtn"
+                        android:text="" >
+                    </org.cryptocator.ImagePressButton>
+                </LinearLayout>
+            </LinearLayout>
+
+            <org.cryptocator.ImageSmileyEditText
+                android:id="@+id/messageText"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5px"
+                android:layout_marginBottom="15px"
+                android:layout_marginTop="10px"
+                android:layout_weight="2"
+                android:text="" >
+
+                <requestFocus />
+            </org.cryptocator.ImageSmileyEditText>
+
+            <Spinner
+                android:id="@+id/sendspinner"
+                android:layout_width="0pt"
+                android:layout_height="0pt"
+                android:visibility="invisible" />
+
+            <LinearLayout
+                android:id="@+id/sendbuttonparent"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_gravity="bottom"
+                android:layout_marginLeft="15px"
+                android:orientation="vertical" >
+
+                <org.cryptocator.ImagePressButton
+                    android:id="@+id/sendbutton"
+                    android:layout_width="80px"
+                    android:layout_height="70px"
+                    android:layout_marginTop="7px"
+	                android:layout_marginBottom="7px"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:minWidth="100px"
+                    android:src="@drawable/send"
+                    android:text="" >
+                </org.cryptocator.ImagePressButton>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
