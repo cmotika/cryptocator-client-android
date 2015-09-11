@@ -2747,69 +2747,70 @@ org.cryptocator.Communicator$9 -> org.cryptocator.s:
     int val$serverId -> e
     void response(java.lang.String) -> a
 org.cryptocator.Conversation -> org.cryptocator.Conversation:
-    int FIXED_INSET -> v
+    int FIXED_INSET -> w
     org.cryptocator.FastScrollView fastScrollView -> a
-    android.view.View conversationRootView -> w
-    android.widget.LinearLayout titleconversation -> x
-    java.util.List conversationList -> y
-    java.util.List conversationListDiff -> z
+    android.view.View conversationRootView -> x
+    android.widget.LinearLayout titleconversation -> y
+    java.util.List conversationList -> z
+    java.util.List conversationListDiff -> A
     android.widget.Spinner sendspinner -> b
-    java.util.HashMap mapping -> A
-    int hostUid -> B
-    boolean hasScrolled -> C
-    int scrollItem -> D
-    int maxScrollMessageItems -> E
+    java.util.HashMap mapping -> B
+    int hostUid -> C
+    boolean hasScrolled -> D
+    int scrollItem -> E
+    int maxScrollMessageItems -> F
     boolean scrolledDown -> c
-    boolean scrolledUp -> F
-    int conversationSize -> G
-    org.cryptocator.ImagePressButton sendbutton -> H
-    org.cryptocator.ImagePressButton smileybutton -> I
-    org.cryptocator.ImagePressButton attachmentbutton -> J
-    org.cryptocator.ImagePressButton additionbutton -> K
+    boolean scrolledUp -> G
+    int conversationSize -> H
+    org.cryptocator.ImagePressButton sendbutton -> I
+    org.cryptocator.ImagePressButton smileybutton -> J
+    org.cryptocator.ImagePressButton attachmentbutton -> K
+    org.cryptocator.ImagePressButton additionbutton -> L
     org.cryptocator.ImageSmileyEditText messageText -> d
     android.widget.TextView titletext -> e
-    android.view.LayoutInflater inflater -> L
-    boolean additionsVisible -> M
+    android.view.LayoutInflater inflater -> M
+    boolean additionsVisible -> N
     int lastHeight -> f
     int lastMessagTextLineCount -> g
     int currentScreenWidth -> h
     boolean screenWidthChanged -> i
     int FASTSCROLLBACKSCROLLINGBACKGROUND -> j
     int FASTSCROLLBACKLOCKEDBACKGROUND -> k
-    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageContextMenuProvider -> N
-    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageSendMenuProvider -> O
-    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageImageMenuProvider -> P
-    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageMessageMenuProvider -> Q
+    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageContextMenuProvider -> O
+    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageSendMenuProvider -> P
+    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageImageMenuProvider -> Q
+    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageMessageMenuProvider -> R
     boolean skipResume -> l
-    java.util.List textViews -> R
-    boolean isSMSModeOn -> S
-    boolean isEncryptionOn -> T
-    java.util.LinkedHashSet images -> U
-    org.cryptocator.Conversation instance -> V
-    boolean visible -> W
+    java.util.List textViews -> S
+    boolean isSMSModeOn -> T
+    boolean isEncryptionOn -> U
+    java.util.LinkedHashSet images -> V
+    org.cryptocator.Conversation instance -> W
+    boolean visible -> X
     long lastKeyStroke -> m
-    int activeScoller -> X
-    int minWidthDiff -> Y
-    int lastHeightDifferece -> Z
-    boolean keyboardVisible -> aa
-    int menuEnableChat -> ab
-    int menuDisableChat -> ac
-    int menuEnableSMS -> ad
-    int menuDisableSMS -> ae
-    int menuSndSMSSec -> af
-    int menuSndSMS -> ag
-    int menuSndMsgSec -> ah
-    int menuSndMsg -> ai
-    int menuContextShowAll -> aj
-    int menuContextShowMore -> ak
+    int activeScoller -> Y
+    int minWidthDiff -> Z
+    int lastHeightDifferece -> aa
+    boolean keyboardVisible -> ab
+    int menuEnableChat -> ac
+    int menuDisableChat -> ad
+    int menuEnableSMS -> ae
+    int menuDisableSMS -> af
+    int menuSndSMSSec -> ag
+    int menuSndSMS -> ah
+    int menuSndMsgSec -> ai
+    int menuSndMsg -> aj
+    int menuContextShowAll -> ak
+    int menuContextShowMore -> al
     org.cryptocator.ConversationItem imageMessageMenuItem -> n
     int imageMessageMenuRevoke -> o
-    android.widget.TextView imageMessageMenuInfoText -> p
-    android.graphics.Bitmap imageImageMenuBitmap -> q
-    java.lang.String imageImageMenuString -> r
-    java.lang.String imageImageMenuTitleAddition -> s
-    java.lang.String imageImageMenuDescription -> t
-    int imageImageMenuImageIndex -> u
+    int imageMessageMenuResend -> p
+    android.widget.TextView imageMessageMenuInfoText -> q
+    android.graphics.Bitmap imageImageMenuBitmap -> r
+    java.lang.String imageImageMenuString -> s
+    java.lang.String imageImageMenuTitleAddition -> t
+    java.lang.String imageImageMenuDescription -> u
+    int imageImageMenuImageIndex -> v
     void onCreate(android.os.Bundle) -> onCreate
     void onStart() -> onStart
     int getHostUid() -> a
@@ -4327,7 +4328,7 @@ org.cryptocator.MessageDetailsActivity -> org.cryptocator.MessageDetailsActivity
     android.widget.CheckBox details -> h
     android.widget.CheckBox removeImages -> i
     void onCreate(android.os.Bundle) -> onCreate
-    java.lang.String getSessionKeyDisplayInfo(android.content.Context,int) -> a
+    java.lang.String getSessionKeyTransportDisplayInfo(android.content.Context,int) -> a
     int getImageAttachmentNumber(android.content.Context,java.lang.String) -> a
     int autoSaveAllImages(android.content.Context,java.lang.String,org.cryptocator.ConversationItem) -> a
     java.lang.String extractImageAttachment(android.content.Context,java.lang.String,int) -> a
@@ -4610,96 +4611,97 @@ org.cryptocator.Setup -> org.cryptocator.Setup:
     java.lang.String DATABASESENDING -> h
     java.lang.String DATABASESENT -> i
     java.lang.String INTENTEXTRA -> j
-    java.lang.String APPLICATION_PACKAGE_NAME -> k
-    java.lang.String GROUP_CRYPTOCATOR -> l
-    int accountLocked -> t
-    int advanedSetupCountdown -> u
-    java.util.HashMap BASESERVERADDRESSCACHED -> v
-    int SMS_DEFAULT_SIZE -> m
-    int SMS_DEFAULT_SIZE_MULTIPART -> n
-    int SMS_DEFAULT_SIZE_ENCRYPTED -> o
-    int COLOR_MAIN_BLUE -> p
-    int COLOR_MAIN_BLUEDARK -> q
-    int COLOR_MAIN_BLUEDARKEST -> r
-    int COLOR_BLUELINE -> s
-    boolean restartRequiredFlag -> w
-    android.widget.CheckBox active -> x
-    android.widget.CheckBox encryption -> y
-    android.widget.CheckBox notification -> z
-    android.widget.CheckBox tone -> A
-    android.widget.CheckBox vibrate -> B
-    android.widget.CheckBox ignore -> C
-    android.widget.CheckBox autosave -> D
-    android.widget.CheckBox noread -> E
-    android.widget.CheckBox chatmode -> F
-    android.widget.CheckBox quicktype -> G
-    android.widget.CheckBox smileys -> H
-    android.widget.CheckBox noscreenshots -> I
-    android.widget.CheckBox powersave -> J
-    android.widget.CheckBox receiveallsms -> K
-    android.widget.ImageView helpactive -> L
-    android.widget.ImageView helpencryption -> M
-    android.widget.ImageView helptone -> N
-    android.widget.ImageView helpvibrate -> O
-    android.widget.ImageView helpnotification -> P
-    android.widget.ImageView helpignore -> Q
-    android.widget.ImageView helpautosave -> R
-    android.widget.ImageView helpnoread -> S
-    android.widget.ImageView helpquicktype -> T
-    android.widget.ImageView helpsmileys -> U
-    android.widget.ImageView helpchatmode -> V
-    android.widget.ImageView helpnoscreenshots -> W
-    android.widget.ImageView helppowersave -> X
-    android.widget.ImageView helpreceiveallsms -> Y
-    android.widget.EditText uid -> Z
-    android.widget.EditText email -> aa
-    android.widget.EditText pwd -> ab
-    android.widget.EditText usernew -> ac
-    android.widget.EditText emailnew -> ad
-    android.widget.EditText pwdnew -> ae
-    android.widget.EditText user -> af
-    android.widget.EditText pwdchange -> ag
-    android.widget.TextView error -> ah
-    android.widget.TextView info -> ai
-    android.widget.TextView deviceid -> aj
-    android.widget.LinearLayout advancedsettings -> ak
-    android.widget.Button buttonclearsending -> al
-    android.widget.Button buttondebugprint -> am
-    android.widget.Button buttondeletedatabase -> an
-    android.widget.Button create -> ao
-    android.widget.Button login -> ap
-    android.widget.Button updatepwd -> aq
-    android.widget.Button updateuser -> ar
-    android.widget.EditText phone -> as
-    android.widget.Button enablesmsoption -> at
-    android.widget.Button disablesmsoption -> au
-    android.widget.Button backup -> av
-    android.widget.Button restore -> aw
-    android.widget.LinearLayout accountnew -> ax
-    android.widget.LinearLayout accountexisting -> ay
-    android.widget.LinearLayout accountonline -> az
-    android.widget.LinearLayout accountsection -> aA
-    android.widget.LinearLayout accountheader -> aB
-    android.widget.LinearLayout settingssection -> aC
-    boolean online -> aD
-    android.widget.CheckBox newaccount -> aE
-    boolean accountType -> aF
-    android.widget.ImageView serverimage -> aG
-    android.widget.CheckBox serverdisabled -> aH
-    android.widget.ImageButton serverbuttonmodify -> aI
-    android.widget.Button serverbuttonadd -> aJ
-    android.widget.Button serverbuttondelete -> aK
-    android.widget.Spinner serverspinner -> aL
-    int selectedServerId -> aM
-    int FAKEUIDLEN -> aN
-    java.util.HashMap cachedServerIdsFromServerAddress -> aO
-    java.util.List cachedServerIds -> aP
-    java.util.List cachedServers -> aQ
-    java.util.HashMap cachedServerActive -> aR
-    java.util.HashMap cachedServerAccount -> aS
-    java.util.HashMap cachedSUid -> aT
-    java.util.HashMap cachedServerId -> aU
-    java.util.HashMap cachedServerLabel -> aV
+    java.lang.String ALERT_PREFIX -> k
+    java.lang.String APPLICATION_PACKAGE_NAME -> l
+    java.lang.String GROUP_CRYPTOCATOR -> m
+    int accountLocked -> u
+    int advanedSetupCountdown -> v
+    java.util.HashMap BASESERVERADDRESSCACHED -> w
+    int SMS_DEFAULT_SIZE -> n
+    int SMS_DEFAULT_SIZE_MULTIPART -> o
+    int SMS_DEFAULT_SIZE_ENCRYPTED -> p
+    int COLOR_MAIN_BLUE -> q
+    int COLOR_MAIN_BLUEDARK -> r
+    int COLOR_MAIN_BLUEDARKEST -> s
+    int COLOR_BLUELINE -> t
+    boolean restartRequiredFlag -> x
+    android.widget.CheckBox active -> y
+    android.widget.CheckBox encryption -> z
+    android.widget.CheckBox notification -> A
+    android.widget.CheckBox tone -> B
+    android.widget.CheckBox vibrate -> C
+    android.widget.CheckBox ignore -> D
+    android.widget.CheckBox autosave -> E
+    android.widget.CheckBox noread -> F
+    android.widget.CheckBox chatmode -> G
+    android.widget.CheckBox quicktype -> H
+    android.widget.CheckBox smileys -> I
+    android.widget.CheckBox noscreenshots -> J
+    android.widget.CheckBox powersave -> K
+    android.widget.CheckBox receiveallsms -> L
+    android.widget.ImageView helpactive -> M
+    android.widget.ImageView helpencryption -> N
+    android.widget.ImageView helptone -> O
+    android.widget.ImageView helpvibrate -> P
+    android.widget.ImageView helpnotification -> Q
+    android.widget.ImageView helpignore -> R
+    android.widget.ImageView helpautosave -> S
+    android.widget.ImageView helpnoread -> T
+    android.widget.ImageView helpquicktype -> U
+    android.widget.ImageView helpsmileys -> V
+    android.widget.ImageView helpchatmode -> W
+    android.widget.ImageView helpnoscreenshots -> X
+    android.widget.ImageView helppowersave -> Y
+    android.widget.ImageView helpreceiveallsms -> Z
+    android.widget.EditText uid -> aa
+    android.widget.EditText email -> ab
+    android.widget.EditText pwd -> ac
+    android.widget.EditText usernew -> ad
+    android.widget.EditText emailnew -> ae
+    android.widget.EditText pwdnew -> af
+    android.widget.EditText user -> ag
+    android.widget.EditText pwdchange -> ah
+    android.widget.TextView error -> ai
+    android.widget.TextView info -> aj
+    android.widget.TextView deviceid -> ak
+    android.widget.LinearLayout advancedsettings -> al
+    android.widget.Button buttonclearsending -> am
+    android.widget.Button buttondebugprint -> an
+    android.widget.Button buttondeletedatabase -> ao
+    android.widget.Button create -> ap
+    android.widget.Button login -> aq
+    android.widget.Button updatepwd -> ar
+    android.widget.Button updateuser -> as
+    android.widget.EditText phone -> at
+    android.widget.Button enablesmsoption -> au
+    android.widget.Button disablesmsoption -> av
+    android.widget.Button backup -> aw
+    android.widget.Button restore -> ax
+    android.widget.LinearLayout accountnew -> ay
+    android.widget.LinearLayout accountexisting -> az
+    android.widget.LinearLayout accountonline -> aA
+    android.widget.LinearLayout accountsection -> aB
+    android.widget.LinearLayout accountheader -> aC
+    android.widget.LinearLayout settingssection -> aD
+    boolean online -> aE
+    android.widget.CheckBox newaccount -> aF
+    boolean accountType -> aG
+    android.widget.ImageView serverimage -> aH
+    android.widget.CheckBox serverdisabled -> aI
+    android.widget.ImageButton serverbuttonmodify -> aJ
+    android.widget.Button serverbuttonadd -> aK
+    android.widget.Button serverbuttondelete -> aL
+    android.widget.Spinner serverspinner -> aM
+    int selectedServerId -> aN
+    int FAKEUIDLEN -> aO
+    java.util.HashMap cachedServerIdsFromServerAddress -> aP
+    java.util.List cachedServerIds -> aQ
+    java.util.List cachedServers -> aR
+    java.util.HashMap cachedServerActive -> aS
+    java.util.HashMap cachedServerAccount -> aT
+    java.util.HashMap cachedSUid -> aU
+    java.util.HashMap cachedServerId -> aV
+    java.util.HashMap cachedServerLabel -> aW
     void onCreate(android.os.Bundle) -> onCreate
     void hideServerModifyButtons() -> a
     void buildServerTabs(android.content.Context) -> x

@@ -2922,14 +2922,14 @@ org.cryptocator.Communicator:
 org.cryptocator.Conversation:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
-    3874:3902:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
-    3976:4008:public void insertImage(android.content.Context,java.lang.String)
+    3886:3914:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
+    3988:4020:public void insertImage(android.content.Context,java.lang.String)
     149:149:static synthetic boolean access$32()
 org.cryptocator.Conversation$74:
-    3755:3760:public void onCancel()
+    3767:3772:public void onCancel()
 org.cryptocator.Conversation$75
 org.cryptocator.Conversation$76:
-    3947:3951:public void onCancel()
+    3959:3963:public void onCancel()
 org.cryptocator.Conversation$77
 org.cryptocator.ConversationCompose:
     private static final int SELECT_PICTURE
@@ -3127,11 +3127,11 @@ org.cryptocator.Setup:
     public static final java.lang.String LASTUPDATE_SERVER_ATTACHMENT_LIMIT
     public static final int SMS_SIZE_WARNING
     public static final int MULTIPART_MESSAGELIMIT
-    3661:3666:public static boolean haveAESKey(android.content.Context,int)
-    4031:4047:public static java.security.PublicKey getPublicKey(android.content.Context)
-    5177:5197:public static java.lang.String encText(android.content.Context,java.lang.String,int)
-    6103:6104:public static void setVersionUpdated(android.content.Context)
-    6117:6117:public static boolean isVersionUpdated(android.content.Context)
+    3664:3669:public static boolean haveAESKey(android.content.Context,int)
+    4102:4118:public static java.security.PublicKey getPublicKey(android.content.Context)
+    5248:5268:public static java.lang.String encText(android.content.Context,java.lang.String,int)
+    6174:6175:public static void setVersionUpdated(android.content.Context)
+    6188:6188:public static boolean isVersionUpdated(android.content.Context)
 org.cryptocator.Utility:
     public static final java.lang.String PREFERENCESURI
     136:136:public Utility()

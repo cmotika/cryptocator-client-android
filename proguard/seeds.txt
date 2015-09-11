@@ -214,6 +214,7 @@ org.cryptocator.R$drawable: int dolphins3blue
 org.cryptocator.R$drawable: int dolphins3light
 org.cryptocator.R$drawable: int dolphins4
 org.cryptocator.R$drawable: int dolphins4light
+org.cryptocator.R$drawable: int frameback
 org.cryptocator.R$drawable: int help
 org.cryptocator.R$drawable: int ic_launcher
 org.cryptocator.R$drawable: int lightback
@@ -272,6 +273,7 @@ org.cryptocator.R$drawable: int phonesms
 org.cryptocator.R$drawable: int photobtn
 org.cryptocator.R$drawable: int pictureimport
 org.cryptocator.R$drawable: int rounded_corners
+org.cryptocator.R$drawable: int rounded_corners_alert
 org.cryptocator.R$drawable: int rounded_corners_shaddow
 org.cryptocator.R$drawable: int rounded_cornersme
 org.cryptocator.R$drawable: int rounded_cornersme_failed
@@ -303,6 +305,7 @@ org.cryptocator.R$drawable: int smileybtn
 org.cryptocator.R$drawable: int sms
 org.cryptocator.R$drawable: int sms2
 org.cryptocator.R$drawable: int speech
+org.cryptocator.R$drawable: int speechalert
 org.cryptocator.R$drawable: int speechme
 org.cryptocator.R$drawable: int speechmefailed
 org.cryptocator.R$drawable: int update

@@ -84,7 +84,7 @@ public class UserDetailsActivity extends Activity {
 	public static int uid = -1;
 
 	/** The hidden phone text. */
-	public static String HIDDENPHONETEXT = "[ automatic ]";
+	public static String HIDDENPHONETEXT = "[ from server ]";
 
 	/** The name. */
 	EditText name;
@@ -177,7 +177,7 @@ public class UserDetailsActivity extends Activity {
 		detailsName.setText("Display Name: ");
 		name = new EditText(context);
 		nameCheck = new CheckBox(context);
-		nameCheck.setText("Automatic Update");
+		nameCheck.setText("Auto Update");
 		LinearLayout nameInnerLayout = new LinearLayout(context);
 		nameInnerLayout.setOrientation(LinearLayout.VERTICAL);
 		nameInnerLayout.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -212,13 +212,14 @@ public class UserDetailsActivity extends Activity {
 		phone = new EditText(context);
 		phone.setInputType(InputType.TYPE_CLASS_PHONE);
 		phoneCheck = new CheckBox(context);
-		phoneCheck.setText("Automatic Update");
+		phoneCheck.setText("Auto Update");
 		phoneCheckText = new TextView(context);
-		phoneCheckText.setText("You do NOT have enabled the SMS option. You can only enable downloading" +
-				" other phone numbers automatically if you have enabled the SMS option in your account settings.");
+		phoneCheckText
+				.setText("You do NOT have enabled the SMS option. You can only enable downloading"
+						+ " other phone numbers automatically if you have enabled the SMS option in your account settings.");
 		phoneCheckText.setVisibility(View.GONE);
 		phoneCheckText.setTextSize(11);
-		
+
 		LinearLayout phoneInnerLayout = new LinearLayout(context);
 		phoneInnerLayout.setOrientation(LinearLayout.VERTICAL);
 		phoneInnerLayout.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -422,10 +423,15 @@ public class UserDetailsActivity extends Activity {
 		if (uid >= 0) {
 			int serverId = Setup.getServerId(context, uid);
 			int suid = Setup.getSUid(context, uid);
-			text += "Message Server: " + Setup.getServerLabel(context, serverId, true) + "\n";
+			text += "Message Server: "
+					+ Setup.getServerLabel(context, serverId, true) + "\n\n";
 			text += "UID Server: " + suid + "\n";
+			text += "Account Key: " + Setup.getKeyHash(context, suid) + "\n";
+			text += "Valid Since: "
+					+ DB.getDateString(Utility.parseLong(
+							Setup.getKeyDate(context, suid), 0), true) + "\n\n";
 		}
-		text += "UID Local: " + uid + "\n\n";
+		text += "Local Database: " + uid + ".db\n\n";
 
 		if (uid >= 0) {
 			text += "Registered user\n";
@@ -470,8 +476,9 @@ public class UserDetailsActivity extends Activity {
 			nameCheck.setChecked(Main.isUpdateName(context, uid));
 
 			int serverId = Setup.getServerId(context, uid);
-			
-			// ONLY if SMS option is enabled, an auto update of phone numbers is allowed!
+
+			// ONLY if SMS option is enabled, an auto update of phone numbers is
+			// allowed!
 			if (Setup.isSMSOptionEnabled(context, serverId)) {
 				phoneCheck.setChecked(Main.isUpdatePhone(context, uid));
 			} else {
@@ -480,7 +487,7 @@ public class UserDetailsActivity extends Activity {
 				phoneCheck.setEnabled(false);
 				phoneCheckText.setVisibility(View.VISIBLE);
 			}
-			
+
 		} else {
 			nameCheck.setChecked(false);
 			nameCheck.setEnabled(false);

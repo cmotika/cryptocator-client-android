@@ -2156,6 +2156,12 @@ public class Conversation extends Activity {
 					.findViewById(R.id.conversationprogress);
 			// Hide per default, only used for multi part receiving
 			progress.setVisibility(View.GONE);
+			
+			if (conversationItem.text.startsWith(Setup.ALERT_PREFIX)) {
+				// Rounded corners failed
+				oneline.setBackgroundResource(R.drawable.rounded_corners_alert);
+				speech.setImageResource(R.drawable.speechalert);
+			}
 
 			// Create a mapping for later async update
 			addMapping(conversationItem.mid, conversationItem.localid, null,
@@ -2288,7 +2294,11 @@ public class Conversation extends Activity {
 		conversationTime.setText(DB.getDateString(time, false));
 		conversationTime.setId(conversationTime.hashCode());
 
-		conversationText.setText(conversationItem.text);
+		String text = conversationItem.text;
+		if (text.startsWith(Setup.ALERT_PREFIX)) {
+			text = text.substring(Setup.ALERT_PREFIX.length());
+		}
+		conversationText.setText(text);
 		conversationText.setId(conversationItem.hashCode());
 
 		return conversationlistitem;
@@ -2893,6 +2903,7 @@ public class Conversation extends Activity {
 	 */
 	ConversationItem imageMessageMenuItem = null;
 	int imageMessageMenuRevoke = -1;
+	int imageMessageMenuResend = -1;
 	TextView imageMessageMenuInfoText = null;
 
 	public ImageContextMenuProvider createMessageContextMenu(
@@ -3023,7 +3034,7 @@ public class Conversation extends Activity {
 							return true;
 						}
 					});
-			imageMessageMenuProvider.addEntry("Resend", R.drawable.menurefresh,
+			imageMessageMenuResend = imageMessageMenuProvider.addEntry("Resend", R.drawable.menurefresh,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
 							// Resend
@@ -3054,7 +3065,8 @@ public class Conversation extends Activity {
 
 		// Enable revoke only for Internet messages
 		imageMessageMenuProvider.setVisible(imageMessageMenuRevoke,
-				item.transport != DB.TRANSPORT_SMS);
+				item.transport != DB.TRANSPORT_SMS && item.me());
+		imageMessageMenuProvider.setVisible(imageMessageMenuResend, item.me());
 		imageMessageMenuProvider.setTitle("Message  [ "
 				+ imageMessageMenuItem.localid + " ]");
 

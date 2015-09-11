@@ -143,6 +143,9 @@ public class Setup extends Activity {
 
 	/** The internal id for intentextra. */
 	public static String INTENTEXTRA = "org.cryptocator.hostuid";
+	
+	/** The aler prefix. */
+	public static String ALERT_PREFIX = "ALERT: ";
 
 	/**
 	 * The application package name used for making this app the default SMS
@@ -3869,7 +3872,75 @@ public class Setup extends Activity {
 	 *            the key
 	 */
 	public static void saveKey(Context context, int uid, String key) {
+		
+		Log.d("communicator", "ACCOUNTKEY #1");
+		
+		String oldKey = Utility.loadStringSetting(context, Setup.PUBRSAKEY
+				+ uid, null);
+
+		Log.d("communicator", "ACCOUNTKEY #2 key=" + key);
+		Log.d("communicator", "ACCOUNTKEY #2 oldKey=" + oldKey);
+
 		Utility.saveStringSetting(context, Setup.PUBRSAKEY + uid, key);
+		if (key == null || !key.equals(oldKey)) {
+			Log.d("communicator", "ACCOUNTKEY #3 ");
+
+			// Generate a account changed message for security reasons!
+			// The user should pay attention that the identity of the
+			// corresponding part did not change!
+
+			String name = Main.UID2Name(context, uid, false);
+
+//			if (key == null || !key.equals(oldKey)) {
+			if ((key == null && oldKey != null) || (key != null &&  ((key != oldKey) || (!key.equals(oldKey))))) {
+				Log.d("communicator", "ACCOUNTKEY #4 ");
+				String messageTextToShow = "";
+				if (key != null) {
+					Log.d("communicator", "ACCOUNTKEY #5 ");
+					String keyhash = Setup.getKeyHash(context, uid);
+					messageTextToShow = "[ account key "
+							+ keyhash
+							+ " changed ]\n\n"
+							+ name
+							+ " changed his/her account key. You are advised to contact him/her personally to"
+							+ " assure that he/her himself/herself changed the key and that the new key is matching!";
+
+				} else {
+					Log.d("communicator", "ACCOUNTKEY #6 ");
+					messageTextToShow = "[ account key removed ]\n\n"
+							+ name
+							+ " removed his/her account key. You are advised to contact him/her personally to"
+							+ " assure that he/her himself/herself removed the key.\n\nYou are no longer able to exchange encrypted "
+							+ "messages with "
+							+ name
+							+ " until " + name
+							+ " re-enables encryption in his/her settings!";
+
+				}
+				
+				Log.d("communicator", "ACCOUNTKEY " + messageTextToShow);
+				
+				// Put message into conversation
+				DB.addMessage(context, uid, DB.myUid(), Setup.ALERT_PREFIX + messageTextToShow,
+						DB.getTimestampString(), DB.getTimestampString(), DB.getTimestampString(), DB.getTimestampString(), null, false, DB.TRANSPORT_INTERNET,
+						false, 0, 1, "");
+				ConversationItem newItem = new ConversationItem();
+				newItem.from = uid;
+				newItem.to = DB.myUid();
+				newItem.text = messageTextToShow;
+				Main.updateLastMessage(context, uid,
+						messageTextToShow, DB.getTimestamp());
+				Communicator.liveUpdateOrNotify(context,
+						newItem);
+			}
+
+			// Invalidate any session if key changed!
+			// Do this twice to also invalidate the backup key
+			Setup.saveAESKey(context, uid, null);
+			Setup.saveAESKey(context, uid, null);
+			Setup.setAESKeyDate(context, uid, "0", DB.TRANSPORT_INTERNET);
+			Setup.setAESKeyDate(context, uid, "0", DB.TRANSPORT_SMS);
+		}
 	}
 
 	// -------------------------------------------------------------------------
