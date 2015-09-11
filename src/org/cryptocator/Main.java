@@ -1398,7 +1398,7 @@ public class Main extends Activity {
 		int serverId = Setup.getServerId(context, uid);
 		DB.removeMappingByHostUid(context, uid);
 		DB.deleteUser(context, uid);
-		Setup.saveKey(context, uid, null);
+		Setup.saveKey(context, uid, null, true);
 		Setup.savePhone(context, uid, null, false);
 		Setup.setKeyDate(context, uid, null);
 		// Call this twice to also delete the backup AES key!

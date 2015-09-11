@@ -3871,7 +3871,7 @@ public class Setup extends Activity {
 	 * @param key
 	 *            the key
 	 */
-	public static void saveKey(Context context, int uid, String key) {
+	public static void saveKey(Context context, int uid, String key, boolean manually) {
 		
 		Log.d("communicator", "ACCOUNTKEY #1");
 		
@@ -3920,18 +3920,21 @@ public class Setup extends Activity {
 				
 				Log.d("communicator", "ACCOUNTKEY " + messageTextToShow);
 				
-				// Put message into conversation
-				DB.addMessage(context, uid, DB.myUid(), Setup.ALERT_PREFIX + messageTextToShow,
-						DB.getTimestampString(), DB.getTimestampString(), DB.getTimestampString(), DB.getTimestampString(), null, false, DB.TRANSPORT_INTERNET,
-						false, 0, 1, "");
-				ConversationItem newItem = new ConversationItem();
-				newItem.from = uid;
-				newItem.to = DB.myUid();
-				newItem.text = messageTextToShow;
-				Main.updateLastMessage(context, uid,
-						messageTextToShow, DB.getTimestamp());
-				Communicator.liveUpdateOrNotify(context,
-						newItem);
+				// Do not insert a message account key removed if we delete a user manually!
+				if (! (manually && key == null) ) {
+					// Put message into conversation
+					DB.addMessage(context, uid, DB.myUid(), Setup.ALERT_PREFIX + messageTextToShow,
+							DB.getTimestampString(), DB.getTimestampString(), DB.getTimestampString(), DB.getTimestampString(), null, false, DB.TRANSPORT_INTERNET,
+							false, 0, 1, "");
+					ConversationItem newItem = new ConversationItem();
+					newItem.from = uid;
+					newItem.to = DB.myUid();
+					newItem.text = messageTextToShow;
+					Main.updateLastMessage(context, uid,
+							messageTextToShow, DB.getTimestamp());
+					Communicator.liveUpdateOrNotify(context,
+							newItem);
+				}
 			}
 
 			// Invalidate any session if key changed!

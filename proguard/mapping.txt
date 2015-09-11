@@ -4753,7 +4753,7 @@ org.cryptocator.Setup -> org.cryptocator.Setup:
     java.security.Key getAESKey(android.content.Context,int) -> m
     java.lang.String getKeyDate(android.content.Context,int) -> n
     void setKeyDate(android.content.Context,int,java.lang.String) -> b
-    void saveKey(android.content.Context,int,java.lang.String) -> c
+    void saveKey(android.content.Context,int,java.lang.String,boolean) -> a
     boolean haveKey(android.content.Context,int) -> o
     java.lang.String getKeyAsString(android.content.Context,int) -> p
     java.lang.String getKeyHash(android.content.Context,int) -> q
@@ -4767,7 +4767,7 @@ org.cryptocator.Setup -> org.cryptocator.Setup:
     boolean isEncryptionAvailable(android.content.Context,int) -> t
     void savePhoneIsModified(android.content.Context,int,boolean) -> a
     boolean isPhoneModified(android.content.Context,int) -> u
-    void savePhone(android.content.Context,int,java.lang.String,boolean) -> a
+    void savePhone(android.content.Context,int,java.lang.String,boolean) -> b
     java.lang.String getPhone(android.content.Context,int) -> v
     boolean havePhone(android.content.Context,int) -> w
     int getUIDByPhone(android.content.Context,java.lang.String,boolean) -> b
