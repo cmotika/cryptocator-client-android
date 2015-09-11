@@ -249,7 +249,7 @@ public class DB {
 	 */
 	public static String getDateString(long timestamp, boolean details) {
 
-		if (timestamp < 10) {
+		if (timestamp < 5000) {
 			return Setup.NA;
 		}
 

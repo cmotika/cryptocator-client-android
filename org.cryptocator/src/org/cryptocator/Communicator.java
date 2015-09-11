@@ -2567,9 +2567,9 @@ public class Communicator {
 								List<String> values = Utility
 										.getListFromString(responseContent, "#");
 								if (values.size() == 2) {
+									Setup.saveKey(context, uid, values.get(1));
 									Setup.setKeyDate(context, uid,
 											values.get(0));
-									Setup.saveKey(context, uid, values.get(1));
 									Log.d("communicator",
 											"##### KEY SAVED TO CACHE FOR USER "
 													+ uid + " timestamp ="
@@ -2579,6 +2579,14 @@ public class Communicator {
 											false);
 									if (updateListener != null) {
 										updateListener.onUpdate(values.get(1));
+									}
+								} else {
+									// No key found, delete
+									Setup.saveKey(context, uid, null);
+									Main.possiblyRebuildUserlistAsync(context,
+											false);
+									if (updateListener != null) {
+										updateListener.onUpdate(null);
 									}
 								}
 							}

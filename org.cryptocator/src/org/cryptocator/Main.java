@@ -161,8 +161,8 @@ public class Main extends Activity {
 	public static boolean highContrast = false;
 
 	/**
-	 * If the light sensor value is higher than 990/1000 of the so far maximum value,
-	 * then high contrast will be set to true.
+	 * If the light sensor value is higher than 990/1000 of the so far maximum
+	 * value, then high contrast will be set to true.
 	 */
 	public static int highContrastBarrierInPermille = 990;
 
@@ -357,7 +357,8 @@ public class Main extends Activity {
 		if (uidList.size() == 0 && !Setup.isUIDDefined(context)) {
 			possiblyPromptUserIfNoAccount(this, mainBackground);
 		} else {
-			// Only prompt to enable encryption if the account has been activated!!!
+			// Only prompt to enable encryption if the account has been
+			// activated!!!
 			if (!Communicator.accountNotActivated) {
 				Setup.possiblyPromptNoEncryption(context);
 			}
@@ -2063,53 +2064,158 @@ public class Main extends Activity {
 
 						LinearLayout outerLayout = new LinearLayout(context);
 						outerLayout.setOrientation(LinearLayout.VERTICAL);
-						
-						LinearLayout infoTextBoxInner = new LinearLayout(context);
+
+						LinearLayout infoTextBoxInner = new LinearLayout(
+								context);
+						infoTextBoxInner
+								.setOrientation(LinearLayout.HORIZONTAL);
 						LinearLayout.LayoutParams lpInfoTextBoxInner = new LinearLayout.LayoutParams(
 								LinearLayout.LayoutParams.MATCH_PARENT,
 								LinearLayout.LayoutParams.WRAP_CONTENT);
 						infoTextBoxInner.setLayoutParams(lpInfoTextBoxInner);
 						infoTextBoxInner.setGravity(Gravity.CENTER_HORIZONTAL);
 
-						TextView infoText = new TextView(context);
+						LinearLayout infoTextBoxInnerAccount = new LinearLayout(
+								context);
+						infoTextBoxInnerAccount
+								.setOrientation(LinearLayout.VERTICAL);
+						LinearLayout.LayoutParams lpInfoTextBoxInnerAccount = new LinearLayout.LayoutParams(
+								LinearLayout.LayoutParams.MATCH_PARENT,
+								LinearLayout.LayoutParams.WRAP_CONTENT, 50);
+						lpInfoTextBoxInnerAccount.setMargins(20, 10, 10, 5);
+						infoTextBoxInnerAccount
+								.setLayoutParams(lpInfoTextBoxInnerAccount);
+						infoTextBoxInnerAccount
+								.setGravity(Gravity.CENTER_HORIZONTAL);
+						infoTextBoxInnerAccount
+								.setBackgroundResource(R.drawable.frameback);
+
+						LinearLayout infoTextBoxInnerSession = new LinearLayout(
+								context);
+						infoTextBoxInnerSession
+								.setOrientation(LinearLayout.VERTICAL);
+						LinearLayout.LayoutParams lpInfoTextBoxInnerSession = new LinearLayout.LayoutParams(
+								LinearLayout.LayoutParams.MATCH_PARENT,
+								LinearLayout.LayoutParams.WRAP_CONTENT, 50);
+						lpInfoTextBoxInnerSession.setMargins(10, 10, 20, 5);
+						infoTextBoxInnerSession
+								.setLayoutParams(lpInfoTextBoxInnerSession);
+						infoTextBoxInnerSession
+								.setGravity(Gravity.CENTER_HORIZONTAL);
+						infoTextBoxInnerSession
+								.setBackgroundResource(R.drawable.frameback);
+
 						LinearLayout.LayoutParams lpInfoText = new LinearLayout.LayoutParams(
 								LinearLayout.LayoutParams.WRAP_CONTENT,
 								LinearLayout.LayoutParams.WRAP_CONTENT);
-						lpInfoText.setMargins(25, 30, 25, 8);
-						infoText.setLayoutParams(lpInfoText);
-						infoText.setTextColor(Color.GRAY);
-						infoText.setTextSize(13);
-						infoTextBoxInner.addView(infoText);
-						
+						lpInfoText.setMargins(5, 4, 5, 0);
+						LinearLayout.LayoutParams lpInfoText2 = new LinearLayout.LayoutParams(
+								LinearLayout.LayoutParams.WRAP_CONTENT,
+								LinearLayout.LayoutParams.WRAP_CONTENT);
+						lpInfoText2.setMargins(5, -4, 5, -4);
+						LinearLayout.LayoutParams lpInfoText3 = new LinearLayout.LayoutParams(
+								LinearLayout.LayoutParams.WRAP_CONTENT,
+								LinearLayout.LayoutParams.WRAP_CONTENT);
+						lpInfoText3.setMargins(5, 0, 5, 4);
+
+						TextView infoTextAccount = new TextView(context);
+						infoTextAccount.setLayoutParams(lpInfoText);
+						infoTextAccount.setTextColor(Color.WHITE);
+						infoTextAccount.setTextSize(12);
+						infoTextAccount.setGravity(Gravity.CENTER_VERTICAL
+								| Gravity.CENTER_HORIZONTAL);
+						TextView infoTextAccount2 = new TextView(context);
+						infoTextAccount2.setLayoutParams(lpInfoText2);
+						infoTextAccount2.setTextColor(Color.WHITE);
+						infoTextAccount2.setTextSize(18);
+						infoTextAccount2.setTypeface(null, Typeface.BOLD);
+						infoTextAccount2.setGravity(Gravity.CENTER_VERTICAL
+								| Gravity.CENTER_HORIZONTAL);
+						TextView infoTextAccount3 = new TextView(context);
+						infoTextAccount3.setLayoutParams(lpInfoText3);
+						infoTextAccount3.setTextColor(Color.WHITE);
+						infoTextAccount3.setTextSize(12);
+						infoTextAccount3.setGravity(Gravity.CENTER_VERTICAL
+								| Gravity.CENTER_HORIZONTAL);
+
+						TextView infoTextSession = new TextView(context);
+						infoTextSession.setLayoutParams(lpInfoText);
+						infoTextSession.setTextColor(Color.WHITE);
+						infoTextSession.setTextSize(12);
+						infoTextSession.setGravity(Gravity.CENTER_VERTICAL
+								| Gravity.CENTER_HORIZONTAL);
+						TextView infoTextSession2 = new TextView(context);
+						infoTextSession2.setLayoutParams(lpInfoText2);
+						infoTextSession2.setTextColor(Color.WHITE);
+						infoTextSession2.setTextSize(18);
+						infoTextSession2.setTypeface(null, Typeface.BOLD);
+						infoTextSession2.setGravity(Gravity.CENTER_VERTICAL
+								| Gravity.CENTER_HORIZONTAL);
+						TextView infoTextSession3 = new TextView(context);
+						infoTextSession3.setLayoutParams(lpInfoText3);
+						infoTextSession3.setTextColor(Color.WHITE);
+						infoTextSession3.setTextSize(12);
+						infoTextSession3.setGravity(Gravity.CENTER_VERTICAL
+								| Gravity.CENTER_HORIZONTAL);
+
+						infoTextAccount.setText("ACCOUNT");
+						infoTextAccount2.setText(Setup.getKeyHash(context, uid));
+						infoTextAccount3.setText(DB.getDateString(
+								Utility.parseLong(
+										Setup.getKeyDate(context, uid), 0),
+								false)
+								+ "\n");
+
+						infoTextSession.setText("SESSION");
+						infoTextSession2.setText(Setup.getAESKeyHash(context,
+								uid));
+
 						// Session information
-						String sessionInfo = "";
-						long keyCreatedTSInternet = Setup.getAESKeyDate(context, uid,
-								DB.TRANSPORT_INTERNET);
+						// String sessionInfo = "";
+						long keyCreatedTSInternet = Setup.getAESKeyDate(
+								context, uid, DB.TRANSPORT_INTERNET);
 						long keyCreatedTS = keyCreatedTSInternet;
-						long keyCreatedTSSMS = Setup.getAESKeyDate(context, uid,
-								DB.TRANSPORT_SMS);
-						if ((keyCreatedTSSMS != 0) && (keyCreatedTSInternet == 0)) {
+						long keyCreatedTSSMS = Setup.getAESKeyDate(context,
+								uid, DB.TRANSPORT_SMS);
+						if ((keyCreatedTSSMS != 0)
+								&& (keyCreatedTSInternet == 0)) {
 							keyCreatedTS = keyCreatedTSSMS;
 						}
-						long keyOutdatedTS = keyCreatedTS + Setup.AES_KEY_TIMEOUT_SENDING;
-						sessionInfo += "Current Session Key: " + MessageDetailsActivity.getSessionKeyDisplayInfo(context, uid) + "\n";
-						sessionInfo += "Session Key Created: " + DB.getDateString(keyCreatedTS, true) + "\n";
-						sessionInfo += "Session Key Expires: " + DB.getDateString(keyOutdatedTS, true);
+
+						infoTextSession3.setText(DB.getDateString(keyCreatedTS,
+								false)
+								+ "\n"
+								+ MessageDetailsActivity
+										.getSessionKeyTransportDisplayInfo(
+												context, uid));
+
 						if (uid >= 0) {
 							// Only display info for registered users
-							infoText.setText(sessionInfo);
+							infoTextBoxInnerAccount.addView(infoTextAccount);
+							infoTextBoxInnerAccount.addView(infoTextAccount2);
+							infoTextBoxInnerAccount.addView(infoTextAccount3);
+							infoTextBoxInnerSession.addView(infoTextSession);
+							infoTextBoxInnerSession.addView(infoTextSession2);
+							infoTextBoxInnerSession.addView(infoTextSession3);
+							infoTextBoxInner.addView(infoTextBoxInnerAccount);
+							infoTextBoxInner.addView(infoTextBoxInnerSession);
 						} else {
-							infoText.setText("No registered user.\nNo encryption available.");
+							infoTextBoxInner.addView(infoTextAccount);
+							infoTextAccount
+									.setText("No registered user.\nNo encryption available.");
 						}
-						
-						
+
 						LinearLayout buttonLayout = new LinearLayout(context);
 						buttonLayout.setOrientation(LinearLayout.HORIZONTAL);
 						buttonLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 
 						LinearLayout.LayoutParams lpButtons = new LinearLayout.LayoutParams(
-								130, 140);
-						lpButtons.setMargins(2, 20, 2, 30);
+								135, 140);
+						lpButtons.setMargins(4, 5, 4, 10);
+						if (!havePhone) {
+							lpButtons = new LinearLayout.LayoutParams(206, 140);
+							lpButtons.setMargins(4, 5, 4, 10);
+						}
 
 						ImageLabelButton composeButton = new ImageLabelButton(
 								context);
@@ -2175,7 +2281,6 @@ public class Main extends Activity {
 						}
 						buttonLayout.addView(editButton);
 
-						
 						outerLayout.addView(infoTextBoxInner);
 						outerLayout.addView(buttonLayout);
 						return outerLayout;
@@ -2450,8 +2555,8 @@ public class Main extends Activity {
 									"LIGHTMAXVAL", 0);
 							if (intValue > 100) {
 								if (intValue > maxValue) {
-									Utility.saveIntSetting(context, "LIGHTMAXVAL",
-											intValue);
+									Utility.saveIntSetting(context,
+											"LIGHTMAXVAL", intValue);
 									highContrast = true;
 								} else {
 									// Check if we are above the barrier
@@ -2474,7 +2579,7 @@ public class Main extends Activity {
 
 							// Only aquire the light sensor value once
 							// not constantly
-							//manager.unregisterListener(this);
+							// manager.unregisterListener(this);
 						}
 
 					}
@@ -2483,7 +2588,8 @@ public class Main extends Activity {
 					}
 				};
 			}
-			manager.registerListener(lightSensorListener, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+			manager.registerListener(lightSensorListener, sensor,
+					SensorManager.SENSOR_DELAY_NORMAL);
 		} catch (Exception e) {
 			// ignore sensor errors
 		}

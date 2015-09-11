@@ -386,7 +386,7 @@ public class MessageDetailsActivity extends Activity {
 		}
 		long keyOutdatedTS = keyCreatedTS + Setup.AES_KEY_TIMEOUT_SENDING;
 		
-		keyhash.setText(getSessionKeyDisplayInfo(context, hostUid));
+		keyhash.setText( Setup.getAESKeyHash(context, hostUid) + " - " + getSessionKeyTransportDisplayInfo(context, hostUid));
 		keycreated.setText(DB.getDateString(keyCreatedTS, true));
 		keyexpires.setText(DB.getDateString(keyOutdatedTS, true));
 
@@ -626,7 +626,7 @@ public class MessageDetailsActivity extends Activity {
 	 *            the host uid
 	 * @return the session key display info
 	 */
-	public static String getSessionKeyDisplayInfo(Context context, int hostUid) {
+	public static String getSessionKeyTransportDisplayInfo(Context context, int hostUid) {
 		String forTransport = "";
 		long keyCreatedTSInternet = Setup.getAESKeyDate(context, hostUid,
 				DB.TRANSPORT_INTERNET);
@@ -641,8 +641,7 @@ public class MessageDetailsActivity extends Activity {
 		} else {
 			forTransport = "";
 		}
-		String keyhashstring = Setup.getAESKeyHash(context, hostUid);
-		return keyhashstring + " - " + forTransport;
+		return forTransport;
 	}
 
 	// ------------------------------------------------------------------------
