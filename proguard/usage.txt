@@ -2935,6 +2935,7 @@ org.cryptocator.ConversationCompose:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
     private static final int PICK_CONTACT
+    990:990:public void setTitle(java.lang.String)
     1013:1013:public static org.cryptocator.ConversationCompose getInstance()
     1023:1023:public static boolean isVisible()
 org.cryptocator.ConversationCompose$23:

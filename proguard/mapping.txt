@@ -3346,14 +3346,13 @@ org.cryptocator.ConversationCompose -> org.cryptocator.ConversationCompose:
     org.cryptocator.Conversation$OnSendListener getSendListener(android.content.Context,int) -> a
     void sendMessageOrPrompt(android.content.Context,int,boolean,int,java.lang.String,org.cryptocator.Conversation$OnSendListener) -> b
     void sendMessage(android.content.Context,int,boolean,java.lang.String,int,org.cryptocator.Conversation$OnSendListener) -> b
-    void setTitle(java.lang.String) -> a
     boolean isAlive() -> a
     void onDestroy() -> onDestroy
     void onStop() -> onStop
     void onPause() -> onPause
     void onResume() -> onResume
     void parseAndMarkUserRadio(java.lang.String,int) -> a
-    int parsePhoneOrUid(java.lang.String) -> b
+    int parsePhoneOrUid(java.lang.String) -> a
     void markUserRadio(int,int) -> a
     void buildToList(android.content.Context) -> e
     void onActivityResult(int,int,android.content.Intent) -> onActivityResult
@@ -3361,7 +3360,7 @@ org.cryptocator.ConversationCompose -> org.cryptocator.ConversationCompose:
     void updateSendButtonImage(android.content.Context) -> b
     boolean isKeyboardVisible(android.view.View) -> a
     void potentiallyShowKeyboard(android.content.Context,boolean) -> a
-    void insertImage(android.content.Context,android.net.Uri) -> a
+    void insertImage(android.content.Context,android.net.Uri,boolean) -> a
     boolean access$0() -> b
     void access$1(boolean) -> a
     android.widget.LinearLayout access$2(org.cryptocator.ConversationCompose) -> a

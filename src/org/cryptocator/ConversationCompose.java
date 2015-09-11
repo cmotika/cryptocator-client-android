@@ -195,7 +195,7 @@ public class ConversationCompose extends Activity {
 										public void run() {
 											((ConversationCompose) activity)
 													.insertImage(activity,
-															attachmentPath);
+															attachmentPath, true);
 										}
 									}, 100);
 								}
@@ -218,7 +218,8 @@ public class ConversationCompose extends Activity {
 		// Apply custom title bar (with holo :-)
 		// See Main.java for more explanation
 		LinearLayout main = Utility.setContentViewWithCustomTitle(this,
-				R.layout.activity_conversation_compose, R.layout.title_general);
+				R.layout.activity_conversation_compose,
+				R.layout.title_conversation_compose);
 		// main.setGravity(Gravity.BOTTOM);
 		Utility.setBackground(this, main, R.drawable.dolphins1);
 
@@ -376,11 +377,9 @@ public class ConversationCompose extends Activity {
 		});
 
 		LinearLayout inputLayout = ((LinearLayout) findViewById(R.id.inputlayout));
-		LinearLayout inputLayout2 = ((LinearLayout) findViewById(R.id.inputlayout2));
 		conversationRootView = (LinearLayout) findViewById(R.id.conversationRootView);
 		Utility.setBackground(this, conversationRootView, R.drawable.dolphins2);
 		Utility.setBackground(this, inputLayout, R.drawable.dolphins1);
-		Utility.setBackground(this, inputLayout2, R.drawable.dolphins1);
 
 		// DO NOT SCROLL HERE BECAUSE onResume() WILL DO THIS.
 		// onResume() is ALWAYS called if the user starts OR returns to the APP!
@@ -500,8 +499,6 @@ public class ConversationCompose extends Activity {
 	protected void onStart() {
 		super.onStart();
 		final Context context = this;
-
-		setTitle("New Message");
 
 		// SET SENDSPINNER
 		sendspinner = (Spinner) findViewById(R.id.sendspinner);
@@ -654,7 +651,8 @@ public class ConversationCompose extends Activity {
 			// for not registered SMS users we do not prompt but just send an
 			// sms
 			sendMessageOrPrompt(context, DB.TRANSPORT_SMS, false, uid,
-					messageText.getText().toString().trim(), getSendListener(context, uid));
+					messageText.getText().toString().trim(),
+					getSendListener(context, uid));
 			return;
 		}
 		// now check if SMS and encryption is available
@@ -697,7 +695,7 @@ public class ConversationCompose extends Activity {
 
 		final String messageTextString = messageText.getText().toString()
 				.trim();
-		
+
 		sendMessagePrompt(context, sms, encryption, uid, name,
 				messageTextString, getSendListener(context, uid));
 	}
@@ -716,7 +714,8 @@ public class ConversationCompose extends Activity {
 	 */
 	public static void sendMessagePrompt(final Context context,
 			final boolean sms, final boolean encryption, final int uid,
-			final String name, final String messageTextString, final Conversation.OnSendListener sendListener) {
+			final String name, final String messageTextString,
+			final Conversation.OnSendListener sendListener) {
 
 		String title = "Send Message to " + name;
 		String text = "Send the message encrypted or not encrypted and via Internet or SMS?";
@@ -762,7 +761,8 @@ public class ConversationCompose extends Activity {
 									public void onClick(View v) {
 										sendMessageOrPrompt(context,
 												DB.TRANSPORT_INTERNET, true,
-												uid, messageTextString, sendListener);
+												uid, messageTextString,
+												sendListener);
 										dialog.dismiss();
 									}
 								});
@@ -777,7 +777,8 @@ public class ConversationCompose extends Activity {
 									public void onClick(View v) {
 										sendMessageOrPrompt(context,
 												DB.TRANSPORT_INTERNET, false,
-												uid, messageTextString, sendListener);
+												uid, messageTextString,
+												sendListener);
 										dialog.dismiss();
 									}
 								});
@@ -851,10 +852,10 @@ public class ConversationCompose extends Activity {
 	 *            the uid
 	 * @return the send listener
 	 */
-	Conversation.OnSendListener getSendListener(final Context context, final int uid) {
+	Conversation.OnSendListener getSendListener(final Context context,
+			final int uid) {
 		final String name = Main.UID2Name(context, uid, false);
-		Conversation.OnSendListener sendListener = 
-		new Conversation.OnSendListener() {
+		Conversation.OnSendListener sendListener = new Conversation.OnSendListener() {
 			public void onSend(boolean success, boolean encrypted, int transport) {
 				if (success) {
 					String encryptedText = "";
@@ -862,16 +863,17 @@ public class ConversationCompose extends Activity {
 						encryptedText = "unsecure ";
 					}
 					if (transport == DB.TRANSPORT_INTERNET) {
-						Utility.showToastInUIThread(context, "Sending " + encryptedText
-								+ "message to " + name + ".");
+						Utility.showToastInUIThread(context, "Sending "
+								+ encryptedText + "message to " + name + ".");
 					} else {
-						Utility.showToastInUIThread(context, "Sending " + encryptedText
-								+ "SMS to " + name + ".");
+						Utility.showToastInUIThread(context, "Sending "
+								+ encryptedText + "SMS to " + name + ".");
 					}
 					messageText.setText("");
 					phoneOrUid.setText("");
 					Utility.saveStringSetting(context, "cachedraftcompose", "");
-					Utility.saveStringSetting(context, "cachedraftcomposephone", "");
+					Utility.saveStringSetting(context,
+							"cachedraftcomposephone", "");
 					finish();
 				}
 			}
@@ -985,8 +987,6 @@ public class ConversationCompose extends Activity {
 	 *            the new title
 	 */
 	public void setTitle(String title) {
-		TextView titletext = (TextView) findViewById(R.id.titletext);
-		titletext.setText(title);
 	}
 
 	// -------------------------------------------------------------------------
@@ -1322,7 +1322,7 @@ public class ConversationCompose extends Activity {
 				Uri attachmentPath = data.getData();
 				if (attachmentPath != null) {
 					try {
-						insertImage(this, attachmentPath);
+						insertImage(this, attachmentPath, false);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -1516,7 +1516,7 @@ public class ConversationCompose extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	public void insertImage(final Context context, Uri attachmentPath) {
+	public void insertImage(final Context context, Uri attachmentPath, boolean fromShare) {
 		final boolean keyboardWasVisible = keyboardVisible;
 		PictureImportActivity
 				.setOnPictureImportListener(new PictureImportActivity.OnPictureImportListener() {
@@ -1535,9 +1535,13 @@ public class ConversationCompose extends Activity {
 					}
 				});
 		Intent dialogIntent = new Intent(context, PictureImportActivity.class);
-		dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-				| Intent.FLAG_ACTIVITY_CLEAR_TASK
-				| Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		if (fromShare) {
+			dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+					| Intent.FLAG_ACTIVITY_CLEAR_TASK
+					| Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		} else {
+			dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		}
 		// Intent.FLAG_ACTIVITY_NEW_TASK);
 		// | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 		Bitmap bitmap = Utility.getBitmapFromContentUri(this, attachmentPath);
