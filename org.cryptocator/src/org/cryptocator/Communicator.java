@@ -2317,7 +2317,7 @@ public class Communicator {
 												if (Setup.haveKey(context, uid)) {
 													updateNeeded = true;
 													Setup.saveKey(context, uid,
-															null);
+															null, false);
 													Setup.setKeyDate(context,
 															uid, null);
 												}
@@ -2343,7 +2343,7 @@ public class Communicator {
 													// values
 													// first
 													Setup.saveKey(context, uid,
-															null);
+															null, false);
 													Setup.setKeyDate(context,
 															uid, null);
 													getKeyFromServer(context,
@@ -2567,7 +2567,7 @@ public class Communicator {
 								List<String> values = Utility
 										.getListFromString(responseContent, "#");
 								if (values.size() == 2) {
-									Setup.saveKey(context, uid, values.get(1));
+									Setup.saveKey(context, uid, values.get(1), false);
 									Setup.setKeyDate(context, uid,
 											values.get(0));
 									Log.d("communicator",
@@ -2582,7 +2582,7 @@ public class Communicator {
 									}
 								} else {
 									// No key found, delete
-									Setup.saveKey(context, uid, null);
+									Setup.saveKey(context, uid, null, false);
 									Main.possiblyRebuildUserlistAsync(context,
 											false);
 									if (updateListener != null) {
