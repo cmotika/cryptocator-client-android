@@ -2952,7 +2952,7 @@ org.cryptocator.DB:
     1610:1638:public static java.lang.String getMultipartIdSending(android.content.Context,int)
     1656:1684:public static java.lang.String getMultipartIdReceived(android.content.Context,int,int)
     1981:1987:public static void cleanupDB(android.content.Context,int)
-    3056:3056:public static boolean isMessageFailed(java.lang.String)
+    3069:3069:public static boolean isMessageFailed(java.lang.String)
 org.cryptocator.FastScrollBar:
     static final int LOCKTIMEOUT
     163:164:public FastScrollBar(android.content.Context,android.util.AttributeSet,int)
