@@ -4002,26 +4002,27 @@ org.cryptocator.LoginData -> org.cryptocator.fu:
     java.lang.String password -> b
     java.lang.String val -> c
 org.cryptocator.Main -> org.cryptocator.Main:
-    java.util.List uidList -> g
-    android.widget.LinearLayout adduseritem -> h
-    android.widget.Spinner serverspinner -> i
-    android.widget.LinearLayout mainBackground -> j
-    android.widget.LinearLayout mainInnerView -> k
-    android.widget.TextView addUserText -> l
-    org.cryptocator.KeyEventEditText addUserName -> m
-    android.widget.Button addUserButton -> n
-    android.app.Activity context -> o
-    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageContextMenuProvider -> p
-    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageAccountMenuProvider -> q
+    java.util.List uidList -> h
+    android.widget.LinearLayout adduseritem -> i
+    android.widget.Spinner serverspinner -> j
+    android.widget.LinearLayout mainBackground -> k
+    android.widget.LinearLayout mainInnerView -> l
+    android.widget.TextView addUserText -> m
+    org.cryptocator.KeyEventEditText addUserName -> n
+    android.widget.Button addUserButton -> o
+    android.app.Activity context -> p
+    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageContextMenuProvider -> q
+    org.cryptocator.ImageContextMenu$ImageContextMenuProvider imageAccountMenuProvider -> r
     boolean skipResume -> a
     boolean highContrast -> b
     int highContrastBarrierInPermille -> c
     int TEXTCOLOEWHITE -> d
     int TEXTCOLOEWHITEDIMMED -> e
     int TEXTCOLOEWHITEDIMMED2 -> f
-    org.cryptocator.Main instance -> r
-    boolean visible -> s
-    android.hardware.SensorEventListener lightSensorListener -> t
+    int LIGHTGRAY -> g
+    org.cryptocator.Main instance -> s
+    boolean visible -> t
+    android.hardware.SensorEventListener lightSensorListener -> u
     void onCreate(android.os.Bundle) -> onCreate
     void setTitle(java.lang.String) -> a
     boolean possiblyPromptUserIfNoAccount(android.content.Context,android.view.View) -> a

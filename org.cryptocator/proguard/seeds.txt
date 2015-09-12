@@ -188,6 +188,8 @@ org.cryptocator.R$color: int invisible
 org.cryptocator.R$drawable: int additionbtn
 org.cryptocator.R$drawable: int additionbtnback
 org.cryptocator.R$drawable: int attachmentbtn
+org.cryptocator.R$drawable: int backkey
+org.cryptocator.R$drawable: int backlock
 org.cryptocator.R$drawable: int btnadduser
 org.cryptocator.R$drawable: int btnback
 org.cryptocator.R$drawable: int btnbackup
@@ -202,6 +204,7 @@ org.cryptocator.R$drawable: int btnsearch
 org.cryptocator.R$drawable: int buttonedit
 org.cryptocator.R$drawable: int buttoneditsms
 org.cryptocator.R$drawable: int call
+org.cryptocator.R$drawable: int calldisabled
 org.cryptocator.R$drawable: int callsms
 org.cryptocator.R$drawable: int compose
 org.cryptocator.R$drawable: int composesms
@@ -214,7 +217,8 @@ org.cryptocator.R$drawable: int dolphins3blue
 org.cryptocator.R$drawable: int dolphins3light
 org.cryptocator.R$drawable: int dolphins4
 org.cryptocator.R$drawable: int dolphins4light
-org.cryptocator.R$drawable: int frameback
+org.cryptocator.R$drawable: int framebackkey
+org.cryptocator.R$drawable: int framebacklock
 org.cryptocator.R$drawable: int help
 org.cryptocator.R$drawable: int ic_launcher
 org.cryptocator.R$drawable: int lightback
