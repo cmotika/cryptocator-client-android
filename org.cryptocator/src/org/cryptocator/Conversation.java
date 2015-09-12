@@ -1707,15 +1707,19 @@ public class Conversation extends Activity {
 				fastScrollView.lockPosition();
 			}
 			if (conversationListDiff.size() > 0) {
+				int additionalItems = 0;
 				for (ConversationItem conversationItem : conversationListDiff) {
-					View newView = addConversationLine(context,
-							conversationItem);
-					if (newView != null) {
-						fastScrollView.addChild(newView);
+					if (!isAlreadyMapped(conversationItem.localid)) {
+						View newView = addConversationLine(context,
+								conversationItem);
+						if (newView != null) {
+							additionalItems++;
+							fastScrollView.addChild(newView);
+						}
 					}
 				}
+				conversationSize += additionalItems;
 			}
-			conversationSize += conversationListDiff.size();
 
 			if (!isScrolledDown) {
 				fastScrollView.restoreLockedPosition();
@@ -1757,10 +1761,10 @@ public class Conversation extends Activity {
 	 * @param progress
 	 *            the progress
 	 */
-	private void addMapping(int mid, int localid, ImageView sent,
-			ImageView received, ImageView read, EditText text,
-			LinearLayout oneline, ImageView speech, ProgressBar progress,
-			String multipartid, View parent) {
+	private void addMapping(int localid, ImageView sent, ImageView received,
+			ImageView read, EditText text, LinearLayout oneline,
+			ImageView speech, ProgressBar progress, String multipartid,
+			View parent) {
 		Mapping mappingItem = new Mapping();
 		mappingItem.read = read;
 		mappingItem.received = received;
@@ -1771,15 +1775,23 @@ public class Conversation extends Activity {
 		mappingItem.progress = progress;
 		mappingItem.multipartid = multipartid;
 		mappingItem.parent = parent;
-		int insertId = mid;
-		if (insertId == -1) {
-			// Convention: use local id instead as a placeholder
-			insertId = -1 * localid;
-		}
+		// Convention: use local id instead as a placeholder
+		int insertId = -1 * localid;
 		// Log.d("communicator",
 		// "MAPPING INSERT "
 		// + insertId);
 		mapping.put(insertId, mappingItem);
+	}
+	
+	/**
+	 * Checks if an entry is already mapped and hence displayed.
+	 *
+	 * @param localid the localid
+	 * @return true, if is already mapped
+	 */
+	private boolean isAlreadyMapped(int localid) {
+		int insertedId = -1 * localid;
+		return mapping.containsKey(insertedId);
 	}
 
 	/**
@@ -2156,7 +2168,7 @@ public class Conversation extends Activity {
 					.findViewById(R.id.conversationprogress);
 			// Hide per default, only used for multi part receiving
 			progress.setVisibility(View.GONE);
-			
+
 			if (conversationItem.text.startsWith(Setup.ALERT_PREFIX)) {
 				// Rounded corners failed
 				oneline.setBackgroundResource(R.drawable.rounded_corners_alert);
@@ -2164,8 +2176,8 @@ public class Conversation extends Activity {
 			}
 
 			// Create a mapping for later async update
-			addMapping(conversationItem.mid, conversationItem.localid, null,
-					null, null, conversationText, oneline, speech, progress,
+			addMapping(conversationItem.localid, null, null, null,
+					conversationText, oneline, speech, progress,
 					conversationItem.multipartid, conversationlistitem);
 		} else {
 			conversationlistitem = inflater.inflate(
@@ -2189,8 +2201,8 @@ public class Conversation extends Activity {
 					.findViewById(R.id.msgspeech);
 
 			// Create a mapping for later async update
-			addMapping(conversationItem.mid, conversationItem.localid, sent,
-					received, read, conversationText, oneline, speech, null,
+			addMapping(conversationItem.localid, sent, received, read,
+					conversationText, oneline, speech, null,
 					DB.NO_MULTIPART_ID, conversationlistitem);
 
 			if (conversationItem.read < -10) {
@@ -3034,7 +3046,8 @@ public class Conversation extends Activity {
 							return true;
 						}
 					});
-			imageMessageMenuResend = imageMessageMenuProvider.addEntry("Resend", R.drawable.menurefresh,
+			imageMessageMenuResend = imageMessageMenuProvider.addEntry(
+					"Resend", R.drawable.menurefresh,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
 						public boolean onSelection(ImageContextMenu instance) {
 							// Resend

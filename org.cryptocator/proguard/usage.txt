@@ -2922,14 +2922,14 @@ org.cryptocator.Communicator:
 org.cryptocator.Conversation:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
-    3886:3914:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
-    3988:4020:public void insertImage(android.content.Context,java.lang.String)
+    3899:3927:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
+    4001:4033:public void insertImage(android.content.Context,java.lang.String)
     149:149:static synthetic boolean access$32()
 org.cryptocator.Conversation$74:
-    3767:3772:public void onCancel()
+    3780:3785:public void onCancel()
 org.cryptocator.Conversation$75
 org.cryptocator.Conversation$76:
-    3959:3963:public void onCancel()
+    3972:3976:public void onCancel()
 org.cryptocator.Conversation$77
 org.cryptocator.ConversationCompose:
     private static final int SELECT_PICTURE
@@ -2952,7 +2952,7 @@ org.cryptocator.DB:
     1610:1638:public static java.lang.String getMultipartIdSending(android.content.Context,int)
     1656:1684:public static java.lang.String getMultipartIdReceived(android.content.Context,int,int)
     1981:1987:public static void cleanupDB(android.content.Context,int)
-    3069:3069:public static boolean isMessageFailed(java.lang.String)
+    3067:3067:public static boolean isMessageFailed(java.lang.String)
 org.cryptocator.FastScrollBar:
     static final int LOCKTIMEOUT
     163:164:public FastScrollBar(android.content.Context,android.util.AttributeSet,int)

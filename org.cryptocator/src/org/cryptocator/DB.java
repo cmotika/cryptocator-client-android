@@ -2144,6 +2144,8 @@ public class DB {
 		}
 
 		try {
+			final String YESTERDAY = (DB.getTimestamp() - 60*1000*60*24) + "";
+			
 			String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `revoked`, `encrypted`, `transport`, `system`, `part`, `parts`, `multipartid` FROM `"
 					+ TABLE_MESSAGES
 					+ "` WHERE ((`fromuid` = "
@@ -2160,18 +2162,14 @@ public class DB {
 					// AND `part` = "+ DB.DEFAULT_MESSAGEPART
 					// + " GROUP BY `multipartid` HAVING `part` = MIN(`part`)"
 
-					+ " ORDER BY case when `sent` < 10 then 1 else 0 end DESC, `sent` DESC, `created` DESC" // AND
+					
+					// Sorting is a little complicated because JUST SENT messages have 'sent' == NULL until the server
+					// gives them an MID. BUT we want to sort mainly by the servers 'sent' timestamp to be
+					// sure that some other users (wrong) time is not destroying reasonable ordering.
+					//+ " ORDER BY case when `sent` < 10 and `created` >= '"+YESTERDAY+"' then 1 else 0 end DESC, `sent` DESC, `created` DESC" // AND
 
-					
-					//+ " ORDER BY  `sent` IS NULL, `sent` DESC, `created` DESC" // AND
-					//BY date IS NULL, date DESC
-					
-					//+ " ORDER BY `sent` DESC, `created` DESC" // AND
-
-					// + " ORDER BY `sent` DESC NULLS LAST, `created` DESC" // AND
-					
-					//+ "ORDER BY CASE WHEN `sent` IS NULL THEN '1' ELSE '0' DESC, `sent` DESC" //, `sent` DESC, `created` DESC"
-					//order by case when MyDate is null then 1 else 0 end
+					// we should just order by local id....
+					+ " ORDER BY `localid` DESC"
 					
 					// `system`
 					// !=

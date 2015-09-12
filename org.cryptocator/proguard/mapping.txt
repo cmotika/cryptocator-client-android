@@ -2846,7 +2846,8 @@ org.cryptocator.Conversation -> org.cryptocator.Conversation:
     void showTitlebarAsync(android.content.Context) -> b
     void updateConversationlistAsync(android.content.Context) -> c
     void updateConversationlist(android.content.Context) -> d
-    void addMapping(int,int,android.widget.ImageView,android.widget.ImageView,android.widget.ImageView,android.widget.EditText,android.widget.LinearLayout,android.widget.ImageView,android.widget.ProgressBar,java.lang.String,android.view.View) -> a
+    void addMapping(int,android.widget.ImageView,android.widget.ImageView,android.widget.ImageView,android.widget.EditText,android.widget.LinearLayout,android.widget.ImageView,android.widget.ProgressBar,java.lang.String,android.view.View) -> a
+    boolean isAlreadyMapped(int) -> f
     void resetMapping() -> m
     java.util.List getMapping(android.content.Context,java.lang.String) -> a
     org.cryptocator.Conversation$Mapping getMapping(android.content.Context,int) -> a
