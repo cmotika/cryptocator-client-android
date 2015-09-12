@@ -3594,6 +3594,7 @@ org.cryptocator.DB -> org.cryptocator.em:
     long getTimestamp() -> c
     long parseTimestamp(java.lang.String) -> a
     long parseTimestamp(java.lang.String,long) -> a
+    java.lang.String getDateOnlyString(long) -> a
     java.lang.String getDateString(long,boolean) -> a
     android.database.sqlite.SQLiteDatabase openDB(android.content.Context,int) -> b
     android.database.sqlite.SQLiteDatabase openDBSending(android.content.Context) -> a

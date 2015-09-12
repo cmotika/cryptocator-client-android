@@ -168,7 +168,7 @@ public class DB {
 				}
 			}
 			return myUid.get(serverId);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return -1;
 		}
 	}
@@ -234,6 +234,33 @@ public class DB {
 		} catch (Exception e) {
 		}
 		return defaultValue;
+	}
+
+	/**
+	 * Gets the date only string.
+	 * 
+	 * @param timestamp
+	 *            the timestamp
+	 * @return the date only string
+	 */
+	// -----------------------------------------------------------------
+	public static String getDateOnlyString(long timestamp) {
+
+		if (timestamp < 5000) {
+			return Setup.NA;
+		}
+
+		String format = "dd. MMM yyyy";
+
+		// Create a DateFormatter object for displaying date in specified
+		// format.
+		SimpleDateFormat formatter = new SimpleDateFormat(format);
+		// Create a calendar object that will convert the date and time value in
+		// milliseconds to date.
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(timestamp);
+		String returnValue = formatter.format(calendar.getTime());
+		return returnValue;
 	}
 
 	// -----------------------------------------------------------------
@@ -2144,8 +2171,9 @@ public class DB {
 		}
 
 		try {
-			final String YESTERDAY = (DB.getTimestamp() - 60*1000*60*24) + "";
-			
+			final String YESTERDAY = (DB.getTimestamp() - 60 * 1000 * 60 * 24)
+					+ "";
+
 			String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `revoked`, `encrypted`, `transport`, `system`, `part`, `parts`, `multipartid` FROM `"
 					+ TABLE_MESSAGES
 					+ "` WHERE ((`fromuid` = "
@@ -2162,15 +2190,19 @@ public class DB {
 					// AND `part` = "+ DB.DEFAULT_MESSAGEPART
 					// + " GROUP BY `multipartid` HAVING `part` = MIN(`part`)"
 
-					
-					// Sorting is a little complicated because JUST SENT messages have 'sent' == NULL until the server
-					// gives them an MID. BUT we want to sort mainly by the servers 'sent' timestamp to be
-					// sure that some other users (wrong) time is not destroying reasonable ordering.
-					//+ " ORDER BY case when `sent` < 10 and `created` >= '"+YESTERDAY+"' then 1 else 0 end DESC, `sent` DESC, `created` DESC" // AND
+					// Sorting is a little complicated because JUST SENT
+					// messages have 'sent' == NULL until the server
+					// gives them an MID. BUT we want to sort mainly by the
+					// servers 'sent' timestamp to be
+					// sure that some other users (wrong) time is not destroying
+					// reasonable ordering.
+					// +
+					// " ORDER BY case when `sent` < 10 and `created` >= '"+YESTERDAY+"' then 1 else 0 end DESC, `sent` DESC, `created` DESC"
+					// // AND
 
 					// we should just order by local id....
 					+ " ORDER BY `localid` DESC"
-					
+
 					// `system`
 					// !=
 					// '1'

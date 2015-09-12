@@ -2166,15 +2166,15 @@ public class Main extends Activity {
 		if (own) {
 			infoTextAccount2.setText(Setup.getPublicKeyHash(context));
 			infoTextAccount3
-					.setText(DB.getDateString(
+					.setText(DB.getDateOnlyString(
 							Utility.parseLong(
-									Setup.getKeyDate(context, DB.myUid()), 0),
-							false) + "\n");
+									Setup.getKeyDate(context, DB.myUid()), 0)
+							) + "\n");
 		} else {
 			infoTextAccount2.setText(Setup.getKeyHash(context, uid));
 			infoTextAccount3
-					.setText(DB.getDateString(Utility.parseLong(
-							Setup.getKeyDate(context, uid), 0), false)
+					.setText(DB.getDateOnlyString(Utility.parseLong(
+							Setup.getKeyDate(context, uid), 0))
 							+ "\n");
 		}
 		return infoTextBoxInnerAccount;
