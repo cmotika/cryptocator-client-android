@@ -3555,6 +3555,7 @@ public class Setup extends Activity {
 				Communicator.clearKeyFromServer(context, keyHash, serverId);
 			}
 		}
+		Setup.setKeyDate(context, DB.myUid(), "0");
 	}
 
 	// -------------------------------------------------------------------------
