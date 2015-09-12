@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.cryptocator"
-    android:versionCode="14"
+    android:versionCode="15"
     android:versionName="1.3" >
 
     <uses-sdk
@@ -17,15 +17,15 @@
          <uses-permission android:name="android.permission.READ_PHONE_STATE" > 
     </uses-permission>
     -->
-    <uses-permission android:name="android.permission.CAMERA" /> <!-- insert taken photo -->
+    <uses-permission android:name="android.permission.CAMERA" android:required="false" /> <!-- insert taken photo -->
 
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- send images -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/> <!-- send images -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- send images -->
     <uses-permission android:name="android.permission.MANAGE_DOCUMENTS" /> <!-- send images -->
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.READ_CONTACTS" /> <!-- reading telephone number -->
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" /> <!-- reading telephone number -->
+    <uses-permission android:name="android.permission.READ_CONTACTS"  /> <!-- reading telephone number -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" android:required="false"/> <!-- reading telephone number -->
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
@@ -33,7 +33,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.CALL_PHONE" /> <!-- initiate calls -->
+    <uses-permission android:name="android.permission.CALL_PHONE" android:required="false" /> <!-- initiate calls -->
     <uses-permission android:name="android.permission.INTERNET" >
     </uses-permission>
     <uses-permission android:name="android.permission.WAKE_LOCK" >
