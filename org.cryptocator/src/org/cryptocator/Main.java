@@ -2109,7 +2109,7 @@ public class Main extends Activity {
 		infoTextBoxInnerAccount.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				String text = "The account key is part"
-						+ "of your identity.\n\nIt is created/renewed when you enable encryption. It usually should"
+						+ " of your identity.\n\nIt is created/renewed when you enable encryption. It usually should"
 						+ " not change.\nHowever, if you renew it then you should tell all your contacts personally the"
 						+ " new account key shown here so that they can verify your identity."
 						+ "\n\nThe date shown here is the one when the account key was created.";
