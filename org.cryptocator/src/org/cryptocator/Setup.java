@@ -1902,6 +1902,7 @@ public class Setup extends Activity {
 		deviceid.setText("DeviceID: " + getDeviceId(context)
 				+ "   --   Account Key: " + Setup.getPublicKeyHash(context));
 		if (ownaccountkey != null) {
+			ownaccountkey.removeAllViews();
 			ownaccountkey.addView(Main.getAccountKeyView(context, DB.myUid(),
 					"YOUR ACCOUNT KEY", true));
 		}
@@ -4434,7 +4435,7 @@ public class Setup extends Activity {
 		String title = "New Account Key Created";
 		String text = null;
 
-		new MessageAlertDialog(context, title, text, null, null, " Cancel ",
+		new MessageAlertDialog(context, title, text, null, null, " Close ",
 				new MessageAlertDialog.OnSelectionListener() {
 					public void selected(int button, boolean cancel) {
 						// nothing
