@@ -1049,8 +1049,6 @@ public class Setup extends Activity {
 		}
 
 		ownaccountkey = (LinearLayout) findViewById(R.id.ownaccountkey);
-		ownaccountkey.addView(Main.getAccountKeyView(context, DB.myUid(),
-				"YOUR ACCOUNT KEY", true));
 
 		if (this.getIntent().hasExtra("serverId")) {
 			// Set the preferred account on startup, per default do not change
