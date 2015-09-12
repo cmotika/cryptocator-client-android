@@ -3903,14 +3903,14 @@ public class Setup extends Activity {
 							+ " changed ]\n\n"
 							+ name
 							+ " changed his/her account key. You are advised to contact him/her personally to"
-							+ " assure that he/her himself/herself changed the key and that the new key is matching!";
+							+ " assure that he/she himself/herself changed the key and that the new key is matching!";
 
 				} else {
 					Log.d("communicator", "ACCOUNTKEY #6 ");
 					messageTextToShow = "[ account key removed ]\n\n"
 							+ name
 							+ " removed his/her account key. You are advised to contact him/her personally to"
-							+ " assure that he/her himself/herself removed the key.\n\nYou are no longer able to exchange encrypted "
+							+ " assure that he/she himself/herself removed the key.\n\nYou are no longer able to exchange encrypted "
 							+ "messages with "
 							+ name
 							+ " until " + name

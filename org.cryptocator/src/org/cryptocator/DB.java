@@ -2159,7 +2159,7 @@ public class DB {
 					// "AND `system` != 1 "
 					// AND `part` = "+ DB.DEFAULT_MESSAGEPART
 					// + " GROUP BY `multipartid` HAVING `part` = MIN(`part`)"
-					+ " ORDER BY `created` DESC, `sent` DESC " // AND
+					+ " ORDER BY `sent` DESC, `created` DESC " // AND
 					// `system`
 					// !=
 					// '1'

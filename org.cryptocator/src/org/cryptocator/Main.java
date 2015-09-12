@@ -177,6 +177,9 @@ public class Main extends Activity {
 	public static final int TEXTCOLOEWHITEDIMMED2 = Color
 			.parseColor("#CCDDDDDD");
 
+	/** The Constant LIGHTGRAY. */
+	public static final int LIGHTGRAY = Color.parseColor("#AAFFFFFF");
+	
 	// ------------------------------------------------------------------------
 
 	/**
@@ -2088,7 +2091,8 @@ public class Main extends Activity {
 						infoTextBoxInnerAccount
 								.setGravity(Gravity.CENTER_HORIZONTAL);
 						infoTextBoxInnerAccount
-								.setBackgroundResource(R.drawable.frameback);
+								.setBackgroundResource(R.drawable.framebacklock);
+						//infoTextBoxInnerAccount.setBackgroundResource(R.drawable.backlock);
 
 						LinearLayout infoTextBoxInnerSession = new LinearLayout(
 								context);
@@ -2103,7 +2107,8 @@ public class Main extends Activity {
 						infoTextBoxInnerSession
 								.setGravity(Gravity.CENTER_HORIZONTAL);
 						infoTextBoxInnerSession
-								.setBackgroundResource(R.drawable.frameback);
+								.setBackgroundResource(R.drawable.framebackkey);
+						//infoTextBoxInnerSession.setBackgroundResource(R.drawable.backkey);
 
 						LinearLayout.LayoutParams lpInfoText = new LinearLayout.LayoutParams(
 								LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -2120,40 +2125,40 @@ public class Main extends Activity {
 
 						TextView infoTextAccount = new TextView(context);
 						infoTextAccount.setLayoutParams(lpInfoText);
-						infoTextAccount.setTextColor(Color.WHITE);
+						infoTextAccount.setTextColor(LIGHTGRAY);
 						infoTextAccount.setTextSize(12);
 						infoTextAccount.setGravity(Gravity.CENTER_VERTICAL
 								| Gravity.CENTER_HORIZONTAL);
 						TextView infoTextAccount2 = new TextView(context);
 						infoTextAccount2.setLayoutParams(lpInfoText2);
 						infoTextAccount2.setTextColor(Color.WHITE);
-						infoTextAccount2.setTextSize(18);
+						infoTextAccount2.setTextSize(20);
 						infoTextAccount2.setTypeface(null, Typeface.BOLD);
 						infoTextAccount2.setGravity(Gravity.CENTER_VERTICAL
 								| Gravity.CENTER_HORIZONTAL);
 						TextView infoTextAccount3 = new TextView(context);
 						infoTextAccount3.setLayoutParams(lpInfoText3);
-						infoTextAccount3.setTextColor(Color.WHITE);
+						infoTextAccount3.setTextColor(LIGHTGRAY);
 						infoTextAccount3.setTextSize(12);
 						infoTextAccount3.setGravity(Gravity.CENTER_VERTICAL
 								| Gravity.CENTER_HORIZONTAL);
 
 						TextView infoTextSession = new TextView(context);
 						infoTextSession.setLayoutParams(lpInfoText);
-						infoTextSession.setTextColor(Color.WHITE);
+						infoTextSession.setTextColor(LIGHTGRAY);
 						infoTextSession.setTextSize(12);
 						infoTextSession.setGravity(Gravity.CENTER_VERTICAL
 								| Gravity.CENTER_HORIZONTAL);
 						TextView infoTextSession2 = new TextView(context);
 						infoTextSession2.setLayoutParams(lpInfoText2);
 						infoTextSession2.setTextColor(Color.WHITE);
-						infoTextSession2.setTextSize(18);
+						infoTextSession2.setTextSize(20);
 						infoTextSession2.setTypeface(null, Typeface.BOLD);
 						infoTextSession2.setGravity(Gravity.CENTER_VERTICAL
 								| Gravity.CENTER_HORIZONTAL);
 						TextView infoTextSession3 = new TextView(context);
 						infoTextSession3.setLayoutParams(lpInfoText3);
-						infoTextSession3.setTextColor(Color.WHITE);
+						infoTextSession3.setTextColor(LIGHTGRAY);
 						infoTextSession3.setTextSize(12);
 						infoTextSession3.setGravity(Gravity.CENTER_VERTICAL
 								| Gravity.CENTER_HORIZONTAL);
@@ -2212,10 +2217,10 @@ public class Main extends Activity {
 						LinearLayout.LayoutParams lpButtons = new LinearLayout.LayoutParams(
 								135, 140);
 						lpButtons.setMargins(4, 5, 4, 10);
-						if (!havePhone) {
-							lpButtons = new LinearLayout.LayoutParams(206, 140);
-							lpButtons.setMargins(4, 5, 4, 10);
-						}
+						// if (!havePhone) {
+						// lpButtons = new LinearLayout.LayoutParams(206, 140);
+						// lpButtons.setMargins(4, 5, 4, 10);
+						// }
 
 						ImageLabelButton composeButton = new ImageLabelButton(
 								context);
@@ -2239,7 +2244,13 @@ public class Main extends Activity {
 
 						ImageLabelButton callButton = new ImageLabelButton(
 								context);
-						if (uid >= 0) {
+						if (!havePhone) {
+							callButton.setTextAndImageResource("Call",
+									R.drawable.calldisabled);
+							callButton.setEnabled(false);
+							callButton.setTextColor(Color.GRAY);
+						}
+						else if (uid >= 0) {
 							callButton.setTextAndImageResource("Call",
 									R.drawable.call);
 						} else {
@@ -2276,9 +2287,7 @@ public class Main extends Activity {
 								});
 
 						buttonLayout.addView(composeButton);
-						if (havePhone) {
-							buttonLayout.addView(callButton);
-						}
+						buttonLayout.addView(callButton);
 						buttonLayout.addView(editButton);
 
 						outerLayout.addView(infoTextBoxInner);
