@@ -12,6 +12,15 @@
         android:layout_weight="0.02"
         android:orientation="vertical" >
 
+            <LinearLayout
+                android:id="@+id/ownaccountkey"
+        android:layout_width="220px"
+            android:layout_marginTop="20px"
+            android:layout_marginBottom="5px"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:orientation="vertical" />
+        
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -429,6 +429,7 @@ org.cryptocator.R$id: int noread
 org.cryptocator.R$id: int noscreenshots
 org.cryptocator.R$id: int notification
 org.cryptocator.R$id: int oneline
+org.cryptocator.R$id: int ownaccountkey
 org.cryptocator.R$id: int personicon
 org.cryptocator.R$id: int phone
 org.cryptocator.R$id: int phonebutton

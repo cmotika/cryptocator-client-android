@@ -77,6 +77,7 @@ import android.provider.Telephony;
 import android.text.InputType;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -143,7 +144,7 @@ public class Setup extends Activity {
 
 	/** The internal id for intentextra. */
 	public static String INTENTEXTRA = "org.cryptocator.hostuid";
-	
+
 	/** The aler prefix. */
 	public static String ALERT_PREFIX = "ALERT: ";
 
@@ -840,6 +841,9 @@ public class Setup extends Activity {
 	/** The buttondeletedatabase. */
 	private static Button buttondeletedatabase;
 
+	/** The ownaccountkeyparent. */
+	private static LinearLayout ownaccountkey = null;
+
 	/** The create. */
 	private Button create;
 
@@ -1043,6 +1047,10 @@ public class Setup extends Activity {
 			updateServerSpinner(context, serverspinner);
 			buildServerTabs(context);
 		}
+
+		ownaccountkey = (LinearLayout) findViewById(R.id.ownaccountkey);
+		ownaccountkey.addView(Main.getAccountKeyView(context, DB.myUid(),
+				"YOUR ACCOUNT KEY", true));
 
 		if (this.getIntent().hasExtra("serverId")) {
 			// Set the preferred account on startup, per default do not change
@@ -1895,6 +1903,10 @@ public class Setup extends Activity {
 	public static void updateTitleIDInfo(Context context) {
 		deviceid.setText("DeviceID: " + getDeviceId(context)
 				+ "   --   Account Key: " + Setup.getPublicKeyHash(context));
+		if (ownaccountkey != null) {
+			ownaccountkey.addView(Main.getAccountKeyView(context, DB.myUid(),
+					"YOUR ACCOUNT KEY", true));
+		}
 	}
 
 	// -------------------------------------------------------------------------
@@ -3478,6 +3490,7 @@ public class Setup extends Activity {
 			String encodedprivateKey = Base64.encodeToString(
 					privateKey.getEncoded(), Base64.DEFAULT);
 
+			Setup.setKeyDate(context, DB.myUid(), DB.getTimestampString());
 			Utility.saveStringSetting(context, Setup.PUBRSAKEY,
 					encodedpublicKey);
 			Utility.saveStringSetting(context, Setup.PRIVATERSAKEY,
@@ -3493,6 +3506,8 @@ public class Setup extends Activity {
 							keyHash, serverId);
 				}
 			}
+
+			promptEnabledEncryption(context);
 
 		} catch (Exception e) {
 			Log.e("communicator", "RSA key pair error");
@@ -3871,10 +3886,11 @@ public class Setup extends Activity {
 	 * @param key
 	 *            the key
 	 */
-	public static void saveKey(Context context, int uid, String key, boolean manually) {
-		
+	public static void saveKey(Context context, int uid, String key,
+			boolean manually) {
+
 		Log.d("communicator", "ACCOUNTKEY #1");
-		
+
 		String oldKey = Utility.loadStringSetting(context, Setup.PUBRSAKEY
 				+ uid, null);
 
@@ -3891,8 +3907,9 @@ public class Setup extends Activity {
 
 			String name = Main.UID2Name(context, uid, false);
 
-//			if (key == null || !key.equals(oldKey)) {
-			if ((key == null && oldKey != null) || (key != null &&  ((key != oldKey) || (!key.equals(oldKey))))) {
+			// if (key == null || !key.equals(oldKey)) {
+			if ((key == null && oldKey != null)
+					|| (key != null && ((key != oldKey) || (!key.equals(oldKey))))) {
 				Log.d("communicator", "ACCOUNTKEY #4 ");
 				String messageTextToShow = "";
 				if (key != null) {
@@ -3911,29 +3928,29 @@ public class Setup extends Activity {
 							+ name
 							+ " removed his/her account key. You are advised to contact him/her personally to"
 							+ " assure that he/she himself/herself removed the key.\n\nYou are no longer able to exchange encrypted "
-							+ "messages with "
-							+ name
-							+ " until " + name
+							+ "messages with " + name + " until " + name
 							+ " re-enables encryption in his/her settings!";
 
 				}
-				
+
 				Log.d("communicator", "ACCOUNTKEY " + messageTextToShow);
-				
-				// Do not insert a message account key removed if we delete a user manually!
-				if (! (manually && key == null) ) {
+
+				// Do not insert a message account key removed if we delete a
+				// user manually!
+				if (!(manually && key == null)) {
 					// Put message into conversation
-					DB.addMessage(context, uid, DB.myUid(), Setup.ALERT_PREFIX + messageTextToShow,
-							DB.getTimestampString(), DB.getTimestampString(), DB.getTimestampString(), DB.getTimestampString(), null, false, DB.TRANSPORT_INTERNET,
-							false, 0, 1, "");
+					DB.addMessage(context, uid, DB.myUid(), Setup.ALERT_PREFIX
+							+ messageTextToShow, DB.getTimestampString(),
+							DB.getTimestampString(), DB.getTimestampString(),
+							DB.getTimestampString(), null, false,
+							DB.TRANSPORT_INTERNET, false, 0, 1, "");
 					ConversationItem newItem = new ConversationItem();
 					newItem.from = uid;
 					newItem.to = DB.myUid();
 					newItem.text = messageTextToShow;
-					Main.updateLastMessage(context, uid,
-							messageTextToShow, DB.getTimestamp());
-					Communicator.liveUpdateOrNotify(context,
-							newItem);
+					Main.updateLastMessage(context, uid, messageTextToShow,
+							DB.getTimestamp());
+					Communicator.liveUpdateOrNotify(context, newItem);
 				}
 			}
 
@@ -4409,6 +4426,81 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Prompt after enabling encryption.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public static void promptEnabledEncryption(final Context context) {
+		String title = "New Account Key Created";
+		String text = null;
+
+		new MessageAlertDialog(context, title, text, null, null, " Cancel ",
+				new MessageAlertDialog.OnSelectionListener() {
+					public void selected(int button, boolean cancel) {
+						// nothing
+					}
+				}, new MessageAlertDialog.OnInnerViewProvider() {
+
+					public View provide(final MessageAlertDialog dialog) {
+
+						LinearLayout outerLayout = new LinearLayout(context);
+						outerLayout.setOrientation(LinearLayout.VERTICAL);
+
+						LinearLayout infoTextBoxInner = new LinearLayout(
+								context);
+						infoTextBoxInner
+								.setOrientation(LinearLayout.HORIZONTAL);
+						LinearLayout.LayoutParams lpInfoTextBoxInner = new LinearLayout.LayoutParams(
+								LinearLayout.LayoutParams.MATCH_PARENT,
+								LinearLayout.LayoutParams.WRAP_CONTENT);
+						infoTextBoxInner.setLayoutParams(lpInfoTextBoxInner);
+						infoTextBoxInner.setGravity(Gravity.CENTER_HORIZONTAL);
+
+						LinearLayout.LayoutParams lpInfoText = new LinearLayout.LayoutParams(
+								LinearLayout.LayoutParams.WRAP_CONTENT,
+								LinearLayout.LayoutParams.WRAP_CONTENT);
+						lpInfoText.setMargins(5, 15, 5, 15);
+						TextView infoTextAccount = new TextView(context);
+						infoTextAccount.setLayoutParams(lpInfoText);
+						infoTextAccount.setTextColor(Color.WHITE);
+						infoTextAccount.setTextSize(16);
+						infoTextAccount.setGravity(Gravity.CENTER_VERTICAL
+								| Gravity.CENTER_HORIZONTAL);
+
+						infoTextBoxInner.addView(infoTextAccount);
+						infoTextAccount
+								.setText("Your new account key was created. It will be part"
+										+ " of your identity together with your UID.\n\nYour communication"
+										+ " partners should verify that they receive the correct"
+										+ " account key. Tell them about your new account key so they"
+										+ " can verify. Preferably do this by phone or in person.");
+
+						LinearLayout infoTextBoxInnerAccountKey = new LinearLayout(
+								context);
+						LinearLayout.LayoutParams lpInfoTextBoxInnerAccountKey = new LinearLayout.LayoutParams(
+								220, LinearLayout.LayoutParams.WRAP_CONTENT);
+						lpInfoTextBoxInnerAccountKey.setMargins(5, 10, 5, 12);
+						lpInfoTextBoxInnerAccountKey.gravity = Gravity.CENTER_HORIZONTAL;
+						infoTextBoxInnerAccountKey
+								.setLayoutParams(lpInfoTextBoxInnerAccountKey);
+						infoTextBoxInnerAccountKey
+								.setGravity(Gravity.CENTER_HORIZONTAL);
+						LinearLayout accountInfo = Main.getAccountKeyView(
+								context, DB.myUid(), "YOUR ACCOUNT KEY", true);
+						accountInfo.setGravity(Gravity.CENTER_HORIZONTAL);
+						infoTextBoxInnerAccountKey.addView(accountInfo);
+
+						outerLayout.addView(infoTextBoxInner);
+						outerLayout.addView(infoTextBoxInnerAccountKey);
+						return outerLayout;
+					}
+				}).show();
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
 	 * Ask on disable encryption.
 	 * 
 	 * @param context
@@ -4417,7 +4509,7 @@ public class Setup extends Activity {
 	private void askOnDisableEncryption(final Context context) {
 		try {
 			final String titleMessage = "Disable Encryption";
-			final String textMessage = "Encrypted messages are a main feature of this messaging service. Unencrypted plaintext messages can be possibly read by anyone observing your internet connection.\n\n"
+			final String textMessage = "Encrypting messages is a main feature of Cryptocator!\n\nUnencrypted plaintext messages can be possibly read by anyone observing your internet connection. If you disable encryption your account key will be deleted permanently. If you re-enable later, a new account key is created and you should verify that your friends receive this new account key correctly!\n\n"
 					+ "Do you really want to disable encryption and only send and receive plaintext messages? ";
 			new MessageAlertDialog(context, titleMessage, textMessage,
 					"Still Disable", "Cancel", null,

@@ -3128,11 +3128,11 @@ org.cryptocator.Setup:
     public static final java.lang.String LASTUPDATE_SERVER_ATTACHMENT_LIMIT
     public static final int SMS_SIZE_WARNING
     public static final int MULTIPART_MESSAGELIMIT
-    3664:3669:public static boolean haveAESKey(android.content.Context,int)
-    4105:4121:public static java.security.PublicKey getPublicKey(android.content.Context)
-    5251:5271:public static java.lang.String encText(android.content.Context,java.lang.String,int)
-    6177:6178:public static void setVersionUpdated(android.content.Context)
-    6191:6191:public static boolean isVersionUpdated(android.content.Context)
+    3679:3684:public static boolean haveAESKey(android.content.Context,int)
+    4122:4138:public static java.security.PublicKey getPublicKey(android.content.Context)
+    5343:5363:public static java.lang.String encText(android.content.Context,java.lang.String,int)
+    6269:6270:public static void setVersionUpdated(android.content.Context)
+    6283:6283:public static boolean isVersionUpdated(android.content.Context)
 org.cryptocator.Utility:
     public static final java.lang.String PREFERENCESURI
     136:136:public Utility()

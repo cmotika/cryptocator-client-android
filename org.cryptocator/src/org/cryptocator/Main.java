@@ -179,7 +179,7 @@ public class Main extends Activity {
 
 	/** The Constant LIGHTGRAY. */
 	public static final int LIGHTGRAY = Color.parseColor("#AAFFFFFF");
-	
+
 	// ------------------------------------------------------------------------
 
 	/**
@@ -433,6 +433,57 @@ public class Main extends Activity {
 			imageAccountMenuProvider = new ImageContextMenuProvider(context,
 					"Your Accounts", context.getResources().getDrawable(
 							R.drawable.buttonedit));
+
+			ImageContextMenu.ExtendedEntryViewProvider infoViewProvider = new ImageContextMenu.ExtendedEntryViewProvider() {
+				public View provideView(Context context) {
+
+					LinearLayout infoTextBox = new LinearLayout(context);
+					infoTextBox.setOrientation(LinearLayout.VERTICAL);
+					LinearLayout.LayoutParams lpInfoTextBox = new LinearLayout.LayoutParams(
+							LinearLayout.LayoutParams.MATCH_PARENT,
+							LinearLayout.LayoutParams.WRAP_CONTENT);
+					lpInfoTextBox.setMargins(0, 0, 0, 0);
+					infoTextBox.setLayoutParams(lpInfoTextBox);
+					// infoTextBox.setBackgroundColor(Color.YELLOW);
+					infoTextBox
+							.setBackgroundColor(Setup.COLOR_MAIN_BLUEDARKEST);
+
+					LinearLayout infoTextBoxInner = new LinearLayout(context);
+					LinearLayout.LayoutParams lpInfoTextBoxInner = new LinearLayout.LayoutParams(
+							220, LinearLayout.LayoutParams.WRAP_CONTENT);
+					lpInfoTextBoxInner.setMargins(5, 10, 5, 12);
+					lpInfoTextBoxInner.gravity = Gravity.CENTER_HORIZONTAL;
+					infoTextBoxInner.setLayoutParams(lpInfoTextBoxInner);
+					infoTextBoxInner.setGravity(Gravity.CENTER_HORIZONTAL);
+
+					LinearLayout accountInfo = getAccountKeyView(context,
+							DB.myUid(), "YOUR ACCOUNT KEY ", true);
+					accountInfo.setGravity(Gravity.CENTER_HORIZONTAL);
+
+					infoTextBoxInner.addView(accountInfo);
+
+					// The separator
+					LinearLayout infoTextLine = new LinearLayout(context);
+					infoTextLine.setBackgroundColor(Setup.COLOR_BLUELINE);
+					LinearLayout.LayoutParams lpInfoTextLine = new LinearLayout.LayoutParams(
+							LinearLayout.LayoutParams.MATCH_PARENT,
+							LinearLayout.LayoutParams.WRAP_CONTENT);
+					lpInfoTextLine.setMargins(0, 0, 0, 0);
+					lpInfoTextLine.height = 2;
+					infoTextLine.setLayoutParams(lpInfoTextLine);
+
+					infoTextBox.addView(infoTextBoxInner);
+					infoTextBox.addView(infoTextLine);
+					return infoTextBox;
+				}
+			};
+
+			imageAccountMenuProvider.addEntry(infoViewProvider,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							return true;
+						}
+					});
 
 			for (final int serverId : Setup.getServerIds(context)) {
 				int myUid = DB.myUid(context, serverId);
@@ -1733,6 +1784,7 @@ public class Main extends Activity {
 				Setup.SERVER_UID + serverId, ""), -1);
 
 		String name = Utility.loadStringSetting(context, "uid2name" + uid, "");
+		// String accountKey = Setup.getKeyHash(context, uid);
 		int suid = Setup.getSUid(context, uid);
 
 		if (uid == myUid || uid == DB.myUid()) {
@@ -1767,14 +1819,14 @@ public class Main extends Activity {
 			if (resolve) {
 				updateUID2Name(context, uid, null);
 			}
-			return "User " + uid;
+			return "User " + suid;
 		} else if (name.equals("")) {
 			// if we do not have the name yet, return the uid instead and try to
 			// find the name async for the next time!
 			if (resolve) {
 				updateUID2Name(context, uid, null);
 			}
-			return "User " + uid + "";
+			return "User " + suid + "";
 		} else {
 			if (fullNameWithUID) {
 				int serverIdOther = Setup.getServerId(context, uid);
@@ -2041,6 +2093,181 @@ public class Main extends Activity {
 	}
 
 	// ------------------------------------------------------------------------
+
+	public static LinearLayout getAccountKeyView(final Context context,
+			final int uid, final String title, final boolean own) {
+		LinearLayout infoTextBoxInnerAccount = new LinearLayout(context);
+		infoTextBoxInnerAccount.setOrientation(LinearLayout.VERTICAL);
+		LinearLayout.LayoutParams lpInfoTextBoxInnerAccount = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.MATCH_PARENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT, 50);
+		lpInfoTextBoxInnerAccount.setMargins(20, 10, 10, 5);
+		infoTextBoxInnerAccount.setLayoutParams(lpInfoTextBoxInnerAccount);
+		infoTextBoxInnerAccount.setGravity(Gravity.CENTER_HORIZONTAL);
+		infoTextBoxInnerAccount.setBackgroundResource(R.drawable.framebacklock);
+		// infoTextBoxInnerAccount.setBackgroundResource(R.drawable.backlock);
+		infoTextBoxInnerAccount.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				String text = "The account key is part"
+						+ "of your identity.\n\nIt is created/renewed when you enable encryption. It usually should"
+						+ " not change.\nHowever, if you renew it then you should tell all your contacts personally the"
+						+ " new account key shown here so that they can verify your identity."
+						+ "\n\nThe date shown here is the one when the account key was created.";
+				if (!own) {
+					text = "The account key of a user is part"
+							+ " of his/her identity.\n\nIt is created/renewed when the user enables encryption. It usually should"
+							+ " not change. You are advised to manually verify the account key that is shown here"
+							+ " for a user matches the one that the user finds in his/her settings."
+							+ "\n\nThe date shown here is the one when the account key was created.";
+				}
+				Conversation.promptInfo(context, "Account Key", text);
+
+			}
+		});
+
+		LinearLayout.LayoutParams lpInfoText = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.WRAP_CONTENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		lpInfoText.setMargins(5, 4, 5, 0);
+		LinearLayout.LayoutParams lpInfoText2 = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.WRAP_CONTENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		lpInfoText2.setMargins(5, -4, 5, -4);
+		LinearLayout.LayoutParams lpInfoText3 = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.WRAP_CONTENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		lpInfoText3.setMargins(5, 0, 5, 4);
+
+		TextView infoTextAccount = new TextView(context);
+		infoTextAccount.setLayoutParams(lpInfoText);
+		infoTextAccount.setTextColor(LIGHTGRAY);
+		infoTextAccount.setTextSize(12);
+		infoTextAccount.setGravity(Gravity.CENTER_VERTICAL
+				| Gravity.CENTER_HORIZONTAL);
+		TextView infoTextAccount2 = new TextView(context);
+		infoTextAccount2.setLayoutParams(lpInfoText2);
+		infoTextAccount2.setTextColor(Color.WHITE);
+		infoTextAccount2.setTextSize(20);
+		infoTextAccount2.setTypeface(null, Typeface.BOLD);
+		infoTextAccount2.setGravity(Gravity.CENTER_VERTICAL
+				| Gravity.CENTER_HORIZONTAL);
+		TextView infoTextAccount3 = new TextView(context);
+		infoTextAccount3.setLayoutParams(lpInfoText3);
+		infoTextAccount3.setTextColor(LIGHTGRAY);
+		infoTextAccount3.setTextSize(12);
+		infoTextAccount3.setGravity(Gravity.CENTER_VERTICAL
+				| Gravity.CENTER_HORIZONTAL);
+
+		infoTextBoxInnerAccount.addView(infoTextAccount);
+		infoTextBoxInnerAccount.addView(infoTextAccount2);
+		infoTextBoxInnerAccount.addView(infoTextAccount3);
+
+		infoTextAccount.setText(title);
+		if (own) {
+			infoTextAccount2.setText(Setup.getPublicKeyHash(context));
+			infoTextAccount3
+					.setText(DB.getDateString(
+							Utility.parseLong(
+									Setup.getKeyDate(context, DB.myUid()), 0),
+							false) + "\n");
+		} else {
+			infoTextAccount2.setText(Setup.getKeyHash(context, uid));
+			infoTextAccount3
+					.setText(DB.getDateString(Utility.parseLong(
+							Setup.getKeyDate(context, uid), 0), false)
+							+ "\n");
+		}
+		return infoTextBoxInnerAccount;
+	}
+
+	// ------------------------------------------------------------------------
+
+	public static LinearLayout getSessionKeyView(final Context context,
+			final int uid, final String title) {
+		LinearLayout infoTextBoxInnerSession = new LinearLayout(context);
+		infoTextBoxInnerSession.setOrientation(LinearLayout.VERTICAL);
+		LinearLayout.LayoutParams lpInfoTextBoxInnerSession = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.MATCH_PARENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT, 50);
+		lpInfoTextBoxInnerSession.setMargins(10, 10, 20, 5);
+		infoTextBoxInnerSession.setLayoutParams(lpInfoTextBoxInnerSession);
+		infoTextBoxInnerSession.setGravity(Gravity.CENTER_HORIZONTAL);
+		infoTextBoxInnerSession.setBackgroundResource(R.drawable.framebackkey);
+		// infoTextBoxInnerSession.setBackgroundResource(R.drawable.backkey);
+		infoTextBoxInnerSession.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				Conversation
+						.promptInfo(
+								context,
+								"Session Key",
+								"The session key is a key shared between you an a user.\n\n"
+										+ "It usually only lives for about 1 hour and will be renewed automatically after that. You"
+										+ " do not have to check anything here as long as you are sure that the account"
+										+ " key of the other person is right and trustful!\n\nIf decryption is constantly failing then"
+										+ " you may want to manually renew the session key by clicking the key button in the top bar of the conversation secreen.");
+
+			}
+		});
+
+		LinearLayout.LayoutParams lpInfoText = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.WRAP_CONTENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		lpInfoText.setMargins(5, 4, 5, 0);
+		LinearLayout.LayoutParams lpInfoText2 = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.WRAP_CONTENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		lpInfoText2.setMargins(5, -4, 5, -4);
+		LinearLayout.LayoutParams lpInfoText3 = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.WRAP_CONTENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		lpInfoText3.setMargins(5, 0, 5, 4);
+
+		TextView infoTextSession = new TextView(context);
+		infoTextSession.setLayoutParams(lpInfoText);
+		infoTextSession.setTextColor(LIGHTGRAY);
+		infoTextSession.setTextSize(12);
+		infoTextSession.setGravity(Gravity.CENTER_VERTICAL
+				| Gravity.CENTER_HORIZONTAL);
+		TextView infoTextSession2 = new TextView(context);
+		infoTextSession2.setLayoutParams(lpInfoText2);
+		infoTextSession2.setTextColor(Color.WHITE);
+		infoTextSession2.setTextSize(20);
+		infoTextSession2.setTypeface(null, Typeface.BOLD);
+		infoTextSession2.setGravity(Gravity.CENTER_VERTICAL
+				| Gravity.CENTER_HORIZONTAL);
+		TextView infoTextSession3 = new TextView(context);
+		infoTextSession3.setLayoutParams(lpInfoText3);
+		infoTextSession3.setTextColor(LIGHTGRAY);
+		infoTextSession3.setTextSize(12);
+		infoTextSession3.setGravity(Gravity.CENTER_VERTICAL
+				| Gravity.CENTER_HORIZONTAL);
+
+		infoTextSession.setText(title);
+		infoTextSession2.setText(Setup.getAESKeyHash(context, uid));
+
+		// Session information
+		// String sessionInfo = "";
+		long keyCreatedTSInternet = Setup.getAESKeyDate(context, uid,
+				DB.TRANSPORT_INTERNET);
+		long keyCreatedTS = keyCreatedTSInternet;
+		long keyCreatedTSSMS = Setup.getAESKeyDate(context, uid,
+				DB.TRANSPORT_SMS);
+		if ((keyCreatedTSSMS != 0) && (keyCreatedTSInternet == 0)) {
+			keyCreatedTS = keyCreatedTSSMS;
+		}
+
+		infoTextSession3.setText(DB.getDateString(keyCreatedTS, false)
+				+ "\n"
+				+ MessageDetailsActivity.getSessionKeyTransportDisplayInfo(
+						context, uid));
+		infoTextBoxInnerSession.addView(infoTextSession);
+		infoTextBoxInnerSession.addView(infoTextSession2);
+		infoTextBoxInnerSession.addView(infoTextSession3);
+
+		return infoTextBoxInnerSession;
+	}
+
+	// ------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
 
 	/**
@@ -2078,133 +2305,27 @@ public class Main extends Activity {
 						infoTextBoxInner.setLayoutParams(lpInfoTextBoxInner);
 						infoTextBoxInner.setGravity(Gravity.CENTER_HORIZONTAL);
 
-						LinearLayout infoTextBoxInnerAccount = new LinearLayout(
-								context);
-						infoTextBoxInnerAccount
-								.setOrientation(LinearLayout.VERTICAL);
-						LinearLayout.LayoutParams lpInfoTextBoxInnerAccount = new LinearLayout.LayoutParams(
-								LinearLayout.LayoutParams.MATCH_PARENT,
-								LinearLayout.LayoutParams.WRAP_CONTENT, 50);
-						lpInfoTextBoxInnerAccount.setMargins(20, 10, 10, 5);
-						infoTextBoxInnerAccount
-								.setLayoutParams(lpInfoTextBoxInnerAccount);
-						infoTextBoxInnerAccount
-								.setGravity(Gravity.CENTER_HORIZONTAL);
-						infoTextBoxInnerAccount
-								.setBackgroundResource(R.drawable.framebacklock);
-						//infoTextBoxInnerAccount.setBackgroundResource(R.drawable.backlock);
-
-						LinearLayout infoTextBoxInnerSession = new LinearLayout(
-								context);
-						infoTextBoxInnerSession
-								.setOrientation(LinearLayout.VERTICAL);
-						LinearLayout.LayoutParams lpInfoTextBoxInnerSession = new LinearLayout.LayoutParams(
-								LinearLayout.LayoutParams.MATCH_PARENT,
-								LinearLayout.LayoutParams.WRAP_CONTENT, 50);
-						lpInfoTextBoxInnerSession.setMargins(10, 10, 20, 5);
-						infoTextBoxInnerSession
-								.setLayoutParams(lpInfoTextBoxInnerSession);
-						infoTextBoxInnerSession
-								.setGravity(Gravity.CENTER_HORIZONTAL);
-						infoTextBoxInnerSession
-								.setBackgroundResource(R.drawable.framebackkey);
-						//infoTextBoxInnerSession.setBackgroundResource(R.drawable.backkey);
-
-						LinearLayout.LayoutParams lpInfoText = new LinearLayout.LayoutParams(
-								LinearLayout.LayoutParams.WRAP_CONTENT,
-								LinearLayout.LayoutParams.WRAP_CONTENT);
-						lpInfoText.setMargins(5, 4, 5, 0);
-						LinearLayout.LayoutParams lpInfoText2 = new LinearLayout.LayoutParams(
-								LinearLayout.LayoutParams.WRAP_CONTENT,
-								LinearLayout.LayoutParams.WRAP_CONTENT);
-						lpInfoText2.setMargins(5, -4, 5, -4);
-						LinearLayout.LayoutParams lpInfoText3 = new LinearLayout.LayoutParams(
-								LinearLayout.LayoutParams.WRAP_CONTENT,
-								LinearLayout.LayoutParams.WRAP_CONTENT);
-						lpInfoText3.setMargins(5, 0, 5, 4);
-
-						TextView infoTextAccount = new TextView(context);
-						infoTextAccount.setLayoutParams(lpInfoText);
-						infoTextAccount.setTextColor(LIGHTGRAY);
-						infoTextAccount.setTextSize(12);
-						infoTextAccount.setGravity(Gravity.CENTER_VERTICAL
-								| Gravity.CENTER_HORIZONTAL);
-						TextView infoTextAccount2 = new TextView(context);
-						infoTextAccount2.setLayoutParams(lpInfoText2);
-						infoTextAccount2.setTextColor(Color.WHITE);
-						infoTextAccount2.setTextSize(20);
-						infoTextAccount2.setTypeface(null, Typeface.BOLD);
-						infoTextAccount2.setGravity(Gravity.CENTER_VERTICAL
-								| Gravity.CENTER_HORIZONTAL);
-						TextView infoTextAccount3 = new TextView(context);
-						infoTextAccount3.setLayoutParams(lpInfoText3);
-						infoTextAccount3.setTextColor(LIGHTGRAY);
-						infoTextAccount3.setTextSize(12);
-						infoTextAccount3.setGravity(Gravity.CENTER_VERTICAL
-								| Gravity.CENTER_HORIZONTAL);
-
-						TextView infoTextSession = new TextView(context);
-						infoTextSession.setLayoutParams(lpInfoText);
-						infoTextSession.setTextColor(LIGHTGRAY);
-						infoTextSession.setTextSize(12);
-						infoTextSession.setGravity(Gravity.CENTER_VERTICAL
-								| Gravity.CENTER_HORIZONTAL);
-						TextView infoTextSession2 = new TextView(context);
-						infoTextSession2.setLayoutParams(lpInfoText2);
-						infoTextSession2.setTextColor(Color.WHITE);
-						infoTextSession2.setTextSize(20);
-						infoTextSession2.setTypeface(null, Typeface.BOLD);
-						infoTextSession2.setGravity(Gravity.CENTER_VERTICAL
-								| Gravity.CENTER_HORIZONTAL);
-						TextView infoTextSession3 = new TextView(context);
-						infoTextSession3.setLayoutParams(lpInfoText3);
-						infoTextSession3.setTextColor(LIGHTGRAY);
-						infoTextSession3.setTextSize(12);
-						infoTextSession3.setGravity(Gravity.CENTER_VERTICAL
-								| Gravity.CENTER_HORIZONTAL);
-
-						infoTextAccount.setText("ACCOUNT");
-						infoTextAccount2.setText(Setup.getKeyHash(context, uid));
-						infoTextAccount3.setText(DB.getDateString(
-								Utility.parseLong(
-										Setup.getKeyDate(context, uid), 0),
-								false)
-								+ "\n");
-
-						infoTextSession.setText("SESSION");
-						infoTextSession2.setText(Setup.getAESKeyHash(context,
-								uid));
-
-						// Session information
-						// String sessionInfo = "";
-						long keyCreatedTSInternet = Setup.getAESKeyDate(
-								context, uid, DB.TRANSPORT_INTERNET);
-						long keyCreatedTS = keyCreatedTSInternet;
-						long keyCreatedTSSMS = Setup.getAESKeyDate(context,
-								uid, DB.TRANSPORT_SMS);
-						if ((keyCreatedTSSMS != 0)
-								&& (keyCreatedTSInternet == 0)) {
-							keyCreatedTS = keyCreatedTSSMS;
-						}
-
-						infoTextSession3.setText(DB.getDateString(keyCreatedTS,
-								false)
-								+ "\n"
-								+ MessageDetailsActivity
-										.getSessionKeyTransportDisplayInfo(
-												context, uid));
+						LinearLayout infoTextBoxInnerAccount = getAccountKeyView(
+								context, uid, "ACCOUNT KEY", false);
+						LinearLayout infoTextBoxInnerSession = getSessionKeyView(
+								context, uid, "SESSION KEY");
 
 						if (uid >= 0) {
 							// Only display info for registered users
-							infoTextBoxInnerAccount.addView(infoTextAccount);
-							infoTextBoxInnerAccount.addView(infoTextAccount2);
-							infoTextBoxInnerAccount.addView(infoTextAccount3);
-							infoTextBoxInnerSession.addView(infoTextSession);
-							infoTextBoxInnerSession.addView(infoTextSession2);
-							infoTextBoxInnerSession.addView(infoTextSession3);
 							infoTextBoxInner.addView(infoTextBoxInnerAccount);
 							infoTextBoxInner.addView(infoTextBoxInnerSession);
 						} else {
+							LinearLayout.LayoutParams lpInfoText = new LinearLayout.LayoutParams(
+									LinearLayout.LayoutParams.WRAP_CONTENT,
+									LinearLayout.LayoutParams.WRAP_CONTENT);
+							lpInfoText.setMargins(5, 15, 5, 15);
+							TextView infoTextAccount = new TextView(context);
+							infoTextAccount.setLayoutParams(lpInfoText);
+							infoTextAccount.setTextColor(LIGHTGRAY);
+							infoTextAccount.setTextSize(12);
+							infoTextAccount.setGravity(Gravity.CENTER_VERTICAL
+									| Gravity.CENTER_HORIZONTAL);
+
 							infoTextBoxInner.addView(infoTextAccount);
 							infoTextAccount
 									.setText("No registered user.\nNo encryption available.");
@@ -2249,8 +2370,7 @@ public class Main extends Activity {
 									R.drawable.calldisabled);
 							callButton.setEnabled(false);
 							callButton.setTextColor(Color.GRAY);
-						}
-						else if (uid >= 0) {
+						} else if (uid >= 0) {
 							callButton.setTextAndImageResource("Call",
 									R.drawable.call);
 						} else {
