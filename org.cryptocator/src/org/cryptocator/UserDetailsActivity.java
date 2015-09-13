@@ -163,11 +163,11 @@ public class UserDetailsActivity extends Activity {
 		LinearLayout.LayoutParams lpTextTitle = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.WRAP_CONTENT);
-		lpTextTitle.setMargins(20, 20, 20, 20);
+		lpTextTitle.setMargins(20, 0, 20, 20);
 		LinearLayout.LayoutParams lpTextTitle2 = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.WRAP_CONTENT);
-		lpTextTitle2.setMargins(20, 0, 20, 20);
+		lpTextTitle2.setMargins(5, 10, 10, 10);
 
 		LinearLayout.LayoutParams lpSectionInnerLeft = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -191,11 +191,6 @@ public class UserDetailsActivity extends Activity {
 		details.setTextSize(16);
 		details.setTextColor(Color.WHITE);
 
-		TextView details2 = new TextView(context);
-		details2.setText("THis is some example information....\nAfter new line\nAnothern ew line");
-		details2.setLayoutParams(lpTextTitle2);
-		details2.setTextSize(16);
-		details2.setTextColor(Color.WHITE);
 
 		TextView detailsName = new TextView(context);
 		detailsName.setText("Display Name: ");
@@ -285,6 +280,9 @@ public class UserDetailsActivity extends Activity {
 		keyInnerLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 		keyInnerLayout.addView(detailsKey);
 		keyInnerLayout.addView(key);
+		TextView keyDetails = new TextView(context);
+		keyDetails.setLayoutParams(lpTextTitle2);
+		keyInnerLayout.addView(keyDetails);
 		keyInnerLayout.setLayoutParams(lpSectionInnerLeft);
 
 		ImageButton updateKeyButton = new ImageButton(context);
@@ -298,9 +296,14 @@ public class UserDetailsActivity extends Activity {
 			}
 		});
 
+		LinearLayout.LayoutParams lpImageAndDetailsLayout = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.WRAP_CONTENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		lpImageAndDetailsLayout.setMargins(0, 20, 0, 0);
 		LinearLayout imageAndDetailsLayout = new LinearLayout(context);
 		imageAndDetailsLayout.setOrientation(LinearLayout.HORIZONTAL);
 		imageAndDetailsLayout.setGravity(Gravity.TOP);
+		imageAndDetailsLayout.setLayoutParams(lpImageAndDetailsLayout);
 		//imageAndDetailsLayout.setBackgroundColor(Color.CYAN);
 
 		LinearLayout imageLayout = new LinearLayout(context);
@@ -334,8 +337,17 @@ public class UserDetailsActivity extends Activity {
 		imageLayout.addView(avatarView);
 		imageLayout.addView(avatarCheck);
 
+		
+		LinearLayout.LayoutParams lpAccountKeyParent = new LinearLayout.LayoutParams(
+				220,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		LinearLayout accountKeyParent = new LinearLayout(context);
+		accountKeyParent.setOrientation(LinearLayout.HORIZONTAL);
+		accountKeyParent.setLayoutParams(lpAccountKeyParent);
+		accountKeyParent.addView(Main.getAccountKeyView(context, uid, "ACCOUNT KEY", false));
+		
 		imageAndDetailsLayout.addView(imageLayout);
-		imageAndDetailsLayout.addView(details2);
+		imageAndDetailsLayout.addView(accountKeyParent);
 
 		LinearLayout keyLayout = new LinearLayout(context);
 		keyLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -357,8 +369,8 @@ public class UserDetailsActivity extends Activity {
 		layout.setGravity(Gravity.LEFT);
 		outerLayout.addView(layout);
 
-		layout.addView(details);
 		layout.addView(imageAndDetailsLayout);
+		layout.addView(details);
 		layout.addView(nameLayout);
 		layout.addView(phoneLayout);
 		layout.addView(keyLayout);
@@ -488,34 +500,33 @@ public class UserDetailsActivity extends Activity {
 			int serverId = Setup.getServerId(context, uid);
 			int suid = Setup.getSUid(context, uid);
 			text += "Message Server: "
-					+ Setup.getServerLabel(context, serverId, true) + "\n\n";
-			text2 += "UID Server: " + suid + "\n\n";
-			text += "Account Key: " + Setup.getKeyHash(context, suid) + "\n";
-			text += "Valid Since: "
+					+ Setup.getServerLabel(context, serverId, true) + "\n";
+			text += "UID Server: " + suid + "\n\n";
+			text2 += "Valid Since: "
 					+ DB.getDateString(Utility.parseLong(
-							Setup.getKeyDate(context, suid), 0), true) + "\n\n";
+							Setup.getKeyDate(context, uid), 0), true);
 		}
-		text += "Local Database: " + uid + ".db";
+		text += "Local Database: " + uid + ".db\n\n";
 
 		if (uid >= 0) {
-			text2 += "Registered user\n";
+			text += "Registered user\n";
 		} else {
-			text2 += "External SMS contact\n";
+			text += "External SMS contact\n";
 		}
 
 		if (Setup.haveKey(context, uid)) {
-			text2 += "Encryption available\n";
+			text += "Encryption available\n";
 		} else {
-			text2 += "No encryption available\n";
+			text += "No encryption available\n";
 		}
 
 		if (Setup.havePhone(context, uid)) {
-			text2 += "SMS sending available";
+			text += "SMS sending available";
 		} else {
-			text2 += "No SMS sending available";
+			text += "No SMS sending available";
 		}
 		details.setText(text);
-		details2.setText(text2);
+		keyDetails.setText(text2);
 
 		key.setText(Setup.getKeyHash(context, uid));
 
