@@ -88,9 +88,38 @@ public class ImageSmileyEditText extends EditText {
 	// "^^",
 	// ":)", ":P", ";)" };
 
+	/** The description. */
 	private String description = null;
 
+	/** The title addition. */
 	private String titleAddition = null;
+	
+	/** The me. */
+	private boolean me = false;
+	
+	//-------------------------------------------------------------------------
+	
+	/**
+	 * Sets the me.
+	 *
+	 * @param me the new me
+	 */
+	public void setMe(boolean me) {
+		this.me = me;
+	}
+
+	//-------------------------------------------------------------------------
+
+	/**
+	 * Checks if is me.
+	 *
+	 * @return true, if is me
+	 */
+	public boolean isMe() {
+		return me;
+	}
+
+	//-------------------------------------------------------------------------
 
 	/**
 	 * The is input text field then reduce images to tumbnails and doe not

@@ -55,6 +55,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.net.Uri;
@@ -99,8 +101,15 @@ import android.widget.TextView;
 @SuppressLint("InflateParams")
 public class Conversation extends Activity {
 
+	/**
+	 * The fixed inset for conversation items NOT from me. This may differ
+	 * depending on if the user has an avatar or not. With an avatar the insert
+	 * is larger (200) to have room for the avatar.
+	 */
+	private int fixed_inset = 160;
+
 	/** The fixed inset for conversation items. */
-	private final int FIXED_INSET = 180;
+	private int fixed_inset_me = 180;
 
 	/** The fast scroll view. */
 	FastScrollView fastScrollView;
@@ -236,6 +245,15 @@ public class Conversation extends Activity {
 	/** The list of all images. */
 	private LinkedHashSet<Bitmap> images = new LinkedHashSet<Bitmap>();
 
+	/** The bitmap_speech. */
+	static Bitmap bitmap_speechmaster = null;
+
+	/** The bitmap_speech. */
+	static Bitmap bitmap_speech = null;
+
+	/** The bitmap_speechalert. */
+	static Bitmap bitmap_speechalert = null;
+
 	// ------------------------------------------------------------------------
 
 	/**
@@ -302,6 +320,15 @@ public class Conversation extends Activity {
 		Conversation.visible = true;
 		instance = this;
 		final Activity context = this;
+
+		if (bitmap_speechmaster == null) {
+			bitmap_speechmaster = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.speechmaster);
+			bitmap_speech = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.speech);
+			bitmap_speechalert = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.speechalert);
+		}
 
 		inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -790,7 +817,11 @@ public class Conversation extends Activity {
 	 */
 	private void updateTextViewWidth(ImageSmileyEditText textView, int width) {
 		android.view.ViewGroup.LayoutParams lp = textView.getLayoutParams();
-		lp.width = width - FIXED_INSET;
+		if (textView.isMe()) {
+			lp.width = width - fixed_inset_me;
+		} else {
+			lp.width = width - fixed_inset;
+		}
 		textView.updateMaxWidth(width);
 	}
 
@@ -1782,11 +1813,12 @@ public class Conversation extends Activity {
 		// + insertId);
 		mapping.put(insertId, mappingItem);
 	}
-	
+
 	/**
 	 * Checks if an entry is already mapped and hence displayed.
-	 *
-	 * @param localid the localid
+	 * 
+	 * @param localid
+	 *            the localid
 	 * @return true, if is already mapped
 	 */
 	private boolean isAlreadyMapped(int localid) {
@@ -2175,6 +2207,35 @@ public class Conversation extends Activity {
 				speech.setImageResource(R.drawable.speechalert);
 			}
 
+			Bitmap avatar = Setup.getAvatarAsBitmap(context, hostUid);
+			if (avatar != null) {
+
+				Bitmap bitmap = Bitmap.createBitmap(bitmap_speechmaster);
+
+				bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+				Canvas canvas = new Canvas(bitmap);
+				Rect src = new Rect();
+				src.left = 0;
+				src.top = 0;
+				src.bottom = 100;
+				src.right = 100;
+				Rect dst = new Rect();
+				dst.left = 0;
+				dst.top = 10;
+				dst.bottom = 90;
+				dst.right = 80;
+				canvas.drawBitmap(avatar, src, dst, null);
+
+				canvas.drawBitmap(bitmap_speech, 53, 10, null);
+
+				speech.setImageBitmap(bitmap);
+				LinearLayout.LayoutParams lpSpeech = new LinearLayout.LayoutParams(
+						60, LayoutParams.WRAP_CONTENT);
+				// lpAvatar.setMargins(0, 0, 10, 0);
+				speech.setLayoutParams(lpSpeech);
+				fixed_inset = 200;
+			}
+
 			// Create a mapping for later async update
 			addMapping(conversationItem.localid, null, null, null,
 					conversationText, oneline, speech, progress,
@@ -2241,6 +2302,7 @@ public class Conversation extends Activity {
 
 		// Add this to this list in order to later adjust the width
 		textViews.add(conversationText);
+		conversationText.setMe(conversationItem.me());
 		// Set the current width
 		updateTextViewWidth(conversationText, currentScreenWidth);
 
@@ -4100,8 +4162,6 @@ public class Conversation extends Activity {
 					}
 				}).show();
 	}
-
-
 
 	// -------------------------------------------------------------------------
 

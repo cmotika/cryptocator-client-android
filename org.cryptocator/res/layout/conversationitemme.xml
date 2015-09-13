@@ -28,7 +28,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="0px"
-        android:layout_marginLeft="30px"
+        android:layout_marginLeft="40px"
         android:layout_marginRight="0px"
         android:background="#ff0077ff"
         android:gravity="right"
@@ -38,7 +38,7 @@
         <org.cryptocator.ImageSmileyEditText
             android:id="@+id/conversationtext"
             style="?android:attr/textViewStyle"
-            android:layout_width="320px"
+            android:layout_width="310px"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20px"
             android:layout_marginRight="20px"
