@@ -24,7 +24,7 @@
     <uses-permission android:name="android.permission.MANAGE_DOCUMENTS" /> <!-- send images -->
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.READ_CONTACTS"  /> <!-- reading telephone number -->
+    <uses-permission android:name="android.permission.READ_CONTACTS"  /> <!-- reading telephone number and image -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" android:required="false"/> <!-- reading telephone number -->
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />

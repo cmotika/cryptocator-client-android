@@ -367,6 +367,8 @@ public class Main extends Activity {
 		// Refresh current RSA keys from server (in the background if necessary)
 		Communicator.updateKeysFromAllServers(context, uidList, false, null);
 		Communicator.updatePhonesFromAllServers(this, uidList, false);
+		Communicator.updateAvatarFromAllServers(context, uidList, false);
+
 		// Refresh server attachment limit (if needed)
 		Setup.updateAttachmentAllServerLimits(context, false);
 
@@ -712,6 +714,7 @@ public class Main extends Activity {
 		Main.getInstance().updateInfoMessageBlockAsync(context);
 		Communicator.updateKeysFromAllServers(context, uidList, true, null);
 		Communicator.updatePhonesFromAllServers(context, uidList, true);
+		Communicator.updateAvatarFromAllServers(context, uidList, true);
 		// Force check Internet and account login information
 		int serverId = Setup.getServerId(Setup.getNextReceivingServer(context));
 		Communicator.haveNewMessagesAndReceive(context, serverId);
@@ -967,7 +970,7 @@ public class Main extends Activity {
 								.getSelectedItem());
 					}
 
-					// Test is server is active and we have an account here!
+					// Test if server is active and we have an account here!
 					if (!(Setup.isServerActive(context, serverId, true) && Setup
 							.isServerAccount(context, serverId, true))) {
 						Conversation
@@ -981,6 +984,7 @@ public class Main extends Activity {
 					}
 
 					int realUid = Setup.getUid(context, adduid, serverId);
+
 					boolean alreadyInList = alreadyInList(realUid, uidList);
 					if (realUid >= 0 && !alreadyInList) {
 						addUser(context, realUid);
@@ -1131,15 +1135,15 @@ public class Main extends Activity {
 
 		LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View userlistitemtmp = inflater.inflate(R.layout.userlistitem, null);
-		ImageView personicon = (ImageView) userlistitemtmp
-				.findViewById(R.id.personicon);
-
-		LinearLayout personiconback = (LinearLayout) userlistitemtmp
-				.findViewById(R.id.personiconback);
 
 		boolean haveKey = Setup.haveKey(context, uid);
 		boolean haveMessages = Communicator.getNotificationCount(context, uid) > 0;
 		boolean isRegistered = uid >= 0;
+
+		LinearLayout personiconback = (LinearLayout) userlistitemtmp
+				.findViewById(R.id.personiconback);
+		ImageView personicon = (ImageView) userlistitemtmp
+				.findViewById(R.id.personicon);
 
 		if (isRegistered) {
 			personiconback.setBackgroundResource(R.drawable.persongenericbar);
@@ -1150,40 +1154,14 @@ public class Main extends Activity {
 
 		String keyHash = Setup.getKeyHash(context, uid);
 
-		Bitmap bitmap = retrieveUserListImage(context, uid, keyHash,
-				isRegistered, haveKey, haveMessages);
+		Bitmap bitmap = retrieveAvatar(context, uid, keyHash, isRegistered,
+				haveKey, haveMessages);
 
 		personicon.setImageBitmap(bitmap);
 
-		// } else {
-		// // We do not have a special avatar, use the default
-		// if (haveMessages) {
-		// userlistitemtmp = inflater.inflate(R.layout.userlistitemmsg,
-		// null);
-		// if (haveKey) {
-		// personicon.setImageResource(R.drawable.personlockmsg);
-		// } else {
-		// personicon.setImageResource(R.drawable.personmsg);
-		// }
-		// } else {
-		// if (haveKey) {
-		// personicon.setImageResource(R.drawable.personlock);
-		// } else {
-		// personicon.setImageResource(R.drawable.personunlock);
-		// }
-		// }
-		// if (!isRegistered) {
-		// if (haveMessages) {
-		// personicon.setImageResource(R.drawable.personsmsmsg);
-		// } else {
-		// personicon.setImageResource(R.drawable.personunlocksms);
-		// }
-		// }
-		// }
-
 		LinearLayout.LayoutParams lpAvatar = new LinearLayout.LayoutParams(120,
 				100);
-		lpAvatar.setMargins(0, 0, 10, 0);
+		lpAvatar.setMargins(0, 0, 0, 0);
 		personicon.setLayoutParams(lpAvatar);
 
 		// Make it final
@@ -1199,13 +1177,21 @@ public class Main extends Activity {
 		if (highContrast) {
 			userlistName.setTypeface(null, Typeface.BOLD);
 			userlistDate.setTypeface(null, Typeface.BOLD);
-			userlistName.setTextColor(TEXTCOLOEWHITE);
-			userlistDate.setTextColor(TEXTCOLOEWHITE);
-			userlistText.setTextColor(TEXTCOLOEWHITE);
+			userlistName.setTextColor(TEXTCOLOEWHITEDIMMED);
+			userlistDate.setTextColor(TEXTCOLOEWHITEDIMMED);
+			userlistText.setTextColor(TEXTCOLOEWHITEDIMMED);
 		} else {
 			userlistName.setTextColor(TEXTCOLOEWHITEDIMMED);
 			userlistDate.setTextColor(TEXTCOLOEWHITEDIMMED);
 			userlistText.setTextColor(TEXTCOLOEWHITEDIMMED2);
+		}
+
+		if (haveMessages) {
+			userlistName.setTypeface(null, Typeface.BOLD);
+			userlistDate.setTypeface(null, Typeface.BOLD);
+			userlistName.setTextColor(TEXTCOLOEWHITE);
+			userlistDate.setTextColor(TEXTCOLOEWHITE);
+			userlistText.setTextColor(TEXTCOLOEWHITE);
 		}
 
 		userlistName.setText(Html.fromHtml(name));
@@ -1287,6 +1273,17 @@ public class Main extends Activity {
 
 	private static HashMap<String, Bitmap> userListImageCache = new HashMap<String, Bitmap>();
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Invalidate avatar cache if an avatar was changed.
+	 */
+	public static void invalidateAvatarCache() {
+		userListImageCache.clear();
+	}
+
+	// ------------------------------------------------------------------------
+
 	/**
 	 * Retrieve user list image either create it freshly or take it from the
 	 * cache for faster processing.
@@ -1305,7 +1302,7 @@ public class Main extends Activity {
 	 *            the have messages
 	 * @return the bitmap
 	 */
-	public static Bitmap retrieveUserListImage(Context context, int uid,
+	public static Bitmap retrieveAvatar(Context context, int uid,
 			String keyHash, boolean isRegistered, boolean haveKey,
 			boolean haveMessages) {
 
@@ -1318,11 +1315,7 @@ public class Main extends Activity {
 			Bitmap marker = null;
 
 			if (isRegistered) {
-				if (haveKey) {
-					marker = bitmap_barlock;
-				} else {
-					marker = bitmap_bar;
-				}
+				marker = bitmap_bar;
 			} else {
 				marker = bitmap_barsms;
 			}
@@ -1336,40 +1329,44 @@ public class Main extends Activity {
 			src.bottom = 100;
 			src.right = 100;
 			Rect dst = new Rect();
-			dst.left = 35;
+			dst.left = 25;
 			dst.top = 0;
 			dst.bottom = 120;
-			dst.right = 155;
+			dst.right = 145;
 
 			if (avatar != null) {
 				canvas.drawBitmap(avatar, src, dst, null);
 			} else {
 				dst.left = 52;
-				dst.top = 15;
-				dst.bottom = 140;
-				dst.right = 170;
+				dst.top = 7;
+				dst.bottom = 135;
+				dst.right = 172;
 				if (isRegistered) {
 					canvas.drawBitmap(bitmap_person, src, dst, null);
 				} else {
 					canvas.drawBitmap(bitmap_personsms, src, dst, null);
 				}
 			}
-			canvas.drawBitmap(marker, 4, 0, null);
+			canvas.drawBitmap(marker, 5, 0, null);
+
+			if (haveKey) {
+				canvas.drawBitmap(bitmap_barlock, 0, 0, null);
+			}
 
 			// if lock then draw key hash
 			if (haveKey) {
 				Paint paint = new Paint();
 				paint.setColor(Color.parseColor("#FF4377B2"));
-				paint.setTextSize(22);
+				paint.setTextSize(20);
 				paint.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
 				canvas.save();
-				canvas.rotate(-90, 25, 60);
-				canvas.drawText(keyHash, 25, 60, paint);
+				canvas.rotate(-90, 22, 55);
+				canvas.drawText(keyHash, 22, 55, paint);
 				canvas.restore();
 			}
 
 			if (haveMessages) {
-				canvas.drawBitmap(bitmap_msg, 5, 20, null);
+				canvas.drawBitmap(bitmap_msg, 85, 55, null);
 			}
 			userListImageCache.put(id, bitmap);
 
@@ -1606,6 +1603,8 @@ public class Main extends Activity {
 	public static void deleteUser(Context context, int uid) {
 		int serverId = Setup.getServerId(context, uid);
 		DB.removeMappingByHostUid(context, uid);
+		// Clear any notifications
+		Communicator.cancelNotification(context, uid);
 		DB.deleteUser(context, uid);
 		Setup.saveKey(context, uid, null, true);
 		Setup.savePhone(context, uid, null, false);
@@ -1633,10 +1632,11 @@ public class Main extends Activity {
 		}
 		saveUIDList(context, uidListTmp);
 
-		// Do backup to server iff SMS option is on!
-		if (Setup.isSMSOptionEnabled(context, serverId)) {
-			Setup.backup(context, true, false, serverId);
-		}
+		// Change in 1.3: Always do this backup and only allow display name and
+		// avatar to
+		// be downloaded if they are in the others userlist
+		Setup.backup(context, true, false, serverId);
+
 		if (Main.isAlive()) {
 			Main.getInstance().deleteUserFromCurrentList(context, uid);
 		}
@@ -1683,13 +1683,13 @@ public class Main extends Activity {
 			final String name, final boolean manual) {
 		int fakeUID = Setup.getFakeUIDFromPhone(phone);
 		Setup.savePhone(context, fakeUID, phone, manual);
-		internalAddUserAndRefreshUserlist(context, fakeUID, name);
+		internalAddUserAndRefreshUserlist(context, fakeUID, name, true);
 	}
 
 	// ------------------------------------------------------------------------
 
 	/*
-	 * Adds the user.
+	 * Adds the user manually clicked.
 	 * 
 	 * @param context the context
 	 * 
@@ -1726,11 +1726,21 @@ public class Main extends Activity {
 										responseContent, serverId);
 								if (responseContent.equals("-1")
 										|| responseName == null) {
-									Utility.showToastAsync(context, "User "
-											+ suid + " not found.");
-								} else {
+									// At this point we dont know:
+									// 1) the user is not found and nonexisting
+									// OR
+									// 2) the user does not have added us ==> so
+									// we are not allowed to see his
+									// name/existence
+									// This is desired! So, just add him!
 									internalAddUserAndRefreshUserlist(context,
-											uid, responseName);
+											uid, "", true);
+								} else {
+									// The user has added us to his userlist
+									// before, so we can see his name and his
+									// existence
+									internalAddUserAndRefreshUserlist(context,
+											uid, responseName, true);
 								}
 							} else {
 								Utility.showToastAsync(context,
@@ -1757,8 +1767,8 @@ public class Main extends Activity {
 	 * @param name
 	 *            the name
 	 */
-	private static void internalAddUserAndRefreshUserlist(
-			final Context context, int uid, String name) {
+	public static void internalAddUserAndRefreshUserlist(final Context context,
+			int uid, String name, boolean manual) {
 		final int serverId = Setup.getServerId(context, uid);
 		saveUID2Name(context, uid, name);
 		List<Integer> tmpUidList;
@@ -1775,14 +1785,18 @@ public class Main extends Activity {
 				serverId);
 		Communicator.updatePhonesFromServer(context, uidList, true, serverId);
 
-		// Do backup to server iff SMS option is on!
-		// this is for privacy/security: the server otherwise would not
-		// allow this new added person to download YOUR phone number!
-		// but if you have switched on sms option you want to allow exactly
-		// this.
-		if (Setup.isSMSOptionEnabled(context, serverId)) {
-			Setup.backup(context, true, false, serverId);
+		if (!manual) {
+			// The user was not added manually but automatic, so we flag this
+			// user not to be backedup until the account holder of this device/
+			// explicitly permits the adding!
+			Setup.setAutoAdded(context, uid, true);
 		}
+
+		// Change in 1.3: Always do this backup and only allow display name and
+		// avatar to
+		// be downloaded if they are in the others userlist
+		Setup.backup(context, true, false, serverId);
+
 		possiblyRebuildUserlistAsync(context, true);
 	}
 
@@ -2788,6 +2802,9 @@ public class Main extends Activity {
 							false, null);
 					Communicator.updatePhonesFromAllServers(context, uidList,
 							false);
+					Communicator.updateAvatarFromAllServers(context, uidList,
+							false);
+					Setup.autobackupAllServer(context);
 				} catch (Exception e) {
 				}
 			}
@@ -2801,6 +2818,9 @@ public class Main extends Activity {
 		// Reset error claims
 		Setup.setErrorUpdateInterval(context, false);
 		Scheduler.reschedule(context, false, false, true);
+
+		// Possibly there are new users added and we need to prompt!
+		Setup.possiblyPromptAutoAddedUser(context);
 	}
 
 	// ------------------------------------------------------------------------

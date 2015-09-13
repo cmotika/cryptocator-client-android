@@ -2775,6 +2775,7 @@ public class DB {
 								+ cursor.getString(14));
 
 				String multipartid = cursor.getString(14);
+				int tries = getTries(context, localid);
 
 				if ((from != -1) && (to != -1)) {
 					returnItem.localid = localid2;
@@ -2795,6 +2796,7 @@ public class DB {
 					returnItem.part = part;
 					returnItem.parts = parts;
 					returnItem.multipartid = multipartid;
+					returnItem.tries = tries;
 				}
 			}
 			cursor.close();
@@ -3186,7 +3188,7 @@ public class DB {
 		try {
 			SQLiteDatabase db = openDBSending(context);
 			db.update(TABLE_SENDING, values, "localid = " + localid, null);
-			Log.d("communicator", "INCREMENTD FAILED OF localid " + localid
+			Log.d("communicator", "INCREMENTED FAILED OF localid " + localid
 					+ " to " + failcnt);
 			db.close();
 		} catch (Exception e) {
@@ -3251,7 +3253,7 @@ public class DB {
 		try {
 			SQLiteDatabase db = openDBSending(context);
 			db.update(TABLE_SENDING, values, "localid = " + localid, null);
-			Log.d("communicator", "INCREMENTD FAILED OF localid " + localid
+			Log.d("communicator", "INCREMENTD TRIES OF localid " + localid
 					+ " to " + triescnt);
 			db.close();
 		} catch (Exception e) {

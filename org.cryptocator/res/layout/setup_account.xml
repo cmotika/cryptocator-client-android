@@ -6,7 +6,7 @@
     android:layout_weight="50" >
 
     <LinearLayout
-        android:id="@+id/widget44"
+        android:id="@+id/mainpanel"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
@@ -258,9 +258,22 @@
                 android:layout_marginTop="40px"
                 android:layout_weight="0.05"
                 android:clickable="true"
-                android:text="Login to modify your username, enable SMS support, change your password, or backup/restore your userlist."
+                android:text="Login to modify your username, enable SMS support, change your avatar, change your password, or backup/restore your userlist of this server."
                 android:textSize="12sp" >
             </TextView>
+
+            <LinearLayout
+                android:id="@+id/accountoptionbuttons"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="20px"
+                android:layout_marginLeft="20px"
+                android:layout_marginRight="20px"
+                android:layout_marginTop="20px"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal" >
+            </LinearLayout>
 
             <View
                 android:layout_width="fill_parent"
@@ -278,315 +291,350 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" >
 
-            <TextView
-                android:id="@+id/textexisting224"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="60px"
-                android:layout_marginRight="20px"
-                android:layout_marginTop="20px"
-                android:layout_weight="0.05"
-                android:clickable="true"
-                android:text="You can freely change you username here. Note that it might take some time until your username will be updated in other uers&apos;s userlists."
-                android:textSize="12sp" >
-            </TextView>
-
             <LinearLayout
+                android:id="@+id/userparent"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_weight="0.02"
-                android:orientation="horizontal" >
+                android:orientation="vertical" >
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/textexisting224"
+                    android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="20px"
-                    android:text=" Username: "
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:textSize="16sp" >
-                </TextView>
-
-                <EditText
-                    android:id="@+id/user"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="60px"
                     android:layout_marginRight="20px"
-                    android:layout_weight="1" >
-                </EditText>
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/updateuser"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="20px"
-                android:layout_marginTop="20px"
-                android:text="   Update Username   " />
-
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="1dp"
-                android:layout_marginBottom="20px"
-                android:layout_marginLeft="20px"
-                android:layout_marginRight="20px"
-                android:layout_marginTop="20px"
-                android:background="@android:color/darker_gray" />
-
-            <TextView
-                android:id="@+id/textexisting22"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="60px"
-                android:layout_marginRight="20px"
-                android:layout_marginTop="20px"
-                android:layout_weight="0.05"
-                android:clickable="true"
-                android:text="Delphino Cryptocator allows you to send and receive secure encrypted SMS. Therefore you need to provide your phone number. It is strictly forbidden to enter a wrong phone number here. For your privacy, SMS sending is generally only limited to the users in your userlist.\nTherefore, if you enable the secure SMS option, it is necessary to store your userlist on the server."
-                android:textSize="12sp" >
-            </TextView>
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:orientation="horizontal" >
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="20px"
-                    android:text=" Phone: "
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:textSize="16sp" >
-                </TextView>
-
-                <EditText
-                    android:id="@+id/phone"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="40px"
-                    android:layout_weight="1"
-                    android:ems="10"
-                    android:inputType="phone" >
-                </EditText>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="20px"
-                android:layout_marginTop="20px"
-                android:orientation="horizontal" >
-
-                <Button
-                    android:id="@+id/enablesmsoption"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:text=" Enable SMS " />
-
-                <Button
-                    android:id="@+id/disablesmsoption"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:text=" Disable SMS " />
-            </LinearLayout>
-
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="1dp"
-                android:layout_marginBottom="20px"
-                android:layout_marginLeft="20px"
-                android:layout_marginRight="20px"
-                android:layout_marginTop="20px"
-                android:background="@android:color/darker_gray" />
-
-            <TextView
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="60px"
-                android:layout_marginRight="20px"
-                android:layout_marginTop="20px"
-                android:layout_marginBottom="20px"
-                android:layout_weight="0.05"
-                android:clickable="true"
-                android:text="You can freely change your avatar here. This is a 100x100 pixel graphics."
-                android:textSize="12sp" >
-            </TextView>
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_weight="0.02"
-                android:orientation="horizontal" >
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="20px"
-                    android:text=" Avatar: "
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:textSize="16sp" >
-                </TextView>
-
-                <ImageView
-                     android:layout_marginBottom="20px"
                     android:layout_marginTop="20px"
-                    android:layout_marginLeft="40px"
-                    android:layout_marginRight="40px"
-                    android:id="@+id/avatarimage"
-                    android:layout_width="100px"
-                    android:layout_height="100px"
-                    android:src="@drawable/person" />
+                    android:layout_weight="0.05"
+                    android:clickable="true"
+                    android:text="You can freely change you username here. Note that it might take some time until your username will be updated in other uers&apos;s userlists."
+                    android:textSize="12sp" >
+                </TextView>
 
                 <LinearLayout
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_weight="0.02"
-                    android:orientation="vertical" >
+                    android:orientation="horizontal" >
 
-                    <Button
-                        android:id="@+id/avatarclear"
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="1px"
-                        android:layout_marginTop="2px"
-                        android:text=" Clear " />
+                        android:layout_marginLeft="20px"
+                        android:text=" Username: "
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textSize="16sp" >
+                    </TextView>
 
-                    <Button
-                        android:id="@+id/avatargallery"
+                    <EditText
+                        android:id="@+id/user"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="1px"
-                        android:layout_marginTop="1px"
-                        android:text=" Gallery " />
-
-                    <Button
-                        android:id="@+id/avatarphoto"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="2px"
-                        android:layout_marginTop="1px"
-                        android:text=" Photo " />
+                        android:layout_marginRight="20px"
+                        android:layout_weight="1" >
+                    </EditText>
                 </LinearLayout>
+
+                <Button
+                    android:id="@+id/updateuser"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginTop="20px"
+                    android:text="   Update Username   " />
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginLeft="20px"
+                    android:layout_marginRight="20px"
+                    android:layout_marginTop="20px"
+                    android:background="@android:color/darker_gray" />
             </LinearLayout>
-
-            <Button
-                android:id="@+id/updateavatar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="20px"
-                android:layout_marginTop="20px"
-                android:text="   Update Avatar   " />
-
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="1dp"
-                android:layout_marginBottom="20px"
-                android:layout_marginLeft="20px"
-                android:layout_marginRight="20px"
-                android:layout_marginTop="20px"
-                android:background="@android:color/darker_gray" />
-
-            <TextView
-                android:id="@+id/textexisting223"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="60px"
-                android:layout_marginRight="20px"
-                android:layout_marginTop="20px"
-                android:layout_weight="0.05"
-                android:clickable="true"
-                android:text="You can change you account access password here. Note that if you request to change the password, an activation link is sent to your email address. You need to click on this activation link in order to activate the new password."
-                android:textSize="12sp" >
-            </TextView>
 
             <LinearLayout
+                android:id="@+id/smsparent"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_weight="0.02"
-                android:orientation="horizontal" >
+                android:orientation="vertical" >
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/textexisting22"
+                    android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="20px"
-                    android:text=" New Password: "
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:textSize="16sp" >
+                    android:layout_marginLeft="60px"
+                    android:layout_marginRight="20px"
+                    android:layout_marginTop="20px"
+                    android:layout_weight="0.05"
+                    android:clickable="true"
+                    android:text="Delphino Cryptocator allows you to send and receive secure encrypted SMS. Therefore you need to provide your phone number. It is strictly forbidden to enter a wrong phone number here. For your privacy, SMS sending is generally only limited to the users in your userlist.\nTherefore, if you enable the secure SMS option, it is necessary to store your userlist on the server."
+                    android:textSize="12sp" >
                 </TextView>
 
-                <EditText
-                    android:id="@+id/pwdchange"
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:orientation="horizontal" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="20px"
+                        android:text=" Phone: "
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <EditText
+                        android:id="@+id/phone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="40px"
+                        android:layout_weight="1"
+                        android:ems="10"
+                        android:inputType="phone" >
+                    </EditText>
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginTop="20px"
+                    android:orientation="horizontal" >
+
+                    <Button
+                        android:id="@+id/enablesmsoption"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:text=" Enable SMS " />
+
+                    <Button
+                        android:id="@+id/disablesmsoption"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:text=" Disable SMS " />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginLeft="20px"
                     android:layout_marginRight="20px"
-                    android:layout_weight="1" >
-                </EditText>
+                    android:layout_marginTop="20px"
+                    android:background="@android:color/darker_gray" />
             </LinearLayout>
 
-            <Button
-                android:id="@+id/updatepwd"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="20px"
-                android:text="   Change Password   " />
-
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="1dp"
-                android:layout_marginBottom="20px"
-                android:layout_marginLeft="20px"
-                android:layout_marginRight="20px"
-                android:layout_marginTop="40px"
-                android:background="@android:color/darker_gray" />
-
-            <TextView
-                android:id="@+id/textexisting2223"
+            <LinearLayout
+                android:id="@+id/avatarparent"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="60px"
-                android:layout_marginRight="20px"
-                android:layout_marginTop="20px"
-                android:layout_weight="0.05"
-                android:clickable="true"
-                android:text="You can backup your userlist to the Delphino Cryptocator server and restore it later. Restoring will not clear you current list but append users from your backyp to your current userlist."
-                android:textSize="12sp" >
-            </TextView>
+                android:orientation="vertical" >
 
-            <Button
-                android:id="@+id/backup"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="20px"
-                android:text="   Backup Userlist   " />
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginLeft="60px"
+                    android:layout_marginRight="20px"
+                    android:layout_marginTop="20px"
+                    android:layout_weight="0.05"
+                    android:clickable="true"
+                    android:text="You can freely change your avatar here. This is a 100x100 pixel graphics."
+                    android:textSize="12sp" >
+                </TextView>
 
-            <Button
-                android:id="@+id/restore"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="20px"
-                android:text="   Restore Userlist   " />
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_weight="0.02"
+                    android:orientation="horizontal" >
 
-            <View
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="20px"
+                        android:text=" Avatar: "
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <ImageView
+                        android:id="@+id/avatarimage"
+                        android:layout_width="100px"
+                        android:layout_height="100px"
+                        android:layout_marginBottom="20px"
+                        android:layout_marginLeft="40px"
+                        android:layout_marginRight="40px"
+                        android:layout_marginTop="20px"
+                        android:src="@drawable/person" />
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_weight="0.02"
+                        android:orientation="vertical" >
+
+                        <Button
+                            android:id="@+id/avatarclear"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="1px"
+                            android:layout_marginTop="2px"
+                            android:text=" Clear " />
+
+                        <Button
+                            android:id="@+id/avatargallery"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="1px"
+                            android:layout_marginTop="1px"
+                            android:text=" Gallery " />
+
+                        <Button
+                            android:id="@+id/avatarphoto"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="2px"
+                            android:layout_marginTop="1px"
+                            android:text=" Photo " />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/updateavatar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginTop="20px"
+                    android:text="   Update Avatar   " />
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginLeft="20px"
+                    android:layout_marginRight="20px"
+                    android:layout_marginTop="20px"
+                    android:background="@android:color/darker_gray" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/passwordparent"
                 android:layout_width="fill_parent"
-                android:layout_height="1dp"
-                android:layout_marginBottom="20px"
-                android:layout_marginLeft="20px"
-                android:layout_marginRight="20px"
-                android:layout_marginTop="40px"
-                android:background="@android:color/darker_gray" />
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:id="@+id/textexisting223"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="60px"
+                    android:layout_marginRight="20px"
+                    android:layout_marginTop="20px"
+                    android:layout_weight="0.05"
+                    android:clickable="true"
+                    android:text="You can change you account access password here. Note that if you request to change the password, an activation link is sent to your email address. You need to click on this activation link in order to activate the new password."
+                    android:textSize="12sp" >
+                </TextView>
+
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_weight="0.02"
+                    android:orientation="horizontal" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="20px"
+                        android:text=" New Password: "
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <EditText
+                        android:id="@+id/pwdchange"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="20px"
+                        android:layout_weight="1" >
+                    </EditText>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/updatepwd"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="20px"
+                    android:text="   Change Password   " />
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginLeft="20px"
+                    android:layout_marginRight="20px"
+                    android:layout_marginTop="40px"
+                    android:background="@android:color/darker_gray" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/backupparent"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:id="@+id/textexisting2223"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="60px"
+                    android:layout_marginRight="20px"
+                    android:layout_marginTop="20px"
+                    android:layout_weight="0.05"
+                    android:clickable="true"
+                    android:text="You can backup your userlist to the Delphino Cryptocator server and restore it later. Restoring will not clear you current list but append users from your backyp to your current userlist."
+                    android:textSize="12sp" >
+                </TextView>
+
+                <Button
+                    android:id="@+id/backup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="20px"
+                    android:text="   Backup Userlist   " />
+
+                <Button
+                    android:id="@+id/restore"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="20px"
+                    android:text="   Restore Userlist   " />
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginLeft="20px"
+                    android:layout_marginRight="20px"
+                    android:layout_marginTop="40px"
+                    android:background="@android:color/darker_gray" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- FOOTER ROWS -->

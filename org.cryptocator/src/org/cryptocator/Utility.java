@@ -83,6 +83,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.KeyguardManager;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -106,6 +107,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Vibrator;
+import android.provider.ContactsContract;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
@@ -1416,7 +1418,7 @@ public class Utility {
 	 */
 	public static List<String> getListFromString(String separatedString,
 			String separation) {
-		if (separatedString == null) {
+		if (separatedString == null || separatedString.length() == 0) {
 			return new ArrayList<String>();
 		}
 		return Arrays.asList(separatedString.split(separation));
@@ -1881,7 +1883,7 @@ public class Utility {
 	}
 
 	// -------------------------------------------------------------------------
-	
+
 	/**
 	 * Gets the resized image as BASE64 string.
 	 * 
@@ -1898,7 +1900,8 @@ public class Utility {
 	 * @return the resized image as bas e64 string
 	 */
 	public static String getResizedImageAsBASE64String(Context context,
-			Bitmap bitmap, int maxWidth, int maxHeight, int quality, boolean clipped) {
+			Bitmap bitmap, int maxWidth, int maxHeight, int quality,
+			boolean clipped) {
 		// byte[] bytes = Utility.getFile(attachmentPath);
 		// Bitmap bitmap = Utility.getBitmapFromBytes(bytes);
 		Bitmap resizedBitmap = Utility.getResizedImage(bitmap, maxWidth,
@@ -1909,7 +1912,6 @@ public class Utility {
 		String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
 		return encoded;
 	}
-
 
 	// -------------------------------------------------------------------------
 
@@ -2084,7 +2086,7 @@ public class Utility {
 		if (clipped) {
 			landscape = !landscape;
 		}
-		
+
 		if (landscape) {
 			// Log.d("communicator", "RESIZE Landscape: bitmapWidth="
 			// + bitmapWidth + " >? " + maxWidth + "=maxWidth");
@@ -2128,17 +2130,19 @@ public class Utility {
 		}
 
 		if (clipped) {
-			Bitmap clippedBitmap = Bitmap.createBitmap(scaledBitmap, ((newWidth-maxWidth)/2),  ((newHeight-maxHeight)/2), maxWidth, maxHeight);
-			
-			Log.d("communicator", "RESIZE RESULT2: width=" + clippedBitmap.getWidth() + ", height="
-					+ clippedBitmap.getHeight());
+			Bitmap clippedBitmap = Bitmap.createBitmap(scaledBitmap,
+					((newWidth - maxWidth) / 2), ((newHeight - maxHeight) / 2),
+					maxWidth, maxHeight);
 
-			
+			Log.d("communicator",
+					"RESIZE RESULT2: width=" + clippedBitmap.getWidth()
+							+ ", height=" + clippedBitmap.getHeight());
+
 			scaledBitmap.recycle();
 			System.gc();
 			return clippedBitmap;
 		}
-		
+
 		return scaledBitmap;
 	}
 
@@ -2401,6 +2405,7 @@ public class Utility {
 	public static final int SELECT_PICTURE = 1;
 	public static final int TAKE_PHOTO = 2;
 	public static final int PHONE_BOOK = 3;
+	public static final int PHONE_BOOK_PHOTO = 4;
 
 	/**
 	 * Take photo.
@@ -2417,7 +2422,7 @@ public class Utility {
 				android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
 		activity.startActivityForResult(cameraIntent, TAKE_PHOTO);
 	}
-	
+
 	// -------------------------------------------------------------------------
 
 	/**
@@ -2442,6 +2447,65 @@ public class Utility {
 					Intent.createChooser(intent, "Select Attachment"),
 					Utility.SELECT_PICTURE);
 		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the contact id for a Uri contactUri picked by:<BR>
+	 * startActivityForResult(new Intent(Intent.ACTION_PICK,
+	 * ContactsContract.Contacts.CONTENT_URI), 12345); <BR>
+	 * where 12345 is some request code.
+	 * 
+	 * @param contentResolver
+	 *            the content resolver
+	 * @param contactUri
+	 *            the contact uri
+	 * @return the contact id
+	 */
+	public static String getContactId(ContentResolver contentResolver,
+			Uri contactUri) {
+		String contactId = null;
+		Cursor cursorID = contentResolver.query(contactUri,
+				new String[] { ContactsContract.Contacts._ID }, null, null,
+				null);
+		if (cursorID.moveToFirst()) {
+			contactId = cursorID.getString(cursorID
+					.getColumnIndex(ContactsContract.Contacts._ID));
+		}
+		cursorID.close();
+		return contactId;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Get the contact photo for a contact id.
+	 * 
+	 * @param contentResolver
+	 *            the content resolver
+	 * @param contactId
+	 *            the contact id
+	 * @return the bitmap
+	 */
+	public static Bitmap getContactPhoto(ContentResolver contentResolver,
+			String contactId) {
+		Bitmap bitmap = null;
+		try {
+			InputStream inputStream = ContactsContract.Contacts
+					.openContactPhotoInputStream(contentResolver, ContentUris
+							.withAppendedId(
+									ContactsContract.Contacts.CONTENT_URI,
+									new Long(contactId)));
+			if (inputStream != null) {
+				bitmap = BitmapFactory.decodeStream(inputStream);
+			}
+			assert inputStream != null;
+			inputStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return bitmap;
 	}
 
 	// -------------------------------------------------------------------------

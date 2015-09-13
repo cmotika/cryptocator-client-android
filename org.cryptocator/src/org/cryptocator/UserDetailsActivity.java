@@ -67,7 +67,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -191,7 +190,6 @@ public class UserDetailsActivity extends Activity {
 		details.setTextSize(16);
 		details.setTextColor(Color.WHITE);
 
-
 		TextView detailsName = new TextView(context);
 		detailsName.setText("Display Name: ");
 		name = new EditText(context);
@@ -304,10 +302,10 @@ public class UserDetailsActivity extends Activity {
 		imageAndDetailsLayout.setOrientation(LinearLayout.HORIZONTAL);
 		imageAndDetailsLayout.setGravity(Gravity.TOP);
 		imageAndDetailsLayout.setLayoutParams(lpImageAndDetailsLayout);
-		//imageAndDetailsLayout.setBackgroundColor(Color.CYAN);
+		// imageAndDetailsLayout.setBackgroundColor(Color.CYAN);
 
 		LinearLayout imageLayout = new LinearLayout(context);
-		//imageLayout.setBackgroundColor(Color.GREEN);
+		// imageLayout.setBackgroundColor(Color.GREEN);
 		imageLayout.setGravity(Gravity.TOP);
 		imageLayout.setOrientation(LinearLayout.VERTICAL);
 
@@ -337,15 +335,14 @@ public class UserDetailsActivity extends Activity {
 		imageLayout.addView(avatarView);
 		imageLayout.addView(avatarCheck);
 
-		
 		LinearLayout.LayoutParams lpAccountKeyParent = new LinearLayout.LayoutParams(
-				220,
-				LinearLayout.LayoutParams.WRAP_CONTENT);
+				220, LinearLayout.LayoutParams.WRAP_CONTENT);
 		LinearLayout accountKeyParent = new LinearLayout(context);
 		accountKeyParent.setOrientation(LinearLayout.HORIZONTAL);
 		accountKeyParent.setLayoutParams(lpAccountKeyParent);
-		accountKeyParent.addView(Main.getAccountKeyView(context, uid, "ACCOUNT KEY", false));
-		
+		accountKeyParent.addView(Main.getAccountKeyView(context, uid,
+				"ACCOUNT KEY", false));
+
 		imageAndDetailsLayout.addView(imageLayout);
 		imageAndDetailsLayout.addView(accountKeyParent);
 
@@ -652,6 +649,9 @@ public class UserDetailsActivity extends Activity {
 	private void save(Context context) {
 		if (avatarChanged) {
 			Setup.saveAvatar(context, uid, avatar, true);
+			// Should invalidate Main's and Conversations avatar cache!
+			Main.invalidateAvatarCache();
+			Conversation.invalidateAvatarCache();
 		}
 		String phoneString = phone.getText().toString();
 		String newPhone = phoneString;
@@ -712,6 +712,19 @@ public class UserDetailsActivity extends Activity {
 				updateAvatarView(this);
 				avatarChanged = true;
 			}
+			if (requestCode == Utility.PHONE_BOOK_PHOTO) {
+				Uri contactUri = data.getData();
+				String contactId = Utility.getContactId(getContentResolver(),
+						contactUri);
+				Bitmap bitmap = Utility.getContactPhoto(getContentResolver(),
+						contactId);
+				if (bitmap != null) {
+					avatar = Utility.getResizedImageAsBASE64String(this,
+							bitmap, 100, 100, 80, true);
+					updateAvatarView(this);
+					avatarChanged = true;
+				}
+			}
 			if (requestCode == Utility.PHONE_BOOK) {
 				Uri contactData = data.getData();
 				Cursor cursor = managedQuery(contactData, null, null, null,
@@ -769,7 +782,7 @@ public class UserDetailsActivity extends Activity {
 	 */
 	public void promptSelectAvatar(final Activity activity) {
 		String title = "Select Avatar";
-		String text = "Do you want to import an image from the gallery or take a new photo?";
+		String text = "Do you want to import an image from the gallery, take a new photo or pick one from your phonebook?";
 
 		new MessageAlertDialog(activity, title, text, null, null, " Cancel ",
 				new MessageAlertDialog.OnSelectionListener() {
@@ -780,18 +793,29 @@ public class UserDetailsActivity extends Activity {
 
 					public View provide(final MessageAlertDialog dialog) {
 						LinearLayout buttonLayout = new LinearLayout(activity);
-						buttonLayout.setOrientation(LinearLayout.HORIZONTAL);
-						buttonLayout.setGravity(Gravity.CENTER_HORIZONTAL);
+						buttonLayout.setOrientation(LinearLayout.VERTICAL);
+						buttonLayout.setGravity(Gravity.CENTER_VERTICAL);
 
-						LinearLayout.LayoutParams lpButtons = new LinearLayout.LayoutParams(
-								150, 140);
-						lpButtons.setMargins(5, 20, 5, 20);
+						LinearLayout buttonLayout1 = new LinearLayout(activity);
+						buttonLayout1.setOrientation(LinearLayout.HORIZONTAL);
+						buttonLayout1.setGravity(Gravity.CENTER_HORIZONTAL);
+
+						LinearLayout buttonLayout2 = new LinearLayout(activity);
+						buttonLayout2.setOrientation(LinearLayout.HORIZONTAL);
+						buttonLayout2.setGravity(Gravity.CENTER_HORIZONTAL);
+
+						LinearLayout.LayoutParams lpButtons1 = new LinearLayout.LayoutParams(
+								180, 140);
+						lpButtons1.setMargins(5, 20, 5, 5);
+						LinearLayout.LayoutParams lpButtons2 = new LinearLayout.LayoutParams(
+								180, 140);
+						lpButtons2.setMargins(5, 5, 5, 20);
 
 						ImageLabelButton galleryButton = new ImageLabelButton(
 								activity);
 						galleryButton.setTextAndImageResource("Gallery",
 								R.drawable.pictureimport);
-						galleryButton.setLayoutParams(lpButtons);
+						galleryButton.setLayoutParams(lpButtons1);
 						galleryButton
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
@@ -803,7 +827,7 @@ public class UserDetailsActivity extends Activity {
 								activity);
 						photoButton.setTextAndImageResource("Take Photo",
 								R.drawable.photobtn);
-						photoButton.setLayoutParams(lpButtons);
+						photoButton.setLayoutParams(lpButtons1);
 						photoButton
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
@@ -811,11 +835,37 @@ public class UserDetailsActivity extends Activity {
 										dialog.dismiss();
 									}
 								});
+						ImageLabelButton phonebookButton = new ImageLabelButton(
+								activity);
+						phonebookButton.setTextAndImageResource("Phonebook",
+								R.drawable.phone);
+						phonebookButton.setLayoutParams(lpButtons2);
+						phonebookButton
+								.setOnClickListener(new View.OnClickListener() {
+									public void onClick(View v) {
+										// Intent intent = new Intent(
+										// Intent.ACTION_GET_CONTENT);
+										// One phone
+										// intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
+
+										// Multiple addresses
+										// intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE);
+
+										Intent contactPickerIntent = new Intent(
+												Intent.ACTION_PICK,
+												ContactsContract.Contacts.CONTENT_URI);
+										startActivityForResult(
+												contactPickerIntent,
+												Utility.PHONE_BOOK_PHOTO);
+
+										dialog.dismiss();
+									}
+								});
 						ImageLabelButton clearButton = new ImageLabelButton(
 								activity);
 						clearButton.setTextAndImageResource("Clear",
 								R.drawable.btnclear);
-						clearButton.setLayoutParams(lpButtons);
+						clearButton.setLayoutParams(lpButtons2);
 						clearButton
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
@@ -825,14 +875,16 @@ public class UserDetailsActivity extends Activity {
 										dialog.dismiss();
 									}
 								});
-						buttonLayout.addView(galleryButton);
-						buttonLayout.addView(photoButton);
-						buttonLayout.addView(clearButton);
+						buttonLayout1.addView(galleryButton);
+						buttonLayout1.addView(photoButton);
+						buttonLayout2.addView(phonebookButton);
+						buttonLayout2.addView(clearButton);
+						buttonLayout.addView(buttonLayout1);
+						buttonLayout.addView(buttonLayout2);
 						return buttonLayout;
 					}
 				}).show();
 	}
-
 	// ------------------------------------------------------------------------
 
 }

@@ -115,13 +115,16 @@ public class Communicator {
 
 	/**
 	 * If the class is killed, this flag will be false again it will be set by
-	 * the scheduler that evaluates and uses messagesToSend as a cache! This flag is also set to
-	 * false if itemToSend != null and hence a message was (at least tried to be) sent.
+	 * the scheduler that evaluates and uses messagesToSend as a cache! This
+	 * flag is also set to false if itemToSend != null and hence a message was
+	 * (at least tried to be) sent.
 	 */
 	public static boolean messagesToSendIsUpToDate = false;
 
-
-	/** The internetfailcntbarrier after the counter reaches this number the internet is claimed to fail. */
+	/**
+	 * The internetfailcntbarrier after the counter reaches this number the
+	 * internet is claimed to fail.
+	 */
 	public static int INTERNETFAILCNTBARRIER = 5;
 
 	/**
@@ -130,10 +133,12 @@ public class Communicator {
 	 */
 	public static int internetFailCnt = 0;
 
-	
-	/** The loginfailcntbarrier after the counter reaches this number the login is claimed to fail. */
+	/**
+	 * The loginfailcntbarrier after the counter reaches this number the login
+	 * is claimed to fail.
+	 */
 	public static int LOGINFAILCNTBARRIER = 5;
-	
+
 	/**
 	 * The connection flag tells if Login was ok. It is evaluated in Main for
 	 * the info message.
@@ -390,7 +395,8 @@ public class Communicator {
 					String ts = midAndTs[1];
 					boolean failed = false;
 					if (ts != null && ts.startsWith("-")) {
-						// This indicates a FAILED TO DECRYPT message => flag this here
+						// This indicates a FAILED TO DECRYPT message => flag
+						// this here
 						// make ts positive, it is the read timestamp still!
 						ts = ts.substring(1);
 						failed = true;
@@ -406,17 +412,19 @@ public class Communicator {
 						DB.removeMappingByMid(context, mid);
 
 						if (failed) {
-							// Flag decryption failed again by using negative read TS
-							DB.updateMessageRead(context, mid, "-"+ts, senderUid);
-							updateSentReceivedReadAsync(context, mid, senderUid,
-									false, false, false, false, true);
+							// Flag decryption failed again by using negative
+							// read TS
+							DB.updateMessageRead(context, mid, "-" + ts,
+									senderUid);
+							updateSentReceivedReadAsync(context, mid,
+									senderUid, false, false, false, false, true);
 						} else {
 							// Everything ok
 							DB.updateMessageRead(context, mid, ts, senderUid);
-							updateSentReceivedReadAsync(context, mid, senderUid,
-									false, false, true, false, false);
+							updateSentReceivedReadAsync(context, mid,
+									senderUid, false, false, true, false, false);
 						}
-						
+
 					}
 				}
 			}
@@ -445,7 +453,8 @@ public class Communicator {
 	 */
 	public static void updateSentReceivedReadAsync(final Context context,
 			final int mid, final int hostUid, final boolean sent,
-			final boolean received, final boolean read, final boolean revoked, final boolean decryptionfailed) {
+			final boolean received, final boolean read, final boolean revoked,
+			final boolean decryptionfailed) {
 		final Handler mUIHandler = new Handler(Looper.getMainLooper());
 		mUIHandler.post(new Thread() {
 			@Override
@@ -466,8 +475,7 @@ public class Communicator {
 
 							if (decryptionfailed) {
 								Conversation.setDecryptionFailed(context, mid);
-							}
-							else if (read) {
+							} else if (read) {
 								Conversation.setRead(context, mid);
 							} else if (received) {
 								Conversation.setReceived(context, mid);
@@ -666,19 +674,31 @@ public class Communicator {
 															context,
 															Setup.OPTION_IGNORE,
 															Setup.DEFAULT_IGNORE);
+
+											// The user must be added to our
+											// list
+											// ATTENTION. from is already
+											// converted from suid to uid!
+											int uid = newItem.from;
+
+											// Check if this user is manually
+											// ignored!
+											boolean manuallyIgnored = Setup
+													.isIgnored(context, uid);
+											ignore = ignore || manuallyIgnored;
+
+											// if (manuallyIgnored) {
+											// Utility.showToastAsync(
+											// context,
+											// "Ignored user "
+											// + uid
+											// +
+											// " wrote a message that will be discaded!");
+											// }
+
 											if (!ignore) {
-												// The user must be added to our
-												// list
-												// ATTENTION. from is already
-												// converted from suid to uid!
-												int uid = newItem.from;
-												uidList.add(uid);
-												DB.ensureDBInitialized(context,
-														uidList);
-												Main.saveUIDList(context,
-														uidList);
-												Main.possiblyRebuildUserlistAsync(
-														context, false);
+												Main.internalAddUserAndRefreshUserlist(
+														context, uid, "", false);
 											} else {
 												skipBecauseOfUnknownUser = true;
 											}
@@ -719,7 +739,8 @@ public class Communicator {
 												success2 = false;
 											}
 
-											// THE FOLLOWING IS ALEADY DONE SELECTIVELY FOR THIS
+											// THE FOLLOWING IS ALEADY DONE
+											// SELECTIVELY FOR THIS
 											// USER IN HANDLETEXT!
 											// if (newItem.text
 											// .contains("[ invalid session key ")
@@ -856,10 +877,10 @@ public class Communicator {
 					// database
 					int hostUid = newItem.from;
 					newItem.system = true;
-					DB.updateMessageRevoked(context, mid, newItem.created
-							+ "", hostUid);
-					Main.updateLastMessage(context, hostUid,
-							DB.REVOKEDTEXT, DB.getTimestamp());
+					DB.updateMessageRevoked(context, mid, newItem.created + "",
+							hostUid);
+					Main.updateLastMessage(context, hostUid, DB.REVOKEDTEXT,
+							DB.getTimestamp());
 					// If the senderUid will always be the table/hostUid of the
 					// conversation
 					// where the message to revoke resides. If we sent the
@@ -975,9 +996,11 @@ public class Communicator {
 							"Received invalid session key from "
 									+ Main.UID2Name(context, newItem.from,
 											false) + ".");
-					
-					// Try to receive RSA Key (if we have internet connection...)
-					Communicator.getKeyFromServer(context, newItem.from, null, serverId);
+
+					// Try to receive RSA Key (if we have internet
+					// connection...)
+					Communicator.getKeyFromServer(context, newItem.from, null,
+							serverId);
 				}
 			} else {
 				possiblyInvalid = "invalid ";
@@ -1002,31 +1025,36 @@ public class Communicator {
 			// Decrypt here
 			Key secretKey = Setup.getAESKey(context, newItem.from);
 			text = decryptAESMessage(context, text, secretKey);
-			
+
 			if (text == null) {
-				// DECRYPTION with current key failed, now try the backup key we might have
+				// DECRYPTION with current key failed, now try the backup key we
+				// might have
 				// before claiming this message to be failed to decrypted!
-				Key secretKeyBackup = Setup.getAESKeyBackup(context, newItem.from);
+				Key secretKeyBackup = Setup.getAESKeyBackup(context,
+						newItem.from);
 				if (secretKeyBackup != null) {
 					text = decryptAESMessage(context, text, secretKey);
-					
+
 					if (text != null) {
-						// OK we could use the backup key... anyways do request a new key now
+						// OK we could use the backup key... anyways do request
+						// a new key now
 						Communicator.getAESKey(context, newItem.from, true,
 								newItem.transport, true, null, false, true);
 					}
 				}
 			}
-			
+
 			// FAKE DECRYPTION ERROR HERE
-			//text = null;
+			// text = null;
 
 			if (text == null) {
-				// So ... if this still failed, then we might not have the corrent backup key
-				// or the wrong RSA key?! ... at least we will no tell the sender that we could
+				// So ... if this still failed, then we might not have the
+				// corrent backup key
+				// or the wrong RSA key?! ... at least we will no tell the
+				// sender that we could
 				// not decrypt his message. He may then decide to resend it!
 				sendSystemMessageFailed(context, newItem.from, newItem.mid);
-				
+
 				text = "[ decryption failed ]";
 				int numInvalid = Utility.loadIntSetting(context,
 						"invalidkeycounter" + newItem.from, 0);
@@ -1040,10 +1068,12 @@ public class Communicator {
 					// Invalidate the counter
 					Utility.saveIntSetting(context, "invalidkeycounter"
 							+ newItem.from, 1);
-					
-					// Try to receive RSA Key (if we have internet connection...)
-					Communicator.getKeyFromServer(context, newItem.from, null, serverId);
-					
+
+					// Try to receive RSA Key (if we have internet
+					// connection...)
+					Communicator.getKeyFromServer(context, newItem.from, null,
+							serverId);
+
 					// DO THIS AFTER 10 Sek to allow receiving a new RSA key
 					// before .. this is NOT bullet safe!
 					(new Thread(new Runnable() {
@@ -1149,6 +1179,11 @@ public class Communicator {
 				final Handler handler = new Handler();
 				handler.postDelayed(new Runnable() {
 					public void run() {
+						if (Conversation.isVisible() || Main.isVisible()) {
+							// Possibly there are new users added and we need to prompt!
+							Setup.possiblyPromptAutoAddedUser(context);
+						}
+						
 						// Live - update if possible,
 						// otherwise create notification!
 						if (Conversation.isVisible()
@@ -1167,7 +1202,8 @@ public class Communicator {
 													+ " received.");
 								} else {
 									Utility.showToastShortAsync(context,
-											"New SMS "+newItem.localid+" received.");
+											"New SMS " + newItem.localid
+													+ " received.");
 								}
 							}
 
@@ -1478,7 +1514,6 @@ public class Communicator {
 			return;
 		}
 
-
 		// Toggle next transport type to send if both types need to be send!
 		// Sometimes one
 		// connection is stuck, then we dont want to get stuck at all!
@@ -1502,33 +1537,33 @@ public class Communicator {
 			Log.d("communicator", "#### SEND NEXT : TRY SMS MESSAGE ");
 		}
 
-		// If transport is INTERNET then use the NEXT server that we have messages
+		// If transport is INTERNET then use the NEXT server that we have
+		// messages
 		// to send for in a Round Robin fashion. If transport is SMS stick with
 		// serverId -1.
-		ConversationItem itemToSend = null; 
+		ConversationItem itemToSend = null;
 		if (transport == DB.TRANSPORT_INTERNET) {
 			// Get the next message considering all servers we have an account
 			// for in a RR style.
 			itemToSend = Setup.getNextSendingServerMessage(context);
 		} else {
 			// Lookup only if we expect something to send
-			itemToSend = DB.getNextMessage(context,
-					DB.TRANSPORT_SMS, -1);
+			itemToSend = DB.getNextMessage(context, DB.TRANSPORT_SMS, -1);
 		}
-		
+
 		if (itemToSend == null) {
 			if (transport == DB.TRANSPORT_INTERNET) {
 				Communicator.messagesToSend = false;
-				 Log.d("communicator",
-				 "SEND NEXT QUERY sendNextMessage() DETECTED  itemToSend = " + itemToSend + " => messagesToSend:=false");
+				Log.d("communicator",
+						"SEND NEXT QUERY sendNextMessage() DETECTED  itemToSend = "
+								+ itemToSend + " => messagesToSend:=false");
 			} else {
-				 Log.d("communicator",
-				 "SEND NEXT QUERY sendNextMessage() DETECTED  itemToSend = " + itemToSend + " => SMStoSend:=false");
+				Log.d("communicator",
+						"SEND NEXT QUERY sendNextMessage() DETECTED  itemToSend = "
+								+ itemToSend + " => SMStoSend:=false");
 				Communicator.SMSToSend = false;
 			}
 		}
-		
-		
 
 		if (itemToSend != null) {
 			if (!itemToSend.isKey && !Setup.extraCountDownToZero(context)) {
@@ -1775,7 +1810,6 @@ public class Communicator {
 
 		Log.d("communicator", "SEND NEXT MESSAGE msgText=" + msgText);
 
-		
 		url = Setup.getBaseURL(context, serverId) + "cmd=send&session="
 				+ Utility.urlEncode(session) + "&host=" + encUid + "&val="
 				+ Utility.urlEncode(created + "#" + msgText);
@@ -1797,23 +1831,27 @@ public class Communicator {
 		// }));
 
 		Log.d("communicator", "SEND NEXT MESSAGE: " + url);
-		
-		// Send read confirmations, failed flags, revoke cmd with simple GET request
+
+		// Send read confirmations, failed flags, revoke cmd with simple GET
+		// request
 		boolean usePOSTRequest = true;
-		if (msgText.startsWith("R") || msgText.startsWith("F") || msgText.startsWith("A")) {
+		if (msgText.startsWith("R") || msgText.startsWith("F")
+				|| msgText.startsWith("A")) {
 			usePOSTRequest = false;
 		}
 
-		Log.d("communicator", "SEND NEXT MESSAGE: usePOSTRequest=" + usePOSTRequest);
+		Log.d("communicator", "SEND NEXT MESSAGE: usePOSTRequest="
+				+ usePOSTRequest);
 
 		final String url2 = url;
 		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
-				url2, usePOSTRequest, new HttpStringRequest.OnResponseListener() {
+				url2, usePOSTRequest,
+				new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
-						 Log.d("communicator",
-						 "SEND NEXT MESSAGE RESPONSE: " + response);
-						
+						Log.d("communicator", "SEND NEXT MESSAGE RESPONSE: "
+								+ response);
+
 						boolean success = false;
 						boolean resposeError = true;
 						if (isResponseValid(response)) {
@@ -1871,11 +1909,15 @@ public class Communicator {
 												if (itemToSend.transport == DB.TRANSPORT_INTERNET) {
 													Utility.showToastShortAsync(
 															context,
-															"Message "+itemToSend.localid+" sent.");
+															"Message "
+																	+ itemToSend.localid
+																	+ " sent.");
 												} else {
 													Utility.showToastShortAsync(
 															context,
-															"SMS "+itemToSend.localid+" sent.");
+															"SMS "
+																	+ itemToSend.localid
+																	+ " sent.");
 												}
 											}
 										}
@@ -2087,12 +2129,8 @@ public class Communicator {
 					"Error sending account key " + keyhash + " to "
 							+ Setup.getServerLabel(context, serverId, true)
 							+ "! (1) - Disabling Encryption!");
-			// Disable in settings
-			Utility.saveStringSetting(context, Setup.PUBRSAKEY, null);
-			Utility.saveStringSetting(context, Setup.PRIVATERSAKEY, null);
-			Utility.saveBooleanSetting(context, Setup.OPTION_ENCRYPTION, false);
 			// Try to delete keys on all servers
-			Setup.disableEncryption(context);
+			Setup.disableEncryption(context, false);
 			return;
 		}
 
@@ -2131,15 +2169,8 @@ public class Communicator {
 											+ Setup.getServerLabel(context,
 													serverId, true)
 											+ "! (2) - Disabling Encryption!");
-							// disable in settings
-							Utility.saveStringSetting(context, Setup.PUBRSAKEY,
-									null);
-							Utility.saveStringSetting(context,
-									Setup.PRIVATERSAKEY, null);
-							Utility.saveBooleanSetting(context,
-									Setup.OPTION_ENCRYPTION, false);
 							// Try to delete keys on all servers
-							Setup.disableEncryption(context);
+							Setup.disableEncryption(context, false);
 						}
 					}
 				}));
@@ -2375,6 +2406,28 @@ public class Communicator {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Update avatars from ALL servers. This should only be used on start up or
+	 * manual refresh.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uidList
+	 *            the uid list
+	 * @param forceUpdate
+	 *            the force update
+	 */
+	public static void updateAvatarFromAllServers(final Context context,
+			final List<Integer> uidList, final boolean forceUpdate) {
+		for (int serverId : Setup.getServerIds(context)) {
+			if (Setup.isServerAccount(context, serverId, false)) {
+				updateAvatarFromServer(context, uidList, forceUpdate, serverId);
+			}
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
 	 * Update phones from ALL servers. This should only be used on start up or
 	 * manual refresh.
 	 * 
@@ -2522,7 +2575,6 @@ public class Communicator {
 				}));
 	}
 
-	
 	// -------------------------------------------------------------------------
 
 	/**
@@ -2543,10 +2595,6 @@ public class Communicator {
 		long lastTime = Utility.loadLongSetting(context,
 				Setup.SETTING_LASTUPDATEAVATAR + serverId, 0);
 		long currentTime = DB.getTimestamp();
-		if (!Setup.isSMSOptionEnabled(context, serverId)) {
-			// if no sms option is enabled, then do not retrieve keys!
-			return;
-		}
 		if (!forceUpdate
 				&& (lastTime + Setup.UPDATE_AVATAR_MIN_INTERVAL + serverId > currentTime)) {
 			// Do not do this more frequently
@@ -2567,10 +2615,14 @@ public class Communicator {
 					if (uidliststring.length() != 0) {
 						uidliststring += "#";
 					}
+					Log.d("communicator", "###### REQUEST HAS AVATAR UID: "
+							+ suid);
+
 					uidliststring += Setup.encUid(context, suid, serverId);
 				}
 			}
 		}
+
 		if (uidliststring.equals("")) {
 			return;
 		}
@@ -2585,8 +2637,8 @@ public class Communicator {
 		url = Setup.getBaseURL(context, serverId) + "cmd=hasavatar&session="
 				+ session + "&val=" + Utility.urlEncode(uidliststring);
 
-		// Log.d("communicator", "###### REQUEST HAS AVATAR (" + uidliststring
-		// + ") " + url);
+		Log.d("communicator", "###### REQUEST HAS AVATAR (" + uidliststring
+				+ ") " + url);
 
 		final String url2 = url;
 		@SuppressWarnings("unused")
@@ -2594,9 +2646,9 @@ public class Communicator {
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
 						if (isResponseValid(response)) {
-							// Log.d("communicator",
-							// "###### HAS AVATAR VALUES RECEIVED!!! response="
-							// + response);
+							Log.d("communicator",
+									"###### HAS AVATAR VALUES RECEIVED!!! response="
+											+ response);
 							if (isResponsePositive(response)) {
 								String responseContent = getResponseContent(response);
 								List<String> values = Utility
@@ -2607,33 +2659,41 @@ public class Communicator {
 										if (uidListUsed.size() > index) {
 											int uid = uidListUsed.get(index);
 											if (value.equals("-1")) {
-												// no phone number or not
+												// no avatar or not
 												// elibale
 												// the other person needs to
 												// have you in his userlist in
 												// order
 												// to legitimate you to download
-												// his phone number! this is
+												// his avatar! this is
 												// a strong privacy requirement
-												if (Main.isUpdatePhone(context,
-														uid)) {
-													Setup.savePhone(context,
+												if (Setup.isUpdateAvatar(
+														context, uid)) {
+													Setup.saveAvatar(context,
 															uid, "", false);
+													Conversation
+															.invalidateAvatarCache();
+													Main.invalidateAvatarCache();
 												}
 											} else {
-												// we are allowed to add this
-												// telephone number locally
-												value = Setup.decText(context,
-														value, serverId);
+												// we are allowed to
+												// download+add this
+												// avatar locally
+												// value =
+												// Setup.decText(context,
+												// value, serverId);
 												if (value != null) {
-													boolean isUpdate = Main
-															.isUpdatePhone(
+													boolean isUpdate = Setup
+															.isUpdateAvatar(
 																	context,
 																	uid);
 													if (isUpdate) {
-														Setup.savePhone(
+														Setup.saveAvatar(
 																context, uid,
 																value, false);
+														Conversation
+																.invalidateAvatarCache();
+														Main.invalidateAvatarCache();
 													}
 												}
 												// Log.d("communicator",
@@ -2650,7 +2710,7 @@ public class Communicator {
 					}
 				}));
 	}
-	
+
 	// -------------------------------------------------------------------------
 
 	/**
@@ -2698,7 +2758,8 @@ public class Communicator {
 								List<String> values = Utility
 										.getListFromString(responseContent, "#");
 								if (values.size() == 2) {
-									Setup.saveKey(context, uid, values.get(1), false);
+									Setup.saveKey(context, uid, values.get(1),
+											false);
 									Setup.setKeyDate(context, uid,
 											values.get(0));
 									Log.d("communicator",
@@ -2958,10 +3019,9 @@ public class Communicator {
 
 	/**
 	 * Send system message failed. This message will tell the sender that his
-	 * message could not be decrypted.
-	 * System messages are sent over normal sending
-	 * interface, this way they will be sent automatically in order and iff
-	 * temporary login is okay. Both system messages will go to the server.
+	 * message could not be decrypted. System messages are sent over normal
+	 * sending interface, this way they will be sent automatically in order and
+	 * iff temporary login is okay. Both system messages will go to the server.
 	 * System messages can only go over internet (if available) modes: R == read
 	 * (these are processed directly by the server) A == revoke (these are
 	 * processed and come also back as W-messages)

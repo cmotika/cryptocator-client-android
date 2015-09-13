@@ -55,10 +55,15 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.sql.Array;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.spec.SecretKeySpec;
@@ -74,12 +79,15 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.text.InputType;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
@@ -258,6 +266,15 @@ public class Setup extends Activity {
 
 	/** Save the time stamp when the last phone number update took place. */
 	public static final String SETTING_LASTUPDATEAVATAR = "lastupdateavatar";
+
+	/**
+	 * Similar to the update keys (s.a.) this is for updating avatarss. The
+	 * interval is a much longer: 1200 min.
+	 */
+	public static final int UPDATE_AUTOBACKUP_MIN_INTERVAL = 1200 * 60 * 1000; // 10
+
+	/** Save the time stamp when the last phone number update took place. */
+	public static final String SETTING_LASTUPDATEAUTOBACKUP = "lastupdateautobackup";
 
 	/**
 	 * Similar to the keys this is the minimal interval when automatic refresh
@@ -495,6 +512,17 @@ public class Setup extends Activity {
 	/** The Constant SERVER_UID. */
 	public static final String SERVER_UID = "uid";
 
+	/**
+	 * The Constant UID_AUTOADDED for users that were automatically added. For
+	 * these users the device user must allow the adding afterwards, otherwise
+	 * these users will not get backedup to the server to ensure auto-added
+	 * users do not get key/avatar/username!
+	 */
+	public static final String UID_AUTOADDED = "usersautoadded";
+
+	/** The Constant UID_IGNORED for users that were ignored by the user! */
+	public static final String UID_IGNORED = "usersignored";
+
 	/** The Constant SERVER_EMAIL. */
 	public static final String SERVER_EMAIL = "email";
 
@@ -633,7 +661,7 @@ public class Setup extends Activity {
 	 * The Constant SETTINGS_INVALIDATIONCOUNTER_MAX. If uids are corrupted more
 	 * than MAX (see next) then invalidate the session
 	 */
-	public static final int SETTINGS_INVALIDATIONCOUNTER_MAX = 2;
+	public static final int SETTINGS_INVALIDATIONCOUNTER_MAX = 3;
 
 	/**
 	 * The Constant SETTINGS_LARGEST_MID_RECEIVED. This is used as a basis for
@@ -736,6 +764,9 @@ public class Setup extends Activity {
 	 * performed!
 	 */
 	private boolean restartRequiredFlag = false;
+
+	/** The ignoredspinner. */
+	private Spinner ignoredspinner;
 
 	/** The active. */
 	private CheckBox active;
@@ -1074,6 +1105,7 @@ public class Setup extends Activity {
 			settingssection.setVisibility(View.GONE);
 			updateServerSpinner(context, serverspinner);
 			buildServerTabs(context);
+			buildAccountOptionButtons(context);
 		}
 
 		ownaccountkey = (LinearLayout) findViewById(R.id.ownaccountkey);
@@ -1238,6 +1270,203 @@ public class Setup extends Activity {
 		final ScrollView accountInner = (ScrollView) inflater.inflate(
 				R.layout.setup_account, null);
 		accountsection.addView(accountInner);
+		linkAccountOptions();
+	}
+
+	// ------------------------------------------------------------------------
+
+	private final static int ACCOUNTOPTION_USERNAME = 1;
+	private final static int ACCOUNTOPTION_SMS = 2;
+	private final static int ACCOUNTOPTION_AVATAR = 3;
+	private final static int ACCOUNTOPTION_PASSWORD = 4;
+	private final static int ACCOUNTOPTION_BACKUP = 5;
+
+	/**
+	 * Builds the account option buttons for a nicer view to the options.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private void buildAccountOptionButtons(final Context context) {
+		LinearLayout accountoptionbuttons = (LinearLayout) findViewById(R.id.accountoptionbuttons);
+		accountoptionbuttons.removeAllViews();
+
+		LinearLayout buttonLayout = new LinearLayout(context);
+		buttonLayout.setOrientation(LinearLayout.VERTICAL);
+		buttonLayout.setGravity(Gravity.CENTER_VERTICAL);
+
+		LinearLayout buttonLayout1 = new LinearLayout(context);
+		buttonLayout1.setOrientation(LinearLayout.HORIZONTAL);
+		buttonLayout1.setGravity(Gravity.CENTER_HORIZONTAL);
+
+		LinearLayout buttonLayout2 = new LinearLayout(context);
+		buttonLayout2.setOrientation(LinearLayout.HORIZONTAL);
+		buttonLayout2.setGravity(Gravity.CENTER_HORIZONTAL);
+
+		LinearLayout buttonLayout3 = new LinearLayout(context);
+		buttonLayout3.setOrientation(LinearLayout.HORIZONTAL);
+		buttonLayout3.setGravity(Gravity.CENTER_HORIZONTAL);
+
+		LinearLayout.LayoutParams lpButtons1 = new LinearLayout.LayoutParams(
+				200, 140);
+		lpButtons1.setMargins(5, 20, 5, 5);
+		LinearLayout.LayoutParams lpButtons2 = new LinearLayout.LayoutParams(
+				200, 140);
+		lpButtons2.setMargins(5, 5, 5, 20);
+
+		ImageLabelButton usernameButton = new ImageLabelButton(context);
+		usernameButton.setTextAndImageResource("Username",
+				R.drawable.btnusername);
+		usernameButton.setLayoutParams(lpButtons1);
+		usernameButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				makeVisible(context, ACCOUNTOPTION_USERNAME);
+			}
+		});
+		ImageLabelButton smsButton = new ImageLabelButton(context);
+		smsButton.setTextAndImageResource("SMS Option", R.drawable.btnsms);
+		smsButton.setLayoutParams(lpButtons1);
+		smsButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				makeVisible(context, ACCOUNTOPTION_SMS);
+			}
+		});
+		ImageLabelButton avatarButton = new ImageLabelButton(context);
+		avatarButton.setTextAndImageResource("Avatar", R.drawable.person);
+		avatarButton.setLayoutParams(lpButtons2);
+		avatarButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				makeVisible(context, ACCOUNTOPTION_AVATAR);
+			}
+		});
+		ImageLabelButton pwdButton = new ImageLabelButton(context);
+		pwdButton.setTextAndImageResource("Password", R.drawable.btnpassword);
+		pwdButton.setLayoutParams(lpButtons2);
+		pwdButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				makeVisible(context, ACCOUNTOPTION_PASSWORD);
+			}
+		});
+		ImageLabelButton backupButton = new ImageLabelButton(context);
+		backupButton.setTextAndImageResource("Backup/Restore",
+				R.drawable.btnbackup);
+		backupButton.setLayoutParams(lpButtons2);
+		backupButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				makeVisible(context, ACCOUNTOPTION_BACKUP);
+			}
+		});
+
+		buttonLayout1.addView(usernameButton);
+		buttonLayout1.addView(smsButton);
+		buttonLayout2.addView(avatarButton);
+		buttonLayout2.addView(pwdButton);
+		buttonLayout3.addView(backupButton);
+		buttonLayout.addView(buttonLayout1);
+		buttonLayout.addView(buttonLayout2);
+		buttonLayout.addView(buttonLayout3);
+		accountoptionbuttons.addView(buttonLayout);
+	}
+
+	// ------------------------------------------------------------------------
+
+	private static LinearLayout userparent = null;
+	private static LinearLayout smsparent = null;
+	private static LinearLayout avatarparent = null;
+	private static LinearLayout passwordparent = null;
+	private static LinearLayout backupparent = null;
+	private static ScrollView mainscrollview = null;
+	private static LinearLayout mainpanel = null;
+
+	/**
+	 * Link account options so that they can be modified by static metho
+	 * update().
+	 */
+	private void linkAccountOptions() {
+		userparent = (LinearLayout) findViewById(R.id.userparent);
+		smsparent = (LinearLayout) findViewById(R.id.smsparent);
+		avatarparent = (LinearLayout) findViewById(R.id.avatarparent);
+		passwordparent = (LinearLayout) findViewById(R.id.passwordparent);
+		backupparent = (LinearLayout) findViewById(R.id.backupparent);
+		mainscrollview = (ScrollView) findViewById(R.id.mainscrollview);
+		mainpanel = (LinearLayout) findViewById(R.id.mainpanel);
+	}
+
+	/**
+	 * Update visible hides all account options except one (accountOption). If
+	 * accountOption < 1 then it hides all.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param accountOption
+	 *            the account option
+	 */
+	private static void updateVisible(int accountOption) {
+		if (userparent != null) {
+			if (accountOption != ACCOUNTOPTION_USERNAME) {
+				userparent.setVisibility(View.GONE);
+			} else {
+				userparent.setVisibility(View.VISIBLE);
+			}
+		}
+		if (smsparent != null) {
+			if (accountOption != ACCOUNTOPTION_SMS) {
+				smsparent.setVisibility(View.GONE);
+			} else {
+				smsparent.setVisibility(View.VISIBLE);
+			}
+		}
+		if (avatarparent != null) {
+			if (accountOption != ACCOUNTOPTION_AVATAR) {
+				avatarparent.setVisibility(View.GONE);
+			} else {
+				avatarparent.setVisibility(View.VISIBLE);
+			}
+		}
+		if (passwordparent != null) {
+			if (accountOption != ACCOUNTOPTION_PASSWORD) {
+				passwordparent.setVisibility(View.GONE);
+			} else {
+				passwordparent.setVisibility(View.VISIBLE);
+			}
+		}
+		if (backupparent != null) {
+			if (accountOption != ACCOUNTOPTION_BACKUP) {
+				backupparent.setVisibility(View.GONE);
+			} else {
+				backupparent.setVisibility(View.VISIBLE);
+			}
+		}
+		if (mainscrollview != null && accountOption > 0) {
+			mainscrollview.postDelayed(new Runnable() {
+				public void run() {
+					mainscrollview.scrollTo(0, mainpanel.getHeight());
+				}
+			}, 200);
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Make visible.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param accountOption
+	 *            the account option
+	 */
+	private void makeVisible(Context context, int accountOption) {
+		if (!online) {
+			Conversation
+					.promptInfo(
+							context,
+							"Not Logged In",
+							"You must login to modify your account settings on the server.\n\nClick on 'Validate / Login' first. You need an Internet connection to change your account settings.");
+			updateVisible(0);
+			return;
+		}
+		updateVisible(accountOption);
 	}
 
 	// ------------------------------------------------------------------------
@@ -1289,6 +1518,28 @@ public class Setup extends Activity {
 		receiveallsms = (CheckBox) findViewById(R.id.receiveallsms);
 		noscreenshots = (CheckBox) findViewById(R.id.noscreenshots);
 		powersave = (CheckBox) findViewById(R.id.powersave);
+
+		ignoredspinner = (Spinner) findViewById(R.id.ignoredspinner);
+		Button ignoredremove = (Button) findViewById(R.id.ignoredremove);
+		ignoredremove.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				int index = ignoredspinner.getSelectedItemPosition();
+				if (index >= 0) {
+					String separatedString = Utility.loadStringSetting(context,
+							UID_IGNORED, "");
+					List<String> uids = Utility.getListFromString(
+							separatedString, ";");
+					if (uids.size() > index) {
+						int uid = Utility.parseInt(uids.get(index), -1);
+						if (uid != -1) {
+							Setup.setIgnored(context, uid, false);
+							Setup.updateIgnoreSpinner(context, ignoredspinner);
+						}
+					}
+				}
+			}
+		});
+		Setup.updateIgnoreSpinner(context, ignoredspinner);
 
 		// other settings
 		active.setChecked(Utility.loadBooleanSetting(context, OPTION_ACTIVE,
@@ -1549,6 +1800,8 @@ public class Setup extends Activity {
 			updateonline();
 			return;
 		}
+		// We may need the serverkey later... load it
+		Setup.updateServerkey(activity, serverId, true);
 
 		uid = (EditText) findViewById(R.id.uid);
 		uid.setTag(uid.getKeyListener()); // remember the listener for later use
@@ -1734,7 +1987,33 @@ public class Setup extends Activity {
 			updateavatar = (Button) findViewById(R.id.updateavatar);
 			updateavatar.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
-					updateAvatar(activity, serverId, avatar);
+					backup(activity, true, false, serverId);
+
+					if (avatar == null) {
+						// Do not prompt if the user deletes its avatar
+						updateAvatar(activity, serverId, avatar);
+						return;
+					}
+
+					try {
+						final String titleMessage = "Publish Avatar?";
+						final String textMessage = "Avatars are always sent/received unencrypted to/from the server to enhance performance!\n\nYou should not use private photos as avatars if you have any concerns.\n\nDo you still want to send your avatar to the server?";
+						new MessageAlertDialog(activity, titleMessage,
+								textMessage, " Publish ", " Cancel ", null,
+								new MessageAlertDialog.OnSelectionListener() {
+									public void selected(int button,
+											boolean cancel) {
+										if (!cancel) {
+											if (button == 0) {
+												updateAvatar(activity,
+														serverId, avatar);
+											}
+										}
+									}
+								}).show();
+					} catch (Exception e) {
+						// Ignore
+					}
 				}
 			});
 
@@ -1746,7 +2025,7 @@ public class Setup extends Activity {
 	}
 
 	// ------------------------------------------------------------------------
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -1762,7 +2041,8 @@ public class Setup extends Activity {
 			if (requestCode == Utility.SELECT_PICTURE) {
 				boolean ok = false;
 				try {
-					Bitmap bitmap = Utility.getBitmapFromContentUri(this, data.getData());
+					Bitmap bitmap = Utility.getBitmapFromContentUri(this,
+							data.getData());
 					avatar = Utility.getResizedImageAsBASE64String(this,
 							bitmap, 100, 100, 80, true);
 					updateAvatarView(this);
@@ -1777,8 +2057,8 @@ public class Setup extends Activity {
 			}
 			if (requestCode == Utility.TAKE_PHOTO) {
 				Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-				avatar = Utility.getResizedImageAsBASE64String(this,
-						bitmap, 100, 100, 80, true);
+				avatar = Utility.getResizedImageAsBASE64String(this, bitmap,
+						100, 100, 80, true);
 				updateAvatarView(this);
 			}
 		}
@@ -1797,7 +2077,11 @@ public class Setup extends Activity {
 		updateavatar.setEnabled(false);
 		setErrorInfo(null);
 
-		String avatarEnc = avatar; //Setup.encLongText(context, avatar, serverId);
+		String avatarEnc = avatar; // Setup.encLongText(context, avatar,
+		// serverId);
+		if (avatarEnc == null) {
+			avatarEnc = "";
+		}
 		avatarEnc = Utility.urlEncode(avatarEnc);
 
 		String session = Setup.getTmpLoginEncoded(context, serverId);
@@ -1820,7 +2104,9 @@ public class Setup extends Activity {
 						if (Communicator.isResponseValid(response)) {
 							final String response2 = response;
 							if (Communicator.isResponsePositive(response2)) {
-								Setup.saveAvatar(context, DB.myUid(context, serverId), avatar, true);
+								Setup.saveAvatar(context,
+										DB.myUid(context, serverId), avatar,
+										true);
 							}
 							final Handler mUIHandler = new Handler(
 									Looper.getMainLooper());
@@ -1873,6 +2159,13 @@ public class Setup extends Activity {
 	 */
 	private void updateAvatarView(Context context) {
 		ImageView avatarView = (ImageView) findViewById(R.id.avatarimage);
+
+		// Button avatarclear = (Button) findViewById(R.id.avatarclear);
+		// if (avatar != null) {
+		// avatarclear.setText(avatar.length() + "");
+		// } else {
+		// avatarclear.setText("0");
+		// }
 
 		if (avatar == null || avatar.length() == 0) {
 			avatarView.setImageResource(R.drawable.person);
@@ -2043,15 +2336,33 @@ public class Setup extends Activity {
 		if (accountLocked > 0) {
 			login.setText("   Validate / Login   ");
 			newaccount.setEnabled(false);
-			uid.setFocusable(false);
-			email.setFocusable(false);
-			pwd.setFocusable(false);
-			uid.setClickable(true);
-			email.setClickable(true);
-			pwd.setClickable(true);
+			// uid.setFocusable(false);
+			// uid.setFocusableInTouchMode(false);
+			// email.setFocusable(false);
+			// email.setFocusableInTouchMode(false);
+			// pwd.setFocusable(false);
+			// pwd.setFocusableInTouchMode(false);
+			// uid.setClickable(true);
+			// email.setClickable(true);
+			// pwd.setClickable(true);
 			uid.setTextColor(Color.parseColor("#FF666666"));
 			email.setTextColor(Color.parseColor("#FF666666"));
 			pwd.setTextColor(Color.parseColor("#FF666666"));
+			uid.setOnKeyListener(new View.OnKeyListener() {
+				public boolean onKey(View v, int keyCode, KeyEvent event) {
+					return true;
+				}
+			});
+			email.setOnKeyListener(new View.OnKeyListener() {
+				public boolean onKey(View v, int keyCode, KeyEvent event) {
+					return true;
+				}
+			});
+			pwd.setOnKeyListener(new View.OnKeyListener() {
+				public boolean onKey(View v, int keyCode, KeyEvent event) {
+					return true;
+				}
+			});
 			if (!silent) {
 				Utility.showToastShortAsync(context, accountLocked
 						+ " more clicks to edit the login information.");
@@ -2076,15 +2387,30 @@ public class Setup extends Activity {
 			uid.setTextColor(Color.parseColor("#FFDDDDDD"));
 			email.setTextColor(Color.parseColor("#FFDDDDDD"));
 			pwd.setTextColor(Color.parseColor("#FFDDDDDD"));
-			uid.setFocusable(true);
-			uid.setFocusableInTouchMode(true);
-			uid.setEnabled(true);
-			email.setFocusable(true);
-			email.setFocusableInTouchMode(true);
-			email.setEnabled(true);
-			pwd.setFocusable(true);
-			pwd.setFocusableInTouchMode(true);
-			pwd.setEnabled(true);
+			uid.setOnKeyListener(new View.OnKeyListener() {
+				public boolean onKey(View v, int keyCode, KeyEvent event) {
+					return false;
+				}
+			});
+			email.setOnKeyListener(new View.OnKeyListener() {
+				public boolean onKey(View v, int keyCode, KeyEvent event) {
+					return false;
+				}
+			});
+			pwd.setOnKeyListener(new View.OnKeyListener() {
+				public boolean onKey(View v, int keyCode, KeyEvent event) {
+					return false;
+				}
+			});
+			// uid.setFocusable(true);
+			// uid.setFocusableInTouchMode(true);
+			// uid.setEnabled(true);
+			// email.setFocusable(true);
+			// email.setFocusableInTouchMode(true);
+			// email.setEnabled(true);
+			// pwd.setFocusable(true);
+			// pwd.setFocusableInTouchMode(true);
+			// pwd.setEnabled(true);
 		}
 	}
 
@@ -2266,7 +2592,7 @@ public class Setup extends Activity {
 	 */
 	public void promptModifyServer(final Context context) {
 		String titleMessage = "Changing Message Server";
-		String textMessage = "ATTENTION: You are about to modify the message server list. You should only proceed if you know what you are doing!\n\nIf you delete or modify an existing server then all the users and conversations you added from this server will be removed. Additionally your locally account login information will be cleared.\n\nDo you really want to modify the server list?";
+		String textMessage = "ATTENTION: You are about to modify the message server list. You should only proceed if you know what you are doing!\n\nIf you delete or modify an existing server then all the users and conversations you added from this server will be removed. Additionally your locally stored account login information will be cleared.\n\nDo you really want to modify the server list?";
 		new MessageAlertDialog(context, titleMessage, textMessage,
 				"Still Do it!", "       Cancel      ", null,
 				new MessageAlertDialog.OnSelectionListener() {
@@ -2282,62 +2608,6 @@ public class Setup extends Activity {
 					}
 				}).show();
 	}
-
-	// ------------------------------------------------------------------------
-
-	// /**
-	// * Prompt to change server base url. This is basically a WARNING.
-	// *
-	// * @param context
-	// * the context
-	// */
-	// public void promptChangeBaseURL(final Context context) {
-	// String titleMessage = "Changing Message Server";
-	// String textMessage =
-	// "ATTENTION: You are about to change the message server from http://www.cryptocator.org to something else. "
-	// +
-	// "This is only desirable if you operate an own private message server at this location. Be warned that your userlist will "
-	// +
-	// "completely be deleted! You should make a backup of it before (Account Settings). Additionally, you may need to create"
-	// +
-	// " a new account at this different server - you cannot use the current account!\n\nUsing an own private server you will ONLY be "
-	// +
-	// "able to communicate with other people registered on THIS particular server. This is typically ONLY relevant for companies or other"
-	// +
-	// " closed user groups.\n\nDo you really want to change the message server and clear your userlist?";
-	// new MessageAlertDialog(context, titleMessage, textMessage,
-	// "Still Do it!", "       Cancel      ", null,
-	// new MessageAlertDialog.OnSelectionListener() {
-	// public void selected(int button, boolean cancel) {
-	// if (!cancel) {
-	// if (button == 0) {
-	// // Clear the userlist
-	// List<Integer> uidlist = Main
-	// .loadUIDList(context);
-	// for (int uid : uidlist) {
-	// if (uid >= 0) {
-	// Main.deleteUser(context, uid);
-	// }
-	// }
-	// Utility.saveStringSetting(context,
-	// Setup.SETTINGS_BASEURL, baseurltext
-	// .getText().toString().trim());
-	// Utility.saveStringSetting(context, "uid", null);
-	// Utility.saveStringSetting(context, "username",
-	// null);
-	// Utility.saveStringSetting(context, "email",
-	// null);
-	// Utility.saveStringSetting(context, "pwd", null);
-	// // now really try to revoke
-	// Main.exitApplication(context);
-	// } else {
-	// advancedsettings.setVisibility(View.GONE);
-	// }
-	//
-	// }
-	// }
-	// }).show();
-	// }
 
 	// ------------------------------------------------------------------------
 
@@ -2478,6 +2748,7 @@ public class Setup extends Activity {
 	 * case online is false.
 	 */
 	static void updateonline() {
+		updateVisible(0);
 		if (accountonline == null) {
 			// not visible, nothing to do
 			return;
@@ -2530,7 +2801,7 @@ public class Setup extends Activity {
 		// DETECT UID=CHANGE ===> EXIT
 		// APPLICATION!
 		if (!uidBefore.equals(uidString)) {
-			Setup.disableEncryption(context);
+			Setup.disableEncryption(context, false);
 			updateCurrentMid(context, serverId);
 		}
 
@@ -2542,7 +2813,7 @@ public class Setup extends Activity {
 		LoginData loginData = calculateLoginVal(context, uidString,
 				emailString, pwdString, serverId);
 		if (loginData == null) {
-			setErrorInfo("Encryption error, try again or restart the app.");
+			setErrorInfo("Encryption error (1), try again or restart the app.");
 			login.setEnabled(true);
 			return;
 		}
@@ -2552,7 +2823,7 @@ public class Setup extends Activity {
 		String uidStringEnc = Communicator.encryptServerMessage(context,
 				uidString, serverKey);
 		if (uidStringEnc == null) {
-			setErrorInfo("Encryption error. Try again or restart the app.");
+			setErrorInfo("Encryption error (2). Try again or restart the app.");
 			login.setEnabled(true);
 			return;
 		}
@@ -2560,7 +2831,7 @@ public class Setup extends Activity {
 		String emailStringEnd = Communicator.encryptServerMessage(context,
 				emailString, serverKey);
 		if (emailStringEnd == null) {
-			setErrorInfo("Encryption error. Try again or restart the app.");
+			setErrorInfo("Encryption error (3). Try again or restart the app.");
 			login.setEnabled(true);
 			return;
 		}
@@ -2680,6 +2951,7 @@ public class Setup extends Activity {
 										}
 										pwdchange.setText("");
 										online = true;
+										updateVisible(0);
 										updateonline();
 										// IF LOGIN IS SUCCESSFULL => ENABLE
 										// SERVER!
@@ -3154,6 +3426,49 @@ public class Setup extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
+	 * Try autobackup userlist for all server.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public static void autobackupAllServer(final Context context) {
+		for (int serverId : Setup.getServerIds(context)) {
+			if (Setup.isServerAccount(context, serverId, false)) {
+				autobackup(context, serverId);
+			}
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Try autobackup userlist for a specific server (if the last successfull
+	 * autobackup is long enough ago).
+	 * 
+	 * @param context
+	 *            the context
+	 * @param serverId
+	 *            the server id
+	 */
+	public static void autobackup(final Context context, int serverId) {
+		// public static final int UPDATE_AUTOBACKUP_MIN_INTERVAL = 1200 * 60 *
+		// 1000; // 10
+		// public static final String SETTING_LASTUPDATEAUTOBACKUP =
+		// "lastupdateautobackup";
+		long lastTime = Utility.loadLongSetting(context,
+				Setup.SETTING_LASTUPDATEAVATAR + serverId, 0);
+		long currentTime = DB.getTimestamp();
+		if ((lastTime + Setup.UPDATE_AVATAR_MIN_INTERVAL + serverId > currentTime)) {
+			// Do not do this more frequently
+			return;
+		}
+		// The following call will, on success, save the current time!
+		backup(context, true, false, serverId);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
 	 * Backup the userlist to the server. There is a manual and an automatic
 	 * backup. The automatic is used if SMS option is turned on in order do
 	 * validate if someone else is allowed to download/see our phone number.
@@ -3168,7 +3483,7 @@ public class Setup extends Activity {
 	 *            the manual
 	 */
 	public static void backup(final Context context, final boolean silent,
-			boolean manual, int serverId) {
+			final boolean manual, final int serverId) {
 		if (backup != null) {
 			backup.setEnabled(false);
 		}
@@ -3180,7 +3495,7 @@ public class Setup extends Activity {
 		// SETTINGS_USERLIST, "");
 		List<Integer> uidList = Main.loadUIDList(context);
 
-		if (uidList.size() == 0) {
+		if (uidList.size() == 0 && manual) {
 			if (!silent) {
 				setErrorInfo(context, "No users in your list yet!");
 			}
@@ -3195,14 +3510,21 @@ public class Setup extends Activity {
 		String userlistString = "";
 		for (int uid : uidList) {
 			// Only backup registered users that belong to this server for now!
-			// TODO: only users that belong to this server
+			// Additionally only update users that are NOT auto-added!
+			// Only users that belong to this server
 			if (uid >= 0) {
-				final int suid = Setup.getSUid(context, uid);
-				String uidEnc = Setup.encUid(context, suid, serverId);
-				if (userlistString.length() > 0) {
-					userlistString += "#";
+				if (!Setup.isAutoAdded(context, uid)) {
+					final int serverIdOfHost = Setup.getServerId(context, uid);
+					if (serverIdOfHost == serverId) {
+						final int suid = Setup.getSUid(context, uid);
+						String uidEnc = Setup.encUid(context, suid, serverId);
+						if (userlistString.length() > 0) {
+							userlistString += "#";
+						}
+						userlistString += uidEnc;
+
+					}
 				}
-				userlistString += uidEnc;
 			}
 		}
 
@@ -3257,6 +3579,19 @@ public class Setup extends Activity {
 									// UPDATE DISPLAY HERE
 									if (Communicator
 											.isResponsePositive(response2)) {
+
+										if (!manual) {
+											long currentTime = DB
+													.getTimestamp();
+											// Save the time so we do the
+											// autobackup not too often!
+											Utility.saveLongSetting(
+													context,
+													Setup.SETTING_LASTUPDATEAVATAR
+															+ serverId,
+													currentTime);
+										}
+
 										// EVERYTHING OK
 										if (!silent) {
 											setErrorInfo(
@@ -3672,31 +4007,46 @@ public class Setup extends Activity {
 	public static void enableEncryption(Context context) {
 		Utility.saveBooleanSetting(context, Setup.OPTION_ENCRYPTION, true);
 
-		// Generate key pair for 1024-bit RSA encryption and decryption
-		Key publicKey = null;
-		Key privateKey = null;
-		try {
-			KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-			kpg.initialize(1024); // 2048
-			KeyPair kp = kpg.genKeyPair();
-			publicKey = kp.getPublic();
-			String encodedpublicKey = Base64.encodeToString(
-					publicKey.getEncoded(), Base64.DEFAULT);
-			encodedpublicKey = encodedpublicKey.replace("\n", "").replace("\r",
-					"");
-			privateKey = kp.getPrivate();
-			String encodedprivateKey = Base64.encodeToString(
-					privateKey.getEncoded(), Base64.DEFAULT);
+		// First look if there is a key saved (we only delete keys if the user
+		// manually disables encryption!)
+		String pubk = Utility.loadStringSetting(context, Setup.PUBRSAKEY, null);
+		String privk = Utility.loadStringSetting(context, Setup.PRIVATERSAKEY,
+				null);
+		boolean haveOldKeys = (pubk != null && privk != null
+				&& pubk.length() > 0 && privk.length() > 0);
 
+		// Generate key pair for 1024-bit RSA encryption and decryption
+		try {
+			String encodedpublicKey = pubk;
+
+			if (!haveOldKeys) {
+				Key publicKey = null;
+				Key privateKey = null;
+				KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+				kpg.initialize(1024); // 2048
+				KeyPair kp = kpg.genKeyPair();
+				publicKey = kp.getPublic();
+				encodedpublicKey = Base64.encodeToString(
+						publicKey.getEncoded(), Base64.DEFAULT);
+				encodedpublicKey = encodedpublicKey.replace("\n", "").replace(
+						"\r", "");
+				privateKey = kp.getPrivate();
+				String encodedprivateKey = Base64.encodeToString(
+						privateKey.getEncoded(), Base64.DEFAULT);
+				Utility.saveStringSetting(context, Setup.PUBRSAKEY,
+						encodedpublicKey);
+				Utility.saveStringSetting(context, Setup.PRIVATERSAKEY,
+						encodedprivateKey);
+			} else {
+				encodedpublicKey = pubk;
+			}
+
+			// Renew keydate in all cases because the server saves its own time!
 			Setup.setKeyDate(context, DB.myUid(), DB.getTimestampString());
-			Utility.saveStringSetting(context, Setup.PUBRSAKEY,
-					encodedpublicKey);
-			Utility.saveStringSetting(context, Setup.PRIVATERSAKEY,
-					encodedprivateKey);
 
 			Log.d("communicator", "###### encodedpublicKey=" + encodedpublicKey);
 
-			// send public key to all servers
+			// Send public key to all servers
 			String keyHash = getPublicKeyHash(context);
 			for (int serverId : getServerIds(context)) {
 				if (Setup.isServerAccount(context, serverId, true)) {
@@ -3723,7 +4073,8 @@ public class Setup extends Activity {
 	 * @param serverId
 	 *            the server id
 	 */
-	public boolean sendCurrentKeyToServer(Context context, int serverId, boolean silent) {
+	public boolean sendCurrentKeyToServer(Context context, int serverId,
+			boolean silent) {
 		String encodedpublicKey = Utility.loadStringSetting(context,
 				Setup.PUBRSAKEY, null);
 		if (encodedpublicKey == null) {
@@ -3739,23 +4090,25 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Disable encryption.
+	 * Disable encryption. Only if manually disable, delete the key.
 	 * 
 	 * @param context
 	 *            the context
 	 */
-	public static void disableEncryption(Context context) {
+	public static void disableEncryption(Context context, boolean manual) {
 		Utility.saveBooleanSetting(context, Setup.OPTION_ENCRYPTION, false);
 		saveHaveAskedForEncryption(context, false);
 		String keyHash = getPublicKeyHash(context);
-		Utility.saveStringSetting(context, Setup.PUBRSAKEY, null);
-		Utility.saveStringSetting(context, Setup.PRIVATERSAKEY, null);
+		if (manual) {
+			Utility.saveStringSetting(context, Setup.PUBRSAKEY, null);
+			Utility.saveStringSetting(context, Setup.PRIVATERSAKEY, null);
+			Setup.setKeyDate(context, DB.myUid(), "0");
+		}
 		for (int serverId : getServerIds(context)) {
 			if (Setup.isServerAccount(context, serverId, true)) {
 				Communicator.clearKeyFromServer(context, keyHash, serverId);
 			}
 		}
-		Setup.setKeyDate(context, DB.myUid(), "0");
 	}
 
 	// -------------------------------------------------------------------------
@@ -4118,15 +4471,31 @@ public class Setup extends Activity {
 							+ keyhash
 							+ " changed ]\n\n"
 							+ name
-							+ " changed his/her account key. You are advised to contact him/her personally to"
-							+ " assure that he/she himself/herself changed the key and that the new key is matching!";
+							+ " created a new account key or you just added "
+							+ name
+							+ " and therefore received this key.\n\nIf hou haven't just added "
+							+ name
+							+ " then you are advised to contact "
+							+ name
+							+ " personally to"
+							+ " assure that "
+							+ name
+							+ " himself/herself changed the key.\n\nIn ANY case you should contact "
+							+ name
+							+ " to verify that this new key with the ID "
+							+ keyhash + " is matching the ID that " + name
+							+ " finds in his/her settings!";
 
 				} else {
 					Log.d("communicator", "ACCOUNTKEY #6 ");
 					messageTextToShow = "[ account key removed ]\n\n"
 							+ name
-							+ " removed his/her account key. You are advised to contact him/her personally to"
-							+ " assure that he/she himself/herself removed the key.\n\nYou are no longer able to exchange encrypted "
+							+ " removed his/her account key. You are advised to contact "
+							+ name
+							+ " personally to"
+							+ " assure that "
+							+ name
+							+ " himself/herself removed the key.\n\nYou are no longer able to exchange encrypted "
 							+ "messages with " + name + " until " + name
 							+ " re-enables encryption in his/her settings!";
 
@@ -4679,7 +5048,7 @@ public class Setup extends Activity {
 								context);
 						LinearLayout.LayoutParams lpInfoTextBoxInnerAccountKey = new LinearLayout.LayoutParams(
 								220, LinearLayout.LayoutParams.WRAP_CONTENT);
-						lpInfoTextBoxInnerAccountKey.setMargins(5, 10, 5, 12);
+						lpInfoTextBoxInnerAccountKey.setMargins(5, 10, 5, 45);
 						lpInfoTextBoxInnerAccountKey.gravity = Gravity.CENTER_HORIZONTAL;
 						infoTextBoxInnerAccountKey
 								.setLayoutParams(lpInfoTextBoxInnerAccountKey);
@@ -4718,7 +5087,7 @@ public class Setup extends Activity {
 							if (!cancel) {
 								if (button == 0) {
 									// disable encryption
-									disableEncryption(context);
+									disableEncryption(context, true);
 									encryption.setChecked(false);
 									updateTitleIDInfo(context);
 								}
@@ -5546,35 +5915,39 @@ public class Setup extends Activity {
 	 */
 	public static String encLongText(Context context, String text, int serverId) {
 		String backText = "";
-		int chunks = (int) Math.ceil(((double)text.length() / (double)CHUNKLEN));
+		int chunks = (int) Math
+				.ceil(((double) text.length() / (double) CHUNKLEN));
 		for (int c = 0; c < chunks; c++) {
-			int end = (c+1) * CHUNKLEN;
+			int end = (c + 1) * CHUNKLEN;
 			if (end >= text.length()) {
-				end = text.length()-1;
+				end = text.length() - 1;
 			}
 			String chunk = text.substring(c * CHUNKLEN, end);
 			String chunkEnc = encText(context, chunk, serverId);
 			if (backText.length() > 0) {
 				backText += ";";
 			}
-			backText +=  chunkEnc;
+			backText += chunkEnc;
 		}
 		return backText;
 	}
-	
+
 	// -------------------------------------------------------------------------
-	
+
 	/**
 	 * Dec long text that had > 30 chars in the decoded version.
-	 *
-	 * @param context the context
-	 * @param text the text
-	 * @param serverId the server id
+	 * 
+	 * @param context
+	 *            the context
+	 * @param text
+	 *            the text
+	 * @param serverId
+	 *            the server id
 	 * @return the string
 	 */
 	public static String decLongText(Context context, String text, int serverId) {
 		String backText = "";
-	    String[] encChunks = text.split(";");
+		String[] encChunks = text.split(";");
 		for (String encChunk : encChunks) {
 			String chunk = decText(context, encChunk, serverId);
 			if (chunk == null) {
@@ -5757,15 +6130,16 @@ public class Setup extends Activity {
 			if (counter > 0) {
 				counter--;
 				Utility.saveIntSetting(context,
-						Setup.SETTINGS_INVALIDATIONCOUNTER, counter);
+						Setup.SETTINGS_INVALIDATIONCOUNTER + serverId, counter);
 			} else {
-				// reset
+				// HERE INVALIDATING
+				Log.d("communicator", "INVALIDATING NOW");
 				possiblyInvalidateSession(context, true, serverId);
 				// trigger a new login by invalidating the session
 				invalidateTmpLogin(context, serverId);
 			}
 		} else {
-			// reset to the maximum
+			// reset count down to the maximum (for next start)
 			Utility.saveIntSetting(context, Setup.SETTINGS_INVALIDATIONCOUNTER
 					+ serverId, Setup.SETTINGS_INVALIDATIONCOUNTER_MAX);
 		}
@@ -6587,7 +6961,15 @@ public class Setup extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	public void enableServer(final Context context, final boolean forceRefresh, final boolean silent) {
+	public void enableServer(final Context context, final boolean forceRefresh,
+			final boolean silent) {
+		if (isServerActive(context, selectedServerId, true)) {
+			// Do not do anything if the server IS online, maybe just update the
+			// image
+			updateServerImage(context, true, forceRefresh);
+			return;
+		}
+
 		setServerActive(context, selectedServerId, true);
 
 		// Update the server key / attachment
@@ -6748,7 +7130,7 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 
 	static HashMap<Integer, Bitmap> avatars = new HashMap<Integer, Bitmap>();
-	
+
 	/**
 	 * Gets the avatar.
 	 * 
@@ -6786,6 +7168,224 @@ public class Setup extends Activity {
 	public static boolean haveAvatar(Context context, int uid) {
 		String avatar = getAvatar(context, uid);
 		return (avatar != null && avatar.length() > 0);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sets the auto added.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param add
+	 *            the add
+	 */
+	public static void setAutoAdded(Context context, int uid, boolean add) {
+		String separatedString = Utility.loadStringSetting(context,
+				UID_AUTOADDED, "");
+		List<String> uids = Utility.getListFromString(separatedString, ";");
+		LinkedHashSet<String> uuids = new LinkedHashSet<String>();
+		uuids.addAll(uids);
+		if (add) {
+			uuids.add(uid + "");
+		} else {
+			uuids.remove(uid + "");
+		}
+		uids = new ArrayList<String>(uuids);
+		separatedString = Utility.getListAsString(uids, ";");
+		Log.d("communicator", "AUTOADD setAutoAdded() SET UID_AUTOADDED:="
+				+ separatedString);
+		Utility.saveStringSetting(context, UID_AUTOADDED, separatedString);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Checks if user is auto added.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return true, if is auto added
+	 */
+	public static boolean isAutoAdded(Context context, int uid) {
+		String separatedString = Utility.loadStringSetting(context,
+				UID_AUTOADDED, "");
+		Log.d("communicator", "AUTOADD isAutoAdded() READ UID_AUTOADDED:="
+				+ separatedString);
+		List<String> uids = Utility.getListFromString(separatedString, ";");
+		if (uids.contains(uid + "")) {
+			return true;
+		}
+		return false;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Adds or removes user from ignored list.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param add
+	 *            the add
+	 */
+	public static void setIgnored(Context context, int uid, boolean add) {
+		String separatedString = Utility.loadStringSetting(context,
+				UID_IGNORED, "");
+		List<String> uids = Utility.getListFromString(separatedString, ";");
+		LinkedHashSet<String> uuids = new LinkedHashSet<String>();
+		uuids.addAll(uids);
+		if (add) {
+			uuids.add(uid + "");
+		} else {
+			uuids.remove(uid + "");
+		}
+		uids = new ArrayList<String>(uuids);
+		separatedString = Utility.getListAsString(uids, ";");
+		Log.d("communicator", "AUTOADD setIgnored() SET UID_IGNORED:="
+				+ separatedString);
+		Utility.saveStringSetting(context, UID_IGNORED, separatedString);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Checks if uid is ignored.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return true, if is ignored
+	 */
+	public static boolean isIgnored(Context context, int uid) {
+		String separatedString = Utility.loadStringSetting(context,
+				UID_IGNORED, "");
+		Log.d("communicator", "AUTOADD isIgnored() UID_IGNORED="
+				+ separatedString);
+
+		List<String> uids = Utility.getListFromString(separatedString, ";");
+		if (uids.contains(uid + "")) {
+			return true;
+		}
+		return false;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Reset ignored users.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public static void resetIgnored(Context context) {
+		Log.d("communicator", "AUTOADD resetIgnored()");
+		Utility.saveStringSetting(context, UID_IGNORED, "");
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Possibly prompt auto added user if there are any and ask the user to
+	 * confirm the adding. Otherwise remove these users and possibly ignore
+	 * them!
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public static void possiblyPromptAutoAddedUser(final Context context) {
+		String separatedString = Utility.loadStringSetting(context,
+				UID_AUTOADDED, "");
+		Log.d("communicator",
+				"AUTOADD possiblyPromptAutoAddedUser() UID_AUTOADDED="
+						+ separatedString);
+
+		List<String> uids = Utility.getListFromString(separatedString, ";");
+		if (uids.size() > 0) {
+			final int uid = Utility.parseInt(uids.get(0), -1);
+			if (uid == -1) {
+				// heavy failure... remove all autoadded for
+				Utility.saveStringSetting(context, UID_AUTOADDED, "");
+				return;
+			}
+
+			// Okay we need to prompt the user!
+			try {
+				final String titleMessage = "Confirm Added User ";
+				final String name = Main.UID2Name(context, uid, false);
+				final String textMessage = name
+						+ " with UID "
+						+ uid
+						+ " was added automatically.\n\nYou should ONLY confirm the auto adding if you know "
+						+ name
+						+ "!"
+						+ "\nOtherwise you should ignore this user. If you select 'Cancel' you only reject the auto adding this time.\n\nDo you want to confirm the adding of "
+						+ name + " or ignore " + name + " permanently?";
+				new MessageAlertDialog(context, titleMessage, textMessage,
+						"Confirm", " Ignore ", " Cancel ",
+						new MessageAlertDialog.OnSelectionListener() {
+							public void selected(int button, boolean cancel) {
+								// Anyways remove him from autoadded because we
+								// prompted the user
+								Setup.setAutoAdded(context, uid, false);
+								if (!cancel) {
+									if (button == 0) {
+										// CONFIRM == REMOVE IT FROM AUTOADDED
+										// (AS WE DID BEFORE)
+										// AND UPDATE THE UIDS NOW
+										int serverId = Setup.getServerId(
+												context, uid);
+										Setup.backup(context, true, false,
+												serverId);
+									} else if (button == 1) {
+										// IGNORE == FULL PROGRAM
+										Setup.setIgnored(context, uid, true);
+										Main.deleteUser(context, uid);
+									}
+								} else {
+									// Cancel === REJECT THIS TIME BUT DO NOT
+									// ADD TO IGNORE LISTY
+									Main.deleteUser(context, uid);
+								}
+							}
+						}).show();
+			} catch (Exception e) {
+				// Ignore
+			}
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	public static void updateIgnoreSpinner(final Context context,
+			final Spinner spinner) {
+		String separatedString = Utility.loadStringSetting(context,
+				UID_IGNORED, "");
+		List<String> uids = Utility.getListFromString(separatedString, ";");
+		List<String> displayUsers = new ArrayList<String>();
+		for (String uidString : uids) {
+			int uid = Utility.parseInt(uidString, -1);
+			if (uid != -1) {
+				displayUsers.add(Setup.getSUid(context, uid)
+						+ "@"
+						+ Setup.getServerLabel(context,
+								Setup.getServerId(context, uid), true));
+			} else {
+				displayUsers.add(uidString + " @ unknownhost");
+			}
+		}
+		ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(
+				context, android.R.layout.simple_spinner_item, displayUsers);
+		spinnerArrayAdapter
+				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		spinner.setAdapter(spinnerArrayAdapter);
 	}
 
 	// -------------------------------------------------------------------------

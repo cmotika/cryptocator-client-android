@@ -58,7 +58,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -2201,37 +2203,19 @@ public class Conversation extends Activity {
 			// Hide per default, only used for multi part receiving
 			progress.setVisibility(View.GONE);
 
-			if (conversationItem.text.startsWith(Setup.ALERT_PREFIX)) {
+			boolean isAlert = conversationItem.text
+					.startsWith(Setup.ALERT_PREFIX);
+			if (isAlert) {
 				// Rounded corners failed
 				oneline.setBackgroundResource(R.drawable.rounded_corners_alert);
 				speech.setImageResource(R.drawable.speechalert);
 			}
 
-			Bitmap avatar = Setup.getAvatarAsBitmap(context, hostUid);
+			Bitmap avatar = retrieveAvatar(context, hostUid, isAlert);
 			if (avatar != null) {
-
-				Bitmap bitmap = Bitmap.createBitmap(bitmap_speechmaster);
-
-				bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
-				Canvas canvas = new Canvas(bitmap);
-				Rect src = new Rect();
-				src.left = 0;
-				src.top = 0;
-				src.bottom = 100;
-				src.right = 100;
-				Rect dst = new Rect();
-				dst.left = 0;
-				dst.top = 10;
-				dst.bottom = 90;
-				dst.right = 80;
-				canvas.drawBitmap(avatar, src, dst, null);
-
-				canvas.drawBitmap(bitmap_speech, 53, 10, null);
-
-				speech.setImageBitmap(bitmap);
+				speech.setImageBitmap(avatar);
 				LinearLayout.LayoutParams lpSpeech = new LinearLayout.LayoutParams(
 						60, LayoutParams.WRAP_CONTENT);
-				// lpAvatar.setMargins(0, 0, 10, 0);
 				speech.setLayoutParams(lpSpeech);
 				fixed_inset = 200;
 			}
@@ -2378,6 +2362,68 @@ public class Conversation extends Activity {
 		return conversationlistitem;
 	}
 
+	// ------------------------------------------------------------------------
+
+	private static HashMap<String, Bitmap> conversationImageCache = new HashMap<String, Bitmap>();
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Invalidate avatar cache if an avatar was changed.
+	 */
+	public static void invalidateAvatarCache() {
+		conversationImageCache.clear();
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Retrieve conversation avatar either create it freshly or take it from the
+	 * cache for faster processing.
+	 *
+	 * @param context the context
+	 * @param uid the uid
+	 * @param alert the alert
+	 * @return the bitmap
+	 */
+	public static Bitmap retrieveAvatar(Context context, int uid, boolean alert) {
+
+		String id = uid + "" + alert;
+		if (!conversationImageCache.containsKey(id)) {
+
+			Bitmap avatar = Setup.getAvatarAsBitmap(context, hostUid);
+			if (avatar != null) {
+				Bitmap bitmap = Bitmap.createBitmap(bitmap_speechmaster);
+
+				bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+				Canvas canvas = new Canvas(bitmap);
+				Rect src = new Rect();
+				src.left = 10;
+				src.top = 10;
+				src.bottom = 90;
+				src.right = 90;
+				Rect dst = new Rect();
+				dst.left = 0;
+				dst.top = 10;
+				dst.bottom = 90;
+				dst.right = 80;
+				canvas.drawBitmap(avatar, src, dst, null);
+
+				if (!alert) {
+					canvas.drawBitmap(bitmap_speech, 53, 10, null);
+				} else {
+					canvas.drawBitmap(bitmap_speechalert, 53, 10, null);
+				}
+
+				conversationImageCache.put(id, bitmap);
+			} else {
+				conversationImageCache.put(id, null);
+			}
+		}
+		return conversationImageCache.get(id);
+	}
+
+	// ------------------------------------------------------------------------
 	// ------------------------------------------------------------------------
 
 	/**

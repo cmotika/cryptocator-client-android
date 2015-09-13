@@ -12,15 +12,15 @@
         android:layout_weight="0.02"
         android:orientation="vertical" >
 
-            <LinearLayout
-                android:id="@+id/ownaccountkey"
-        android:layout_width="220px"
-            android:layout_marginTop="20px"
+        <LinearLayout
+            android:id="@+id/ownaccountkey"
+            android:layout_width="220px"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
             android:layout_marginBottom="5px"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:orientation="vertical" />
-        
+            android:layout_marginTop="20px"
+            android:orientation="vertical" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -403,6 +403,61 @@
                 android:layout_marginTop="10px"
                 android:clickable="true"
                 android:src="@drawable/help" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="20px"
+            android:layout_marginLeft="20px"
+            android:layout_marginRight="20px"
+            android:layout_marginTop="40px"
+            android:background="@android:color/darker_gray" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10px"
+            android:layout_marginTop="20px"
+            android:text="  Ignored Users"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#888888"
+            android:textSize="18dp"
+            android:textStyle="bold" >
+        </TextView>
+
+        <TextView
+            android:id="@+id/textnew"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="40px"
+            android:layout_marginRight="20px"
+            android:layout_marginTop="20px"
+            android:clickable="true"
+            android:text="Here you find the list of users that you have ignored. If you click on remove you can remove the selected user from the irgnore-list which enables this user to send you messages again."
+            android:textSize="15sp" >
+        </TextView>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20px"
+            android:orientation="vertical" >
+
+            <Spinner
+                android:id="@+id/ignoredspinner"
+                android:layout_gravity="center_horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="30sp" />
+
+            <Button
+                android:id="@+id/ignoredremove"
+                android:layout_marginTop="15px"
+                android:layout_gravity="center_horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Remove" />
         </LinearLayout>
 
         <View
