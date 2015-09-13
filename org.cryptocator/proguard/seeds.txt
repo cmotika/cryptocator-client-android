@@ -164,6 +164,7 @@ org.cryptocator.ImagePressButton: void setImageResource(int)
 org.cryptocator.ImagePressButton: void setImagePressResource(int)
 org.cryptocator.ImagePressButton: void setAdditionalPressWhiteView(android.view.View)
 org.cryptocator.ImageSmileyEditText
+org.cryptocator.ImageSmileyEditText: void setMe(boolean)
 org.cryptocator.ImageSmileyEditText: void setConversationItem(org.cryptocator.ConversationItem)
 org.cryptocator.ImageSmileyEditText: void setOnCutCopyPasteListener(org.cryptocator.ImageSmileyEditText$OnCutCopyPasteListener)
 org.cryptocator.ImageSmileyEditText: ImageSmileyEditText(android.content.Context,android.util.AttributeSet,int)
@@ -199,8 +200,11 @@ org.cryptocator.R$drawable: int btncompose
 org.cryptocator.R$drawable: int btnedit
 org.cryptocator.R$drawable: int btnkey
 org.cryptocator.R$drawable: int btnmenu
+org.cryptocator.R$drawable: int btnpassword
 org.cryptocator.R$drawable: int btnrefresh
 org.cryptocator.R$drawable: int btnsearch
+org.cryptocator.R$drawable: int btnsms
+org.cryptocator.R$drawable: int btnusername
 org.cryptocator.R$drawable: int buttonedit
 org.cryptocator.R$drawable: int buttoneditsms
 org.cryptocator.R$drawable: int call
@@ -264,12 +268,14 @@ org.cryptocator.R$drawable: int msgsent
 org.cryptocator.R$drawable: int msgsmall24x24
 org.cryptocator.R$drawable: int person
 org.cryptocator.R$drawable: int personadd
-org.cryptocator.R$drawable: int personlock
-org.cryptocator.R$drawable: int personlockmsg
-org.cryptocator.R$drawable: int personmsg
+org.cryptocator.R$drawable: int persongenericbar
+org.cryptocator.R$drawable: int persongenericbarlock
+org.cryptocator.R$drawable: int persongenericbarsms
+org.cryptocator.R$drawable: int persongenericlock
+org.cryptocator.R$drawable: int persongenericmaster
+org.cryptocator.R$drawable: int persongenericmsg
 org.cryptocator.R$drawable: int personsmall
 org.cryptocator.R$drawable: int personsms
-org.cryptocator.R$drawable: int personsmsmsg
 org.cryptocator.R$drawable: int personsmssmall
 org.cryptocator.R$drawable: int phone
 org.cryptocator.R$drawable: int phoneneutral
@@ -310,6 +316,7 @@ org.cryptocator.R$drawable: int sms
 org.cryptocator.R$drawable: int sms2
 org.cryptocator.R$drawable: int speech
 org.cryptocator.R$drawable: int speechalert
+org.cryptocator.R$drawable: int speechmaster
 org.cryptocator.R$drawable: int speechme
 org.cryptocator.R$drawable: int speechmefailed
 org.cryptocator.R$drawable: int update
@@ -318,6 +325,7 @@ org.cryptocator.R$id: int accountexisting
 org.cryptocator.R$id: int accountheader
 org.cryptocator.R$id: int accountnew
 org.cryptocator.R$id: int accountonline
+org.cryptocator.R$id: int accountoptionbuttons
 org.cryptocator.R$id: int accountsection
 org.cryptocator.R$id: int active
 org.cryptocator.R$id: int additionbutton
@@ -334,9 +342,15 @@ org.cryptocator.R$id: int attachmentspinner
 org.cryptocator.R$id: int attachmentsrow1
 org.cryptocator.R$id: int attachmentsrow2
 org.cryptocator.R$id: int autosave
+org.cryptocator.R$id: int avatarclear
+org.cryptocator.R$id: int avatargallery
+org.cryptocator.R$id: int avatarimage
+org.cryptocator.R$id: int avatarparent
+org.cryptocator.R$id: int avatarphoto
 org.cryptocator.R$id: int backup
 org.cryptocator.R$id: int backupbuttons
 org.cryptocator.R$id: int backupmain
+org.cryptocator.R$id: int backupparent
 org.cryptocator.R$id: int backupscrollview
 org.cryptocator.R$id: int btnadduser
 org.cryptocator.R$id: int btnadduserparent
@@ -399,6 +413,8 @@ org.cryptocator.R$id: int helpsmileys
 org.cryptocator.R$id: int helptone
 org.cryptocator.R$id: int helpvibrate
 org.cryptocator.R$id: int ignore
+org.cryptocator.R$id: int ignoredremove
+org.cryptocator.R$id: int ignoredspinner
 org.cryptocator.R$id: int imageView1
 org.cryptocator.R$id: int info
 org.cryptocator.R$id: int infolistitem
@@ -413,6 +429,7 @@ org.cryptocator.R$id: int keyhashrow
 org.cryptocator.R$id: int login
 org.cryptocator.R$id: int mainbackground
 org.cryptocator.R$id: int maininnerview
+org.cryptocator.R$id: int mainpanel
 org.cryptocator.R$id: int mainscrollview
 org.cryptocator.R$id: int mainsettingsinnerlayout
 org.cryptocator.R$id: int messageText
@@ -430,7 +447,9 @@ org.cryptocator.R$id: int noscreenshots
 org.cryptocator.R$id: int notification
 org.cryptocator.R$id: int oneline
 org.cryptocator.R$id: int ownaccountkey
+org.cryptocator.R$id: int passwordparent
 org.cryptocator.R$id: int personicon
+org.cryptocator.R$id: int personiconback
 org.cryptocator.R$id: int phone
 org.cryptocator.R$id: int phonebutton
 org.cryptocator.R$id: int pictureimportbuttons
@@ -482,6 +501,7 @@ org.cryptocator.R$id: int sizetextback
 org.cryptocator.R$id: int smileybutton
 org.cryptocator.R$id: int smileybuttonparent
 org.cryptocator.R$id: int smileys
+org.cryptocator.R$id: int smsparent
 org.cryptocator.R$id: int tableLayout1
 org.cryptocator.R$id: int textexisting2
 org.cryptocator.R$id: int textexisting22
@@ -504,6 +524,7 @@ org.cryptocator.R$id: int tolist
 org.cryptocator.R$id: int tone
 org.cryptocator.R$id: int transport
 org.cryptocator.R$id: int uid
+org.cryptocator.R$id: int updateavatar
 org.cryptocator.R$id: int updatepwd
 org.cryptocator.R$id: int updateuser
 org.cryptocator.R$id: int user
@@ -512,6 +533,7 @@ org.cryptocator.R$id: int userlistdate
 org.cryptocator.R$id: int userlistname
 org.cryptocator.R$id: int userlisttext
 org.cryptocator.R$id: int usernew
+org.cryptocator.R$id: int userparent
 org.cryptocator.R$id: int userradio
 org.cryptocator.R$id: int vibrate
 org.cryptocator.R$id: int widget44
@@ -535,7 +557,6 @@ org.cryptocator.R$layout: int title_general
 org.cryptocator.R$layout: int title_main
 org.cryptocator.R$layout: int tolistitem
 org.cryptocator.R$layout: int userlistitem
-org.cryptocator.R$layout: int userlistitemmsg
 org.cryptocator.R$string: int app_name
 org.cryptocator.R$style: int AlertDialogCustom
 org.cryptocator.R$style: int AlertDialogCustomOther
