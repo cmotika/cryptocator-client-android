@@ -68,6 +68,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -248,6 +249,15 @@ public class Setup extends Activity {
 
 	/** Save the time stamp when the last phone number update took place. */
 	public static final String SETTING_LASTUPDATEPHONES = "lastupdatephones";
+
+	/**
+	 * Similar to the update keys (s.a.) this is for updating avatarss. The
+	 * interval is a much longer: 1200 min.
+	 */
+	public static final int UPDATE_AVATAR_MIN_INTERVAL = 1200 * 60 * 1000; // 10
+
+	/** Save the time stamp when the last phone number update took place. */
+	public static final String SETTING_LASTUPDATEAVATAR = "lastupdateavatar";
 
 	/**
 	 * Similar to the keys this is the minimal interval when automatic refresh
@@ -537,6 +547,9 @@ public class Setup extends Activity {
 	/** The Constant PHONE for other users phone numbers. */
 	public static final String PHONE = "hostphone";
 
+	/** The Constant AVATAR for other users avatars. */
+	public static final String AVATAR = "hostavatar";
+
 	/** The Constant SETTINGS_USERLIST for saving/loading the userlist. */
 	public static final String SETTINGS_USERLIST = "userlist";
 
@@ -569,6 +582,15 @@ public class Setup extends Activity {
 
 	/** The Constant SETTINGS_PHONEISMODIFIED. */
 	public static final String SETTINGS_PHONEISMODIFIED = "phoneismodified";
+
+	/** The Constant SETTINGS_UPDATEAVATAR. */
+	public static final String SETTINGS_UPDATEAVATAR = "updateavatar";
+
+	/** The Constant SETTINGS_DEFAULT_UPDATEAVATAR. */
+	public static final boolean SETTINGS_DEFAULT_UPDATEAVATAR = true;
+
+	/** The Constant SETTINGS_AVATARISMODIFIED. */
+	public static final String SETTINGS_AVATARISMODIFIED = "avatarismodified";
 
 	/**
 	 * The Constant SETTINGS_DEFAULTMID. Globally for all users: This is the
@@ -705,6 +727,9 @@ public class Setup extends Activity {
 	public static final int COLOR_BLUELINE = Color.parseColor("#FF00CCFF");
 
 	// ------------------------------------------------------------------------
+
+	/** The currently loaded avatar. */
+	private String avatar = null;
 
 	/**
 	 * The flag if a restart required. When closing this activoity, a restart is
@@ -855,6 +880,9 @@ public class Setup extends Activity {
 
 	/** The updateuser. */
 	private Button updateuser;
+
+	/** The updateavatar. */
+	private Button updateavatar;
 
 	/** The phone. */
 	private static EditText phone;
@@ -1007,7 +1035,7 @@ public class Setup extends Activity {
 		serverdisabled.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				if (!serverdisabled.isChecked()) {
-					enableServer(context, false);
+					enableServer(context, false, false);
 					if (Main.isAlive()) {
 						Main.getInstance().updateInfoMessageBlockAsync(context);
 					}
@@ -1505,12 +1533,12 @@ public class Setup extends Activity {
 	/**
 	 * Load the current server tab. This is called when a server tab changes.
 	 * 
-	 * @param context
+	 * @param activity
 	 *            the context
 	 * @param serverId
 	 *            the server id
 	 */
-	private void loadServerTab(final Context context, final int serverId) {
+	private void loadServerTab(final Activity activity, final int serverId) {
 		if (serverId == -1) {
 			// NO VALID SERVER SELECTED - HIDE EVERYTHING!
 			accountnew = (LinearLayout) findViewById(R.id.accountnew);
@@ -1526,26 +1554,26 @@ public class Setup extends Activity {
 		uid.setTag(uid.getKeyListener()); // remember the listener for later use
 		uid.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				updateAccountLocked(context, false, serverId);
+				updateAccountLocked(activity, false, serverId);
 			}
 		});
 		TextView textexisting2 = (TextView) findViewById(R.id.textexisting2);
 		textexisting2.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				updateAccountLocked(context, false, serverId);
+				updateAccountLocked(activity, false, serverId);
 			}
 		});
 
 		email = (EditText) findViewById(R.id.email);
 		email.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				updateAccountLocked(context, false, serverId);
+				updateAccountLocked(activity, false, serverId);
 			}
 		});
 		pwd = (EditText) findViewById(R.id.pwd);
 		pwd.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				updateAccountLocked(context, false, serverId);
+				updateAccountLocked(activity, false, serverId);
 			}
 		});
 
@@ -1596,7 +1624,7 @@ public class Setup extends Activity {
 						});
 			}
 
-			String uidString = Utility.loadStringSetting(context, SERVER_UID
+			String uidString = Utility.loadStringSetting(activity, SERVER_UID
 					+ serverId, "");
 			boolean noAccountYet = uidString.equals("");
 			uid.setText(uidString);
@@ -1610,13 +1638,13 @@ public class Setup extends Activity {
 				this.accountLocked = 0;
 			}
 
-			updateAccountLocked(context, true, serverId);
+			updateAccountLocked(activity, true, serverId);
 
-			user.setText(Utility.loadStringSetting(context, SERVER_USERNAME
+			user.setText(Utility.loadStringSetting(activity, SERVER_USERNAME
 					+ serverId, ""));
-			email.setText(Utility.loadStringSetting(context, SERVER_EMAIL
+			email.setText(Utility.loadStringSetting(activity, SERVER_EMAIL
 					+ serverId, ""));
-			pwd.setText(Utility.loadStringSetting(context, SERVER_PWD
+			pwd.setText(Utility.loadStringSetting(activity, SERVER_PWD
 					+ serverId, ""));
 			pwd.setInputType(InputType.TYPE_CLASS_TEXT
 					| InputType.TYPE_TEXT_VARIATION_PASSWORD);
@@ -1629,56 +1657,84 @@ public class Setup extends Activity {
 			create.setOnClickListener(new OnClickListener() {
 				public void onClick(View arg0) {
 					setErrorInfo(null);
-					createNewAccount(context, serverId);
+					createNewAccount(activity, serverId);
 				}
 			});
 
 			login.setOnClickListener(new OnClickListener() {
 				public void onClick(View arg0) {
 					setErrorInfo(null);
-					validate(context, serverId);
+					validate(activity, serverId);
 				}
 			});
 
 			updateuser.setOnClickListener(new OnClickListener() {
 				public void onClick(View arg0) {
 					setErrorInfo(null);
-					updateUsername(context, serverId);
+					updateUsername(activity, serverId);
 				}
 			});
 
 			updatepwd.setOnClickListener(new OnClickListener() {
 				public void onClick(View arg0) {
 					setErrorInfo(null);
-					updatePwd(context, serverId);
+					updatePwd(activity, serverId);
 				}
 			});
 
 			backup.setOnClickListener(new OnClickListener() {
 				public void onClick(View arg0) {
 					setErrorInfo(null);
-					backup(context, false, true, serverId);
+					backup(activity, false, true, serverId);
 				}
 			});
 			restore.setOnClickListener(new OnClickListener() {
 				public void onClick(View arg0) {
 					setErrorInfo(null);
-					restore(context, true, serverId);
+					restore(activity, true, serverId);
 				}
 			});
 
-			updatePhoneNumberAndButtonStates(context, serverId);
+			updatePhoneNumberAndButtonStates(activity, serverId);
 			enablesmsoption.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					// enable or update?
-					updateSMSOption(context, true, serverId);
-					backup(context, true, false, serverId);
+					updateSMSOption(activity, true, serverId);
+					backup(activity, true, false, serverId);
 				}
 			});
 			disablesmsoption.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					// enable or update?
-					updateSMSOption(context, false, serverId);
+					updateSMSOption(activity, false, serverId);
+				}
+			});
+
+			avatar = Setup.getAvatar(activity, DB.myUid(activity, serverId));
+			Button avatarclear = (Button) findViewById(R.id.avatarclear);
+			avatarclear.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					avatar = null;
+					updateAvatarView(activity);
+				}
+			});
+			updateAvatarView(activity);
+			Button avatarphoto = (Button) findViewById(R.id.avatarphoto);
+			avatarphoto.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					Utility.takePhoto(activity);
+				}
+			});
+			Button avatargallery = (Button) findViewById(R.id.avatargallery);
+			avatargallery.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					Utility.selectFromGallery(activity);
+				}
+			});
+			updateavatar = (Button) findViewById(R.id.updateavatar);
+			updateavatar.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					updateAvatar(activity, serverId, avatar);
 				}
 			});
 
@@ -1686,7 +1742,150 @@ public class Setup extends Activity {
 			e.printStackTrace();
 		}
 
-		updateServerImage(context, false, false);
+		updateServerImage(activity, false, false);
+	}
+
+	// ------------------------------------------------------------------------
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onActivityResult(int, int,
+	 * android.content.Intent)
+	 */
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		// To handle when an image is selected from the browser, add the
+		// following
+		// to your Activity
+		if (resultCode == RESULT_OK) {
+			if (requestCode == Utility.SELECT_PICTURE) {
+				boolean ok = false;
+				try {
+					Bitmap bitmap = Utility.getBitmapFromContentUri(this, data.getData());
+					avatar = Utility.getResizedImageAsBASE64String(this,
+							bitmap, 100, 100, 80, true);
+					updateAvatarView(this);
+					ok = true;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				if (!ok) {
+					Utility.showToastInUIThread(this,
+							"Selected file is not a valid image.");
+				}
+			}
+			if (requestCode == Utility.TAKE_PHOTO) {
+				Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+				avatar = Utility.getResizedImageAsBASE64String(this,
+						bitmap, 100, 100, 80, true);
+				updateAvatarView(this);
+			}
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update the avatar if the user has logged in / validate before.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	void updateAvatar(final Context context, final int serverId,
+			final String avatar) {
+		updateavatar.setEnabled(false);
+		setErrorInfo(null);
+
+		String avatarEnc = avatar; //Setup.encLongText(context, avatar, serverId);
+		avatarEnc = Utility.urlEncode(avatarEnc);
+
+		String session = Setup.getTmpLoginEncoded(context, serverId);
+		if (session == null) {
+			setErrorInfo("Session error. Try again after restarting the app.");
+			updateuser.setEnabled(true);
+			// error resume is automatically done by getTmpLogin, not logged in
+			return;
+		}
+
+		String url = null;
+		url = Setup.getBaseURL(context, serverId) + "cmd=updateavatar&session="
+				+ session + "&val=" + avatarEnc;
+		Log.d("communicator", "UPDATE ENC: " + url);
+		final String url2 = url;
+		@SuppressWarnings("unused")
+		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
+				url2, new HttpStringRequest.OnResponseListener() {
+					public void response(String response) {
+						if (Communicator.isResponseValid(response)) {
+							final String response2 = response;
+							if (Communicator.isResponsePositive(response2)) {
+								Setup.saveAvatar(context, DB.myUid(context, serverId), avatar, true);
+							}
+							final Handler mUIHandler = new Handler(
+									Looper.getMainLooper());
+							mUIHandler.post(new Thread() {
+								@Override
+								public void run() {
+									super.run();
+									updateavatar.setEnabled(true);
+									// UPDATE DISPLAY HERE
+									if (Communicator
+											.isResponsePositive(response2)) {
+										// EVERYTHING OK
+										setErrorInfo("Avatar changed.", false);
+									} else {
+										if (response2.equals("-22")) {
+											// email already registered
+											setErrorInfo("Transmission error, please try again.");
+										} else {
+											setErrorInfo("Login failed.");
+											online = false;
+											updateonline();
+										}
+									}
+								}
+							});
+						} else {
+							final Handler mUIHandler = new Handler(Looper
+									.getMainLooper());
+							mUIHandler.post(new Thread() {
+								@Override
+								public void run() {
+									super.run();
+									updateavatar.setEnabled(true);
+									setErrorInfo(
+											"Server error or no internet connection. Try again later.",
+											true);
+								}
+							});
+						}
+					}
+				}));
+
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update avatar if there is a valied one BASE64 encoded in the avatar
+	 * String field.
+	 */
+	private void updateAvatarView(Context context) {
+		ImageView avatarView = (ImageView) findViewById(R.id.avatarimage);
+
+		if (avatar == null || avatar.length() == 0) {
+			avatarView.setImageResource(R.drawable.person);
+		} else {
+			try {
+				Bitmap bitmap = Utility.loadImageFromBASE64String(context,
+						avatar);
+				avatarView.setImageBitmap(bitmap);
+			} catch (Exception e) {
+				avatarView.setImageResource(R.drawable.person);
+				avatar = null;
+			}
+		}
 	}
 
 	// ------------------------------------------------------------------------
@@ -2484,7 +2683,7 @@ public class Setup extends Activity {
 										updateonline();
 										// IF LOGIN IS SUCCESSFULL => ENABLE
 										// SERVER!
-										enableServer(context, true);
+										enableServer(context, true, true);
 
 										setErrorInfo(
 												"Login successfull.\n\nYou can now edit your username, enable sms support, change your password, or backup or restore your user list below.",
@@ -3502,7 +3701,7 @@ public class Setup extends Activity {
 			for (int serverId : getServerIds(context)) {
 				if (Setup.isServerAccount(context, serverId, true)) {
 					Communicator.sendKeyToServer(context, encodedpublicKey,
-							keyHash, serverId);
+							keyHash, serverId, false);
 				}
 			}
 
@@ -3524,7 +3723,7 @@ public class Setup extends Activity {
 	 * @param serverId
 	 *            the server id
 	 */
-	public boolean sendCurrentKeyToServer(Context context, int serverId) {
+	public boolean sendCurrentKeyToServer(Context context, int serverId, boolean silent) {
 		String encodedpublicKey = Utility.loadStringSetting(context,
 				Setup.PUBRSAKEY, null);
 		if (encodedpublicKey == null) {
@@ -3532,7 +3731,7 @@ public class Setup extends Activity {
 		}
 		String keyHash = getPublicKeyHash(context);
 		Communicator.sendKeyToServer(context, encodedpublicKey, keyHash,
-				serverId);
+				serverId, silent);
 		// true == sent
 		return true;
 	}
@@ -5331,7 +5530,65 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Enc text.
+	 * The chunklen must be equivalent to the server a number 0 <= chunklen <=
+	 * 30.
+	 */
+	private static int CHUNKLEN = 30;
+
+	/**
+	 * Enc a long text > 30 chars.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param text
+	 *            the text
+	 * @return the string
+	 */
+	public static String encLongText(Context context, String text, int serverId) {
+		String backText = "";
+		int chunks = (int) Math.ceil(((double)text.length() / (double)CHUNKLEN));
+		for (int c = 0; c < chunks; c++) {
+			int end = (c+1) * CHUNKLEN;
+			if (end >= text.length()) {
+				end = text.length()-1;
+			}
+			String chunk = text.substring(c * CHUNKLEN, end);
+			String chunkEnc = encText(context, chunk, serverId);
+			if (backText.length() > 0) {
+				backText += ";";
+			}
+			backText +=  chunkEnc;
+		}
+		return backText;
+	}
+	
+	// -------------------------------------------------------------------------
+	
+	/**
+	 * Dec long text that had > 30 chars in the decoded version.
+	 *
+	 * @param context the context
+	 * @param text the text
+	 * @param serverId the server id
+	 * @return the string
+	 */
+	public static String decLongText(Context context, String text, int serverId) {
+		String backText = "";
+	    String[] encChunks = text.split(";");
+		for (String encChunk : encChunks) {
+			String chunk = decText(context, encChunk, serverId);
+			if (chunk == null) {
+				return null;
+			}
+			backText += chunk;
+		}
+		return backText;
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Enc text up to 30 chars.
 	 * 
 	 * @param context
 	 *            the context
@@ -6330,7 +6587,7 @@ public class Setup extends Activity {
 	 * @param context
 	 *            the context
 	 */
-	public void enableServer(final Context context, final boolean forceRefresh) {
+	public void enableServer(final Context context, final boolean forceRefresh, final boolean silent) {
 		setServerActive(context, selectedServerId, true);
 
 		// Update the server key / attachment
@@ -6344,7 +6601,7 @@ public class Setup extends Activity {
 		// updateServerkey()!
 		if (isEncryptionEnabled(context)
 				&& isServerActive(context, selectedServerId, forceRefresh)) {
-			sendCurrentKeyToServer(context, selectedServerId);
+			sendCurrentKeyToServer(context, selectedServerId, silent);
 		}
 
 		updateServerImage(context, true, forceRefresh);
@@ -6370,5 +6627,167 @@ public class Setup extends Activity {
 	}
 
 	// ------------------------------------------------------------------------
+
+	/**
+	 * Checks if is update avatar.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return true, if is update avatar
+	 */
+	public static boolean isUpdateAvatar(Context context, int uid) {
+		// Only update registered users where the option [x] autoupdate is set!
+		// OR if this avatar was NOT manually edited (meaning it came from
+		// the server --> then we want for example to delete/update it
+		return (uid >= 0 && (Utility.loadBooleanSetting(context,
+				Setup.SETTINGS_UPDATEAVATAR + uid,
+				Setup.SETTINGS_DEFAULT_UPDATEAVATAR) || !Setup
+				.isAvatarModified(context, uid)));
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Sets the update avatar.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param automaticUpdate
+	 *            the automatic update
+	 */
+	public static void setUpdateAvatar(Context context, int uid,
+			boolean automaticUpdate) {
+		Utility.saveBooleanSetting(context, Setup.SETTINGS_UPDATEAVATAR + uid,
+				automaticUpdate);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Save avatar is modified.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param isModified
+	 *            the is modified
+	 */
+	public static void saveAvatarIsModified(Context context, int uid,
+			boolean isModified) {
+		Utility.saveBooleanSetting(context, Setup.SETTINGS_AVATARISMODIFIED
+				+ uid, isModified);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Checks if is avatar modified.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return true, if is avatar modified
+	 */
+	public static boolean isAvatarModified(Context context, int uid) {
+		// for NOT registered users this is always true!
+		if (uid < 0) {
+			return true;
+		}
+		return Utility.loadBooleanSetting(context,
+				Setup.SETTINGS_AVATARISMODIFIED + uid, false);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Save avatar.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param avatar
+	 *            the avatar
+	 * @param manual
+	 *            the manual
+	 */
+	public static void saveAvatar(Context context, int uid, String avatar,
+			boolean manual) {
+		if (!manual) {
+			// this avatar comes from the server...
+			saveAvatarIsModified(context, uid, false);
+		} else {
+			// this avatar was entered manually in the user details dialog
+			saveAvatarIsModified(context, uid, true);
+		}
+		Utility.saveStringSetting(context, Setup.AVATAR + uid, avatar);
+		avatars.clear();
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the avatar.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the avatar
+	 */
+	public static String getAvatar(Context context, int uid) {
+		return Utility.loadStringSetting(context, Setup.AVATAR + uid, null);
+	}
+
+	// -------------------------------------------------------------------------
+
+	static HashMap<Integer, Bitmap> avatars = new HashMap<Integer, Bitmap>();
+	
+	/**
+	 * Gets the avatar.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the avatar
+	 */
+	public static Bitmap getAvatarAsBitmap(Context context, int uid) {
+		if (!avatars.containsKey(uid)) {
+			String avatar = getAvatar(context, uid);
+			if (avatar == null) {
+				avatars.put(uid, null);
+			} else {
+				Bitmap bitmap = Utility.loadImageFromBASE64String(context,
+						avatar);
+				avatars.put(uid, bitmap);
+			}
+		}
+		return avatars.get(uid);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Have avatar.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return true, if successful
+	 */
+	public static boolean haveAvatar(Context context, int uid) {
+		String avatar = getAvatar(context, uid);
+		return (avatar != null && avatar.length() > 0);
+	}
+
+	// -------------------------------------------------------------------------
 
 }

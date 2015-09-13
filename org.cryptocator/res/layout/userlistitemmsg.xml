@@ -13,7 +13,7 @@
                 android:id="@+id/personicon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/personmsg"
+                android:src="@drawable/person"
 	            android:layout_marginTop="10px"
 	            android:layout_marginBottom="10px"
                 android:layout_marginLeft="20px"

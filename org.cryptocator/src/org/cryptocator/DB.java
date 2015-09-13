@@ -2171,8 +2171,9 @@ public class DB {
 		}
 
 		try {
-			final String YESTERDAY = (DB.getTimestamp() - 60 * 1000 * 60 * 24)
-					+ "";
+			// final String YESTERDAY = (DB.getTimestamp() - 60 * 1000 * 60 *
+			// 24)
+			// + "";
 
 			String QUERY = "SELECT `localid`, `mid`, `fromuid`, `touid`, `text`, `created`, `sent`, `received` , `read`, `revoked`, `encrypted`, `transport`, `system`, `part`, `parts`, `multipartid` FROM `"
 					+ TABLE_MESSAGES

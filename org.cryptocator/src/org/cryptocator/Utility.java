@@ -45,6 +45,7 @@ package org.cryptocator;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -84,6 +85,7 @@ import android.app.KeyguardManager;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -1879,6 +1881,37 @@ public class Utility {
 	}
 
 	// -------------------------------------------------------------------------
+	
+	/**
+	 * Gets the resized image as BASE64 string.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param attachmentPath
+	 *            the attachment path
+	 * @param maxWidth
+	 *            the max width
+	 * @param maxHeight
+	 *            the max height
+	 * @param quality
+	 *            the quality
+	 * @return the resized image as bas e64 string
+	 */
+	public static String getResizedImageAsBASE64String(Context context,
+			Bitmap bitmap, int maxWidth, int maxHeight, int quality, boolean clipped) {
+		// byte[] bytes = Utility.getFile(attachmentPath);
+		// Bitmap bitmap = Utility.getBitmapFromBytes(bytes);
+		Bitmap resizedBitmap = Utility.getResizedImage(bitmap, maxWidth,
+				maxHeight, false, clipped);
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		resizedBitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
+		byte[] byteArray = stream.toByteArray();
+		String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
+		return encoded;
+	}
+
+
+	// -------------------------------------------------------------------------
 
 	/**
 	 * Reads a file and encodes the bytes with BASE64 for transmission.
@@ -2036,7 +2069,7 @@ public class Utility {
 	 * @return the resized image
 	 */
 	public static Bitmap getResizedImage(Bitmap bitmap, int maxWidth,
-			int maxHeight, boolean deleteSource) {
+			int maxHeight, boolean deleteSource, boolean clipped) {
 		int bitmapWidth = bitmap.getWidth();
 		int bitmapHeight = bitmap.getHeight();
 		int newWidth = bitmapWidth;
@@ -2047,7 +2080,12 @@ public class Utility {
 		Log.d("communicator", "RESIZE: bmpW=" + bitmapWidth + ", bmpH="
 				+ bitmapHeight);
 
-		if (bitmapWidth > bitmapHeight) {
+		boolean landscape = bitmapWidth > bitmapHeight;
+		if (clipped) {
+			landscape = !landscape;
+		}
+		
+		if (landscape) {
 			// Log.d("communicator", "RESIZE Landscape: bitmapWidth="
 			// + bitmapWidth + " >? " + maxWidth + "=maxWidth");
 			// Landscape
@@ -2083,10 +2121,24 @@ public class Utility {
 				+ newHeight + "=newHeight");
 		Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, newWidth,
 				newHeight, true);
+
 		if (deleteSource) {
 			bitmap.recycle();
 			System.gc();
 		}
+
+		if (clipped) {
+			Bitmap clippedBitmap = Bitmap.createBitmap(scaledBitmap, ((newWidth-maxWidth)/2),  ((newHeight-maxHeight)/2), maxWidth, maxHeight);
+			
+			Log.d("communicator", "RESIZE RESULT2: width=" + clippedBitmap.getWidth() + ", height="
+					+ clippedBitmap.getHeight());
+
+			
+			scaledBitmap.recycle();
+			System.gc();
+			return clippedBitmap;
+		}
+		
 		return scaledBitmap;
 	}
 
@@ -2342,6 +2394,54 @@ public class Utility {
 		int lenKB = (int) Math.ceil(((double) lengthInBytes) / 100);
 		float lenKB2 = ((float) lenKB) / 10;
 		return lenKB2 + "";
+	}
+
+	// -------------------------------------------------------------------------
+
+	public static final int SELECT_PICTURE = 1;
+	public static final int TAKE_PHOTO = 2;
+	public static final int PHONE_BOOK = 3;
+
+	/**
+	 * Take photo.
+	 * 
+	 * @param activity
+	 *            the activity
+	 */
+	public static void takePhoto(Activity activity) {
+		if (!Utility.isCameraAvailable(activity)) {
+			Utility.showToastAsync(activity, "No camera available.");
+			return;
+		}
+		Intent cameraIntent = new Intent(
+				android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+		activity.startActivityForResult(cameraIntent, TAKE_PHOTO);
+	}
+	
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Select attachment.
+	 * 
+	 * @param activity
+	 *            the activity
+	 */
+	public static void selectFromGallery(Activity activity) {
+		Intent intent = new Intent();
+		if (Build.VERSION.SDK_INT >= 19) {
+			intent.setType("image/*");
+			intent.setAction(Intent.ACTION_GET_CONTENT);
+			activity.startActivityForResult(
+					Intent.createChooser(intent, "Select Attachment"),
+					Utility.SELECT_PICTURE);
+
+		} else {
+			intent.setType("image/*");
+			intent.setAction(Intent.ACTION_PICK);
+			activity.startActivityForResult(
+					Intent.createChooser(intent, "Select Attachment"),
+					Utility.SELECT_PICTURE);
+		}
 	}
 
 	// -------------------------------------------------------------------------

@@ -452,7 +452,7 @@ public class PictureImportActivity extends Activity {
 		// byte[] bytes = Utility.getFile(attachmentPath);
 		// Bitmap bitmap = Utility.getBitmapFromBytes(bytes);
 		Bitmap resizedBitmap = Utility.getResizedImage(bitmap, maxWidth,
-				maxHeight, false);
+				maxHeight, false, false);
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		resizedBitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
 		byte[] byteArray = stream.toByteArray();
@@ -461,35 +461,6 @@ public class PictureImportActivity extends Activity {
 		return drawable;
 	}
 
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Gets the resized image as BASE64 string.
-	 * 
-	 * @param context
-	 *            the context
-	 * @param attachmentPath
-	 *            the attachment path
-	 * @param maxWidth
-	 *            the max width
-	 * @param maxHeight
-	 *            the max height
-	 * @param quality
-	 *            the quality
-	 * @return the resized image as bas e64 string
-	 */
-	public static String getResizedImageAsBASE64String(Context context,
-			Bitmap bitmap, int maxWidth, int maxHeight, int quality) {
-		// byte[] bytes = Utility.getFile(attachmentPath);
-		// Bitmap bitmap = Utility.getBitmapFromBytes(bytes);
-		Bitmap resizedBitmap = Utility.getResizedImage(bitmap, maxWidth,
-				maxHeight, false);
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		resizedBitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
-		byte[] byteArray = stream.toByteArray();
-		String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
-		return encoded;
-	}
 
 	// ------------------------------------------------------------------------
 
@@ -497,8 +468,8 @@ public class PictureImportActivity extends Activity {
 	 * Update temporary result.
 	 */
 	private void updateTemporaryResult() {
-		result = getResizedImageAsBASE64String(this, attachmentBitmap,
-				selectedSize, selectedSize, selectedQuality).replace("\n", "")
+		result = Utility.getResizedImageAsBASE64String(this, attachmentBitmap,
+				selectedSize, selectedSize, selectedQuality, false).replace("\n", "")
 				.replace("\r", "");
 		int len = result.length();
 		int sms = len / Setup.SMS_DEFAULT_SIZE;

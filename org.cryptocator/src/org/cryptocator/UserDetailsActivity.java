@@ -49,6 +49,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -66,6 +67,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -85,6 +87,18 @@ public class UserDetailsActivity extends Activity {
 
 	/** The hidden phone text. */
 	public static String HIDDENPHONETEXT = "[ from server ]";
+
+	/** The avatar. */
+	String avatar;
+
+	/** The avatar changed. */
+	boolean avatarChanged = false;
+
+	/** The avatar view. */
+	ImageButton avatarView;
+
+	/** The avatar check. */
+	CheckBox avatarCheck;
 
 	/** The name. */
 	EditText name;
@@ -150,6 +164,10 @@ public class UserDetailsActivity extends Activity {
 				LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.WRAP_CONTENT);
 		lpTextTitle.setMargins(20, 20, 20, 20);
+		LinearLayout.LayoutParams lpTextTitle2 = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.MATCH_PARENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		lpTextTitle2.setMargins(20, 0, 20, 20);
 
 		LinearLayout.LayoutParams lpSectionInnerLeft = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -172,6 +190,12 @@ public class UserDetailsActivity extends Activity {
 		details.setLayoutParams(lpTextTitle);
 		details.setTextSize(16);
 		details.setTextColor(Color.WHITE);
+
+		TextView details2 = new TextView(context);
+		details2.setText("THis is some example information....\nAfter new line\nAnothern ew line");
+		details2.setLayoutParams(lpTextTitle2);
+		details2.setTextSize(16);
+		details2.setTextColor(Color.WHITE);
 
 		TextView detailsName = new TextView(context);
 		detailsName.setText("Display Name: ");
@@ -241,7 +265,7 @@ public class UserDetailsActivity extends Activity {
 			public void onClick(View v) {
 				Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 				intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
-				startActivityForResult(intent, 1);
+				startActivityForResult(intent, Utility.PHONE_BOOK);
 			}
 		});
 
@@ -274,6 +298,45 @@ public class UserDetailsActivity extends Activity {
 			}
 		});
 
+		LinearLayout imageAndDetailsLayout = new LinearLayout(context);
+		imageAndDetailsLayout.setOrientation(LinearLayout.HORIZONTAL);
+		imageAndDetailsLayout.setGravity(Gravity.TOP);
+		//imageAndDetailsLayout.setBackgroundColor(Color.CYAN);
+
+		LinearLayout imageLayout = new LinearLayout(context);
+		//imageLayout.setBackgroundColor(Color.GREEN);
+		imageLayout.setGravity(Gravity.TOP);
+		imageLayout.setOrientation(LinearLayout.VERTICAL);
+
+		LinearLayout.LayoutParams lpAvatarView = new LinearLayout.LayoutParams(
+				140, 140);
+		lpAvatarView.setMargins(20, 5, 20, 5);
+		avatarView = new ImageButton(context);
+		avatarView.setLayoutParams(lpAvatarView);
+		avatarView.setClickable(true);
+		avatarView.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				promptSelectAvatar(activity);
+			}
+		});
+		avatar = Setup.getAvatar(context, uid);
+		updateAvatarView(context);
+
+		LinearLayout.LayoutParams lpAvatarCheck = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.WRAP_CONTENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		lpAvatarCheck.setMargins(20, 0, 10, 20);
+		avatarCheck = new CheckBox(context);
+		avatarCheck.setLayoutParams(lpAvatarCheck);
+		avatarCheck.setText("Auto Update");
+		avatarCheck.setChecked(Setup.isUpdateAvatar(context, uid));
+
+		imageLayout.addView(avatarView);
+		imageLayout.addView(avatarCheck);
+
+		imageAndDetailsLayout.addView(imageLayout);
+		imageAndDetailsLayout.addView(details2);
+
 		LinearLayout keyLayout = new LinearLayout(context);
 		keyLayout.setOrientation(LinearLayout.HORIZONTAL);
 		keyLayout.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -295,6 +358,7 @@ public class UserDetailsActivity extends Activity {
 		outerLayout.addView(layout);
 
 		layout.addView(details);
+		layout.addView(imageAndDetailsLayout);
 		layout.addView(nameLayout);
 		layout.addView(phoneLayout);
 		layout.addView(keyLayout);
@@ -379,11 +443,10 @@ public class UserDetailsActivity extends Activity {
 		okButton.setText("   Save   ");
 		okButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				if (!phone
-						.getText()
-						.toString()
-						.equals(Setup
-								.normalizePhone(phone.getText().toString()))) {
+				String phoneString = phone.getText().toString();
+				if (!phoneString.equals(HIDDENPHONETEXT)
+						&& !phoneString.equals(Setup
+								.normalizePhone(phoneString))) {
 					phone.setText(Setup.normalizePhone(phone.getText()
 							.toString()));
 				} else {
@@ -420,37 +483,39 @@ public class UserDetailsActivity extends Activity {
 
 		// DATA
 		String text = "";
+		String text2 = "";
 		if (uid >= 0) {
 			int serverId = Setup.getServerId(context, uid);
 			int suid = Setup.getSUid(context, uid);
 			text += "Message Server: "
 					+ Setup.getServerLabel(context, serverId, true) + "\n\n";
-			text += "UID Server: " + suid + "\n";
+			text2 += "UID Server: " + suid + "\n\n";
 			text += "Account Key: " + Setup.getKeyHash(context, suid) + "\n";
 			text += "Valid Since: "
 					+ DB.getDateString(Utility.parseLong(
 							Setup.getKeyDate(context, suid), 0), true) + "\n\n";
 		}
-		text += "Local Database: " + uid + ".db\n\n";
+		text += "Local Database: " + uid + ".db";
 
 		if (uid >= 0) {
-			text += "Registered user\n";
+			text2 += "Registered user\n";
 		} else {
-			text += "External SMS contact\n";
+			text2 += "External SMS contact\n";
 		}
 
 		if (Setup.haveKey(context, uid)) {
-			text += "Encryption available\n";
+			text2 += "Encryption available\n";
 		} else {
-			text += "No encryption available\n";
+			text2 += "No encryption available\n";
 		}
 
 		if (Setup.havePhone(context, uid)) {
-			text += "SMS sending available";
+			text2 += "SMS sending available";
 		} else {
-			text += "No SMS sending available";
+			text2 += "No SMS sending available";
 		}
 		details.setText(text);
+		details2.setText(text2);
 
 		key.setText(Setup.getKeyHash(context, uid));
 
@@ -574,8 +639,14 @@ public class UserDetailsActivity extends Activity {
 	 *            the context
 	 */
 	private void save(Context context) {
-
-		String newPhone = Setup.normalizePhone(phone.getText().toString());
+		if (avatarChanged) {
+			Setup.saveAvatar(context, uid, avatar, true);
+		}
+		String phoneString = phone.getText().toString();
+		String newPhone = phoneString;
+		if (!newPhone.equals(HIDDENPHONETEXT)) {
+			newPhone = Setup.normalizePhone(phoneString);
+		}
 		if (!newPhone.equals(HIDDENPHONETEXT)) {
 			// the phone number has been manually edited, so we can now flag it
 			// as manually edited and show it next time
@@ -583,6 +654,7 @@ public class UserDetailsActivity extends Activity {
 			Setup.savePhone(context, uid, newPhone, true);
 		}
 		Main.saveUID2Name(context, uid, name.getText().toString());
+		Setup.setUpdateAvatar(context, uid, avatarCheck.isChecked());
 		Main.setUpdateName(context, uid, nameCheck.isChecked());
 		Main.setUpdatePhone(context, uid, phoneCheck.isChecked());
 	}
@@ -600,8 +672,36 @@ public class UserDetailsActivity extends Activity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 
-		if (requestCode == 1) {
-			if (resultCode == RESULT_OK) {
+		// To handle when an image is selected from the browser, add the
+		// following
+		// to your Activity
+		if (resultCode == RESULT_OK) {
+			if (requestCode == Utility.SELECT_PICTURE) {
+				boolean ok = false;
+				try {
+					Bitmap bitmap = Utility.getBitmapFromContentUri(this,
+							data.getData());
+					avatar = Utility.getResizedImageAsBASE64String(this,
+							bitmap, 100, 100, 80, true);
+					avatarChanged = true;
+					updateAvatarView(this);
+					ok = true;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				if (!ok) {
+					Utility.showToastInUIThread(this,
+							"Selected file is not a valid image.");
+				}
+			}
+			if (requestCode == Utility.TAKE_PHOTO) {
+				Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+				avatar = Utility.getResizedImageAsBASE64String(this, bitmap,
+						100, 100, 80, true);
+				updateAvatarView(this);
+				avatarChanged = true;
+			}
+			if (requestCode == Utility.PHONE_BOOK) {
 				Uri contactData = data.getData();
 				Cursor cursor = managedQuery(contactData, null, null, null,
 						null);
@@ -620,6 +720,106 @@ public class UserDetailsActivity extends Activity {
 				this.phone.setText(Setup.normalizePhone(phone));
 			}
 		}
+
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Update avatar if there is a valied one BASE64 encoded in the avatar
+	 * String field.
+	 */
+	private void updateAvatarView(Context context) {
+		if (avatar == null || avatar.length() == 0) {
+			if (uid < 0) {
+				avatarView.setImageResource(R.drawable.personsms);
+			} else {
+				avatarView.setImageResource(R.drawable.person);
+			}
+		} else {
+			try {
+				Bitmap bitmap = Utility.loadImageFromBASE64String(context,
+						avatar);
+				avatarView.setImageBitmap(bitmap);
+			} catch (Exception e) {
+				avatarView.setImageResource(R.drawable.person);
+				avatar = null;
+			}
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Prompt the user to import a picture from gallery or take a fresh photo.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	public void promptSelectAvatar(final Activity activity) {
+		String title = "Select Avatar";
+		String text = "Do you want to import an image from the gallery or take a new photo?";
+
+		new MessageAlertDialog(activity, title, text, null, null, " Cancel ",
+				new MessageAlertDialog.OnSelectionListener() {
+					public void selected(int button, boolean cancel) {
+						// Nothing
+					}
+				}, new MessageAlertDialog.OnInnerViewProvider() {
+
+					public View provide(final MessageAlertDialog dialog) {
+						LinearLayout buttonLayout = new LinearLayout(activity);
+						buttonLayout.setOrientation(LinearLayout.HORIZONTAL);
+						buttonLayout.setGravity(Gravity.CENTER_HORIZONTAL);
+
+						LinearLayout.LayoutParams lpButtons = new LinearLayout.LayoutParams(
+								150, 140);
+						lpButtons.setMargins(5, 20, 5, 20);
+
+						ImageLabelButton galleryButton = new ImageLabelButton(
+								activity);
+						galleryButton.setTextAndImageResource("Gallery",
+								R.drawable.pictureimport);
+						galleryButton.setLayoutParams(lpButtons);
+						galleryButton
+								.setOnClickListener(new View.OnClickListener() {
+									public void onClick(View v) {
+										Utility.selectFromGallery(activity);
+										dialog.dismiss();
+									}
+								});
+						ImageLabelButton photoButton = new ImageLabelButton(
+								activity);
+						photoButton.setTextAndImageResource("Take Photo",
+								R.drawable.photobtn);
+						photoButton.setLayoutParams(lpButtons);
+						photoButton
+								.setOnClickListener(new View.OnClickListener() {
+									public void onClick(View v) {
+										Utility.takePhoto(activity);
+										dialog.dismiss();
+									}
+								});
+						ImageLabelButton clearButton = new ImageLabelButton(
+								activity);
+						clearButton.setTextAndImageResource("Clear",
+								R.drawable.btnclear);
+						clearButton.setLayoutParams(lpButtons);
+						clearButton
+								.setOnClickListener(new View.OnClickListener() {
+									public void onClick(View v) {
+										avatar = null;
+										updateAvatarView(activity);
+										avatarChanged = true;
+										dialog.dismiss();
+									}
+								});
+						buttonLayout.addView(galleryButton);
+						buttonLayout.addView(photoButton);
+						buttonLayout.addView(clearButton);
+						return buttonLayout;
+					}
+				}).show();
 	}
 
 	// ------------------------------------------------------------------------

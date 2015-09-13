@@ -154,16 +154,14 @@
                 android:textSize="12sp" >
             </TextView>
 
-            
-                        <LinearLayout
+            <LinearLayout
                 android:id="@+id/ownaccountkey"
-        android:layout_width="220px"
-            android:layout_marginTop="20px"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:orientation="vertical" />
-                        
-                        
+                android:layout_width="220px"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="20px"
+                android:orientation="vertical" />
+
             <LinearLayout
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
@@ -397,6 +395,96 @@
                     android:layout_gravity="center_horizontal"
                     android:text=" Disable SMS " />
             </LinearLayout>
+
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="20px"
+                android:layout_marginLeft="20px"
+                android:layout_marginRight="20px"
+                android:layout_marginTop="20px"
+                android:background="@android:color/darker_gray" />
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="60px"
+                android:layout_marginRight="20px"
+                android:layout_marginTop="20px"
+                android:layout_marginBottom="20px"
+                android:layout_weight="0.05"
+                android:clickable="true"
+                android:text="You can freely change your avatar here. This is a 100x100 pixel graphics."
+                android:textSize="12sp" >
+            </TextView>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="0.02"
+                android:orientation="horizontal" >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="20px"
+                    android:text=" Avatar: "
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:textSize="16sp" >
+                </TextView>
+
+                <ImageView
+                     android:layout_marginBottom="20px"
+                    android:layout_marginTop="20px"
+                    android:layout_marginLeft="40px"
+                    android:layout_marginRight="40px"
+                    android:id="@+id/avatarimage"
+                    android:layout_width="100px"
+                    android:layout_height="100px"
+                    android:src="@drawable/person" />
+
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_weight="0.02"
+                    android:orientation="vertical" >
+
+                    <Button
+                        android:id="@+id/avatarclear"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginTop="2px"
+                        android:text=" Clear " />
+
+                    <Button
+                        android:id="@+id/avatargallery"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1px"
+                        android:layout_marginTop="1px"
+                        android:text=" Gallery " />
+
+                    <Button
+                        android:id="@+id/avatarphoto"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="2px"
+                        android:layout_marginTop="1px"
+                        android:text=" Photo " />
+                </LinearLayout>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/updateavatar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="20px"
+                android:layout_marginTop="20px"
+                android:text="   Update Avatar   " />
 
             <View
                 android:layout_width="fill_parent"

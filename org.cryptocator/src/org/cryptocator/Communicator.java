@@ -2078,7 +2078,7 @@ public class Communicator {
 	 *            the keyhash
 	 */
 	public static void sendKeyToServer(final Context context, final String key,
-			final String keyhash, final int serverId) {
+			final String keyhash, final int serverId, final boolean silent) {
 		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			// Error resume is automatically done by getTmpLogin, not logged in
@@ -2113,13 +2113,15 @@ public class Communicator {
 							}
 						}
 						if (success) {
-							Utility.showToastAsync(
-									context,
-									"New account key "
-											+ keyhash
-											+ " sent to "
-											+ Setup.getServerLabel(context,
-													serverId, true) + ".");
+							if (!silent) {
+								Utility.showToastAsync(
+										context,
+										"Account key "
+												+ keyhash
+												+ " sent to "
+												+ Setup.getServerLabel(context,
+														serverId, true) + ".");
+							}
 						} else {
 							Utility.showToastAsync(
 									context,
@@ -2520,6 +2522,135 @@ public class Communicator {
 				}));
 	}
 
+	
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Update pictures from server.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uidList
+	 *            the uid list
+	 * @param forceUpdate
+	 *            the force update
+	 */
+	public static void updateAvatarFromServer(final Context context,
+			final List<Integer> uidList, final boolean forceUpdate,
+			final int serverId) {
+		Log.d("communicator", "###### REQUEST HAS AVATAR #1");
+
+		long lastTime = Utility.loadLongSetting(context,
+				Setup.SETTING_LASTUPDATEAVATAR + serverId, 0);
+		long currentTime = DB.getTimestamp();
+		if (!Setup.isSMSOptionEnabled(context, serverId)) {
+			// if no sms option is enabled, then do not retrieve keys!
+			return;
+		}
+		if (!forceUpdate
+				&& (lastTime + Setup.UPDATE_AVATAR_MIN_INTERVAL + serverId > currentTime)) {
+			// Do not do this more frequently
+			return;
+		}
+		Utility.saveLongSetting(context, Setup.SETTING_LASTUPDATEAVATAR
+				+ serverId, currentTime);
+
+		String uidliststring = "";
+		final ArrayList<Integer> uidListUsed = new ArrayList<Integer>();
+		for (int uid : uidList) {
+			// not do this of fake UIDs (sms-only users!) or if this user is not
+			// from THIS server
+			if (uid > 0) {
+				if (Setup.getServerId(context, uid) == serverId) {
+					int suid = Setup.getSUid(context, uid);
+					uidListUsed.add(uid);
+					if (uidliststring.length() != 0) {
+						uidliststring += "#";
+					}
+					uidliststring += Setup.encUid(context, suid, serverId);
+				}
+			}
+		}
+		if (uidliststring.equals("")) {
+			return;
+		}
+
+		String session = Setup.getTmpLoginEncoded(context, serverId);
+		if (session == null) {
+			// error resume is automatically done by getTmpLogin, not logged in
+			return;
+		}
+
+		String url = null;
+		url = Setup.getBaseURL(context, serverId) + "cmd=hasavatar&session="
+				+ session + "&val=" + Utility.urlEncode(uidliststring);
+
+		// Log.d("communicator", "###### REQUEST HAS AVATAR (" + uidliststring
+		// + ") " + url);
+
+		final String url2 = url;
+		@SuppressWarnings("unused")
+		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
+				url2, new HttpStringRequest.OnResponseListener() {
+					public void response(String response) {
+						if (isResponseValid(response)) {
+							// Log.d("communicator",
+							// "###### HAS AVATAR VALUES RECEIVED!!! response="
+							// + response);
+							if (isResponsePositive(response)) {
+								String responseContent = getResponseContent(response);
+								List<String> values = Utility
+										.getListFromString(responseContent, "#");
+								if (values.size() > 0) {
+									int index = 0;
+									for (String value : values) {
+										if (uidListUsed.size() > index) {
+											int uid = uidListUsed.get(index);
+											if (value.equals("-1")) {
+												// no phone number or not
+												// elibale
+												// the other person needs to
+												// have you in his userlist in
+												// order
+												// to legitimate you to download
+												// his phone number! this is
+												// a strong privacy requirement
+												if (Main.isUpdatePhone(context,
+														uid)) {
+													Setup.savePhone(context,
+															uid, "", false);
+												}
+											} else {
+												// we are allowed to add this
+												// telephone number locally
+												value = Setup.decText(context,
+														value, serverId);
+												if (value != null) {
+													boolean isUpdate = Main
+															.isUpdatePhone(
+																	context,
+																	uid);
+													if (isUpdate) {
+														Setup.savePhone(
+																context, uid,
+																value, false);
+													}
+												}
+												// Log.d("communicator",
+												// "###### RESPONSE HAS PHONE SAVE FOR "+Main.UID2Name(context,
+												// uid, false)+": "
+												// + value);
+											}
+										}
+										index++;
+									}
+								}
+							}
+						}
+					}
+				}));
+	}
+	
 	// -------------------------------------------------------------------------
 
 	/**

@@ -43,6 +43,7 @@
 package org.cryptocator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -54,7 +55,12 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -146,6 +152,14 @@ public class Main extends Activity {
 	/** The image context menu provider for the account menu. */
 	private ImageContextMenuProvider imageAccountMenuProvider = null;
 
+	static Bitmap bitmap_master = null;
+	static Bitmap bitmap_barlock = null;
+	static Bitmap bitmap_msg = null;
+	static Bitmap bitmap_bar = null;
+	static Bitmap bitmap_barsms = null;
+	static Bitmap bitmap_person = null;
+	static Bitmap bitmap_personsms = null;
+
 	/**
 	 * The skips ONE resume. Necessary for the add user context menu call
 	 * because we do not want to rebuild the user list if we show the add user
@@ -220,6 +234,23 @@ public class Main extends Activity {
 		Main.visible = true;
 		instance = this;
 		context = this;
+
+		if (bitmap_master == null) {
+			bitmap_master = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.persongenericmaster);
+			bitmap_barlock = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.persongenericbarlock);
+			bitmap_msg = BitmapFactory.decodeResource(context.getResources(),
+					R.drawable.persongenericmsg);
+			bitmap_bar = BitmapFactory.decodeResource(context.getResources(),
+					R.drawable.persongenericbar);
+			bitmap_barsms = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.persongenericbarsms);
+			bitmap_person = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.person);
+			bitmap_personsms = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.personsms);
+		}
 
 		// Possibly create the context menu
 		createContextMenu(context);
@@ -1103,28 +1134,58 @@ public class Main extends Activity {
 		ImageView personicon = (ImageView) userlistitemtmp
 				.findViewById(R.id.personicon);
 
+		LinearLayout personiconback = (LinearLayout) userlistitemtmp
+				.findViewById(R.id.personiconback);
+
 		boolean haveKey = Setup.haveKey(context, uid);
-		if (Communicator.getNotificationCount(context, uid) > 0) {
-			userlistitemtmp = inflater.inflate(R.layout.userlistitemmsg, null);
-			if (haveKey) {
-				personicon.setImageResource(R.drawable.personlockmsg);
-			} else {
-				personicon.setImageResource(R.drawable.personmsg);
-			}
+		boolean haveMessages = Communicator.getNotificationCount(context, uid) > 0;
+		boolean isRegistered = uid >= 0;
+
+		if (isRegistered) {
+			personiconback.setBackgroundResource(R.drawable.persongenericbar);
 		} else {
-			if (haveKey) {
-				personicon.setImageResource(R.drawable.personlock);
-			} else {
-				personicon.setImageResource(R.drawable.person);
-			}
+			personiconback
+					.setBackgroundResource(R.drawable.persongenericbarsms);
 		}
-		if (uid < 0) {
-			if (Communicator.getNotificationCount(context, uid) > 0) {
-				personicon.setImageResource(R.drawable.personsmsmsg);
-			} else {
-				personicon.setImageResource(R.drawable.personsms);
-			}
-		}
+
+		String keyHash = Setup.getKeyHash(context, uid);
+
+		Bitmap bitmap = retrieveUserListImage(context, uid, keyHash,
+				isRegistered, haveKey, haveMessages);
+
+		personicon.setImageBitmap(bitmap);
+
+		// } else {
+		// // We do not have a special avatar, use the default
+		// if (haveMessages) {
+		// userlistitemtmp = inflater.inflate(R.layout.userlistitemmsg,
+		// null);
+		// if (haveKey) {
+		// personicon.setImageResource(R.drawable.personlockmsg);
+		// } else {
+		// personicon.setImageResource(R.drawable.personmsg);
+		// }
+		// } else {
+		// if (haveKey) {
+		// personicon.setImageResource(R.drawable.personlock);
+		// } else {
+		// personicon.setImageResource(R.drawable.personunlock);
+		// }
+		// }
+		// if (!isRegistered) {
+		// if (haveMessages) {
+		// personicon.setImageResource(R.drawable.personsmsmsg);
+		// } else {
+		// personicon.setImageResource(R.drawable.personunlocksms);
+		// }
+		// }
+		// }
+
+		LinearLayout.LayoutParams lpAvatar = new LinearLayout.LayoutParams(120,
+				100);
+		lpAvatar.setMargins(0, 0, 10, 0);
+		personicon.setLayoutParams(lpAvatar);
+
 		// Make it final
 		final View userlistitem = userlistitemtmp;
 
@@ -1222,6 +1283,100 @@ public class Main extends Activity {
 	}
 
 	// ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+
+	private static HashMap<String, Bitmap> userListImageCache = new HashMap<String, Bitmap>();
+
+	/**
+	 * Retrieve user list image either create it freshly or take it from the
+	 * cache for faster processing.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param keyHash
+	 *            the key hash
+	 * @param isRegistered
+	 *            the is registered
+	 * @param haveKey
+	 *            the have key
+	 * @param haveMessages
+	 *            the have messages
+	 * @return the bitmap
+	 */
+	public static Bitmap retrieveUserListImage(Context context, int uid,
+			String keyHash, boolean isRegistered, boolean haveKey,
+			boolean haveMessages) {
+
+		String id = uid + keyHash + isRegistered + haveKey + haveMessages;
+		if (!userListImageCache.containsKey(id)) {
+
+			Bitmap avatar = Setup.getAvatarAsBitmap(context, uid);
+
+			Bitmap bitmap = null;
+			Bitmap marker = null;
+
+			if (isRegistered) {
+				if (haveKey) {
+					marker = bitmap_barlock;
+				} else {
+					marker = bitmap_bar;
+				}
+			} else {
+				marker = bitmap_barsms;
+			}
+			bitmap = Bitmap.createBitmap(bitmap_master);
+
+			bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+			Canvas canvas = new Canvas(bitmap);
+			Rect src = new Rect();
+			src.left = 0;
+			src.top = 0;
+			src.bottom = 100;
+			src.right = 100;
+			Rect dst = new Rect();
+			dst.left = 35;
+			dst.top = 0;
+			dst.bottom = 120;
+			dst.right = 155;
+
+			if (avatar != null) {
+				canvas.drawBitmap(avatar, src, dst, null);
+			} else {
+				dst.left = 52;
+				dst.top = 15;
+				dst.bottom = 140;
+				dst.right = 170;
+				if (isRegistered) {
+					canvas.drawBitmap(bitmap_person, src, dst, null);
+				} else {
+					canvas.drawBitmap(bitmap_personsms, src, dst, null);
+				}
+			}
+			canvas.drawBitmap(marker, 4, 0, null);
+
+			// if lock then draw key hash
+			if (haveKey) {
+				Paint paint = new Paint();
+				paint.setColor(Color.parseColor("#FF4377B2"));
+				paint.setTextSize(22);
+				paint.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+				canvas.save();
+				canvas.rotate(-90, 25, 60);
+				canvas.drawText(keyHash, 25, 60, paint);
+				canvas.restore();
+			}
+
+			if (haveMessages) {
+				canvas.drawBitmap(bitmap_msg, 5, 20, null);
+			}
+			userListImageCache.put(id, bitmap);
+
+		}
+		return userListImageCache.get(id);
+	}
+
 	// ------------------------------------------------------------------------
 
 	/**
@@ -1711,6 +1866,38 @@ public class Main extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
+	 * Gets the phone for a user.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return the phone
+	 */
+	public static String getPhone(Context context, int uid) {
+		return Utility.loadStringSetting(context, Setup.PHONE + uid, null);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Have phone for a user.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @return true, if successful
+	 */
+	public static boolean havePhone(Context context, int uid) {
+		String phone = getPhone(context, uid);
+		return (phone != null && phone.length() > 0);
+	}
+
+	// ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+
+	/**
 	 * Save ui d2 name.
 	 * 
 	 * @param context
@@ -2165,17 +2352,12 @@ public class Main extends Activity {
 		infoTextAccount.setText(title);
 		if (own) {
 			infoTextAccount2.setText(Setup.getPublicKeyHash(context));
-			infoTextAccount3
-					.setText(DB.getDateOnlyString(
-							Utility.parseLong(
-									Setup.getKeyDate(context, DB.myUid()), 0)
-							) + "\n");
+			infoTextAccount3.setText(DB.getDateOnlyString(Utility.parseLong(
+					Setup.getKeyDate(context, DB.myUid()), 0)) + "\n");
 		} else {
 			infoTextAccount2.setText(Setup.getKeyHash(context, uid));
-			infoTextAccount3
-					.setText(DB.getDateOnlyString(Utility.parseLong(
-							Setup.getKeyDate(context, uid), 0))
-							+ "\n");
+			infoTextAccount3.setText(DB.getDateOnlyString(Utility.parseLong(
+					Setup.getKeyDate(context, uid), 0)) + "\n");
 		}
 		return infoTextBoxInnerAccount;
 	}

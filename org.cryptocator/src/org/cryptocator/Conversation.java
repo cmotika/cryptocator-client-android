@@ -3702,36 +3702,6 @@ public class Conversation extends Activity {
 
 	// -------------------------------------------------------------------------
 
-	private static final int SELECT_PICTURE = 1;
-	private static final int TAKE_PHOTO = 2;
-
-	/**
-	 * Select attachment.
-	 * 
-	 * @param activity
-	 *            the activity
-	 */
-	public static void selectAttachment(Activity activity) {
-		Intent intent = new Intent();
-
-		if (Build.VERSION.SDK_INT >= 19) {
-			intent.setType("image/*");
-			intent.setAction(Intent.ACTION_GET_CONTENT);
-			activity.startActivityForResult(
-					Intent.createChooser(intent, "Select Attachment"),
-					SELECT_PICTURE);
-
-		} else {
-			intent.setType("image/*");
-			intent.setAction(Intent.ACTION_PICK);
-			activity.startActivityForResult(
-					Intent.createChooser(intent, "Select Attachment"),
-					SELECT_PICTURE);
-		}
-	}
-
-	// -------------------------------------------------------------------------
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -3744,10 +3714,11 @@ public class Conversation extends Activity {
 		// following
 		// to your Activity
 		if (resultCode == RESULT_OK) {
-			if (requestCode == SELECT_PICTURE) {
+			if (requestCode == Utility.SELECT_PICTURE) {
 				boolean ok = false;
 				try {
 					insertImage(this, data.getData());
+					ok = true;
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -3756,7 +3727,7 @@ public class Conversation extends Activity {
 							"Selected file is not a valid image.");
 				}
 			}
-			if (requestCode == TAKE_PHOTO) {
+			if (requestCode == Utility.TAKE_PHOTO) {
 				final boolean keyboardWasVisible = keyboardVisible;
 				final boolean wasScrolledDown = scrolledDown;
 				final Context context = this;
@@ -4107,7 +4078,7 @@ public class Conversation extends Activity {
 						galleryButton
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
-										selectAttachment(activity);
+										Utility.selectFromGallery(activity);
 										dialog.dismiss();
 									}
 								});
@@ -4119,7 +4090,7 @@ public class Conversation extends Activity {
 						photoButton
 								.setOnClickListener(new View.OnClickListener() {
 									public void onClick(View v) {
-										takePhoto(activity);
+										Utility.takePhoto(activity);
 										dialog.dismiss();
 									}
 								});
@@ -4130,23 +4101,7 @@ public class Conversation extends Activity {
 				}).show();
 	}
 
-	// -------------------------------------------------------------------------
 
-	/**
-	 * Take photo.
-	 * 
-	 * @param activity
-	 *            the activity
-	 */
-	private static void takePhoto(Activity activity) {
-		if (!Utility.isCameraAvailable(activity)) {
-			Utility.showToastAsync(activity, "No camera available.");
-			return;
-		}
-		Intent cameraIntent = new Intent(
-				android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-		activity.startActivityForResult(cameraIntent, TAKE_PHOTO);
-	}
 
 	// -------------------------------------------------------------------------
 
