@@ -929,6 +929,9 @@ public class Setup extends Activity {
 	/** The accountexisting. */
 	private LinearLayout accountexisting;
 
+	/** The accountexistinglogindata section only. */
+	private static LinearLayout accountexistinglogindata;
+
 	/** The accountonline. */
 	private static LinearLayout accountonline;
 
@@ -1437,6 +1440,32 @@ public class Setup extends Activity {
 				}
 			}, 200);
 		}
+		if (mainscrollview != null && accountOption == 0) {
+			mainscrollview.postDelayed(new Runnable() {
+				public void run() {
+					mainscrollview.scrollTo(0, 0);
+				}
+			}, 200);
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Scoll after login.
+	 * 
+	 * @param context
+	 *            the context
+	 */
+	private static void scollAfterLogin(Context context) {
+		if (mainscrollview != null) {
+			mainscrollview.postDelayed(new Runnable() {
+				public void run() {
+					mainscrollview.scrollTo(0,
+							accountexistinglogindata.getHeight());
+				}
+			}, 200);
+		}
 	}
 
 	// ------------------------------------------------------------------------
@@ -1787,6 +1816,7 @@ public class Setup extends Activity {
 			// NO VALID SERVER SELECTED - HIDE EVERYTHING!
 			accountnew = (LinearLayout) findViewById(R.id.accountnew);
 			accountexisting = (LinearLayout) findViewById(R.id.accountexisting);
+			accountexistinglogindata = (LinearLayout) findViewById(R.id.accountexistinglogindata);
 			accountexisting.setVisibility(View.GONE);
 			accountnew.setVisibility(View.GONE);
 			online = false;
@@ -1832,6 +1862,7 @@ public class Setup extends Activity {
 
 		accountnew = (LinearLayout) findViewById(R.id.accountnew);
 		accountexisting = (LinearLayout) findViewById(R.id.accountexisting);
+		accountexistinglogindata = (LinearLayout) findViewById(R.id.accountexistinglogindata);
 		accountonline = (LinearLayout) findViewById(R.id.accountonline);
 		newaccount = (CheckBox) findViewById(R.id.newaccount);
 		user = (EditText) findViewById(R.id.user);
@@ -2114,7 +2145,14 @@ public class Setup extends Activity {
 										// EVERYTHING OK
 										setErrorInfo("Avatar changed.", false);
 									} else {
-										if (response2.equals("-22")) {
+										if (response2.equals("-44")) {
+											// email already registered
+											setErrorInfo("The server "
+													+ Setup.getServerLabel(
+															context, serverId,
+															true)
+													+ " does not allow to upload avatars. You can still use local avatars for you userlist.");
+										} else if (response2.equals("-22")) {
 											// email already registered
 											setErrorInfo("Transmission error, please try again.");
 										} else {
@@ -2953,6 +2991,7 @@ public class Setup extends Activity {
 										setErrorInfo(
 												"Login successfull.\n\nYou can now edit your username, enable sms support, change your password, or backup or restore your user list below.",
 												false);
+										scollAfterLogin(context);
 									} else {
 										if (response2.equals("-4")) {
 											// Email already registered

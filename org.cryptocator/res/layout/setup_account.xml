@@ -142,6 +142,12 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" >
 
+                    <LinearLayout
+                        android:id="@+id/accountexistinglogindata"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" >
+            
             <TextView
                 android:id="@+id/textexisting2"
                 android:layout_width="fill_parent"
@@ -261,7 +267,8 @@
                 android:text="Login to modify your username, enable SMS support, change your avatar, change your password, or backup/restore your userlist of this server."
                 android:textSize="12sp" >
             </TextView>
-
+            </LinearLayout>
+            
             <LinearLayout
                 android:id="@+id/accountoptionbuttons"
                 android:layout_width="fill_parent"

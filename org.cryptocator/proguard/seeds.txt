@@ -322,6 +322,7 @@ org.cryptocator.R$drawable: int speechmefailed
 org.cryptocator.R$drawable: int update
 org.cryptocator.R$drawable: int updatesms
 org.cryptocator.R$id: int accountexisting
+org.cryptocator.R$id: int accountexistinglogindata
 org.cryptocator.R$id: int accountheader
 org.cryptocator.R$id: int accountnew
 org.cryptocator.R$id: int accountonline
