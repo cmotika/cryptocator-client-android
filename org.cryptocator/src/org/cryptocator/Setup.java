@@ -55,15 +55,10 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.sql.Array;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.spec.SecretKeySpec;
@@ -79,7 +74,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.text.InputType;
 import android.util.Base64;
@@ -87,7 +81,6 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
@@ -2336,15 +2329,15 @@ public class Setup extends Activity {
 		if (accountLocked > 0) {
 			login.setText("   Validate / Login   ");
 			newaccount.setEnabled(false);
-			// uid.setFocusable(false);
-			// uid.setFocusableInTouchMode(false);
-			// email.setFocusable(false);
-			// email.setFocusableInTouchMode(false);
-			// pwd.setFocusable(false);
-			// pwd.setFocusableInTouchMode(false);
-			// uid.setClickable(true);
-			// email.setClickable(true);
-			// pwd.setClickable(true);
+			uid.setFocusable(false);
+			uid.setFocusableInTouchMode(false);
+			email.setFocusable(false);
+			email.setFocusableInTouchMode(false);
+			pwd.setFocusable(false);
+			pwd.setFocusableInTouchMode(false);
+			uid.setClickable(true);
+			email.setClickable(true);
+			pwd.setClickable(true);
 			uid.setTextColor(Color.parseColor("#FF666666"));
 			email.setTextColor(Color.parseColor("#FF666666"));
 			pwd.setTextColor(Color.parseColor("#FF666666"));
@@ -2402,15 +2395,15 @@ public class Setup extends Activity {
 					return false;
 				}
 			});
-			// uid.setFocusable(true);
-			// uid.setFocusableInTouchMode(true);
-			// uid.setEnabled(true);
-			// email.setFocusable(true);
-			// email.setFocusableInTouchMode(true);
-			// email.setEnabled(true);
-			// pwd.setFocusable(true);
-			// pwd.setFocusableInTouchMode(true);
-			// pwd.setEnabled(true);
+			uid.setFocusable(true);
+			uid.setFocusableInTouchMode(true);
+			uid.setEnabled(true);
+			email.setFocusable(true);
+			email.setFocusableInTouchMode(true);
+			email.setEnabled(true);
+			pwd.setFocusable(true);
+			pwd.setFocusableInTouchMode(true);
+			pwd.setEnabled(true);
 		}
 	}
 

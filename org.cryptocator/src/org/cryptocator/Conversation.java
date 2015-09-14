@@ -58,11 +58,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.Typeface;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -2380,10 +2377,13 @@ public class Conversation extends Activity {
 	/**
 	 * Retrieve conversation avatar either create it freshly or take it from the
 	 * cache for faster processing.
-	 *
-	 * @param context the context
-	 * @param uid the uid
-	 * @param alert the alert
+	 * 
+	 * @param context
+	 *            the context
+	 * @param uid
+	 *            the uid
+	 * @param alert
+	 *            the alert
 	 * @return the bitmap
 	 */
 	public static Bitmap retrieveAvatar(Context context, int uid, boolean alert) {
@@ -2398,7 +2398,7 @@ public class Conversation extends Activity {
 				bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
 				Canvas canvas = new Canvas(bitmap);
 				Rect src = new Rect();
-				src.left = 10;
+				src.left = 14;
 				src.top = 10;
 				src.bottom = 90;
 				src.right = 90;
@@ -2406,7 +2406,7 @@ public class Conversation extends Activity {
 				dst.left = 0;
 				dst.top = 10;
 				dst.bottom = 90;
-				dst.right = 80;
+				dst.right = 75;
 				canvas.drawBitmap(avatar, src, dst, null);
 
 				if (!alert) {
@@ -3092,10 +3092,11 @@ public class Conversation extends Activity {
 							infoText += "Delivered:  ";
 						}
 						infoText += DB
-								.getDateString(updatedItem.received, true)
-								+ "\n";
-						infoText += "       Read:  "
-								+ DB.getDateString(updatedItem.read, true);
+								.getDateString(updatedItem.received, true);
+						if (imageMessageMenuItem.transport == DB.TRANSPORT_INTERNET) {
+							infoText += "\n       Read:  "
+									+ DB.getDateString(updatedItem.read, true);
+						}
 					}
 					imageMessageMenuInfoText.setText(infoText);
 

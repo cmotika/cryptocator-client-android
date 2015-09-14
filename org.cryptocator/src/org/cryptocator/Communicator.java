@@ -792,7 +792,7 @@ public class Communicator {
 	// ---------------------
 
 	/**
-	 * Update ui for received message.
+	 * Update database for received message.
 	 * 
 	 * @param context
 	 *            the context
@@ -800,30 +800,24 @@ public class Communicator {
 	 *            the new item
 	 * @return true, if successful
 	 */
-	public static boolean updateDBForReceivedMessage(Context context,
-			ConversationItem newItem) {
+	public static synchronized boolean updateDBForReceivedMessage(
+			Context context, ConversationItem newItem) {
 		boolean success2 = false;
 
-		// THE FOLLOWING IS DONE ALREADY IN receiveNextMessage() NOW. 25.08.15
+		// THE ADDING OF USERS IS DONE ALREADY IN receiveNextMessage() NOW.
+		// 25.08.15
 		// AS ALSO ReceiveSMS.handleMessage would create an SMS user.
-		//
-		// List<Integer> uidList = Main.loadUIDList(context);
-		// if (!Main.alreadyInList(newItem.from, uidList)) {
-		// // The user who sent us a message is not
-		// // in our list! What now?
-		// boolean ignore = Utility.loadBooleanSetting(context,
-		// Setup.OPTION_IGNORE, Setup.DEFAULT_IGNORE);
-		// if (!ignore) {
-		// // The user must be added to our
-		// // list
-		// uidList.add(newItem.from);
-		// DB.ensureDBInitialized(context, uidList);
-		// Main.saveUIDList(context, uidList);
-		// Main.possiblyRebuildUserlistAsync(context, false);
-		// } else {
-		// skipUnknownUser = true;
-		// }
-		// }
+
+		// Skip if an internet message and alrady in our DB
+		if (newItem.transport == DB.TRANSPORT_INTERNET) {
+			boolean alreadyInDB = DB.isAlreadyInDB(context, newItem.mid,
+					newItem.from);
+			if (alreadyInDB) {
+				Log.d("communicator",
+						"RECEIVED MESSAGE SKIPPED BECAUSE OF DUPLICATE!!!");
+				return false;
+			}
+		}
 
 		if (DB.isMultipartDuplicate(context, newItem.from, newItem.multipartid)) {
 			Log.d("communicator",
@@ -1180,10 +1174,11 @@ public class Communicator {
 				handler.postDelayed(new Runnable() {
 					public void run() {
 						if (Conversation.isVisible() || Main.isVisible()) {
-							// Possibly there are new users added and we need to prompt!
+							// Possibly there are new users added and we need to
+							// prompt!
 							Setup.possiblyPromptAutoAddedUser(context);
 						}
-						
+
 						// Live - update if possible,
 						// otherwise create notification!
 						if (Conversation.isVisible()

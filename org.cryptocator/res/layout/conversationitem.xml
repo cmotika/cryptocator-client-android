@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="6px"
         android:layout_marginTop="6px"
-        android:layout_marginLeft="5px"
+        android:layout_marginLeft="0px"
         android:layout_marginRight="70px"
         android:gravity="left"
         android:orientation="horizontal" >
@@ -24,6 +24,7 @@
                             <ImageView
         android:id="@+id/msgspeech"
         android:layout_width="wrap_content"
+        android:gravity="left"
         android:layout_height="wrap_content"
         android:src="@drawable/speech" />
         
@@ -34,7 +35,7 @@
         android:layout_marginBottom="0px"
         android:layout_marginLeft="0px"
         android:background="#ffDDDDDD"
-        android:gravity="right"
+        android:gravity="left"
         android:orientation="vertical" >
 
                <ProgressBar
