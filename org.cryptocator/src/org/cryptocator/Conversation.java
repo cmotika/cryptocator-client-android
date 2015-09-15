@@ -2901,6 +2901,7 @@ public class Conversation extends Activity {
 
 	private int menuContextShowAll = -1;
 	private int menuContextShowMore = -1;
+	private int menuContextGroupInvite = -1;
 
 	/**
 	 * Creates the context menu for the conversation activity.
@@ -2945,6 +2946,15 @@ public class Conversation extends Activity {
 							return true;
 						}
 					});
+			menuContextGroupInvite = imageContextMenuProvider.addEntry(
+					"Invite to Group", R.drawable.menugroup,
+					new ImageContextMenu.ImageContextMenuSelectionListener() {
+						public boolean onSelection(ImageContextMenu instance) {
+							groupInvite(context);
+							return true;
+						}
+					});
+
 			imageContextMenuProvider.addEntry("New Session Key",
 					R.drawable.menukey,
 					new ImageContextMenu.ImageContextMenuSelectionListener() {
@@ -3193,6 +3203,59 @@ public class Conversation extends Activity {
 				+ imageMessageMenuItem.localid + " ]");
 
 		return imageMessageMenuProvider;
+	}
+
+	// ------------------------------------------------------------------------
+
+	private Spinner groupspinner;
+	
+	private void groupInvite(final Context context) {
+		final String name = Main.UID2Name(context, hostUid, false);
+		String title = "Invite " + name;
+		String text = "Please select the group to invite "
+				+ name + " to:";
+		final int serverId = Setup.getServerId(context, hostUid);
+		
+		if (hostUid < 0) {
+			promptInfo(context, "Not Registered", name + " is not a registered user.\n\nYou cannot invite external users to any groups.");
+			return;
+		}
+		
+		if (serverId == -1 || Setup.getGroupsList(context, serverId).size() == 0) {
+			promptInfo(context, "No Groups", "You are not member of any groups on server " + Setup.getServerLabel(context, serverId, true)+ "." +
+					"\n\nIn order to invite somebody yourself must already be part of a group!");
+			return;
+		}
+
+		new MessageAlertDialog(context, title, text, null, " Invite ", " Cancel ",
+				new MessageAlertDialog.OnSelectionListener() {
+					public void selected(int button, boolean cancel) {
+						if (button == MessageAlertDialog.BUTTONOK1 && !cancel) {
+							
+							if (groupspinner != null) {
+								int index = groupspinner.getSelectedItemPosition();
+								if (index > -1) {
+									String groupId = Setup.groupSpinnerMappingGroupId2.get(index);
+									Setup.groupInvite(context, serverId, groupId, button);
+									// TODO: add message with invitation
+								}
+							}
+						}
+					}
+				}, new MessageAlertDialog.OnInnerViewProvider() {
+
+					public View provide(final MessageAlertDialog dialog) {
+						groupspinner = new Spinner(context);
+						LinearLayout.LayoutParams lpSpinner = new LinearLayout.LayoutParams(
+								LinearLayout.LayoutParams.WRAP_CONTENT,
+								LinearLayout.LayoutParams.WRAP_CONTENT);
+						lpSpinner.setMargins(5, 0, 5, 40);
+						groupspinner.setLayoutParams(lpSpinner);
+						Setup.updateGroupSpinner2(context, serverId,
+								groupspinner);
+						return groupspinner;
+					}
+				}).show();
 	}
 
 	// ------------------------------------------------------------------------

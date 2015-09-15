@@ -142,133 +142,133 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" >
 
-                    <LinearLayout
-                        android:id="@+id/accountexistinglogindata"
-                        android:layout_width="fill_parent"
+            <LinearLayout
+                android:id="@+id/accountexistinglogindata"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:id="@+id/textexisting2"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="60px"
+                    android:layout_marginRight="20px"
+                    android:layout_weight="0.05"
+                    android:clickable="true"
+                    android:text="If you have an account already, fill in the UID or email and password and click on login. You can lookup the UID in any email we sent you."
+                    android:textSize="12sp" >
+                </TextView>
+
+                <LinearLayout
+                    android:id="@+id/ownaccountkey"
+                    android:layout_width="220px"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="20px"
+                    android:orientation="vertical" />
+
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="0px"
+                    android:layout_weight="0.02"
+                    android:orientation="horizontal" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical" >
-            
-            <TextView
-                android:id="@+id/textexisting2"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="60px"
-                android:layout_marginRight="20px"
-                android:layout_weight="0.05"
-                android:clickable="true"
-                android:text="If you have an account already, fill in the UID or email and password and click on login. You can lookup the UID in any email we sent you."
-                android:textSize="12sp" >
-            </TextView>
+                        android:layout_marginLeft="20px"
+                        android:text=" UID: "
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textSize="16sp" >
+                    </TextView>
 
-            <LinearLayout
-                android:id="@+id/ownaccountkey"
-                android:layout_width="220px"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="20px"
-                android:orientation="vertical" />
+                    <EditText
+                        android:id="@+id/uid"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="20px"
+                        android:layout_weight="1"
+                        android:ems="10"
+                        android:inputType="phone" >
+                    </EditText>
+                </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="0px"
-                android:layout_weight="0.02"
-                android:orientation="horizontal" >
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_weight="0.02"
+                    android:orientation="horizontal" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="20px"
+                        android:text=" Email: "
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <EditText
+                        android:id="@+id/email"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="20px"
+                        android:layout_weight="1"
+                        android:inputType="textEmailAddress" >
+                    </EditText>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_weight="0.02"
+                    android:orientation="horizontal" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="20px"
+                        android:text=" Password: "
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textSize="16sp" >
+                    </TextView>
+
+                    <EditText
+                        android:id="@+id/pwd"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="20px"
+                        android:layout_weight="1" >
+                    </EditText>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/login"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="40px"
+                    android:text="   Validate Login / Save  " />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/textlogin3"
+                    android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="20px"
-                    android:text=" UID: "
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:textSize="16sp" >
-                </TextView>
-
-                <EditText
-                    android:id="@+id/uid"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="60px"
                     android:layout_marginRight="20px"
-                    android:layout_weight="1"
-                    android:ems="10"
-                    android:inputType="phone" >
-                </EditText>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center_horizontal"
-                android:layout_weight="0.02"
-                android:orientation="horizontal" >
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="20px"
-                    android:text=" Email: "
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:textSize="16sp" >
+                    android:layout_marginTop="40px"
+                    android:layout_weight="0.05"
+                    android:clickable="true"
+                    android:text="Login to modify your username, enable SMS support, change your avatar, change your password, modify group membership, or backup/restore your userlist of this server."
+                    android:textSize="12sp" >
                 </TextView>
-
-                <EditText
-                    android:id="@+id/email"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="20px"
-                    android:layout_weight="1"
-                    android:inputType="textEmailAddress" >
-                </EditText>
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_weight="0.02"
-                android:orientation="horizontal" >
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="20px"
-                    android:text=" Password: "
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:textSize="16sp" >
-                </TextView>
-
-                <EditText
-                    android:id="@+id/pwd"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="20px"
-                    android:layout_weight="1" >
-                </EditText>
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/login"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="40px"
-                android:text="   Validate Login / Save  " />
-
-            <TextView
-                android:id="@+id/textlogin3"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="60px"
-                android:layout_marginRight="20px"
-                android:layout_marginTop="40px"
-                android:layout_weight="0.05"
-                android:clickable="true"
-                android:text="Login to modify your username, enable SMS support, change your avatar, change your password, or backup/restore your userlist of this server."
-                android:textSize="12sp" >
-            </TextView>
-            </LinearLayout>
-            
             <LinearLayout
                 android:id="@+id/accountoptionbuttons"
                 android:layout_width="fill_parent"
@@ -587,6 +587,77 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="20px"
                     android:text="   Change Password   " />
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="20px"
+                    android:layout_marginLeft="20px"
+                    android:layout_marginRight="20px"
+                    android:layout_marginTop="40px"
+                    android:background="@android:color/darker_gray" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/groupsparent"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="60px"
+                    android:layout_marginRight="20px"
+                    android:layout_marginTop="20px"
+                    android:clickable="true"
+                    android:text="Here you see the groups you have joined for this server. You can quit a group or create a new group. If you want to
+                    invite someone from your userlist to a group you are already a memeber of then go to the conversation of this person and select &apos;Invite&apos; from the context menu."
+                    android:textSize="12sp" >
+                </TextView>
+
+                <Button
+                    android:id="@+id/groupcreate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="15px"
+                    android:text="Create Group" />
+
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20px"
+                    android:orientation="vertical" >
+
+                    <Spinner
+                        android:id="@+id/groupspinner"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:textSize="30sp" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="15px"
+                        android:orientation="horizontal" >
+
+                        <Button
+                            android:id="@+id/groupquit"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Quit Membership" />
+
+                        <Button
+                            android:id="@+id/grouprename"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5px"
+                            android:text="Rename Group" />
+                    </LinearLayout>
+                </LinearLayout>
 
                 <View
                     android:layout_width="fill_parent"

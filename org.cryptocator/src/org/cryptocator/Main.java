@@ -124,6 +124,9 @@ public class Main extends Activity {
 
 	/** The adduseritem. */
 	private LinearLayout adduseritem;
+	
+	/** The maindeviceid. */
+	private TextView maindeviceid;
 
 	/** The serverspinner. */
 	private Spinner serverspinner;
@@ -287,6 +290,7 @@ public class Main extends Activity {
 		//
 		// After setting NO TITLE .. apply the layout
 		// setContentView(R.layout.activity_main);
+		
 
 		LinearLayout titlemain = (LinearLayout) findViewById(R.id.titlemain);
 
@@ -356,6 +360,9 @@ public class Main extends Activity {
 				openOptionsMenu();
 			}
 		});
+
+		maindeviceid = (TextView) findViewById(R.id.maindeviceid);
+
 
 		// Yes, at startup resolve names!
 		// but only after rebuild the uidList is filled
@@ -2216,6 +2223,17 @@ public class Main extends Activity {
 	 *            the context
 	 */
 	public void updateInfo(final Context context) {
+//		maindeviceid.setText("DeviceID: " + Setup.getDeviceId(context)
+//				+ "   --   Account Key: " + Setup.getPublicKeyHash(context));
+		maindeviceid.setText("Account Key: " + Setup.getPublicKeyHash(context));
+		maindeviceid.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				String text = YOURACCOUNTKEYSIMPLE;
+				Conversation.promptInfo(context, "Your Account Key", text);
+			}
+		});
+
+		
 		String message = null;
 		if (Communicator.internetFailCnt > Communicator.INTERNETFAILCNTBARRIER) {
 			message = "No Internet Connection or Server Error";
@@ -2295,6 +2313,14 @@ public class Main extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	private static final String YOURACCOUNTKEYSIMPLE = "The account key is part"
+			+ " of your identity.\n\nIt is created/renewed when you enable encryption. It usually should"
+			+ " not change.\nHowever, if you renew it then you should tell all your contacts personally the"
+			+ " new account key shown here so that they can verify your identity.";
+
+	private static final String YOURACCOUNTKEYTEXT = YOURACCOUNTKEYSIMPLE
+			+ "\n\nThe date shown here is the one when the account key was created.";
+
 	public static LinearLayout getAccountKeyView(final Context context,
 			final int uid, final String title, final boolean own) {
 		LinearLayout infoTextBoxInnerAccount = new LinearLayout(context);
@@ -2309,19 +2335,19 @@ public class Main extends Activity {
 		// infoTextBoxInnerAccount.setBackgroundResource(R.drawable.backlock);
 		infoTextBoxInnerAccount.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				String text = "The account key is part"
-						+ " of your identity.\n\nIt is created/renewed when you enable encryption. It usually should"
-						+ " not change.\nHowever, if you renew it then you should tell all your contacts personally the"
-						+ " new account key shown here so that they can verify your identity."
-						+ "\n\nThe date shown here is the one when the account key was created.";
+				String text = YOURACCOUNTKEYTEXT;
+				String title = "Account Key";
 				if (!own) {
 					text = "The account key of a user is part"
 							+ " of his/her identity.\n\nIt is created/renewed when the user enables encryption. It usually should"
 							+ " not change. You are advised to manually verify the account key that is shown here"
 							+ " for a user matches the one that the user finds in his/her settings."
 							+ "\n\nThe date shown here is the one when the account key was created.";
+				} else {
+					title = "Your " + title;
 				}
-				Conversation.promptInfo(context, "Account Key", text);
+				
+				Conversation.promptInfo(context, title, text);
 
 			}
 		});

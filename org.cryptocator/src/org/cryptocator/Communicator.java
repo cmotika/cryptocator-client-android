@@ -2571,7 +2571,7 @@ public class Communicator {
 	}
 
 	// -------------------------------------------------------------------------
-
+	
 	/**
 	 * Update pictures from server.
 	 * 

@@ -252,13 +252,22 @@ public class Setup extends Activity {
 	public static final String SETTING_LASTUPDATEPHONES = "lastupdatephones";
 
 	/**
-	 * Similar to the update keys (s.a.) this is for updating avatarss. The
+	 * Similar to the update keys (s.a.) this is for updating avatars. The
 	 * interval is a much longer: 1200 min.
 	 */
 	public static final int UPDATE_AVATAR_MIN_INTERVAL = 1200 * 60 * 1000; // 10
 
 	/** Save the time stamp when the last phone number update took place. */
 	public static final String SETTING_LASTUPDATEAVATAR = "lastupdateavatar";
+
+	/**
+	 * Similar to the update keys (s.a.) this is for updating groups and invited
+	 * groups and groupusers. The interval is 30min.
+	 */
+	public static final int UPDATE_GROUPS_MIN_INTERVAL = 30 * 60 * 1000; // 10
+
+	/** Save the time stamp when the last phone number update took place. */
+	public static final String SETTING_LASTUPDATEGROUPS = "lastupdategroups";
 
 	/**
 	 * Similar to the update keys (s.a.) this is for updating avatarss. The
@@ -516,6 +525,26 @@ public class Setup extends Activity {
 	/** The Constant UID_IGNORED for users that were ignored by the user! */
 	public static final String UID_IGNORED = "usersignored";
 
+	/** The Constant GROUPNAME for the name of a group. */
+	public static final String GROUPNAME = "servergroupname";
+
+	/**
+	 * The Constant GROUPSECRET for the secret of a group. Each group has a
+	 * server generated random secret that is shared by all group members. It is
+	 * necessary to join and also to send messages that should be listed in this
+	 * group.
+	 */
+	public static final String GROUPSECRET = "servergroupsecret";
+
+	/** The Constant GROUPS for groups of a specific server. */
+	public static final String GROUPS = "servergroups";
+
+	/** The Constant GROUPMEMBERS for group members of a specific server group. */
+	public static final String GROUPMEMBERS = "servergroupmembers";
+
+	/** The Constant GROUPS for invited groups of a specific server. */
+	public static final String INVITEDGROUPS = "servergroupsinvited";
+
 	/** The Constant SERVER_EMAIL. */
 	public static final String SERVER_EMAIL = "email";
 
@@ -760,6 +789,9 @@ public class Setup extends Activity {
 
 	/** The ignoredspinner. */
 	private Spinner ignoredspinner;
+
+	/** The groupspinner. */
+	private static Spinner groupspinner;
 
 	/** The active. */
 	private CheckBox active;
@@ -1098,6 +1130,8 @@ public class Setup extends Activity {
 			accountsection.setVisibility(View.GONE);
 			loadSettings(context);
 		} else {
+			Setup.updateGroupsFromAllServers(context, true);
+
 			settingssection.setVisibility(View.GONE);
 			updateServerSpinner(context, serverspinner);
 			buildServerTabs(context);
@@ -1275,7 +1309,8 @@ public class Setup extends Activity {
 	private final static int ACCOUNTOPTION_SMS = 2;
 	private final static int ACCOUNTOPTION_AVATAR = 3;
 	private final static int ACCOUNTOPTION_PASSWORD = 4;
-	private final static int ACCOUNTOPTION_BACKUP = 5;
+	private final static int ACCOUNTOPTION_GROUPS = 5;
+	private final static int ACCOUNTOPTION_BACKUP = 6;
 
 	/**
 	 * Builds the account option buttons for a nicer view to the options.
@@ -1308,7 +1343,10 @@ public class Setup extends Activity {
 		lpButtons1.setMargins(5, 20, 5, 5);
 		LinearLayout.LayoutParams lpButtons2 = new LinearLayout.LayoutParams(
 				200, 140);
-		lpButtons2.setMargins(5, 5, 5, 20);
+		lpButtons2.setMargins(5, 5, 5, 5);
+		LinearLayout.LayoutParams lpButtons3 = new LinearLayout.LayoutParams(
+				200, 140);
+		lpButtons3.setMargins(5, 5, 5, 20);
 
 		ImageLabelButton usernameButton = new ImageLabelButton(context);
 		usernameButton.setTextAndImageResource("Username",
@@ -1343,10 +1381,18 @@ public class Setup extends Activity {
 				makeVisible(context, ACCOUNTOPTION_PASSWORD);
 			}
 		});
+		ImageLabelButton groupsButton = new ImageLabelButton(context);
+		groupsButton.setTextAndImageResource("Groups", R.drawable.btngroups);
+		groupsButton.setLayoutParams(lpButtons3);
+		groupsButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				makeVisible(context, ACCOUNTOPTION_GROUPS);
+			}
+		});
 		ImageLabelButton backupButton = new ImageLabelButton(context);
 		backupButton.setTextAndImageResource("Backup/Restore",
 				R.drawable.btnbackup);
-		backupButton.setLayoutParams(lpButtons2);
+		backupButton.setLayoutParams(lpButtons3);
 		backupButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				makeVisible(context, ACCOUNTOPTION_BACKUP);
@@ -1357,6 +1403,7 @@ public class Setup extends Activity {
 		buttonLayout1.addView(smsButton);
 		buttonLayout2.addView(avatarButton);
 		buttonLayout2.addView(pwdButton);
+		buttonLayout3.addView(groupsButton);
 		buttonLayout3.addView(backupButton);
 		buttonLayout.addView(buttonLayout1);
 		buttonLayout.addView(buttonLayout2);
@@ -1371,6 +1418,7 @@ public class Setup extends Activity {
 	private static LinearLayout avatarparent = null;
 	private static LinearLayout passwordparent = null;
 	private static LinearLayout backupparent = null;
+	private static LinearLayout groupsparent = null;
 	private static ScrollView mainscrollview = null;
 	private static LinearLayout mainpanel = null;
 
@@ -1384,6 +1432,7 @@ public class Setup extends Activity {
 		avatarparent = (LinearLayout) findViewById(R.id.avatarparent);
 		passwordparent = (LinearLayout) findViewById(R.id.passwordparent);
 		backupparent = (LinearLayout) findViewById(R.id.backupparent);
+		groupsparent = (LinearLayout) findViewById(R.id.groupsparent);
 		mainscrollview = (ScrollView) findViewById(R.id.mainscrollview);
 		mainpanel = (LinearLayout) findViewById(R.id.mainpanel);
 	}
@@ -1424,6 +1473,13 @@ public class Setup extends Activity {
 				passwordparent.setVisibility(View.GONE);
 			} else {
 				passwordparent.setVisibility(View.VISIBLE);
+			}
+		}
+		if (groupsparent != null) {
+			if (accountOption != ACCOUNTOPTION_GROUPS) {
+				groupsparent.setVisibility(View.GONE);
+			} else {
+				groupsparent.setVisibility(View.VISIBLE);
 			}
 		}
 		if (backupparent != null) {
@@ -2038,6 +2094,100 @@ public class Setup extends Activity {
 					} catch (Exception e) {
 						// Ignore
 					}
+				}
+			});
+
+			groupspinner = (Spinner) findViewById(R.id.groupspinner);
+			Setup.updateGroupSpinner(activity, groupspinner);
+
+			Button groupcreate = (Button) findViewById(R.id.groupcreate);
+			groupcreate.setOnClickListener(new OnClickListener() {
+				public void onClick(View arg0) {
+					String titleMessage = "New Group";
+					String textMessage = "Enter the name of the new group to create on this server:";
+					new MessageInputDialog(activity, titleMessage, textMessage,
+							"Create", "       Cancel      ", null, "",
+							new MessageInputDialog.OnSelectionListener() {
+								public void selected(MessageInputDialog dialog,
+										int button, boolean cancel,
+										String returnText) {
+									if (!cancel) {
+										if (button == 0) {
+											if (returnText.trim().length() > 0) {
+												groupCreate(activity, serverId,
+														returnText);
+											} else {
+												setErrorInfoAsync(
+														activity,
+														"Error creating group '"
+																+ returnText
+																+ "'. No valid group name.",
+														true);
+											}
+										}
+									}
+									dialog.dismiss();
+								}
+							}, InputType.TYPE_CLASS_TEXT, true, true).show();
+				}
+			});
+
+			Button grouprename = (Button) findViewById(R.id.grouprename);
+			grouprename.setOnClickListener(new OnClickListener() {
+				public void onClick(View arg0) {
+					int index = groupspinner.getSelectedItemPosition();
+
+					final int groupServerId = groupSpinnerMappingServer
+							.get(index);
+					final String groupId = groupSpinnerMappingGroupId
+							.get(index);
+					final String oldName = Setup.getGroupName(activity,
+							serverId, groupId);
+
+					String titleMessage = "Rename Group";
+					String textMessage = "Enter the new name for the group '"
+							+ oldName + "':";
+					new MessageInputDialog(activity, titleMessage, textMessage,
+							"Rename", "       Cancel      ", null, oldName,
+							new MessageInputDialog.OnSelectionListener() {
+								public void selected(MessageInputDialog dialog,
+										int button, boolean cancel,
+										String returnText) {
+									if (!cancel) {
+										if (button == 0) {
+											if (returnText.trim().length() > 0
+													&& !oldName
+															.equals(returnText)) {
+												groupRename(activity,
+														groupServerId, groupId,
+														returnText);
+											} else {
+												setErrorInfoAsync(
+														activity,
+														"Error renaming group '"
+																+ returnText
+																+ "'. No valid group name.",
+														true);
+											}
+										}
+									}
+									dialog.dismiss();
+								}
+							}, InputType.TYPE_CLASS_TEXT, true, true).show();
+				}
+			});
+
+			Button groupquit = (Button) findViewById(R.id.groupquit);
+			groupquit.setOnClickListener(new OnClickListener() {
+				public void onClick(View arg0) {
+					int index = groupspinner.getSelectedItemPosition();
+
+					final int groupServerId = groupSpinnerMappingServer
+							.get(index);
+					final String groupId = groupSpinnerMappingGroupId
+							.get(index);
+
+					groupQuit(activity, groupServerId, groupId);
 				}
 			});
 
@@ -2691,6 +2841,27 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Sets the error info asynchronously in the UI thread. Should be used if
+	 * not in the ui thread.
+	 * 
+	 * @param message
+	 *            the message
+	 * @param isError
+	 *            the is error
+	 */
+	static void setErrorInfoAsync(final Context context, final String message,
+			final boolean isError) {
+		final Handler mUIHandler = new Handler(Looper.getMainLooper());
+		mUIHandler.post(new Thread() {
+			@Override
+			public void run() {
+				super.run();
+				setErrorInfo(context, message, isError);
+			}
+		});
+	}
+
+	/**
 	 * Sets the error info.
 	 * 
 	 * @param errorMessage
@@ -2989,7 +3160,7 @@ public class Setup extends Activity {
 										enableServer(context, true, true);
 
 										setErrorInfo(
-												"Login successfull.\n\nYou can now edit your username, enable sms support, change your password, or backup or restore your user list below.",
+												"Login successfull.\n\nYou can now edit your username, enable sms support, change your avatar or your password, modify group membership, or backup or restore your user list below.",
 												false);
 										scollAfterLogin(context);
 									} else {
@@ -7418,6 +7589,656 @@ public class Setup extends Activity {
 		spinnerArrayAdapter
 				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		spinner.setAdapter(spinnerArrayAdapter);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/*
+	 * Create a group.
+	 * 
+	 * @param context the context
+	 * 
+	 * @param uid the uid
+	 */
+	public static void groupCreate(final Context context, final int serverId,
+			final String groupName) {
+		String session = Setup.getTmpLoginEncoded(context, serverId);
+		if (session == null) {
+			setErrorInfo(context,
+					"Session error. Try again after restarting the App.");
+			// error resume is automatically done by getTmpLogin, not logged in
+			return;
+		}
+		String url = null;
+		url = Setup.getBaseURL(context, serverId)
+				+ "cmd=creategroup&session="
+				+ session
+				+ "&val="
+				+ Utility
+						.urlEncode(Setup.encText(context, groupName, serverId));
+		final String url2 = url;
+		Log.d("communicator", "XXXX REQUEST groupCreate :" + url2);
+		@SuppressWarnings("unused")
+		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
+				url2, new HttpStringRequest.OnResponseListener() {
+					public void response(String response) {
+						Log.d("communicator", "XXXX RESPONSE groupCreate :"
+								+ response);
+						if (Communicator.isResponseValid(response)) {
+							// Log.d("communicator",
+							// "XXXX RESPONSE2 addUser :"+response);
+							if (Communicator.isResponsePositive(response)) {
+								String responseContent = Communicator
+										.getResponseContent(response);
+
+								String[] responseValues = responseContent
+										.split("#");
+								if (responseValues.length == 2) {
+									String groupid = responseValues[0];
+									String groupsecret = responseValues[1];
+									groupid = Setup.decUid(context, groupid,
+											serverId) + "";
+									groupsecret = Setup.decText(context,
+											groupsecret, serverId);
+									Setup.setGroupName(context, serverId,
+											groupid, groupName);
+									Setup.setGroupSecret(context, serverId,
+											groupid, groupsecret);
+									setErrorInfoAsync(context, "Group '"
+											+ groupName + "' created.", false);
+									Setup.updateGroupSpinnerAsync(context,
+											groupspinner);
+								} else {
+									setErrorInfoAsync(context,
+											"Error creating group '"
+													+ groupName + "'.", true);
+								}
+							} else {
+								setErrorInfoAsync(context,
+										"Error creating group '" + groupName
+												+ "'. Not logged in.", true);
+							}
+						} else {
+							setErrorInfoAsync(context, "Error creating group '"
+									+ groupName + "'. Server error.", true);
+						}
+					}
+				}));
+	}
+
+	// -------------------------------------------------------------------------
+
+	/*
+	 * Rename a group.
+	 * 
+	 * @param context the context
+	 * 
+	 * @param uid the uid
+	 */
+	public static void groupRename(final Context context, final int serverId,
+			final String groupId, final String newGroupName) {
+		String session = Setup.getTmpLoginEncoded(context, serverId);
+		if (session == null) {
+			setErrorInfo(context,
+					"Session error. Try again after restarting the App.");
+			// error resume is automatically done by getTmpLogin, not logged in
+			return;
+		}
+		String url = null;
+		url = Setup.getBaseURL(context, serverId)
+				+ "cmd=renamegroup&session="
+				+ session
+				+ "&val="
+				+ Setup.encUid(context, Utility.parseInt(groupId, -1), serverId)
+				+ "&val1="
+				+ Utility.urlEncode(Setup.encText(context, newGroupName,
+						serverId));
+		final String url2 = url;
+		Log.d("communicator", "XXXX REQUEST groupRename :" + url2);
+		@SuppressWarnings("unused")
+		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
+				url2, new HttpStringRequest.OnResponseListener() {
+					public void response(String response) {
+						Log.d("communicator", "XXXX RESPONSE groupRename :"
+								+ response);
+						if (Communicator.isResponseValid(response)) {
+							if (Communicator.isResponsePositive(response)
+									&& response.equals("1")) {
+								Setup.setGroupName(context, serverId, groupId,
+										newGroupName);
+								setErrorInfoAsync(context, "Group '"
+										+ newGroupName + "' renamed.", false);
+								Setup.updateGroupSpinnerAsync(context,
+										groupspinner);
+							} else {
+								setErrorInfoAsync(
+										context,
+										"Error renaming group '"
+												+ newGroupName
+												+ "'. Not logged in or not a member of the group.",
+										true);
+							}
+						} else {
+							setErrorInfoAsync(context, "Error renaming group '"
+									+ newGroupName + "'. Server error.", true);
+						}
+					}
+				}));
+	}
+
+	// -------------------------------------------------------------------------
+
+	/*
+	 * Quit membership for a group.
+	 * 
+	 * @param context the context
+	 * 
+	 * @param uid the uid
+	 */
+	public static void groupQuit(final Context context, final int serverId,
+			final String groupId) {
+		String session = Setup.getTmpLoginEncoded(context, serverId);
+		if (session == null) {
+			setErrorInfo(context,
+					"Session error. Try again after restarting the App.");
+			// error resume is automatically done by getTmpLogin, not logged in
+			return;
+		}
+		final String groupName = Setup.getGroupName(context, serverId, groupId);
+		String url = null;
+		url = Setup.getBaseURL(context, serverId)
+				+ "cmd=quitgroup&session="
+				+ session
+				+ "&val="
+				+ Setup.encUid(context, Utility.parseInt(groupId, -1), serverId);
+		final String url2 = url;
+		Log.d("communicator", "XXXX REQUEST groupQuit :" + url2);
+		@SuppressWarnings("unused")
+		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
+				url2, new HttpStringRequest.OnResponseListener() {
+					public void response(String response) {
+						Log.d("communicator", "XXXX RESPONSE groupQuit :"
+								+ response);
+						if (Communicator.isResponseValid(response)) {
+							if (Communicator.isResponsePositive(response)
+									&& response.equals("1")) {
+								Setup.setGroupName(context, serverId, groupId,
+										groupName);
+								setErrorInfoAsync(context,
+										"Quit membership for group '"
+												+ groupName + "' successfull.",
+										false);
+								Setup.setGroupName(context, serverId, groupId,
+										null);
+								Setup.setGroupSecret(context, serverId,
+										groupId, null);
+								Setup.updateGroupsFromServer(context, true,
+										serverId);
+							} else {
+								setErrorInfoAsync(
+										context,
+										"Error quitting membership for group '"
+												+ groupName
+												+ "'. Not logged in or not a member of the group.",
+										true);
+							}
+						} else {
+							setErrorInfoAsync(context,
+									"Error quitting  membership for group '"
+											+ groupName + "'. Server error.",
+									true);
+						}
+					}
+				}));
+	}
+
+	// -------------------------------------------------------------------------
+
+	/*
+	 * Invite another user to a group that we already are a member of.
+	 * 
+	 * @param context the context
+	 * 
+	 * @param uid the uid
+	 */
+	public static void groupInvite(final Context context, final int serverId,
+			final String groupId, final int hostUid) {
+		String session = Setup.getTmpLoginEncoded(context, serverId);
+		if (session == null) {
+			setErrorInfo(context,
+					"Session error. Try again after restarting the App.");
+			// error resume is automatically done by getTmpLogin, not logged in
+			return;
+		}
+		// final String groupName = Setup.getGroupName(context, serverId,
+		// groupId);
+		String url = null;
+		url = Setup.getBaseURL(context, serverId)
+				+ "cmd=invitegroup&session="
+				+ session
+				+ "&val="
+				+ Setup.encUid(context, Utility.parseInt(groupId, -1), serverId)
+				+ "&host=" + Setup.encUid(context, hostUid, serverId);
+		final String url2 = url;
+		Log.d("communicator", "XXXX REQUEST groupInvite :" + url2);
+		@SuppressWarnings("unused")
+		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
+				url2, new HttpStringRequest.OnResponseListener() {
+					public void response(String response) {
+						Log.d("communicator", "XXXX RESPONSE groupInvite :"
+								+ response);
+						if (Communicator.isResponseValid(response)) {
+							if (Communicator.isResponsePositive(response)
+									&& response.equals("1")) {
+								// Invited successfully, s
+							}
+						}
+					}
+				}));
+	}
+
+	// -------------------------------------------------------------------------
+
+	/*
+	 * Confirm a group invitation.
+	 * 
+	 * @param context the context
+	 * 
+	 * @param uid the uid
+	 */
+	public static void groupConfirm(final Context context, final int serverId,
+			final String groupId) {
+		String session = Setup.getTmpLoginEncoded(context, serverId);
+		if (session == null) {
+			setErrorInfo(context,
+					"Session error. Try again after restarting the App.");
+			// error resume is automatically done by getTmpLogin, not logged in
+			return;
+		}
+		// final String groupName = Setup.getGroupName(context, serverId,
+		// groupId);
+		String url = null;
+		url = Setup.getBaseURL(context, serverId)
+				+ "cmd=confirmgroup&session="
+				+ session
+				+ "&val="
+				+ Setup.encUid(context, Utility.parseInt(groupId, -1), serverId);
+		final String url2 = url;
+		Log.d("communicator", "XXXX REQUEST groupConfirm :" + url2);
+		@SuppressWarnings("unused")
+		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
+				url2, new HttpStringRequest.OnResponseListener() {
+					public void response(String response) {
+						Log.d("communicator", "XXXX RESPONSE groupConfirm :"
+								+ response);
+						if (Communicator.isResponseValid(response)) {
+							if (Communicator.isResponsePositive(response)
+									&& response.equals("1")) {
+								// Invited successfully, s
+							}
+						}
+					}
+				}));
+	}
+
+	// -------------------------------------------------------------------------
+
+	// public static final String GROUPNAME = "servergroupname";
+	// public static final String GROUPSECRET = "servergroupsecret";
+	// public static final String GROUPS = "servergroups";
+	// public static final String GROUPMEMBERS = "servergroups";
+	// INVITEDGROUPS
+
+	// -------------------------------------------------------------------------
+
+	public static void setGroupName(Context context, int serverId,
+			String groupId, String name) {
+		Utility.saveStringSetting(context,
+				GROUPNAME + serverId + "_" + groupId, name);
+	}
+
+	public static String getGroupName(Context context, int serverId,
+			String groupId) {
+		return Utility.loadStringSetting(context, GROUPNAME + serverId + "_"
+				+ groupId, null);
+	}
+
+	// -------------------------------------------------------------------------
+
+	public static void setGroupSecret(Context context, int serverId,
+			String groupId, String secret) {
+		Utility.saveStringSetting(context, GROUPSECRET + serverId + "_"
+				+ groupId, secret);
+	}
+
+	public static String getGroupSecret(Context context, int serverId,
+			String groupId) {
+		return Utility.loadStringSetting(context, GROUPSECRET + serverId + "_"
+				+ groupId, null);
+	}
+
+	// -------------------------------------------------------------------------
+
+	public static void setInvitedGroups(Context context, int serverId,
+			String groups) {
+		Utility.saveStringSetting(context, INVITEDGROUPS + serverId, groups);
+	}
+
+	public static String getInvitedGroups(Context context, int serverId) {
+		return Utility.loadStringSetting(context, INVITEDGROUPS + serverId,
+				null);
+	}
+
+	public static List<String> getInvitedGroupsList(Context context,
+			int serverId) {
+		String separatedString = getInvitedGroups(context, serverId);
+		List<String> groupids = Utility.getListFromString(separatedString, ",");
+		return groupids;
+	}
+
+	// -------------------------------------------------------------------------
+
+	public static void setGroups(Context context, int serverId, String groups) {
+		Utility.saveStringSetting(context, GROUPS + serverId, groups);
+	}
+
+	public static String getGroups(Context context, int serverId) {
+		return Utility.loadStringSetting(context, GROUPS + serverId, null);
+	}
+
+	public static List<String> getGroupsList(Context context, int serverId) {
+		String separatedString = getGroups(context, serverId);
+		List<String> groupids = Utility.getListFromString(separatedString, ",");
+		return groupids;
+	}
+
+	// -------------------------------------------------------------------------
+
+	public static void setGroupMembers(Context context, int serverId,
+			String groupId, String groups) {
+		Utility.saveStringSetting(context, GROUPMEMBERS + serverId + "_"
+				+ groupId, groups);
+	}
+
+	public static String getGroupMembers(Context context, int serverId,
+			String groupId) {
+		return Utility.loadStringSetting(context, GROUPMEMBERS + serverId + "_"
+				+ groupId, null);
+	}
+
+	public static List<Integer> getGroupMembersList(Context context,
+			int serverId, String groupId) {
+		String separatedString = getGroupMembers(context, serverId, groupId);
+		List<Integer> groupids = Utility.getListFromString(separatedString,
+				",", -1);
+		return groupids;
+	}
+
+	// -------------------------------------------------------------------------
+
+	public static void updateGroupsFromAllServers(final Context context,
+			final boolean forceUpdate) {
+		for (int serverId : Setup.getServerIds(context)) {
+			if (Setup.isServerAccount(context, serverId, false)) {
+				updateGroupsFromServer(context, forceUpdate, serverId);
+			}
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	public static void updateGroupsFromServer(final Context context,
+			final boolean forceUpdate, final int serverId) {
+		Log.d("communicator", "###### REQUEST UPDATE GROUPS");
+
+		long lastTime = Utility.loadLongSetting(context,
+				Setup.SETTING_LASTUPDATEGROUPS + serverId, 0);
+		long currentTime = DB.getTimestamp();
+		if (!forceUpdate
+				&& (lastTime + Setup.UPDATE_GROUPS_MIN_INTERVAL + serverId > currentTime)) {
+			// Do not do this more frequently
+			return;
+		}
+		Utility.saveLongSetting(context, Setup.SETTING_LASTUPDATEGROUPS
+				+ serverId, currentTime);
+
+		// Update
+		groupsUpdate(context, serverId);
+	}
+
+	// -------------------------------------------------------------------------
+
+	/*
+	 * Update group list
+	 * 
+	 * @param context the context
+	 * 
+	 * @param uid the uid
+	 */
+	public static void groupsUpdate(final Context context, final int serverId) {
+		String session = Setup.getTmpLoginEncoded(context, serverId);
+		if (session == null) {
+			setErrorInfo(context,
+					"Session error. Try again after restarting the App.");
+			// error resume is automatically done by getTmpLogin, not logged in
+			return;
+		}
+		String url = null;
+		url = Setup.getBaseURL(context, serverId) + "cmd=getgroups&session="
+				+ session;
+		final String url2 = url;
+		Log.d("communicator", "XXXX REQUEST groupsUpdate :" + url2);
+		@SuppressWarnings("unused")
+		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
+				url2, new HttpStringRequest.OnResponseListener() {
+					public void response(String response) {
+						Log.d("communicator", "XXXX RESPONSE groupsUpdate :"
+								+ response);
+						if (Communicator.isResponseValid(response)) {
+							// Log.d("communicator",
+							// "XXXX RESPONSE2 addUser :"+response);
+							if (Communicator.isResponsePositive(response)) {
+								String responseContent = Communicator
+										.getResponseContent(response);
+
+								if (responseContent != null
+										&& responseContent.length() > 1) {
+
+									if (responseContent.startsWith("#")) {
+										// Remove preceeding '#' because a
+										// request starts with
+										// 1##groupid1#groupname1#m1#mw#m...##groupid2#groupname2#m1#m...
+										responseContent = responseContent
+												.substring(1);
+									}
+
+									String[] responseValues = responseContent
+											.split("##");
+									if (responseValues != null
+											&& responseValues.length > 0) {
+										List<String> groupIds = new ArrayList<String>();
+
+										for (String responseValue : responseValues) {
+											// one group value:
+											// ## id # name # member1 # member2
+											// ... # membern
+											String[] groupValues = responseValue
+													.split("#");
+											if (groupValues != null
+													&& groupValues.length > 1) {
+												// at least we need an id and a
+												// name for each group! maybe no
+												// other
+												// members than ourself
+												String groupId = Setup.decUid(
+														context,
+														groupValues[0],
+														serverId)
+														+ "";
+												String groupName = Setup
+														.decText(context,
+																groupValues[1],
+																serverId);
+
+												groupIds.add(groupId);
+												Setup.setGroupName(context,
+														serverId, groupId,
+														groupName);
+
+												Log.d("communicator",
+														"XXXX RESPONSE groupsUpdate groupId="
+																+ groupId
+																+ ", groupName="
+																+ groupName);
+
+												if (groupValues.length > 2) {
+													List<Integer> memberUids = new ArrayList<Integer>();
+													for (int i = 2; i < groupValues.length; i++) {
+														String uidEncrypted = groupValues[i];
+														int memberUid = Setup
+																.decUid(context,
+																		uidEncrypted,
+																		serverId);
+
+														Log.d("communicator",
+																"XXXX RESPONSE groupMembersUpdate member of group "
+																		+ groupId
+																		+ " is "
+																		+ memberUid);
+
+														memberUids
+																.add(memberUid);
+													}
+													Setup.setGroupMembers(
+															context,
+															serverId,
+															groupId,
+															Utility.getListAsString(
+																	memberUids,
+																	","));
+												} else {
+													// We are the only member
+													Setup.setGroupMembers(
+															context, serverId,
+															groupId, "");
+												}
+											}
+										}
+
+										// now all groupIds are gatherd, save
+										// them
+										// We are the only member
+										Setup.setGroups(context, serverId,
+												Utility.getListAsString(
+														groupIds, ","));
+										Setup.updateGroupSpinnerAsync(context,
+												groupspinner);
+									} else {
+										// No groups we are in
+										Setup.setGroups(context, serverId, "");
+										Setup.updateGroupSpinnerAsync(context,
+												groupspinner);
+									}
+								} else {
+									// No groups we are in
+									Setup.setGroups(context, serverId, "");
+									Setup.updateGroupSpinnerAsync(context,
+											groupspinner);
+								}
+							}
+						}
+					}
+				}));
+	}
+
+	// -------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
+
+	// These mappings are used to remember which group on which server is
+	// selected
+
+	private static HashMap<Integer, Integer> groupSpinnerMappingServer = new HashMap<Integer, Integer>();
+	private static HashMap<Integer, String> groupSpinnerMappingGroupId = new HashMap<Integer, String>();
+
+	public static void updateGroupSpinnerAsync(final Context context,
+			final Spinner spinner) {
+		final Handler mUIHandler = new Handler(Looper.getMainLooper());
+		mUIHandler.post(new Thread() {
+			@Override
+			public void run() {
+				super.run();
+				updateGroupSpinner(context, spinner);
+			}
+		});
+	}
+
+	public static void updateGroupSpinner(final Context context,
+			final Spinner spinner) {
+
+		// Generate the values and remember the mapping
+		groupSpinnerMappingServer.clear();
+		groupSpinnerMappingGroupId.clear();
+		List<String> spinnerNames = new ArrayList<String>();
+		int index = 0;
+		for (int serverId : Setup.getServerIds(context)) {
+			if (Setup.isServerAccount(context, serverId, false)) {
+				String serverLabel = Setup.getServerLabel(context, serverId,
+						true);
+				List<String> groupIds = Setup.getGroupsList(context, serverId);
+				for (String groupId : groupIds) {
+					String groupName = Setup.getGroupName(context, serverId,
+							groupId);
+					int groupmembers = Setup.getGroupMembersList(context,
+							serverId, groupId).size() + 1;
+					spinnerNames.add(groupName + "@" + serverLabel + " ("
+							+ groupmembers + ")");
+					groupSpinnerMappingServer.put(index, serverId);
+					groupSpinnerMappingGroupId.put(index, groupId);
+					index++;
+				}
+			}
+		}
+
+		if (spinner != null) {
+			ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(
+					context, android.R.layout.simple_spinner_item, spinnerNames);
+			spinnerArrayAdapter
+					.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+			spinner.setAdapter(spinnerArrayAdapter);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	public static HashMap<Integer, String> groupSpinnerMappingGroupId2 = new HashMap<Integer, String>();
+
+	public static void updateGroupSpinner2(final Context context,
+			final int serverId, final Spinner spinner) {
+		groupSpinnerMappingGroupId2.clear();
+		
+		List<String> spinnerNames = new ArrayList<String>();
+		int index = 0;
+		if (Setup.isServerAccount(context, serverId, false)) {
+			List<String> groupIds = Setup.getGroupsList(context, serverId);
+			for (String groupId : groupIds) {
+				String groupName = Setup.getGroupName(context, serverId,
+						groupId);
+				int groupmembers = Setup.getGroupMembersList(context, serverId,
+						groupId).size() + 1;
+				spinnerNames.add(groupName + " ("
+						+ groupmembers + ")");
+				groupSpinnerMappingGroupId2.put(index, groupId);
+				index++;
+			}
+		}
+
+		if (spinner != null) {
+			ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(
+					context, android.R.layout.simple_spinner_item, spinnerNames);
+			spinnerArrayAdapter
+					.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+			spinner.setAdapter(spinnerArrayAdapter);
+		}
 	}
 
 	// -------------------------------------------------------------------------
