@@ -79,6 +79,7 @@ import android.view.View.OnKeyListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -252,6 +253,9 @@ public class Conversation extends Activity {
 
 	/** The bitmap_speechalert. */
 	static Bitmap bitmap_speechalert = null;
+
+	/** The Constant GROUPPREFIX following the secret. */
+	static final String GROUPINVITATION_PREFIX = "[ invitation ";
 
 	// ------------------------------------------------------------------------
 
@@ -2281,6 +2285,43 @@ public class Conversation extends Activity {
 			}
 		}
 
+		String text = conversationItem.text;
+		if (text.startsWith(Setup.ALERT_PREFIX)) {
+			text = text.substring(Setup.ALERT_PREFIX.length());
+		}
+
+		boolean isInvitation = conversationItem.text
+				.startsWith(GROUPINVITATION_PREFIX);
+		if (isInvitation) {
+			// parse groupsecret
+			int start = GROUPINVITATION_PREFIX.length();
+			int end = conversationItem.text.indexOf(" ]", start);
+			final String groupsecret = conversationItem.text.substring(start,
+					end);
+			text = text.replace(groupsecret + " ", "");
+			final int serverId = Setup.getServerId(context, hostUid);
+
+			LinearLayout conversationaddition = (LinearLayout) conversationlistitem
+					.findViewById(R.id.conversationaddition);
+
+			Button acceptButton = new Button(context);
+			acceptButton.setText(" Join Group ");
+			LinearLayout.LayoutParams lpButton = new LinearLayout.LayoutParams(
+					LinearLayout.LayoutParams.MATCH_PARENT,
+					LinearLayout.LayoutParams.MATCH_PARENT);
+			lpButton.setMargins(20, 20, 20, 20);
+			acceptButton.setLayoutParams(lpButton);
+			acceptButton.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					Setup.groupConfirm(context, serverId, groupsecret);
+				}
+			});
+			if (!conversationItem.me()) {
+				// Only add the JOIN button to the other host that was invited!
+				conversationaddition.addView(acceptButton);
+			}
+		}
+
 		// Add this to this list in order to later adjust the width
 		textViews.add(conversationText);
 		conversationText.setMe(conversationItem.me());
@@ -2349,10 +2390,6 @@ public class Conversation extends Activity {
 		conversationTime.setText(DB.getDateString(time, false));
 		conversationTime.setId(conversationTime.hashCode());
 
-		String text = conversationItem.text;
-		if (text.startsWith(Setup.ALERT_PREFIX)) {
-			text = text.substring(Setup.ALERT_PREFIX.length());
-		}
 		conversationText.setText(text);
 		conversationText.setId(conversationItem.hashCode());
 
@@ -3208,36 +3245,84 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 
 	private Spinner groupspinner;
-	
+
 	private void groupInvite(final Context context) {
 		final String name = Main.UID2Name(context, hostUid, false);
 		String title = "Invite " + name;
-		String text = "Please select the group to invite "
-				+ name + " to:";
+		String text = "Please select the group to invite " + name + " to:";
 		final int serverId = Setup.getServerId(context, hostUid);
-		
+
 		if (hostUid < 0) {
-			promptInfo(context, "Not Registered", name + " is not a registered user.\n\nYou cannot invite external users to any groups.");
-			return;
-		}
-		
-		if (serverId == -1 || Setup.getGroupsList(context, serverId).size() == 0) {
-			promptInfo(context, "No Groups", "You are not member of any groups on server " + Setup.getServerLabel(context, serverId, true)+ "." +
-					"\n\nIn order to invite somebody yourself must already be part of a group!");
+			promptInfo(
+					context,
+					"Not Registered",
+					name
+							+ " is not a registered user.\n\nYou cannot invite external users to any groups.");
 			return;
 		}
 
-		new MessageAlertDialog(context, title, text, null, " Invite ", " Cancel ",
-				new MessageAlertDialog.OnSelectionListener() {
+		if (serverId == -1
+				|| Setup.getGroupsList(context, serverId).size() == 0) {
+			promptInfo(
+					context,
+					"No Groups",
+					"You are not member of any groups on server "
+							+ Setup.getServerLabel(context, serverId, true)
+							+ "."
+							+ "\n\nIn order to invite somebody yourself must already be part of a group!");
+			return;
+		}
+
+		final boolean encrypted = Setup.encryptedSentPossible(context, hostUid);
+		if (!encrypted) {
+			promptInfo(
+					context,
+					"No Encryption",
+					name
+							+ " has not enabled encryption or you have not enabled encryption.\n\nEncryption is required"
+							+ " for inviting people! Make sure you and your communication partner have turned on encryption.");
+			return;
+		}
+
+		new MessageAlertDialog(context, title, text, null, " Invite ",
+				" Cancel ", new MessageAlertDialog.OnSelectionListener() {
 					public void selected(int button, boolean cancel) {
 						if (button == MessageAlertDialog.BUTTONOK1 && !cancel) {
-							
+
 							if (groupspinner != null) {
-								int index = groupspinner.getSelectedItemPosition();
+								int index = groupspinner
+										.getSelectedItemPosition();
 								if (index > -1) {
-									String groupId = Setup.groupSpinnerMappingGroupId2.get(index);
-									Setup.groupInvite(context, serverId, groupId, button);
-									// TODO: add message with invitation
+									String groupId = Setup.groupSpinnerMappingGroupId2
+											.get(index);
+									String serverName = Setup.getServerLabel(
+											context, serverId, true);
+									String groupName = Setup.getGroupName(
+											context, serverId, groupId);
+									String groupSecret = Setup.getGroupSecret(
+											context, serverId, groupId);
+
+									Setup.groupInvite(context, serverId,
+											groupId, button);
+
+									int myUid = DB.myUid(null, serverId);
+									String myName = Main.UID2Name(context,
+											myUid, true);
+									String otherName = Main.UID2Name(context,
+											hostUid, true);
+									String text = GROUPINVITATION_PREFIX
+											+ groupSecret + " ]\n\n" + myName
+											+ " has invited " + otherName
+											+ " to the group '" + groupName
+											+ "' on server " + serverName + ".";
+									if (DB.addSendMessage(context, hostUid,
+											text, encrypted,
+											DB.TRANSPORT_INTERNET, false,
+											DB.PRIORITY_MESSAGE)) {
+										updateConversationlist(context);
+										Communicator.sendNewNextMessageAsync(
+												context, DB.TRANSPORT_INTERNET);
+									}
 								}
 							}
 						}

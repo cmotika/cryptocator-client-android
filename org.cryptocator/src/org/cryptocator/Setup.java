@@ -7648,6 +7648,7 @@ public class Setup extends Activity {
 											+ groupName + "' created.", false);
 									Setup.updateGroupSpinnerAsync(context,
 											groupspinner);
+									Setup.updateGroupsFromServer(context, true, serverId);
 								} else {
 									setErrorInfoAsync(context,
 											"Error creating group '"
@@ -7847,7 +7848,7 @@ public class Setup extends Activity {
 	 * @param uid the uid
 	 */
 	public static void groupConfirm(final Context context, final int serverId,
-			final String groupId) {
+			final String groupsecret) {
 		String session = Setup.getTmpLoginEncoded(context, serverId);
 		if (session == null) {
 			setErrorInfo(context,
@@ -7862,7 +7863,7 @@ public class Setup extends Activity {
 				+ "cmd=confirmgroup&session="
 				+ session
 				+ "&val="
-				+ Setup.encUid(context, Utility.parseInt(groupId, -1), serverId);
+				+ Setup.encText(context, groupsecret, serverId);
 		final String url2 = url;
 		Log.d("communicator", "XXXX REQUEST groupConfirm :" + url2);
 		@SuppressWarnings("unused")

@@ -68,6 +68,17 @@
             android:textIsSelectable="true"
             android:textSize="18dp" >
         </org.cryptocator.ImageSmileyEditText>
+        
+                            <LinearLayout
+                                android:id="@+id/conversationaddition"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_horizontal"
+                                android:orientation="horizontal" >
+
+            </LinearLayout>
+        
+        
 <!--             android:background="@null"  -->
         
         

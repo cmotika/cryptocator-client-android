@@ -171,7 +171,7 @@ public class Communicator {
 
 	public static String NEWLINEESCAPE = "@@@NEWLINE@@@";
 	public static String HASHESCAPE = "@@@HASH@@@";
-
+	
 	// ----------------------------------------------------------------------------------
 
 	/**
