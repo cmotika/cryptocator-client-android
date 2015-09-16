@@ -112,478 +112,488 @@ android.support.v4.widget.SwipeRefreshLayout: void setColorSchemeResources(int[]
 android.support.v4.widget.SwipeRefreshLayout: void setColorSchemeColors(int[])
 android.support.v4.widget.SwipeRefreshLayout: void setDistanceToTriggerSync(int)
 android.support.v4.widget.SwipeRefreshLayout: int getProgressCircleDiameter()
-org.cryptocator.BackupActivity
-org.cryptocator.BackupActivity: BackupActivity()
-org.cryptocator.BootReceiver
-org.cryptocator.BootReceiver: BootReceiver()
-org.cryptocator.Conversation
-org.cryptocator.Conversation: Conversation()
-org.cryptocator.ConversationCompose
-org.cryptocator.ConversationCompose: ConversationCompose()
-org.cryptocator.FastScrollBar: void setOnScrollListener(org.cryptocator.FastScrollBar$OnScrollListener)
-org.cryptocator.FastScrollBar: void setThumb(android.graphics.drawable.Drawable)
-org.cryptocator.FastScrollBar: void setSnapDown(int)
-org.cryptocator.FastScrollBar: void setSnapUp(int)
-org.cryptocator.FastScrollBar: void setProgress(int)
-org.cryptocator.FastScrollBar: long getTimestamp()
-org.cryptocator.FastScrollBar: int getCurrentProgress()
-org.cryptocator.FastScrollView
-org.cryptocator.FastScrollView: void setOnLayoutDoneListener(org.cryptocator.FastScrollView$OnLayoutDoneListener)
-org.cryptocator.FastScrollView: void setOnScrollListener(org.cryptocator.FastScrollView$OnScrollListener)
-org.cryptocator.FastScrollView: void setOnSizeChangeListener(org.cryptocator.FastScrollView$OnSizeChangeListener)
-org.cryptocator.FastScrollView: void setOnNoHangListener(org.cryptocator.FastScrollView$OnNoHangListener)
-org.cryptocator.FastScrollView: FastScrollView(android.content.Context,android.util.AttributeSet)
-org.cryptocator.FastScrollView: FastScrollView(android.content.Context)
-org.cryptocator.FastScrollView: int getMaxPosition()
-org.cryptocator.FastScrollView: int getMaxHeight()
-org.cryptocator.FastScrollView: int getVisibleHeight()
-org.cryptocator.FastScrollView: void setScrollBackground(int)
-org.cryptocator.FastScrollView: void setSnapDown(int)
-org.cryptocator.FastScrollView: void setSnapUp(int)
-org.cryptocator.HeadlessSmsSendService
-org.cryptocator.HeadlessSmsSendService: HeadlessSmsSendService()
-org.cryptocator.ImageContextMenu
-org.cryptocator.ImageContextMenu: ImageContextMenu()
-org.cryptocator.ImageFullscreenActivity
-org.cryptocator.ImageFullscreenActivity: ImageFullscreenActivity()
-org.cryptocator.ImageLabelButton
-org.cryptocator.ImageLabelButton: ImageLabelButton(android.content.Context)
-org.cryptocator.ImageLabelButton: ImageLabelButton(android.content.Context,android.util.AttributeSet)
-org.cryptocator.ImageLabelButton: ImageLabelButton(android.content.Context,android.util.AttributeSet,int)
-org.cryptocator.ImageLabelButton: void setMarginDown(int)
-org.cryptocator.ImageLabelButton: void setMarginUp(int)
-org.cryptocator.ImageLabelButton: void setTextColor(int)
-org.cryptocator.ImageLabelButton: void setImageURI(android.net.Uri)
-org.cryptocator.ImageLabelButton: void setImageResource(int)
-org.cryptocator.ImageLabelButton: void setImageResourceInternal(int)
-org.cryptocator.ImagePressButton
-org.cryptocator.ImagePressButton: ImagePressButton(android.content.Context)
-org.cryptocator.ImagePressButton: ImagePressButton(android.content.Context,android.util.AttributeSet)
-org.cryptocator.ImagePressButton: ImagePressButton(android.content.Context,android.util.AttributeSet,int)
-org.cryptocator.ImagePressButton: void setImageResource(int)
-org.cryptocator.ImagePressButton: void setImagePressResource(int)
-org.cryptocator.ImagePressButton: void setAdditionalPressWhiteView(android.view.View)
-org.cryptocator.ImageSmileyEditText
-org.cryptocator.ImageSmileyEditText: void setMe(boolean)
-org.cryptocator.ImageSmileyEditText: void setConversationItem(org.cryptocator.ConversationItem)
-org.cryptocator.ImageSmileyEditText: void setOnCutCopyPasteListener(org.cryptocator.ImageSmileyEditText$OnCutCopyPasteListener)
-org.cryptocator.ImageSmileyEditText: ImageSmileyEditText(android.content.Context,android.util.AttributeSet,int)
-org.cryptocator.ImageSmileyEditText: ImageSmileyEditText(android.content.Context,android.util.AttributeSet)
-org.cryptocator.ImageSmileyEditText: ImageSmileyEditText(android.content.Context)
-org.cryptocator.ImageSmileyEditText: void setInputTextField(boolean)
-org.cryptocator.KeyEventEditText
-org.cryptocator.KeyEventEditText: void setKeyListener(org.cryptocator.KeyEventEditText$KeyEventEditTextEditTextKeyListener)
-org.cryptocator.KeyEventEditText: KeyEventEditText(android.content.Context)
-org.cryptocator.KeyEventEditText: KeyEventEditText(android.content.Context,android.util.AttributeSet)
-org.cryptocator.KeyEventEditText: KeyEventEditText(android.content.Context,android.util.AttributeSet,int)
-org.cryptocator.Main
-org.cryptocator.Main: Main()
-org.cryptocator.MessageDetailsActivity
-org.cryptocator.MessageDetailsActivity: MessageDetailsActivity()
-org.cryptocator.MmsReceiver
-org.cryptocator.MmsReceiver: MmsReceiver()
-org.cryptocator.PictureImportActivity
-org.cryptocator.PictureImportActivity: PictureImportActivity()
-org.cryptocator.R$color: int gray
-org.cryptocator.R$color: int invisible
-org.cryptocator.R$drawable: int additionbtn
-org.cryptocator.R$drawable: int additionbtnback
-org.cryptocator.R$drawable: int attachmentbtn
-org.cryptocator.R$drawable: int backkey
-org.cryptocator.R$drawable: int backlock
-org.cryptocator.R$drawable: int btnadduser
-org.cryptocator.R$drawable: int btnback
-org.cryptocator.R$drawable: int btnbackup
-org.cryptocator.R$drawable: int btnbackupsm
-org.cryptocator.R$drawable: int btnclear
-org.cryptocator.R$drawable: int btncompose
-org.cryptocator.R$drawable: int btnedit
-org.cryptocator.R$drawable: int btnkey
-org.cryptocator.R$drawable: int btnmenu
-org.cryptocator.R$drawable: int btnpassword
-org.cryptocator.R$drawable: int btnrefresh
-org.cryptocator.R$drawable: int btnsearch
-org.cryptocator.R$drawable: int btnsms
-org.cryptocator.R$drawable: int btnusername
-org.cryptocator.R$drawable: int buttonedit
-org.cryptocator.R$drawable: int buttoneditsms
-org.cryptocator.R$drawable: int call
-org.cryptocator.R$drawable: int calldisabled
-org.cryptocator.R$drawable: int callsms
-org.cryptocator.R$drawable: int compose
-org.cryptocator.R$drawable: int composesms
-org.cryptocator.R$drawable: int darkback
-org.cryptocator.R$drawable: int darkerback
-org.cryptocator.R$drawable: int dolphins1
-org.cryptocator.R$drawable: int dolphins2
-org.cryptocator.R$drawable: int dolphins3
-org.cryptocator.R$drawable: int dolphins3blue
-org.cryptocator.R$drawable: int dolphins3light
-org.cryptocator.R$drawable: int dolphins4
-org.cryptocator.R$drawable: int dolphins4light
-org.cryptocator.R$drawable: int framebackkey
-org.cryptocator.R$drawable: int framebacklock
-org.cryptocator.R$drawable: int help
-org.cryptocator.R$drawable: int ic_launcher
-org.cryptocator.R$drawable: int lightback
-org.cryptocator.R$drawable: int lighterback
-org.cryptocator.R$drawable: int lightestback
-org.cryptocator.R$drawable: int menuaccount
-org.cryptocator.R$drawable: int menuadduser
-org.cryptocator.R$drawable: int menuadduserext
-org.cryptocator.R$drawable: int menuattachment
-org.cryptocator.R$drawable: int menubackup
-org.cryptocator.R$drawable: int menuchatoff
-org.cryptocator.R$drawable: int menuchaton
-org.cryptocator.R$drawable: int menuclearinput
-org.cryptocator.R$drawable: int menucompose
-org.cryptocator.R$drawable: int menucopy
-org.cryptocator.R$drawable: int menudelete
-org.cryptocator.R$drawable: int menuinfo
-org.cryptocator.R$drawable: int menukey
-org.cryptocator.R$drawable: int menumsgsec
-org.cryptocator.R$drawable: int menumsgunsec
-org.cryptocator.R$drawable: int menurefresh
-org.cryptocator.R$drawable: int menurespond
-org.cryptocator.R$drawable: int menurevoke
-org.cryptocator.R$drawable: int menusearch
-org.cryptocator.R$drawable: int menusettings
-org.cryptocator.R$drawable: int menushare
-org.cryptocator.R$drawable: int menushowall
-org.cryptocator.R$drawable: int menusmsoff
-org.cryptocator.R$drawable: int menusmson
-org.cryptocator.R$drawable: int menusmssec
-org.cryptocator.R$drawable: int menusmsunsec
-org.cryptocator.R$drawable: int message
-org.cryptocator.R$drawable: int msg
-org.cryptocator.R$drawable: int msgdecryptionfailed
-org.cryptocator.R$drawable: int msgerror
-org.cryptocator.R$drawable: int msginfo
-org.cryptocator.R$drawable: int msginfosms
-org.cryptocator.R$drawable: int msglocked
-org.cryptocator.R$drawable: int msglocked2
-org.cryptocator.R$drawable: int msgread
-org.cryptocator.R$drawable: int msgreceived
-org.cryptocator.R$drawable: int msgsent
-org.cryptocator.R$drawable: int msgsmall24x24
-org.cryptocator.R$drawable: int person
-org.cryptocator.R$drawable: int personadd
-org.cryptocator.R$drawable: int persongenericbar
-org.cryptocator.R$drawable: int persongenericbarlock
-org.cryptocator.R$drawable: int persongenericbarsms
-org.cryptocator.R$drawable: int persongenericlock
-org.cryptocator.R$drawable: int persongenericmaster
-org.cryptocator.R$drawable: int persongenericmsg
-org.cryptocator.R$drawable: int personsmall
-org.cryptocator.R$drawable: int personsms
-org.cryptocator.R$drawable: int personsmssmall
-org.cryptocator.R$drawable: int phone
-org.cryptocator.R$drawable: int phoneneutral
-org.cryptocator.R$drawable: int phonesms
-org.cryptocator.R$drawable: int photobtn
-org.cryptocator.R$drawable: int pictureimport
-org.cryptocator.R$drawable: int rounded_corners
-org.cryptocator.R$drawable: int rounded_corners_alert
-org.cryptocator.R$drawable: int rounded_corners_shaddow
-org.cryptocator.R$drawable: int rounded_cornersme
-org.cryptocator.R$drawable: int rounded_cornersme_failed
-org.cryptocator.R$drawable: int rounded_cornersme_shaddow
-org.cryptocator.R$drawable: int s0
-org.cryptocator.R$drawable: int s1
-org.cryptocator.R$drawable: int s10
-org.cryptocator.R$drawable: int s11
-org.cryptocator.R$drawable: int s12
-org.cryptocator.R$drawable: int s13
-org.cryptocator.R$drawable: int s14
-org.cryptocator.R$drawable: int s2
-org.cryptocator.R$drawable: int s3
-org.cryptocator.R$drawable: int s4
-org.cryptocator.R$drawable: int s5
-org.cryptocator.R$drawable: int s6
-org.cryptocator.R$drawable: int s7
-org.cryptocator.R$drawable: int s8
-org.cryptocator.R$drawable: int s9
-org.cryptocator.R$drawable: int scrollbarhandle4
-org.cryptocator.R$drawable: int send
-org.cryptocator.R$drawable: int senddisabled
-org.cryptocator.R$drawable: int sendlock
-org.cryptocator.R$drawable: int sendsms
-org.cryptocator.R$drawable: int sendsmslock
-org.cryptocator.R$drawable: int server
-org.cryptocator.R$drawable: int serverdisabled
-org.cryptocator.R$drawable: int smileybtn
-org.cryptocator.R$drawable: int sms
-org.cryptocator.R$drawable: int sms2
-org.cryptocator.R$drawable: int speech
-org.cryptocator.R$drawable: int speechalert
-org.cryptocator.R$drawable: int speechmaster
-org.cryptocator.R$drawable: int speechme
-org.cryptocator.R$drawable: int speechmefailed
-org.cryptocator.R$drawable: int update
-org.cryptocator.R$drawable: int updatesms
-org.cryptocator.R$id: int accountexisting
-org.cryptocator.R$id: int accountexistinglogindata
-org.cryptocator.R$id: int accountheader
-org.cryptocator.R$id: int accountnew
-org.cryptocator.R$id: int accountonline
-org.cryptocator.R$id: int accountoptionbuttons
-org.cryptocator.R$id: int accountsection
-org.cryptocator.R$id: int active
-org.cryptocator.R$id: int additionbutton
-org.cryptocator.R$id: int additionbuttonparent
-org.cryptocator.R$id: int additions
-org.cryptocator.R$id: int adduser_button
-org.cryptocator.R$id: int adduser_name
-org.cryptocator.R$id: int adduser_text
-org.cryptocator.R$id: int adduseritem
-org.cryptocator.R$id: int advancedsettings
-org.cryptocator.R$id: int attachmentbutton
-org.cryptocator.R$id: int attachmentbuttonparent
-org.cryptocator.R$id: int attachmentspinner
-org.cryptocator.R$id: int attachmentsrow1
-org.cryptocator.R$id: int attachmentsrow2
-org.cryptocator.R$id: int autosave
-org.cryptocator.R$id: int avatarclear
-org.cryptocator.R$id: int avatargallery
-org.cryptocator.R$id: int avatarimage
-org.cryptocator.R$id: int avatarparent
-org.cryptocator.R$id: int avatarphoto
-org.cryptocator.R$id: int backup
-org.cryptocator.R$id: int backupbuttons
-org.cryptocator.R$id: int backupmain
-org.cryptocator.R$id: int backupparent
-org.cryptocator.R$id: int backupscrollview
-org.cryptocator.R$id: int btnadduser
-org.cryptocator.R$id: int btnadduserparent
-org.cryptocator.R$id: int btnback
-org.cryptocator.R$id: int btnbackparent
-org.cryptocator.R$id: int btncompose
-org.cryptocator.R$id: int btncomposeparent
-org.cryptocator.R$id: int btnkey
-org.cryptocator.R$id: int btnkeyparent
-org.cryptocator.R$id: int btnmenu
-org.cryptocator.R$id: int btnmenuparent
-org.cryptocator.R$id: int btnrefresh
-org.cryptocator.R$id: int btnrefreshparent
-org.cryptocator.R$id: int btnsearch
-org.cryptocator.R$id: int btnsearchparent
-org.cryptocator.R$id: int buttonbackup
-org.cryptocator.R$id: int buttoncancel
-org.cryptocator.R$id: int buttonclear
-org.cryptocator.R$id: int buttonclearsending
-org.cryptocator.R$id: int buttondebugprint
-org.cryptocator.R$id: int buttondeletedatabase
-org.cryptocator.R$id: int buttonpictureimport
-org.cryptocator.R$id: int buttonsave
-org.cryptocator.R$id: int buttonshare
-org.cryptocator.R$id: int chatmode
-org.cryptocator.R$id: int conversationRootView
-org.cryptocator.R$id: int conversationprogress
-org.cryptocator.R$id: int conversationtext
-org.cryptocator.R$id: int conversationtime
-org.cryptocator.R$id: int create
-org.cryptocator.R$id: int created
-org.cryptocator.R$id: int demo
-org.cryptocator.R$id: int details
-org.cryptocator.R$id: int deviceid
-org.cryptocator.R$id: int disablesmsoption
-org.cryptocator.R$id: int email
-org.cryptocator.R$id: int emailnew
-org.cryptocator.R$id: int enablesmsoption
-org.cryptocator.R$id: int encrypted
-org.cryptocator.R$id: int encryption
-org.cryptocator.R$id: int error
-org.cryptocator.R$id: int fastscrollview
-org.cryptocator.R$id: int from
-org.cryptocator.R$id: int fromfirst
-org.cryptocator.R$id: int fromid
-org.cryptocator.R$id: int fromidinfo
-org.cryptocator.R$id: int fromkey
-org.cryptocator.R$id: int helpactive
-org.cryptocator.R$id: int helpautosave
-org.cryptocator.R$id: int helpchatmode
-org.cryptocator.R$id: int helpencryption
-org.cryptocator.R$id: int helpignore
-org.cryptocator.R$id: int helpnoread
-org.cryptocator.R$id: int helpnoscreenshots
-org.cryptocator.R$id: int helpnotification
-org.cryptocator.R$id: int helppowersave
-org.cryptocator.R$id: int helpquicktype
-org.cryptocator.R$id: int helpreceiveallsms
-org.cryptocator.R$id: int helpsmileys
-org.cryptocator.R$id: int helptone
-org.cryptocator.R$id: int helpvibrate
-org.cryptocator.R$id: int ignore
-org.cryptocator.R$id: int ignoredremove
-org.cryptocator.R$id: int ignoredspinner
-org.cryptocator.R$id: int imageView1
-org.cryptocator.R$id: int info
-org.cryptocator.R$id: int infolistitem
-org.cryptocator.R$id: int infolistitemtext
-org.cryptocator.R$id: int inputlayout
-org.cryptocator.R$id: int keycreated
-org.cryptocator.R$id: int keycreatedrow
-org.cryptocator.R$id: int keyexpires
-org.cryptocator.R$id: int keyexpiresrow
-org.cryptocator.R$id: int keyhash
-org.cryptocator.R$id: int keyhashrow
-org.cryptocator.R$id: int login
-org.cryptocator.R$id: int mainbackground
-org.cryptocator.R$id: int maininnerview
-org.cryptocator.R$id: int mainpanel
-org.cryptocator.R$id: int mainscrollview
-org.cryptocator.R$id: int mainsettingsinnerlayout
-org.cryptocator.R$id: int messageText
-org.cryptocator.R$id: int messagedetailscrollview
-org.cryptocator.R$id: int messagedetailsmain
-org.cryptocator.R$id: int msglocked
-org.cryptocator.R$id: int msgread
-org.cryptocator.R$id: int msgreceived
-org.cryptocator.R$id: int msgsent
-org.cryptocator.R$id: int msgsms
-org.cryptocator.R$id: int msgspeech
-org.cryptocator.R$id: int newaccount
-org.cryptocator.R$id: int noread
-org.cryptocator.R$id: int noscreenshots
-org.cryptocator.R$id: int notification
-org.cryptocator.R$id: int oneline
-org.cryptocator.R$id: int ownaccountkey
-org.cryptocator.R$id: int passwordparent
-org.cryptocator.R$id: int personicon
-org.cryptocator.R$id: int personiconback
-org.cryptocator.R$id: int phone
-org.cryptocator.R$id: int phonebutton
-org.cryptocator.R$id: int pictureimportbuttons
-org.cryptocator.R$id: int pictureimportmain
-org.cryptocator.R$id: int pictureimportscrollview
-org.cryptocator.R$id: int powersave
-org.cryptocator.R$id: int pwd
-org.cryptocator.R$id: int pwdchange
-org.cryptocator.R$id: int pwdnew
-org.cryptocator.R$id: int quality
-org.cryptocator.R$id: int qualitytext
-org.cryptocator.R$id: int quicktype
-org.cryptocator.R$id: int read
-org.cryptocator.R$id: int receiveallsms
-org.cryptocator.R$id: int received
-org.cryptocator.R$id: int receivedtext
-org.cryptocator.R$id: int removeimages
-org.cryptocator.R$id: int restore
-org.cryptocator.R$id: int revoked
-org.cryptocator.R$id: int revokedrow
-org.cryptocator.R$id: int sendbutton
-org.cryptocator.R$id: int sendbuttonparent
-org.cryptocator.R$id: int sendingreceiving
-org.cryptocator.R$id: int sendingreceivingparent
-org.cryptocator.R$id: int sendingreceivingprogess
-org.cryptocator.R$id: int sendingreceivingtitle
-org.cryptocator.R$id: int sendspinner
-org.cryptocator.R$id: int sent
-org.cryptocator.R$id: int serverMessageID
-org.cryptocator.R$id: int serverbuttonadd
-org.cryptocator.R$id: int serverbuttondelete
-org.cryptocator.R$id: int serverbuttonmodify
-org.cryptocator.R$id: int serverdisabled
-org.cryptocator.R$id: int serverimage
-org.cryptocator.R$id: int serverspinner
-org.cryptocator.R$id: int settingsbackground
-org.cryptocator.R$id: int settingssection
-org.cryptocator.R$id: int size
-org.cryptocator.R$id: int size0
-org.cryptocator.R$id: int size0highlight
-org.cryptocator.R$id: int size1
-org.cryptocator.R$id: int size1highlight
-org.cryptocator.R$id: int size2
-org.cryptocator.R$id: int size2highlight
-org.cryptocator.R$id: int size3
-org.cryptocator.R$id: int size3highlight
-org.cryptocator.R$id: int sizetext
-org.cryptocator.R$id: int sizetextback
-org.cryptocator.R$id: int smileybutton
-org.cryptocator.R$id: int smileybuttonparent
-org.cryptocator.R$id: int smileys
-org.cryptocator.R$id: int smsparent
-org.cryptocator.R$id: int tableLayout1
-org.cryptocator.R$id: int textexisting2
-org.cryptocator.R$id: int textexisting22
-org.cryptocator.R$id: int textexisting2223
-org.cryptocator.R$id: int textexisting223
-org.cryptocator.R$id: int textexisting224
-org.cryptocator.R$id: int textlogin3
-org.cryptocator.R$id: int textnew
-org.cryptocator.R$id: int titleconversation
-org.cryptocator.R$id: int titlegeneral
-org.cryptocator.R$id: int titlemain
-org.cryptocator.R$id: int titletext
-org.cryptocator.R$id: int titletextparent
-org.cryptocator.R$id: int to
-org.cryptocator.R$id: int toid
-org.cryptocator.R$id: int toidinfo
-org.cryptocator.R$id: int tokey
-org.cryptocator.R$id: int tolast
-org.cryptocator.R$id: int tolist
-org.cryptocator.R$id: int tone
-org.cryptocator.R$id: int transport
-org.cryptocator.R$id: int uid
-org.cryptocator.R$id: int updateavatar
-org.cryptocator.R$id: int updatepwd
-org.cryptocator.R$id: int updateuser
-org.cryptocator.R$id: int user
-org.cryptocator.R$id: int usericon
-org.cryptocator.R$id: int userlistdate
-org.cryptocator.R$id: int userlistname
-org.cryptocator.R$id: int userlisttext
-org.cryptocator.R$id: int usernew
-org.cryptocator.R$id: int userparent
-org.cryptocator.R$id: int userradio
-org.cryptocator.R$id: int vibrate
-org.cryptocator.R$id: int widget44
-org.cryptocator.R$id: int widget46
-org.cryptocator.R$layout: int activity_backup
-org.cryptocator.R$layout: int activity_conversation
-org.cryptocator.R$layout: int activity_conversation_compose
-org.cryptocator.R$layout: int activity_main
-org.cryptocator.R$layout: int activity_messagedetails
-org.cryptocator.R$layout: int activity_pictureimport
-org.cryptocator.R$layout: int activity_setup
-org.cryptocator.R$layout: int adduserlistitem
-org.cryptocator.R$layout: int conversationitem
-org.cryptocator.R$layout: int conversationitemme
-org.cryptocator.R$layout: int infolistitem
-org.cryptocator.R$layout: int setup_account
-org.cryptocator.R$layout: int setup_settings
-org.cryptocator.R$layout: int title_conversation
-org.cryptocator.R$layout: int title_conversation_compose
-org.cryptocator.R$layout: int title_general
-org.cryptocator.R$layout: int title_main
-org.cryptocator.R$layout: int tolistitem
-org.cryptocator.R$layout: int userlistitem
-org.cryptocator.R$string: int app_name
-org.cryptocator.R$style: int AlertDialogCustom
-org.cryptocator.R$style: int AlertDialogCustomOther
-org.cryptocator.R$style: int AutoCompleteTextViewLight
-org.cryptocator.R$style: int NoTitlebar
-org.cryptocator.R$style: int Theme_Light_NoTitleBar_Workaround
-org.cryptocator.R$style: int Theme_Transparent
-org.cryptocator.R$style: int Widget_DropDownItemLight
-org.cryptocator.ReceiveSMS
-org.cryptocator.ReceiveSMS: ReceiveSMS()
-org.cryptocator.Scheduler
-org.cryptocator.Scheduler: Scheduler()
-org.cryptocator.ScrollViewEx
-org.cryptocator.ScrollViewEx: ScrollViewEx(android.content.Context)
-org.cryptocator.ScrollViewEx: ScrollViewEx(android.content.Context,android.util.AttributeSet,int)
-org.cryptocator.ScrollViewEx: ScrollViewEx(android.content.Context,android.util.AttributeSet)
-org.cryptocator.ScrollViewEx: void setScrollViewListener(org.cryptocator.ScrollViewEx$ScrollViewExListener)
-org.cryptocator.SendSMSDelivered
-org.cryptocator.SendSMSDelivered: SendSMSDelivered()
-org.cryptocator.SendSMSSent
-org.cryptocator.SendSMSSent: SendSMSSent()
-org.cryptocator.Setup
-org.cryptocator.Setup: Setup()
-org.cryptocator.TransitActivity
-org.cryptocator.TransitActivity: TransitActivity()
-org.cryptocator.UserDetailsActivity
-org.cryptocator.UserDetailsActivity: UserDetailsActivity()
-org.cryptocator.UserPresentReceiver
-org.cryptocator.UserPresentReceiver: UserPresentReceiver()
+org.cryptsecure.BackupActivity
+org.cryptsecure.BackupActivity: BackupActivity()
+org.cryptsecure.BootReceiver
+org.cryptsecure.BootReceiver: BootReceiver()
+org.cryptsecure.Conversation
+org.cryptsecure.Conversation: Conversation()
+org.cryptsecure.ConversationCompose
+org.cryptsecure.ConversationCompose: ConversationCompose()
+org.cryptsecure.FastScrollBar: void setOnScrollListener(org.cryptsecure.FastScrollBar$OnScrollListener)
+org.cryptsecure.FastScrollBar: void setThumb(android.graphics.drawable.Drawable)
+org.cryptsecure.FastScrollBar: void setSnapDown(int)
+org.cryptsecure.FastScrollBar: void setSnapUp(int)
+org.cryptsecure.FastScrollBar: void setProgress(int)
+org.cryptsecure.FastScrollBar: long getTimestamp()
+org.cryptsecure.FastScrollBar: int getCurrentProgress()
+org.cryptsecure.FastScrollView
+org.cryptsecure.FastScrollView: void setOnLayoutDoneListener(org.cryptsecure.FastScrollView$OnLayoutDoneListener)
+org.cryptsecure.FastScrollView: void setOnScrollListener(org.cryptsecure.FastScrollView$OnScrollListener)
+org.cryptsecure.FastScrollView: void setOnSizeChangeListener(org.cryptsecure.FastScrollView$OnSizeChangeListener)
+org.cryptsecure.FastScrollView: void setOnNoHangListener(org.cryptsecure.FastScrollView$OnNoHangListener)
+org.cryptsecure.FastScrollView: FastScrollView(android.content.Context,android.util.AttributeSet)
+org.cryptsecure.FastScrollView: FastScrollView(android.content.Context)
+org.cryptsecure.FastScrollView: int getMaxPosition()
+org.cryptsecure.FastScrollView: int getMaxHeight()
+org.cryptsecure.FastScrollView: int getVisibleHeight()
+org.cryptsecure.FastScrollView: void setScrollBackground(int)
+org.cryptsecure.FastScrollView: void setSnapDown(int)
+org.cryptsecure.FastScrollView: void setSnapUp(int)
+org.cryptsecure.HeadlessSmsSendService
+org.cryptsecure.HeadlessSmsSendService: HeadlessSmsSendService()
+org.cryptsecure.ImageContextMenu
+org.cryptsecure.ImageContextMenu: ImageContextMenu()
+org.cryptsecure.ImageFullscreenActivity
+org.cryptsecure.ImageFullscreenActivity: ImageFullscreenActivity()
+org.cryptsecure.ImageLabelButton
+org.cryptsecure.ImageLabelButton: ImageLabelButton(android.content.Context)
+org.cryptsecure.ImageLabelButton: ImageLabelButton(android.content.Context,android.util.AttributeSet)
+org.cryptsecure.ImageLabelButton: ImageLabelButton(android.content.Context,android.util.AttributeSet,int)
+org.cryptsecure.ImageLabelButton: void setMarginDown(int)
+org.cryptsecure.ImageLabelButton: void setMarginUp(int)
+org.cryptsecure.ImageLabelButton: void setTextColor(int)
+org.cryptsecure.ImageLabelButton: void setImageURI(android.net.Uri)
+org.cryptsecure.ImageLabelButton: void setImageResource(int)
+org.cryptsecure.ImageLabelButton: void setImageResourceInternal(int)
+org.cryptsecure.ImagePressButton
+org.cryptsecure.ImagePressButton: ImagePressButton(android.content.Context)
+org.cryptsecure.ImagePressButton: ImagePressButton(android.content.Context,android.util.AttributeSet)
+org.cryptsecure.ImagePressButton: ImagePressButton(android.content.Context,android.util.AttributeSet,int)
+org.cryptsecure.ImagePressButton: void setImageResource(int)
+org.cryptsecure.ImagePressButton: void setImagePressResource(int)
+org.cryptsecure.ImagePressButton: void setAdditionalPressWhiteView(android.view.View)
+org.cryptsecure.ImageSmileyEditText
+org.cryptsecure.ImageSmileyEditText: void setMe(boolean)
+org.cryptsecure.ImageSmileyEditText: void setConversationItem(org.cryptsecure.ConversationItem)
+org.cryptsecure.ImageSmileyEditText: void setOnCutCopyPasteListener(org.cryptsecure.ImageSmileyEditText$OnCutCopyPasteListener)
+org.cryptsecure.ImageSmileyEditText: ImageSmileyEditText(android.content.Context,android.util.AttributeSet,int)
+org.cryptsecure.ImageSmileyEditText: ImageSmileyEditText(android.content.Context,android.util.AttributeSet)
+org.cryptsecure.ImageSmileyEditText: ImageSmileyEditText(android.content.Context)
+org.cryptsecure.ImageSmileyEditText: void setInputTextField(boolean)
+org.cryptsecure.KeyEventEditText
+org.cryptsecure.KeyEventEditText: void setKeyListener(org.cryptsecure.KeyEventEditText$KeyEventEditTextEditTextKeyListener)
+org.cryptsecure.KeyEventEditText: KeyEventEditText(android.content.Context)
+org.cryptsecure.KeyEventEditText: KeyEventEditText(android.content.Context,android.util.AttributeSet)
+org.cryptsecure.KeyEventEditText: KeyEventEditText(android.content.Context,android.util.AttributeSet,int)
+org.cryptsecure.Main
+org.cryptsecure.Main: Main()
+org.cryptsecure.MessageDetailsActivity
+org.cryptsecure.MessageDetailsActivity: MessageDetailsActivity()
+org.cryptsecure.MmsReceiver
+org.cryptsecure.MmsReceiver: MmsReceiver()
+org.cryptsecure.PictureImportActivity
+org.cryptsecure.PictureImportActivity: PictureImportActivity()
+org.cryptsecure.R$color: int gray
+org.cryptsecure.R$color: int invisible
+org.cryptsecure.R$drawable: int additionbtn
+org.cryptsecure.R$drawable: int additionbtnback
+org.cryptsecure.R$drawable: int attachmentbtn
+org.cryptsecure.R$drawable: int backkey
+org.cryptsecure.R$drawable: int backlock
+org.cryptsecure.R$drawable: int btnadduser
+org.cryptsecure.R$drawable: int btnback
+org.cryptsecure.R$drawable: int btnbackup
+org.cryptsecure.R$drawable: int btnbackupsm
+org.cryptsecure.R$drawable: int btnclear
+org.cryptsecure.R$drawable: int btncompose
+org.cryptsecure.R$drawable: int btnedit
+org.cryptsecure.R$drawable: int btngroups
+org.cryptsecure.R$drawable: int btnkey
+org.cryptsecure.R$drawable: int btnmenu
+org.cryptsecure.R$drawable: int btnpassword
+org.cryptsecure.R$drawable: int btnrefresh
+org.cryptsecure.R$drawable: int btnsearch
+org.cryptsecure.R$drawable: int btnsms
+org.cryptsecure.R$drawable: int btnusername
+org.cryptsecure.R$drawable: int buttonedit
+org.cryptsecure.R$drawable: int buttoneditsms
+org.cryptsecure.R$drawable: int call
+org.cryptsecure.R$drawable: int calldisabled
+org.cryptsecure.R$drawable: int callsms
+org.cryptsecure.R$drawable: int compose
+org.cryptsecure.R$drawable: int composesms
+org.cryptsecure.R$drawable: int darkback
+org.cryptsecure.R$drawable: int darkerback
+org.cryptsecure.R$drawable: int dolphins1
+org.cryptsecure.R$drawable: int dolphins2
+org.cryptsecure.R$drawable: int dolphins3
+org.cryptsecure.R$drawable: int dolphins3blue
+org.cryptsecure.R$drawable: int dolphins3light
+org.cryptsecure.R$drawable: int dolphins4
+org.cryptsecure.R$drawable: int dolphins4light
+org.cryptsecure.R$drawable: int framebackkey
+org.cryptsecure.R$drawable: int framebacklock
+org.cryptsecure.R$drawable: int help
+org.cryptsecure.R$drawable: int ic_launcher
+org.cryptsecure.R$drawable: int lightback
+org.cryptsecure.R$drawable: int lighterback
+org.cryptsecure.R$drawable: int lightestback
+org.cryptsecure.R$drawable: int menuaccount
+org.cryptsecure.R$drawable: int menuadduser
+org.cryptsecure.R$drawable: int menuadduserext
+org.cryptsecure.R$drawable: int menuattachment
+org.cryptsecure.R$drawable: int menubackup
+org.cryptsecure.R$drawable: int menuchatoff
+org.cryptsecure.R$drawable: int menuchaton
+org.cryptsecure.R$drawable: int menuclearinput
+org.cryptsecure.R$drawable: int menucompose
+org.cryptsecure.R$drawable: int menucopy
+org.cryptsecure.R$drawable: int menudelete
+org.cryptsecure.R$drawable: int menugroup
+org.cryptsecure.R$drawable: int menuinfo
+org.cryptsecure.R$drawable: int menukey
+org.cryptsecure.R$drawable: int menumsgsec
+org.cryptsecure.R$drawable: int menumsgunsec
+org.cryptsecure.R$drawable: int menurefresh
+org.cryptsecure.R$drawable: int menurespond
+org.cryptsecure.R$drawable: int menurevoke
+org.cryptsecure.R$drawable: int menusearch
+org.cryptsecure.R$drawable: int menusettings
+org.cryptsecure.R$drawable: int menushare
+org.cryptsecure.R$drawable: int menushowall
+org.cryptsecure.R$drawable: int menusmsoff
+org.cryptsecure.R$drawable: int menusmson
+org.cryptsecure.R$drawable: int menusmssec
+org.cryptsecure.R$drawable: int menusmsunsec
+org.cryptsecure.R$drawable: int message
+org.cryptsecure.R$drawable: int msg
+org.cryptsecure.R$drawable: int msgdecryptionfailed
+org.cryptsecure.R$drawable: int msgerror
+org.cryptsecure.R$drawable: int msginfo
+org.cryptsecure.R$drawable: int msginfosms
+org.cryptsecure.R$drawable: int msglocked
+org.cryptsecure.R$drawable: int msglocked2
+org.cryptsecure.R$drawable: int msgread
+org.cryptsecure.R$drawable: int msgreceived
+org.cryptsecure.R$drawable: int msgsent
+org.cryptsecure.R$drawable: int msgsmall24x24
+org.cryptsecure.R$drawable: int person
+org.cryptsecure.R$drawable: int personadd
+org.cryptsecure.R$drawable: int persongenericbar
+org.cryptsecure.R$drawable: int persongenericbarinfo
+org.cryptsecure.R$drawable: int persongenericbarlock
+org.cryptsecure.R$drawable: int persongenericbarsms
+org.cryptsecure.R$drawable: int persongenericlock
+org.cryptsecure.R$drawable: int persongenericmaster
+org.cryptsecure.R$drawable: int persongenericmsg
+org.cryptsecure.R$drawable: int personsmall
+org.cryptsecure.R$drawable: int personsms
+org.cryptsecure.R$drawable: int personsmssmall
+org.cryptsecure.R$drawable: int phone
+org.cryptsecure.R$drawable: int phoneneutral
+org.cryptsecure.R$drawable: int phonesms
+org.cryptsecure.R$drawable: int photobtn
+org.cryptsecure.R$drawable: int pictureimport
+org.cryptsecure.R$drawable: int rounded_corners
+org.cryptsecure.R$drawable: int rounded_corners_alert
+org.cryptsecure.R$drawable: int rounded_corners_shaddow
+org.cryptsecure.R$drawable: int rounded_cornersme
+org.cryptsecure.R$drawable: int rounded_cornersme_failed
+org.cryptsecure.R$drawable: int rounded_cornersme_shaddow
+org.cryptsecure.R$drawable: int s0
+org.cryptsecure.R$drawable: int s1
+org.cryptsecure.R$drawable: int s10
+org.cryptsecure.R$drawable: int s11
+org.cryptsecure.R$drawable: int s12
+org.cryptsecure.R$drawable: int s13
+org.cryptsecure.R$drawable: int s14
+org.cryptsecure.R$drawable: int s2
+org.cryptsecure.R$drawable: int s3
+org.cryptsecure.R$drawable: int s4
+org.cryptsecure.R$drawable: int s5
+org.cryptsecure.R$drawable: int s6
+org.cryptsecure.R$drawable: int s7
+org.cryptsecure.R$drawable: int s8
+org.cryptsecure.R$drawable: int s9
+org.cryptsecure.R$drawable: int scrollbarhandle4
+org.cryptsecure.R$drawable: int send
+org.cryptsecure.R$drawable: int senddisabled
+org.cryptsecure.R$drawable: int sendlock
+org.cryptsecure.R$drawable: int sendsms
+org.cryptsecure.R$drawable: int sendsmslock
+org.cryptsecure.R$drawable: int server
+org.cryptsecure.R$drawable: int serverdisabled
+org.cryptsecure.R$drawable: int smileybtn
+org.cryptsecure.R$drawable: int sms
+org.cryptsecure.R$drawable: int sms2
+org.cryptsecure.R$drawable: int speech
+org.cryptsecure.R$drawable: int speechalert
+org.cryptsecure.R$drawable: int speechmaster
+org.cryptsecure.R$drawable: int speechme
+org.cryptsecure.R$drawable: int speechmefailed
+org.cryptsecure.R$drawable: int update
+org.cryptsecure.R$drawable: int updatesms
+org.cryptsecure.R$id: int accountexisting
+org.cryptsecure.R$id: int accountexistinglogindata
+org.cryptsecure.R$id: int accountheader
+org.cryptsecure.R$id: int accountnew
+org.cryptsecure.R$id: int accountonline
+org.cryptsecure.R$id: int accountoptionbuttons
+org.cryptsecure.R$id: int accountsection
+org.cryptsecure.R$id: int active
+org.cryptsecure.R$id: int additionbutton
+org.cryptsecure.R$id: int additionbuttonparent
+org.cryptsecure.R$id: int additions
+org.cryptsecure.R$id: int adduser_button
+org.cryptsecure.R$id: int adduser_name
+org.cryptsecure.R$id: int adduser_text
+org.cryptsecure.R$id: int adduseritem
+org.cryptsecure.R$id: int advancedsettings
+org.cryptsecure.R$id: int attachmentbutton
+org.cryptsecure.R$id: int attachmentbuttonparent
+org.cryptsecure.R$id: int attachmentspinner
+org.cryptsecure.R$id: int attachmentsrow1
+org.cryptsecure.R$id: int attachmentsrow2
+org.cryptsecure.R$id: int autosave
+org.cryptsecure.R$id: int avatarclear
+org.cryptsecure.R$id: int avatargallery
+org.cryptsecure.R$id: int avatarimage
+org.cryptsecure.R$id: int avatarparent
+org.cryptsecure.R$id: int avatarphoto
+org.cryptsecure.R$id: int backup
+org.cryptsecure.R$id: int backupbuttons
+org.cryptsecure.R$id: int backupmain
+org.cryptsecure.R$id: int backupparent
+org.cryptsecure.R$id: int backupscrollview
+org.cryptsecure.R$id: int btnadduser
+org.cryptsecure.R$id: int btnadduserparent
+org.cryptsecure.R$id: int btnback
+org.cryptsecure.R$id: int btnbackparent
+org.cryptsecure.R$id: int btncompose
+org.cryptsecure.R$id: int btncomposeparent
+org.cryptsecure.R$id: int btnkey
+org.cryptsecure.R$id: int btnkeyparent
+org.cryptsecure.R$id: int btnmenu
+org.cryptsecure.R$id: int btnmenuparent
+org.cryptsecure.R$id: int btnrefresh
+org.cryptsecure.R$id: int btnrefreshparent
+org.cryptsecure.R$id: int btnsearch
+org.cryptsecure.R$id: int btnsearchparent
+org.cryptsecure.R$id: int buttonbackup
+org.cryptsecure.R$id: int buttoncancel
+org.cryptsecure.R$id: int buttonclear
+org.cryptsecure.R$id: int buttonclearsending
+org.cryptsecure.R$id: int buttondebugprint
+org.cryptsecure.R$id: int buttondeletedatabase
+org.cryptsecure.R$id: int buttonpictureimport
+org.cryptsecure.R$id: int buttonsave
+org.cryptsecure.R$id: int buttonshare
+org.cryptsecure.R$id: int chatmode
+org.cryptsecure.R$id: int conversationRootView
+org.cryptsecure.R$id: int conversationaddition
+org.cryptsecure.R$id: int conversationprogress
+org.cryptsecure.R$id: int conversationtext
+org.cryptsecure.R$id: int conversationtime
+org.cryptsecure.R$id: int create
+org.cryptsecure.R$id: int created
+org.cryptsecure.R$id: int demo
+org.cryptsecure.R$id: int details
+org.cryptsecure.R$id: int deviceid
+org.cryptsecure.R$id: int disablesmsoption
+org.cryptsecure.R$id: int email
+org.cryptsecure.R$id: int emailnew
+org.cryptsecure.R$id: int enablesmsoption
+org.cryptsecure.R$id: int encrypted
+org.cryptsecure.R$id: int encryption
+org.cryptsecure.R$id: int error
+org.cryptsecure.R$id: int fastscrollview
+org.cryptsecure.R$id: int from
+org.cryptsecure.R$id: int fromfirst
+org.cryptsecure.R$id: int fromid
+org.cryptsecure.R$id: int fromidinfo
+org.cryptsecure.R$id: int fromkey
+org.cryptsecure.R$id: int groupcreate
+org.cryptsecure.R$id: int groupquit
+org.cryptsecure.R$id: int grouprename
+org.cryptsecure.R$id: int groupsparent
+org.cryptsecure.R$id: int groupspinner
+org.cryptsecure.R$id: int helpactive
+org.cryptsecure.R$id: int helpautosave
+org.cryptsecure.R$id: int helpchatmode
+org.cryptsecure.R$id: int helpencryption
+org.cryptsecure.R$id: int helpignore
+org.cryptsecure.R$id: int helpnoread
+org.cryptsecure.R$id: int helpnoscreenshots
+org.cryptsecure.R$id: int helpnotification
+org.cryptsecure.R$id: int helppowersave
+org.cryptsecure.R$id: int helpquicktype
+org.cryptsecure.R$id: int helpreceiveallsms
+org.cryptsecure.R$id: int helpsmileys
+org.cryptsecure.R$id: int helptone
+org.cryptsecure.R$id: int helpvibrate
+org.cryptsecure.R$id: int ignore
+org.cryptsecure.R$id: int ignoredremove
+org.cryptsecure.R$id: int ignoredspinner
+org.cryptsecure.R$id: int imageView1
+org.cryptsecure.R$id: int info
+org.cryptsecure.R$id: int infolistitem
+org.cryptsecure.R$id: int infolistitemtext
+org.cryptsecure.R$id: int inputlayout
+org.cryptsecure.R$id: int keycreated
+org.cryptsecure.R$id: int keycreatedrow
+org.cryptsecure.R$id: int keyexpires
+org.cryptsecure.R$id: int keyexpiresrow
+org.cryptsecure.R$id: int keyhash
+org.cryptsecure.R$id: int keyhashrow
+org.cryptsecure.R$id: int login
+org.cryptsecure.R$id: int mainbackground
+org.cryptsecure.R$id: int maindeviceid
+org.cryptsecure.R$id: int maininnerview
+org.cryptsecure.R$id: int mainpanel
+org.cryptsecure.R$id: int mainscrollview
+org.cryptsecure.R$id: int mainsettingsinnerlayout
+org.cryptsecure.R$id: int messageText
+org.cryptsecure.R$id: int messagedetailscrollview
+org.cryptsecure.R$id: int messagedetailsmain
+org.cryptsecure.R$id: int msglocked
+org.cryptsecure.R$id: int msgread
+org.cryptsecure.R$id: int msgreceived
+org.cryptsecure.R$id: int msgsent
+org.cryptsecure.R$id: int msgsms
+org.cryptsecure.R$id: int msgspeech
+org.cryptsecure.R$id: int newaccount
+org.cryptsecure.R$id: int noread
+org.cryptsecure.R$id: int noscreenshots
+org.cryptsecure.R$id: int notification
+org.cryptsecure.R$id: int oneline
+org.cryptsecure.R$id: int ownaccountkey
+org.cryptsecure.R$id: int passwordparent
+org.cryptsecure.R$id: int personicon
+org.cryptsecure.R$id: int personiconback
+org.cryptsecure.R$id: int phone
+org.cryptsecure.R$id: int phonebutton
+org.cryptsecure.R$id: int pictureimportbuttons
+org.cryptsecure.R$id: int pictureimportmain
+org.cryptsecure.R$id: int pictureimportscrollview
+org.cryptsecure.R$id: int powersave
+org.cryptsecure.R$id: int pwd
+org.cryptsecure.R$id: int pwdchange
+org.cryptsecure.R$id: int pwdnew
+org.cryptsecure.R$id: int quality
+org.cryptsecure.R$id: int qualitytext
+org.cryptsecure.R$id: int quicktype
+org.cryptsecure.R$id: int read
+org.cryptsecure.R$id: int receiveallsms
+org.cryptsecure.R$id: int received
+org.cryptsecure.R$id: int receivedtext
+org.cryptsecure.R$id: int removeimages
+org.cryptsecure.R$id: int restore
+org.cryptsecure.R$id: int revoked
+org.cryptsecure.R$id: int revokedrow
+org.cryptsecure.R$id: int sendbutton
+org.cryptsecure.R$id: int sendbuttonparent
+org.cryptsecure.R$id: int sendingreceiving
+org.cryptsecure.R$id: int sendingreceivingparent
+org.cryptsecure.R$id: int sendingreceivingprogess
+org.cryptsecure.R$id: int sendingreceivingtitle
+org.cryptsecure.R$id: int sendspinner
+org.cryptsecure.R$id: int sent
+org.cryptsecure.R$id: int serverMessageID
+org.cryptsecure.R$id: int serverbuttonadd
+org.cryptsecure.R$id: int serverbuttondelete
+org.cryptsecure.R$id: int serverbuttonmodify
+org.cryptsecure.R$id: int serverdisabled
+org.cryptsecure.R$id: int serverimage
+org.cryptsecure.R$id: int serverspinner
+org.cryptsecure.R$id: int settingsbackground
+org.cryptsecure.R$id: int settingssection
+org.cryptsecure.R$id: int size
+org.cryptsecure.R$id: int size0
+org.cryptsecure.R$id: int size0highlight
+org.cryptsecure.R$id: int size1
+org.cryptsecure.R$id: int size1highlight
+org.cryptsecure.R$id: int size2
+org.cryptsecure.R$id: int size2highlight
+org.cryptsecure.R$id: int size3
+org.cryptsecure.R$id: int size3highlight
+org.cryptsecure.R$id: int sizetext
+org.cryptsecure.R$id: int sizetextback
+org.cryptsecure.R$id: int smileybutton
+org.cryptsecure.R$id: int smileybuttonparent
+org.cryptsecure.R$id: int smileys
+org.cryptsecure.R$id: int smsparent
+org.cryptsecure.R$id: int tableLayout1
+org.cryptsecure.R$id: int textexisting2
+org.cryptsecure.R$id: int textexisting22
+org.cryptsecure.R$id: int textexisting2223
+org.cryptsecure.R$id: int textexisting223
+org.cryptsecure.R$id: int textexisting224
+org.cryptsecure.R$id: int textlogin3
+org.cryptsecure.R$id: int textnew
+org.cryptsecure.R$id: int titleconversation
+org.cryptsecure.R$id: int titlegeneral
+org.cryptsecure.R$id: int titlemain
+org.cryptsecure.R$id: int titletext
+org.cryptsecure.R$id: int titletextparent
+org.cryptsecure.R$id: int to
+org.cryptsecure.R$id: int toid
+org.cryptsecure.R$id: int toidinfo
+org.cryptsecure.R$id: int tokey
+org.cryptsecure.R$id: int tolast
+org.cryptsecure.R$id: int tolist
+org.cryptsecure.R$id: int tone
+org.cryptsecure.R$id: int transport
+org.cryptsecure.R$id: int uid
+org.cryptsecure.R$id: int updateavatar
+org.cryptsecure.R$id: int updatepwd
+org.cryptsecure.R$id: int updateuser
+org.cryptsecure.R$id: int user
+org.cryptsecure.R$id: int usericon
+org.cryptsecure.R$id: int userlistdate
+org.cryptsecure.R$id: int userlistname
+org.cryptsecure.R$id: int userlisttext
+org.cryptsecure.R$id: int usernew
+org.cryptsecure.R$id: int userparent
+org.cryptsecure.R$id: int userradio
+org.cryptsecure.R$id: int vibrate
+org.cryptsecure.R$id: int widget44
+org.cryptsecure.R$id: int widget46
+org.cryptsecure.R$layout: int activity_backup
+org.cryptsecure.R$layout: int activity_conversation
+org.cryptsecure.R$layout: int activity_conversation_compose
+org.cryptsecure.R$layout: int activity_main
+org.cryptsecure.R$layout: int activity_messagedetails
+org.cryptsecure.R$layout: int activity_pictureimport
+org.cryptsecure.R$layout: int activity_setup
+org.cryptsecure.R$layout: int adduserlistitem
+org.cryptsecure.R$layout: int conversationitem
+org.cryptsecure.R$layout: int conversationitemme
+org.cryptsecure.R$layout: int infolistitem
+org.cryptsecure.R$layout: int setup_account
+org.cryptsecure.R$layout: int setup_settings
+org.cryptsecure.R$layout: int title_conversation
+org.cryptsecure.R$layout: int title_conversation_compose
+org.cryptsecure.R$layout: int title_general
+org.cryptsecure.R$layout: int title_main
+org.cryptsecure.R$layout: int tolistitem
+org.cryptsecure.R$layout: int userlistitem
+org.cryptsecure.R$string: int app_name
+org.cryptsecure.R$style: int AlertDialogCustom
+org.cryptsecure.R$style: int AlertDialogCustomOther
+org.cryptsecure.R$style: int AutoCompleteTextViewLight
+org.cryptsecure.R$style: int NoTitlebar
+org.cryptsecure.R$style: int Theme_Light_NoTitleBar_Workaround
+org.cryptsecure.R$style: int Theme_Transparent
+org.cryptsecure.R$style: int Widget_DropDownItemLight
+org.cryptsecure.ReceiveSMS
+org.cryptsecure.ReceiveSMS: ReceiveSMS()
+org.cryptsecure.Scheduler
+org.cryptsecure.Scheduler: Scheduler()
+org.cryptsecure.ScrollViewEx
+org.cryptsecure.ScrollViewEx: ScrollViewEx(android.content.Context)
+org.cryptsecure.ScrollViewEx: ScrollViewEx(android.content.Context,android.util.AttributeSet,int)
+org.cryptsecure.ScrollViewEx: ScrollViewEx(android.content.Context,android.util.AttributeSet)
+org.cryptsecure.ScrollViewEx: void setScrollViewListener(org.cryptsecure.ScrollViewEx$ScrollViewExListener)
+org.cryptsecure.SendSMSDelivered
+org.cryptsecure.SendSMSDelivered: SendSMSDelivered()
+org.cryptsecure.SendSMSSent
+org.cryptsecure.SendSMSSent: SendSMSSent()
+org.cryptsecure.Setup
+org.cryptsecure.Setup: Setup()
+org.cryptsecure.TransitActivity
+org.cryptsecure.TransitActivity: TransitActivity()
+org.cryptsecure.UserDetailsActivity
+org.cryptsecure.UserDetailsActivity: UserDetailsActivity()
+org.cryptsecure.UserPresentReceiver
+org.cryptsecure.UserPresentReceiver: UserPresentReceiver()

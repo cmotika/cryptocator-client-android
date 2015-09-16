@@ -2916,33 +2916,34 @@ android.support.v4.widget.ViewDragHelper:
 android.support.v4.widget.ViewDragHelper$2
 android.support.v4.widget.ViewDragHelper$Callback:
     148:148:public ViewDragHelper$Callback()
-org.cryptocator.BuildConfig
-org.cryptocator.Communicator:
+org.cryptsecure.BuildConfig
+org.cryptsecure.Communicator:
     96:96:public Communicator()
-org.cryptocator.Conversation:
-    3979:4007:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
-    4081:4113:public void insertImage(android.content.Context,java.lang.String)
-    157:157:static synthetic boolean access$32()
-org.cryptocator.Conversation$74:
-    3860:3865:public void onCancel()
-org.cryptocator.Conversation$75
-org.cryptocator.Conversation$76:
-    4052:4056:public void onCancel()
-org.cryptocator.Conversation$77
-org.cryptocator.ConversationCompose:
+org.cryptsecure.Conversation:
+    static final java.lang.String GROUPINVITATION_PREFIX
+    4143:4171:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
+    4245:4277:public void insertImage(android.content.Context,java.lang.String)
+    158:158:static synthetic boolean access$35()
+org.cryptsecure.Conversation$78:
+    4024:4029:public void onCancel()
+org.cryptsecure.Conversation$79
+org.cryptsecure.Conversation$80:
+    4216:4220:public void onCancel()
+org.cryptsecure.Conversation$81
+org.cryptsecure.ConversationCompose:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
     private static final int PICK_CONTACT
     990:990:public void setTitle(java.lang.String)
-    1013:1013:public static org.cryptocator.ConversationCompose getInstance()
+    1013:1013:public static org.cryptsecure.ConversationCompose getInstance()
     1023:1023:public static boolean isVisible()
-org.cryptocator.ConversationCompose$23:
+org.cryptsecure.ConversationCompose$23:
     1352:1355:public void onCancel()
-org.cryptocator.ConversationCompose$25:
+org.cryptsecure.ConversationCompose$25:
     1532:1535:public void onCancel()
-org.cryptocator.ConversationItem:
+org.cryptsecure.ConversationItem:
     176:185:public ConversationItem(java.lang.String,boolean)
-org.cryptocator.DB:
+org.cryptsecure.DB:
     public static final java.lang.String TABLE_MESSAGES
     public static final java.lang.String TABLE_SENDING
     public static final java.lang.String TABLE_SENT
@@ -2951,55 +2952,57 @@ org.cryptocator.DB:
     1683:1711:public static java.lang.String getMultipartIdReceived(android.content.Context,int,int)
     2008:2014:public static void cleanupDB(android.content.Context,int)
     3102:3102:public static boolean isMessageFailed(java.lang.String)
-org.cryptocator.FastScrollBar:
+org.cryptsecure.FastScrollBar:
     static final int LOCKTIMEOUT
     163:164:public FastScrollBar(android.content.Context,android.util.AttributeSet,int)
     177:178:public FastScrollBar(android.content.Context,android.util.AttributeSet)
-org.cryptocator.HttpStringRequest:
-    116:117:public void setOnResponseListener(org.cryptocator.HttpStringRequest$OnResponseListener)
-org.cryptocator.ImageContextMenu:
+org.cryptsecure.HttpStringRequest:
+    116:117:public void setOnResponseListener(org.cryptsecure.HttpStringRequest$OnResponseListener)
+org.cryptsecure.ImageContextMenu:
     487:490:public static void close()
     500:500:public static boolean visible()
-org.cryptocator.ImageContextMenu$ImageContextMenuProvider:
+org.cryptsecure.ImageContextMenu$ImageContextMenuProvider:
     239:240:public void setTextSize(int)
-    288:296:public int addEntry(java.lang.String,android.graphics.drawable.Drawable,org.cryptocator.ImageContextMenu$ImageContextMenuSelectionListener)
+    288:296:public int addEntry(java.lang.String,android.graphics.drawable.Drawable,org.cryptsecure.ImageContextMenu$ImageContextMenuSelectionListener)
     351:352:public void setEnabled(int,boolean)
-    408:413:public boolean setViewProvider(int,org.cryptocator.ImageContextMenu$ExtendedEntryViewProvider)
-org.cryptocator.ImageFullscreenActivity:
+    408:413:public boolean setViewProvider(int,org.cryptsecure.ImageContextMenu$ExtendedEntryViewProvider)
+org.cryptsecure.ImageFullscreenActivity:
     public static final int SWIPE_DISTANCE
-org.cryptocator.ImagePressButton:
+org.cryptsecure.ImagePressButton:
     212:214:public void initializePressImageResourceWhite(int)
     271:272:public void initializePressImageResource(int,int,int)
     309:310:public void activatePressImageResourceWhite()
-org.cryptocator.Main:
+org.cryptsecure.Main:
     private static final java.lang.String DEFAULTTEXT
-    1892:1892:public static java.lang.String getPhone(android.content.Context,int)
-    1907:1908:public static boolean havePhone(android.content.Context,int)
-org.cryptocator.MessageDetailsActivity:
+    private static final java.lang.String YOURACCOUNTKEYSIMPLE
+    private static final java.lang.String YOURACCOUNTKEYTEXT
+    1929:1929:public static java.lang.String getPhone(android.content.Context,int)
+    1944:1945:public static boolean havePhone(android.content.Context,int)
+org.cryptsecure.MessageDetailsActivity:
     private static final java.lang.String STARTTAG
     private static final java.lang.String ENDTAG
-org.cryptocator.MmsReceiver:
+org.cryptsecure.MmsReceiver:
     64:64:public void onCreate(android.content.Context)
-org.cryptocator.PictureImportActivity$OnPictureImportListener:
+org.cryptsecure.PictureImportActivity$OnPictureImportListener:
     public abstract void onCancel()
-org.cryptocator.R
-org.cryptocator.R$attr
-org.cryptocator.R$color
-org.cryptocator.R$drawable
-org.cryptocator.R$id
-org.cryptocator.R$layout
-org.cryptocator.R$string
-org.cryptocator.R$style
-org.cryptocator.Scheduler:
-    142:143:public static void setUpdateListener(org.cryptocator.Scheduler$OnUpdateListener)
+org.cryptsecure.R
+org.cryptsecure.R$attr
+org.cryptsecure.R$color
+org.cryptsecure.R$drawable
+org.cryptsecure.R$id
+org.cryptsecure.R$layout
+org.cryptsecure.R$string
+org.cryptsecure.R$style
+org.cryptsecure.Scheduler:
+    142:143:public static void setUpdateListener(org.cryptsecure.Scheduler$OnUpdateListener)
     151:152:public static void clearUpdateListener()
-org.cryptocator.ScrollViewEx:
+org.cryptsecure.ScrollViewEx:
     210:211:public void lockPosition()
     221:221:public boolean isLocked()
     230:238:public void restoreLockedPosition()
     316:319:public void stopWatchDogThread()
-org.cryptocator.ScrollViewEx$1
-org.cryptocator.SendSMS:
+org.cryptsecure.ScrollViewEx$1
+org.cryptsecure.SendSMS:
     public static final int SMS_PART_LIMIT
     public static final int SMS_SENDING_TIMEOUT
     public static final java.lang.String SECURESMS_ID
@@ -3007,7 +3010,7 @@ org.cryptocator.SendSMS:
     public static final java.lang.String SECURESMSDELIVERED
     71:71:public SendSMS()
     264:266:public static synchronized void updateSendingTimestamp(android.content.Context,int)
-org.cryptocator.Setup:
+org.cryptsecure.Setup:
     public static final int ADVANCEDSETUPCOUNTDOWNSTART
     public static final java.lang.String SETTINGS_BASEURL
     public static final int TIMEOUT_FOR_RECEIVEANDREAD_CONFIRMATIONS
@@ -3022,6 +3025,8 @@ org.cryptocator.Setup:
     public static final java.lang.String SETTING_LASTUPDATEPHONES
     public static final int UPDATE_AVATAR_MIN_INTERVAL
     public static final java.lang.String SETTING_LASTUPDATEAVATAR
+    public static final int UPDATE_GROUPS_MIN_INTERVAL
+    public static final java.lang.String SETTING_LASTUPDATEGROUPS
     public static final int UPDATE_AUTOBACKUP_MIN_INTERVAL
     public static final java.lang.String SETTING_LASTUPDATEAUTOBACKUP
     public static final int UPDATE_NAMES_MIN_INTERVAL
@@ -3093,6 +3098,13 @@ org.cryptocator.Setup:
     public static final java.lang.String SERVER_UID
     public static final java.lang.String UID_AUTOADDED
     public static final java.lang.String UID_IGNORED
+    public static final java.lang.String GROUPNAME
+    public static final java.lang.String GROUPSECRET
+    public static final java.lang.String GROUPS
+    public static final java.lang.String GROUPMEMBERS
+    public static final java.lang.String LOCALGROUP2GROUPID
+    public static final java.lang.String LOCALGROUP2SERVER
+    public static final java.lang.String INVITEDGROUPS
     public static final java.lang.String SERVER_EMAIL
     public static final java.lang.String SERVER_PWD
     public static final java.lang.String SERVER_USERNAME
@@ -3142,17 +3154,20 @@ org.cryptocator.Setup:
     private static final int ACCOUNTOPTION_SMS
     private static final int ACCOUNTOPTION_AVATAR
     private static final int ACCOUNTOPTION_PASSWORD
+    private static final int ACCOUNTOPTION_GROUPS
     private static final int ACCOUNTOPTION_BACKUP
-    4263:4268:public static boolean haveAESKey(android.content.Context,int)
-    4722:4738:public static java.security.PublicKey getPublicKey(android.content.Context)
-    5949:5964:public static java.lang.String encLongText(android.content.Context,java.lang.String,int)
-    5981:5990:public static java.lang.String decLongText(android.content.Context,java.lang.String,int)
-    6005:6025:public static java.lang.String encText(android.content.Context,java.lang.String,int)
-    6932:6933:public static void setVersionUpdated(android.content.Context)
-    6946:6946:public static boolean isVersionUpdated(android.content.Context)
-    7201:7202:public static boolean haveAvatar(android.content.Context,int)
-    7321:7323:public static void resetIgnored(android.content.Context)
-org.cryptocator.Utility:
+    4440:4445:public static boolean haveAESKey(android.content.Context,int)
+    4899:4915:public static java.security.PublicKey getPublicKey(android.content.Context)
+    6126:6141:public static java.lang.String encLongText(android.content.Context,java.lang.String,int)
+    6158:6167:public static java.lang.String decLongText(android.content.Context,java.lang.String,int)
+    7109:7110:public static void setVersionUpdated(android.content.Context)
+    7123:7123:public static boolean isVersionUpdated(android.content.Context)
+    7378:7379:public static boolean haveAvatar(android.content.Context,int)
+    7498:7500:public static void resetIgnored(android.content.Context)
+    7971:7972:public static void setInvitedGroups(android.content.Context,int,java.lang.String)
+    7975:7975:public static java.lang.String getInvitedGroups(android.content.Context,int)
+    7981:7983:public static java.util.List getInvitedGroupsList(android.content.Context,int)
+org.cryptsecure.Utility:
     public static final java.lang.String PREFERENCESURI
     public static final int SELECT_PICTURE
     public static final int TAKE_PHOTO
@@ -3171,7 +3186,6 @@ org.cryptocator.Utility:
     1134:1139:public static java.lang.String getMilliSeconds(long)
     1265:1273:public static java.lang.String pasteFromClipboard(android.content.Context)
     1290:1301:public static void forceOverflowMenuButtons(android.content.Context)
-    1442:1450:public static java.util.List getListFromString(java.lang.String,java.lang.String,int)
     1553:1556:public static int getScreenHeight(android.content.Context)
     1617:1628:public static void errorVibrate(android.content.Context)
     1640:1640:public static java.lang.String convertBASE64ToString(java.lang.String)
@@ -3181,5 +3195,5 @@ org.cryptocator.Utility:
     1947:1960:public static byte[] getFile(java.lang.String)
     2033:2039:public static android.graphics.drawable.Drawable loadDrawableFromBASE64String(java.lang.String)
     2329:2371:public static java.lang.String getRealPathFromURI(android.app.Activity,android.net.Uri)
-org.cryptocator.Utility$1
-org.cryptocator.Utility$1$1
+org.cryptsecure.Utility$1
+org.cryptsecure.Utility$1$1
