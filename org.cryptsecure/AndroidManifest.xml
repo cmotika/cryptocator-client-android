@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.cryptocator"
+    package="org.cryptsecure"
     android:versionCode="18"
     android:versionName="1.31" >
 
@@ -43,60 +43,60 @@
     <application
         android:allowBackup="true"
         android:icon="@drawable/msg"
-        android:label="Delphino Cryptocator"
+        android:label="Delphino CryptSecure"
         android:theme="@style/NoTitlebar" >
         <activity
-            android:name="org.cryptocator.Main"
+            android:name="org.cryptsecure.Main"
             android:icon="@drawable/msg"
-            android:label="Delphino Cryptocator" >
+            android:label="Delphino CryptSecure" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="org.cryptocator.Setup" >
+        <activity android:name="org.cryptsecure.Setup" >
         </activity>
         <activity
-            android:name="org.cryptocator.UserDetailsActivity"
+            android:name="org.cryptsecure.UserDetailsActivity"
             android:icon="@drawable/person"
             android:theme="@style/Theme.Transparent" >
         </activity>
         <activity
-            android:name="org.cryptocator.ImageFullscreenActivity"
+            android:name="org.cryptsecure.ImageFullscreenActivity"
             android:icon="@drawable/pictureimport"
             android:noHistory="true" >
         </activity>
         <activity
-            android:name="org.cryptocator.ImageContextMenu"
+            android:name="org.cryptsecure.ImageContextMenu"
             android:theme="@style/Theme.Transparent" >
         </activity>
         <activity
-            android:name="org.cryptocator.MessageDetailsActivity"
+            android:name="org.cryptsecure.MessageDetailsActivity"
             android:icon="@drawable/msg"
             android:theme="@style/Theme.Transparent" >
         </activity>
         <activity
-            android:name="org.cryptocator.BackupActivity"
+            android:name="org.cryptsecure.BackupActivity"
             android:icon="@drawable/btnbackup"
             android:theme="@style/Theme.Transparent" >
         </activity>
         <activity
-            android:name="org.cryptocator.PictureImportActivity"
+            android:name="org.cryptsecure.PictureImportActivity"
             android:icon="@drawable/pictureimport"
             android:theme="@style/Theme.Transparent" >
         </activity>
         <activity
-            android:name="org.cryptocator.Conversation"
+            android:name="org.cryptsecure.Conversation"
             android:icon="@drawable/msg"
             android:label="Conversation"
             android:windowSoftInputMode="stateVisible|adjustResize" >
         </activity>
         <activity
-            android:name="org.cryptocator.ConversationCompose"
+            android:name="org.cryptsecure.ConversationCompose"
             android:clearTaskOnLaunch="false"
             android:icon="@drawable/msg"
-            android:label="Cryptocator Message"
+            android:label="CryptSecure Message"
             android:windowSoftInputMode="stateVisible|adjustResize" >
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
@@ -113,22 +113,22 @@
                 <data android:mimeType="image/*" />
             </intent-filter>
         </activity>
-        <activity android:name="org.cryptocator.TransitActivity" >
+        <activity android:name="org.cryptsecure.TransitActivity" >
         </activity>
         <!-- Boot -->
-        <receiver android:name="org.cryptocator.BootReceiver" >
+        <receiver android:name="org.cryptsecure.BootReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
         <!-- Scheduler -->
-        <receiver android:name="org.cryptocator.Scheduler" >
+        <receiver android:name="org.cryptsecure.Scheduler" >
             <intent-filter>
                 <action android:name="android.intent.action.USER_PRESENT" />
             </intent-filter>
         </receiver>
         <!-- UserPresentReceiver -->
-        <receiver android:name="org.cryptocator.UserPresentReceiver" >
+        <receiver android:name="org.cryptsecure.UserPresentReceiver" >
             <intent-filter
                 android:enabled="true"
                 android:exported="false" >
@@ -137,26 +137,26 @@
         </receiver>
         <!-- SMS Receiver -->
         <receiver
-            android:name="org.cryptocator.ReceiveSMS"
+            android:name="org.cryptsecure.ReceiveSMS"
             android:permission="android.permission.BROADCAST_SMS" >
             <intent-filter android:priority="19999" >
                 <action android:name="android.provider.Telephony.SMS_DELIVER" />
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
-        <receiver android:name="org.cryptocator.SendSMSSent" >
+        <receiver android:name="org.cryptsecure.SendSMSSent" >
             <intent-filter android:priority="19999" >
                 <action android:name="SECURESMSSENT" />
             </intent-filter>
         </receiver>
-        <receiver android:name="org.cryptocator.SendSMSDelivered" >
+        <receiver android:name="org.cryptsecure.SendSMSDelivered" >
             <intent-filter android:priority="19999" >
                 <action android:name="SECURESMSDELIVERED" />
             </intent-filter>
         </receiver>
         <!-- BroadcastReceiver that listens for incoming MMS messages -->
         <receiver
-            android:name="org.cryptocator.MmsReceiver"
+            android:name="org.cryptsecure.MmsReceiver"
             android:permission="android.permission.BROADCAST_WAP_PUSH" >
             <intent-filter>
                 <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
@@ -166,7 +166,7 @@
         </receiver>
         <!-- Service that delivers messages from the phone "quick response" -->
         <service
-            android:name="org.cryptocator.HeadlessSmsSendService"
+            android:name="org.cryptsecure.HeadlessSmsSendService"
             android:exported="true"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE" >
             <intent-filter>
@@ -181,7 +181,7 @@
             </intent-filter>
         </service>
         <!-- Activity that allows the user to send new SMS/MMS messages -->
-        <activity android:name="org.cryptocator.ComposeActivity" >
+        <activity android:name="org.cryptsecure.ComposeActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <action android:name="android.intent.action.SENDTO" />
