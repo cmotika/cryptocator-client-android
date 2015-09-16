@@ -52,14 +52,14 @@
                                 android:layout_gravity="center_vertical"
                                 android:textSize="30sp" />
 
-             <org.cryptocator.KeyEventEditText
+             <org.cryptsecure.KeyEventEditText
                       android:id="@+id/adduser_name"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="10px"
                     android:ems="10"
                     android:inputType="phone">
-             </org.cryptocator.KeyEventEditText>
+             </org.cryptsecure.KeyEventEditText>
                         </LinearLayout>
             
             

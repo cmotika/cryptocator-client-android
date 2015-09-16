@@ -27,7 +27,7 @@
                 android:layout_gravity="center_vertical"
                 android:orientation="vertical" >
 
-                <org.cryptocator.ImagePressButton
+                <org.cryptsecure.ImagePressButton
                     android:id="@+id/btncompose"
                     android:layout_width="45px"
                     android:layout_height="45px"
@@ -79,7 +79,7 @@
                 android:layout_gravity="center_vertical"
                 android:orientation="vertical" >
 
-                <org.cryptocator.ImagePressButton
+                <org.cryptsecure.ImagePressButton
                     android:id="@+id/btnadduser"
                     android:layout_width="45px"
                     android:layout_height="45px"
@@ -98,7 +98,7 @@
                 android:layout_gravity="center_vertical"
                 android:orientation="vertical" >
 
-                <org.cryptocator.ImagePressButton
+                <org.cryptsecure.ImagePressButton
                     android:id="@+id/btnrefresh"
                     android:layout_width="45px"
                     android:layout_height="45px"
@@ -117,7 +117,7 @@
                 android:layout_gravity="center_vertical"
                 android:orientation="vertical" >
 
-                <org.cryptocator.ImagePressButton
+                <org.cryptsecure.ImagePressButton
                     android:id="@+id/btnmenu"
                     android:layout_width="45px"
                     android:layout_height="45px"

@@ -28,7 +28,7 @@
                     android:layout_marginRight="12px"
                 android:orientation="vertical" >
 
-                <org.cryptocator.ImagePressButton
+                <org.cryptsecure.ImagePressButton
                     android:id="@+id/btnback"
                     android:layout_width="45px"
                     android:layout_height="45px"

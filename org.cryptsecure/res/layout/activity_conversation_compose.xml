@@ -26,7 +26,7 @@
             android:layout_marginRight="0px"
             android:layout_marginTop="10px"
             android:layout_weight="2000"
-            class="org.cryptocator.FastScrollView" />
+            class="org.cryptsecure.FastScrollView" />
 
         <!--
         <TextView
@@ -38,7 +38,7 @@
             android:layout_marginRight="80px"
             android:layout_marginTop="20px"
             android:gravity="center"
-            android:text="Compose a new unencrypted SMS message here. Add a phone number at the top.\n\nInvite this user to use Cryptocator in order to exchange secure messages!"
+            android:text="Compose a new unencrypted SMS message here. Add a phone number at the top.\n\nInvite this user to use CryptSecure in order to exchange secure messages!"
             android:textSize="16sp" >
         </TextView>
         -->
@@ -67,7 +67,7 @@
                 android:layout_gravity="bottom"
                 android:orientation="vertical" >
 
-                <org.cryptocator.ImagePressButton
+                <org.cryptsecure.ImagePressButton
                     android:id="@+id/additionbutton"
                     android:layout_width="38px"
                     android:layout_height="70px"
@@ -79,7 +79,7 @@
                     android:minWidth="20px"
                     android:src="@drawable/additionbtn"
                     android:text="" >
-                </org.cryptocator.ImagePressButton>
+                </org.cryptsecure.ImagePressButton>
             </LinearLayout>
 
             <LinearLayout
@@ -101,7 +101,7 @@
                     android:layout_weight="50"
                     android:orientation="vertical" >
 
-                    <org.cryptocator.ImagePressButton
+                    <org.cryptsecure.ImagePressButton
                         android:id="@+id/smileybutton"
                         android:layout_width="70px"
                         android:layout_height="43px"
@@ -113,7 +113,7 @@
                         android:minWidth="100px"
                         android:src="@drawable/smileybtn"
                         android:text="" >
-                    </org.cryptocator.ImagePressButton>
+                    </org.cryptsecure.ImagePressButton>
                 </LinearLayout>
 
                 <LinearLayout
@@ -126,7 +126,7 @@
                     android:layout_weight="50"
                     android:orientation="vertical" >
 
-                    <org.cryptocator.ImagePressButton
+                    <org.cryptsecure.ImagePressButton
                         android:id="@+id/attachmentbutton"
                         android:layout_width="70px"
                         android:layout_height="43px"
@@ -138,11 +138,11 @@
                         android:minWidth="100px"
                         android:src="@drawable/attachmentbtn"
                         android:text="" >
-                    </org.cryptocator.ImagePressButton>
+                    </org.cryptsecure.ImagePressButton>
                 </LinearLayout>
             </LinearLayout>
 
-            <org.cryptocator.ImageSmileyEditText
+            <org.cryptsecure.ImageSmileyEditText
                 android:id="@+id/messageText"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
@@ -153,7 +153,7 @@
                 android:text="" >
 
                 <requestFocus />
-            </org.cryptocator.ImageSmileyEditText>
+            </org.cryptsecure.ImageSmileyEditText>
 
             <Spinner
                 android:id="@+id/sendspinner"
@@ -169,7 +169,7 @@
                 android:layout_marginLeft="15px"
                 android:orientation="vertical" >
 
-                <org.cryptocator.ImagePressButton
+                <org.cryptsecure.ImagePressButton
                     android:id="@+id/sendbutton"
                     android:layout_width="80px"
                     android:layout_height="70px"
@@ -180,7 +180,7 @@
                     android:minWidth="100px"
                     android:src="@drawable/send"
                     android:text="" >
-                </org.cryptocator.ImagePressButton>
+                </org.cryptsecure.ImagePressButton>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

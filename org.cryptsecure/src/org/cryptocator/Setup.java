@@ -14,17 +14,17 @@
  * and the following disclaimer in the documentation and/or other materials
  * provided with the distribution.
  * 
- * 3. Neither the name Delphino Cryptocator nor the names of its contributors
+ * 3. Neither the name Delphino CryptSecure nor the names of its contributors
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
- * 4. Free or commercial forks of Cryptocator are permitted as long as
+ * 4. Free or commercial forks of CryptSecure are permitted as long as
  *    both (a) and (b) are and stay fulfilled: 
  *    (a) This license is enclosed.
- *    (b) The protocol to communicate between Cryptocator servers
- *        and Cryptocator clients *MUST* must be fully conform with 
+ *    (b) The protocol to communicate between CryptSecure servers
+ *        and CryptSecure clients *MUST* must be fully conform with 
  *        the documentation and (possibly updated) reference 
- *        implementation from cryptocator.org. This is to ensure 
+ *        implementation from cryptsecure.org. This is to ensure 
  *        interconnectivity between all clients and servers. 
  * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
@@ -40,7 +40,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  
  */
-package org.cryptocator;
+package org.cryptsecure;
 
 import java.math.BigInteger;
 import java.security.Key;
@@ -127,7 +127,7 @@ public class Setup extends Activity {
 	public static int VERSION_CURRENT = VERSION_MULTISERVER;
 
 	/** The server URL to be used per default. */
-	public static String DEFAULT_SERVER = "http://www.cryptocator.org";
+	public static String DEFAULT_SERVER = "http://www.cryptsecure.org";
 
 	/**
 	 * The prefix to be used for UID databases names. All conversations are
@@ -145,7 +145,7 @@ public class Setup extends Activity {
 	public static String DATABASESENT = "sent.db";
 
 	/** The internal id for intentextra. */
-	public static String INTENTEXTRA = "org.cryptocator.hostuid";
+	public static String INTENTEXTRA = "org.cryptsecure.hostuid";
 
 	/** The aler prefix. */
 	public static String ALERT_PREFIX = "ALERT: ";
@@ -154,10 +154,10 @@ public class Setup extends Activity {
 	 * The application package name used for making this app the default SMS
 	 * app.
 	 */
-	public static String APPLICATION_PACKAGE_NAME = "org.cryptocator";
+	public static String APPLICATION_PACKAGE_NAME = "org.cryptsecure";
 
-	/** The group for system notifications created by Cryptocator. */
-	public static String GROUP_CRYPTOCATOR = "org.cryptocator.notificationgroup";
+	/** The group for system notifications created by CryptSecure. */
+	public static String GROUP_CRYPTSECURE = "org.cryptsecure.notificationgroup";
 
 	/**
 	 * The locked count-down initial value for enabling editing the account
@@ -187,7 +187,7 @@ public class Setup extends Activity {
 	/**
 	 * After this time these confirmations will be discarded (from the sent.db),
 	 * maybe the person has not enabled read confirmation or has left and does
-	 * not use Cryptocator any more. It is ~ 3 month.
+	 * not use CryptSecure any more. It is ~ 3 month.
 	 */
 	public static final int TIMEOUT_FOR_RECEIVEANDREAD_CONFIRMATIONS = 90 * 24
 			* 60 * 60 * 1000;
@@ -479,7 +479,7 @@ public class Setup extends Activity {
 	public static final boolean DEFAULT_RECEIVEALLSMS = false;
 
 	/** The Constant HELP_RECEIVEALLSMSE. */
-	public static final String HELP_RECEIVEALLSMSE = "You can use Delphino Cryptocator even as your default app for all SMS. Users that are not registered are listed by their names from your address book and you can only send them plain text SMS.";
+	public static final String HELP_RECEIVEALLSMSE = "You can use Delphino CryptSecure even as your default app for all SMS. Users that are not registered are listed by their names from your address book and you can only send them plain text SMS.";
 
 	/** The Constant OPTION_POWERSAVE. */
 	public static final String OPTION_POWERSAVE = "powersave";
@@ -488,7 +488,7 @@ public class Setup extends Activity {
 	public static final boolean DEFAULT_POWERSAVE = true;
 
 	/** The Constant HELP_POWERSAVE. */
-	public static final String HELP_POWERSAVE = "Delphino Cryptocator can operate in a power save mode were sending/receiving is reduced to every 10 seconds when active or 60 seconds when passive instead of 5 seconds and 20 seconds respectively in the non-power save mode.\n\nThis mode saves your battery.";
+	public static final String HELP_POWERSAVE = "Delphino CryptSecure can operate in a power save mode were sending/receiving is reduced to every 10 seconds when active or 60 seconds when passive instead of 5 seconds and 20 seconds respectively in the non-power save mode.\n\nThis mode saves your battery.";
 
 	/** The Constant OPTION_SMSMODE. */
 	public static final String OPTION_SMSMODE = "smsmode";
@@ -1766,7 +1766,7 @@ public class Setup extends Activity {
 		receiveallsms.setOnClickListener(new OnClickListener() {
 			public void onClick(View arg0) {
 				if (receiveallsms.isChecked()) {
-					// Enable Delphino Cryptocator as default messaging app
+					// Enable Delphino CryptSecure as default messaging app
 					setSMSDefaultApp(context, true);
 				} else {
 					receiveallsms.setChecked(true);
@@ -2468,7 +2468,7 @@ public class Setup extends Activity {
 
 	/**
 	 * Gets the base url of a server for a serverId. Typically this is
-	 * cryptocator.org if not another server is configured.
+	 * cryptsecure.org if not another server is configured.
 	 * 
 	 * @param context
 	 *            the context
@@ -3120,7 +3120,7 @@ public class Setup extends Activity {
 											restartRequiredFlag = true;
 											Utility.showToastAsync(
 													context,
-													"Account/UID changed. Cryptocator must be re-started in order to operate properly...");
+													"Account/UID changed. CryptSecure must be re-started in order to operate properly...");
 										}
 									} else {
 										uidR = tmpUid + "";
@@ -3557,7 +3557,7 @@ public class Setup extends Activity {
 												context,
 												"Your new UID is "
 														+ newUID
-														+ ". Cryptocator must be re-started in order to operate properly...");
+														+ ". CryptSecure must be re-started in order to operate properly...");
 										restartRequiredFlag = true;
 									} else {
 										if (response2.equals("-17")) {
@@ -5286,7 +5286,7 @@ public class Setup extends Activity {
 	private void askOnDisableEncryption(final Context context) {
 		try {
 			final String titleMessage = "Disable Encryption";
-			final String textMessage = "Encrypting messages is a main feature of Cryptocator!\n\nUnencrypted plaintext messages can be possibly read by anyone observing your internet connection. If you disable encryption your account key will be deleted permanently. If you re-enable later, a new account key is created and you should verify that your friends receive this new account key correctly!\n\n"
+			final String textMessage = "Encrypting messages is a main feature of CryptSecure!\n\nUnencrypted plaintext messages can be possibly read by anyone observing your internet connection. If you disable encryption your account key will be deleted permanently. If you re-enable later, a new account key is created and you should verify that your friends receive this new account key correctly!\n\n"
 					+ "Do you really want to disable encryption and only send and receive plaintext messages? ";
 			new MessageAlertDialog(context, titleMessage, textMessage,
 					"Still Disable", "Cancel", null,
@@ -5457,7 +5457,7 @@ public class Setup extends Activity {
 		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 			try {
 				final String titleMessage = "Default SMS App";
-				final String textMessage = "If you disable Delphino Cryptocator to receive all SMS, you should define a different SMS default app. Otherwise you wont't receive unsecure plain text SMS anymore!\n\nDo you want to change the default SMS app?";
+				final String textMessage = "If you disable Delphino CryptSecure to receive all SMS, you should define a different SMS default app. Otherwise you wont't receive unsecure plain text SMS anymore!\n\nDo you want to change the default SMS app?";
 				new MessageAlertDialog(context, titleMessage, textMessage,
 						" Yes ", " Cancel ", null,
 						new MessageAlertDialog.OnSelectionListener() {
@@ -5821,7 +5821,7 @@ public class Setup extends Activity {
 			}
 
 			String url = null;
-			// www.delphino.net/cryptocator/index.php?cmd=login2&uid=5&val=passw%23session%23timestamp%23HTC1
+			// www.delphino.net/cryptsecure/index.php?cmd=login2&uid=5&val=passw%23session%23timestamp%23HTC1
 			url = Setup.getBaseURL(context, serverId) + "cmd=login2&val1="
 					+ loginData.user + "&val2=" + loginData.password + "&val3="
 					+ loginData.val;
@@ -7016,7 +7016,7 @@ public class Setup extends Activity {
 	 * Gets the server id from an UID. Note that for the userlist now internally
 	 * only UIDs are used in place of SUIDs. SUIDs are only unique for a server
 	 * (S). If no mapping was found, the legacy-fallback will return
-	 * cryptocator.org as the server.
+	 * cryptsecure.org as the server.
 	 * 
 	 * @param context
 	 *            the context
@@ -7210,7 +7210,7 @@ public class Setup extends Activity {
 		if (restartRequiredFlag) {
 			Utility.showToastAsync(
 					this,
-					"Account/UID changed. Cryptocator must be re-started in order to operate properly...");
+					"Account/UID changed. CryptSecure must be re-started in order to operate properly...");
 			Main.exitApplication(this);
 		}
 		System.gc();

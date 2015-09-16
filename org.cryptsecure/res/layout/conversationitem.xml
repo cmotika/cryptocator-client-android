@@ -48,7 +48,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />                    
 
-        <org.cryptocator.ImageSmileyEditText
+        <org.cryptsecure.ImageSmileyEditText
             android:id="@+id/conversationtext"
             android:layout_width="310px"
             android:layout_height="wrap_content"
@@ -67,7 +67,7 @@
             android:textColorLink="#ff000000"
             android:textIsSelectable="true"
             android:textSize="18dp" >
-        </org.cryptocator.ImageSmileyEditText>
+        </org.cryptsecure.ImageSmileyEditText>
         
                             <LinearLayout
                                 android:id="@+id/conversationaddition"

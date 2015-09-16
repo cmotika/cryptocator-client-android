@@ -14,17 +14,17 @@
  * and the following disclaimer in the documentation and/or other materials
  * provided with the distribution.
  * 
- * 3. Neither the name Delphino Cryptocator nor the names of its contributors
+ * 3. Neither the name Delphino CryptSecure nor the names of its contributors
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
- * 4. Free or commercial forks of Cryptocator are permitted as long as
+ * 4. Free or commercial forks of CryptSecure are permitted as long as
  *    both (a) and (b) are and stay fulfilled: 
  *    (a) This license is enclosed.
- *    (b) The protocol to communicate between Cryptocator servers
- *        and Cryptocator clients *MUST* must be fully conform with 
+ *    (b) The protocol to communicate between CryptSecure servers
+ *        and CryptSecure clients *MUST* must be fully conform with 
  *        the documentation and (possibly updated) reference 
- *        implementation from cryptocator.org. This is to ensure 
+ *        implementation from cryptsecure.org. This is to ensure 
  *        interconnectivity between all clients and servers. 
  * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
@@ -40,7 +40,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  
  */
-package org.cryptocator;
+package org.cryptsecure;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -3490,7 +3490,7 @@ public class DB {
 
 				// We must go thru the uid list, create a new uid from this then
 				// suid
-				// considering cryptocator.org as the server
+				// considering cryptsecure.org as the server
 				// we then must update the database and replace
 				// 1. our uid by -1
 				// 2. the other suid by the new uid
@@ -3553,7 +3553,7 @@ public class DB {
 
 				Setup.setVersionUpdated(context, Setup.VERSION_MULTISERVER,
 						true,
-						"Cryptocator updated DB to new version and needs to be restarted.");
+						"CryptSecure updated DB to new version and needs to be restarted.");
 			}
 
 			if (Setup.getVersion(context) < Setup.VERSION_MULTISERVERREVOKE) {
@@ -3612,7 +3612,7 @@ public class DB {
 				}
 				Setup.setVersionUpdated(context,
 						Setup.VERSION_MULTISERVERREVOKE, true,
-						"Cryptocator updated DB to new version and needs to be restarted.");
+						"CryptSecure updated DB to new version and needs to be restarted.");
 
 			}
 		}

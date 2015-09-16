@@ -14,17 +14,17 @@
  * and the following disclaimer in the documentation and/or other materials
  * provided with the distribution.
  * 
- * 3. Neither the name Delphino Cryptocator nor the names of its contributors
+ * 3. Neither the name Delphino CryptSecure nor the names of its contributors
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
- * 4. Free or commercial forks of Cryptocator are permitted as long as
+ * 4. Free or commercial forks of CryptSecure are permitted as long as
  *    both (a) and (b) are and stay fulfilled: 
  *    (a) This license is enclosed.
- *    (b) The protocol to communicate between Cryptocator servers
- *        and Cryptocator clients *MUST* must be fully conform with 
+ *    (b) The protocol to communicate between CryptSecure servers
+ *        and CryptSecure clients *MUST* must be fully conform with 
  *        the documentation and (possibly updated) reference 
- *        implementation from cryptocator.org. This is to ensure 
+ *        implementation from cryptsecure.org. This is to ensure 
  *        interconnectivity between all clients and servers. 
  * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
@@ -40,14 +40,14 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  
  */
-package org.cryptocator;
+package org.cryptsecure;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.cryptocator.ImageContextMenu.ImageContextMenuProvider;
+import org.cryptsecure.ImageContextMenu.ImageContextMenuProvider;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -90,11 +90,11 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 /**
- * This is the main activity for Delphino Cryptocator. It is responsible showing
+ * This is the main activity for Delphino CryptSecure. It is responsible showing
  * the main screen with the user list. Some of the data is hold static because
  * there should always only be one instance of this activity.<BR>
  * <BR>
- * With version 1.3 Delphino Cryptocator will support multiple message servers
+ * With version 1.3 Delphino CryptSecure will support multiple message servers
  * which allows for a user to be part of multiple closed user groups, e.g., (1)
  * family, (2) work, (3) hobby. The message servers can be activated an
  * deactivated, e.g., on holiday one may want to disable the (2) work-message
@@ -445,7 +445,7 @@ public class Main extends Activity {
 				public void run() {
 					// Check if no account
 					String title = "Welcome!";
-					String text = "You don't have configured an account yet. In order to use Delphino Cryptocator you need an account."
+					String text = "You don't have configured an account yet. In order to use Delphino CryptSecure you need an account."
 							+ "\n\nDo you want to create one now or enter an existing one?";
 					new MessageAlertDialog(context, title, text, " Yes ",
 							" No ", null,
@@ -761,7 +761,7 @@ public class Main extends Activity {
 	public void addExternalSMSUser(final Context context) {
 		try {
 			final String titleMessage = "Add External SMS Contact";
-			final String textMessage = "Typically you add the UIDs of other registered users to your userlist.\n\nAdditionally you can use Cryptocator to communicate with other users that do not have an account but only using unsecure SMS. Therefore Delphino Cryptocator needs to be your default SMS application (see Settings!).\n\nDo you want to add an external SMS contact from your phonebook?";
+			final String textMessage = "Typically you add the UIDs of other registered users to your userlist.\n\nAdditionally you can use CryptSecure to communicate with other users that do not have an account but only using unsecure SMS. Therefore Delphino CryptSecure needs to be your default SMS application (see Settings!).\n\nDo you want to add an external SMS contact from your phonebook?";
 			new MessageAlertDialog(context, titleMessage, textMessage, " Yes ",
 					" No ", null, new MessageAlertDialog.OnSelectionListener() {
 						public void selected(int button, boolean cancel) {
@@ -855,7 +855,7 @@ public class Main extends Activity {
 	/**
 	 * Rebuild userlist. resolveUIDs MUST be false if this method is called from
 	 * the response of UID2Name! Otherwise this can generate a loop if names
-	 * cannot be resolved! As Cryptocator now supports multiple servers but we
+	 * cannot be resolved! As CryptSecure now supports multiple servers but we
 	 * can only display one account name, we take the first server!
 	 * 
 	 * @param context
@@ -2278,7 +2278,7 @@ public class Main extends Activity {
 			message = "Login Error - Check Account Settings";
 		} else if (!Setup.isSMSDefaultApp(context, false)
 				&& (Setup.isSMSDefaultApp(context, true))) {
-			message = "Cryptocator not Default SMS App anymore - Check Settings";
+			message = "CryptSecure not Default SMS App anymore - Check Settings";
 		}
 
 		// Log.d("communicator", "#### setInfok=" + message);

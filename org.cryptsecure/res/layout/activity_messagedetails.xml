@@ -711,7 +711,7 @@
                 android:gravity="center_vertical|center_horizontal"
                 android:orientation="horizontal" >
 
-                <org.cryptocator.ImageLabelButton
+                <org.cryptsecure.ImageLabelButton
                     android:id="@+id/buttonbackup"
                     android:layout_width="120dp"
                     android:layout_height="72dp"
@@ -721,7 +721,7 @@
                     android:src="@drawable/btnbackupsm"
                     android:text="Backup" />
 
-                <org.cryptocator.ImageLabelButton
+                <org.cryptsecure.ImageLabelButton
                     android:id="@+id/buttonclear"
                     android:layout_width="120dp"
                     android:layout_height="72dp"

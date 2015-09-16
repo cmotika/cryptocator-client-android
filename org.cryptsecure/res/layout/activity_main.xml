@@ -11,7 +11,7 @@
         android:id="@+id/mainscrollview"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        class="org.cryptocator.ScrollViewEx"
+        class="org.cryptsecure.ScrollViewEx"
         android:scrollbarAlwaysDrawVerticalTrack="false"
         android:scrollbarSize="0dp"
         android:scrollbarStyle="insideOverlay"

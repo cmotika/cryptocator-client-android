@@ -14,17 +14,17 @@
  * and the following disclaimer in the documentation and/or other materials
  * provided with the distribution.
  * 
- * 3. Neither the name Delphino Cryptocator nor the names of its contributors
+ * 3. Neither the name Delphino CryptSecure nor the names of its contributors
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
- * 4. Free or commercial forks of Cryptocator are permitted as long as
+ * 4. Free or commercial forks of CryptSecure are permitted as long as
  *    both (a) and (b) are and stay fulfilled: 
  *    (a) This license is enclosed.
- *    (b) The protocol to communicate between Cryptocator servers
- *        and Cryptocator clients *MUST* must be fully conform with 
+ *    (b) The protocol to communicate between CryptSecure servers
+ *        and CryptSecure clients *MUST* must be fully conform with 
  *        the documentation and (possibly updated) reference 
- *        implementation from cryptocator.org. This is to ensure 
+ *        implementation from cryptsecure.org. This is to ensure 
  *        interconnectivity between all clients and servers. 
  * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
@@ -40,7 +40,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  
  */
-package org.cryptocator;
+package org.cryptsecure;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +48,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.cryptocator.ImageContextMenu.ImageContextMenuProvider;
+import org.cryptsecure.ImageContextMenu.ImageContextMenuProvider;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -862,7 +862,7 @@ public class Conversation extends Activity {
 
 		final String titleMessage = "Enable SMS";
 		String partner = Main.UID2Name(context, hostUid, false);
-		final String textMessage = "Delphino Cryptocator also allows to send/receive secure encrypted SMS.\n\nTo be able to use this option both communication partners have to turn this feature on.\n\nCurrently '"
+		final String textMessage = "Delphino CryptSecure also allows to send/receive secure encrypted SMS.\n\nTo be able to use this option both communication partners have to turn this feature on.\n\nCurrently '"
 				+ partner
 				+ "' seems not to have turned on this feature. If you know '"
 				+ partner
@@ -887,7 +887,7 @@ public class Conversation extends Activity {
 	private void inviteUserToSMSMode(final Context context) {
 		try {
 			final String titleMessage = "Enable SMS";
-			final String textMessage = "Delphino Cryptocator also allows to send/receive secure encrypted SMS.\n\nFor this,"
+			final String textMessage = "Delphino CryptSecure also allows to send/receive secure encrypted SMS.\n\nFor this,"
 					+ " your phone number and your userlist must be stored at the server. Furthermore, to be able to use this"
 					+ " option both communication partners have to turn this feature on.\n\nDo you want to enable the secure"
 					+ " SMS possibility?";
@@ -3579,7 +3579,7 @@ public class Conversation extends Activity {
 						public boolean onSelection(ImageContextMenu instance) {
 							// SAVE
 							String titleAddition = "";
-							String description = "Cryptocator Image";
+							String description = "CryptSecure Image";
 							saveImageInGallery(context, imageImageMenuString,
 									false, titleAddition, description);
 							return true;
@@ -4063,7 +4063,7 @@ public class Conversation extends Activity {
 			Bitmap bitmap = Utility.loadImageFromBASE64String(context,
 					encodedImg);
 			String bitmapPath = Utility.insertImage(
-					context.getContentResolver(), bitmap, "Cryptocator"
+					context.getContentResolver(), bitmap, "CryptSecure"
 							+ titleAddition, description);
 			if (bitmapPath != null) {
 				Utility.updateMediaScanner(context, bitmapPath);
@@ -4104,15 +4104,15 @@ public class Conversation extends Activity {
 					encodedImg);
 
 			String bitmapPath = Images.Media.insertImage(
-					context.getContentResolver(), bitmap, "Cryptocator Images",
+					context.getContentResolver(), bitmap, "CryptSecure Images",
 					null);
 			Uri bitmapUri = Uri.parse(bitmapPath);
 
 			Intent sendIntent = new Intent(Intent.ACTION_SEND);
 			sendIntent.setType("image/*");
-			sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Cryptocator Image");
+			sendIntent.putExtra(Intent.EXTRA_SUBJECT, "CryptSecure Image");
 			sendIntent.putExtra(Intent.EXTRA_STREAM, bitmapUri);
-			sendIntent.putExtra(Intent.EXTRA_TEXT, "Cryptocator Image");
+			sendIntent.putExtra(Intent.EXTRA_TEXT, "CryptSecure Image");
 			context.startActivity(Intent.createChooser(sendIntent, "Share"));
 		} catch (Exception e) {
 			Utility.showToastAsync(context, "Error sharing image.");

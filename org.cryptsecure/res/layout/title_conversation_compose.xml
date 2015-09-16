@@ -28,7 +28,7 @@
                 android:layout_marginRight="12px"
                 android:orientation="vertical" >
 
-                <org.cryptocator.ImagePressButton
+                <org.cryptsecure.ImagePressButton
                     android:id="@+id/btnback"
                     android:layout_width="45px"
                     android:layout_height="45px"
@@ -83,7 +83,7 @@
                     </EditText>
                 </LinearLayout>
 
-                <org.cryptocator.ImagePressButton
+                <org.cryptsecure.ImagePressButton
                     android:id="@+id/phonebutton"
                     android:layout_width="140px"
                     android:layout_height="fill_parent"
@@ -94,7 +94,7 @@
                     android:minWidth="140px"
                     android:src="@drawable/phoneneutral"
                     android:text="" >
-                </org.cryptocator.ImagePressButton>
+                </org.cryptsecure.ImagePressButton>
             </LinearLayout>
         </LinearLayout>
 

@@ -14,17 +14,17 @@
  * and the following disclaimer in the documentation and/or other materials
  * provided with the distribution.
  * 
- * 3. Neither the name Delphino Cryptocator nor the names of its contributors
+ * 3. Neither the name Delphino CryptSecure nor the names of its contributors
  * may be used to endorse or promote products derived from this software
  * without specific prior written permission.
  *
- * 4. Free or commercial forks of Cryptocator are permitted as long as
+ * 4. Free or commercial forks of CryptSecure are permitted as long as
  *    both (a) and (b) are and stay fulfilled: 
  *    (a) This license is enclosed.
- *    (b) The protocol to communicate between Cryptocator servers
- *        and Cryptocator clients *MUST* must be fully conform with 
+ *    (b) The protocol to communicate between CryptSecure servers
+ *        and CryptSecure clients *MUST* must be fully conform with 
  *        the documentation and (possibly updated) reference 
- *        implementation from cryptocator.org. This is to ensure 
+ *        implementation from cryptsecure.org. This is to ensure 
  *        interconnectivity between all clients and servers. 
  * 
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS “AS IS” AND
@@ -40,7 +40,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  
  */
-package org.cryptocator;
+package org.cryptsecure;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -266,7 +266,7 @@ public class ReceiveSMS extends BroadcastReceiver {
 					+ message + "'");
 
 			// This should be an encrypted sms, sent by Delphino
-			// Cryptocator
+			// CryptSecure
 			if (uid != -1) {
 				// Only allow sms messages from known users
 				// HANDLE
