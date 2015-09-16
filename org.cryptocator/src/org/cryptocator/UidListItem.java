@@ -62,6 +62,9 @@ public class UidListItem implements Comparable<UidListItem> {
 
 	/** The name. */
 	public String name;
+	
+	/** The is group. */
+	public boolean isGroup = false;
 
 	/** The last message timestamp. */
 	public Long lastMessageTimestamp;

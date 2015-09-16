@@ -542,6 +542,12 @@ public class Setup extends Activity {
 	/** The Constant GROUPMEMBERS for group members of a specific server group. */
 	public static final String GROUPMEMBERS = "servergroupmembers";
 
+	/** The Constant LOCALGROUP2GROUPID for mapping localgroup id. */
+	public static final String LOCALGROUP2GROUPID = "servergrouplocalgroup2group";
+
+	/** The Constant LOCALGROUP2SERVERD for mapping localgroup id. */
+	public static final String LOCALGROUP2SERVER = "servergrouplocalgroup2server";
+
 	/** The Constant GROUPS for invited groups of a specific server. */
 	public static final String INVITEDGROUPS = "servergroupsinvited";
 
@@ -7648,7 +7654,8 @@ public class Setup extends Activity {
 											+ groupName + "' created.", false);
 									Setup.updateGroupSpinnerAsync(context,
 											groupspinner);
-									Setup.updateGroupsFromServer(context, true, serverId);
+									Setup.updateGroupsFromServer(context, true,
+											serverId);
 								} else {
 									setErrorInfoAsync(context,
 											"Error creating group '"
@@ -7863,20 +7870,51 @@ public class Setup extends Activity {
 				+ "cmd=confirmgroup&session="
 				+ session
 				+ "&val="
-				+ Setup.encText(context, groupsecret, serverId);
+				+ Utility.urlEncode(Setup.encText(context, groupsecret,
+						serverId));
 		final String url2 = url;
+
+		Log.d("communicator", "XXXX REQUEST groupConfirm groupsecret="
+				+ groupsecret);
 		Log.d("communicator", "XXXX REQUEST groupConfirm :" + url2);
 		@SuppressWarnings("unused")
 		HttpStringRequest httpStringRequest = (new HttpStringRequest(context,
 				url2, new HttpStringRequest.OnResponseListener() {
 					public void response(String response) {
-						Log.d("communicator", "XXXX RESPONSE groupConfirm :"
-								+ response);
+						boolean ok = false;
+						Log.d("communicator",
+								"XXXX RESPONSE groupConfirm ("
+										+ response.length() + ") :"
+										+ response.replace("\n", ""));
 						if (Communicator.isResponseValid(response)) {
 							if (Communicator.isResponsePositive(response)
-									&& response.equals("1")) {
-								// Invited successfully, s
+									&& response.startsWith("1")) {
+								String responseContent = Communicator
+										.getResponseContent(response);
+								Log.d("communicator",
+										"XXXX RESPONSE groupConfirm responseContent="
+												+ responseContent);
+								if (responseContent != null
+										&& responseContent.length() > 0) {
+									int groupId = Setup.decUid(context,
+											responseContent, serverId);
+									if (groupId != -1) {
+										// Invited successfully, s
+										Setup.setGroupSecret(context, serverId,
+												groupId + "", groupsecret);
+										Utility.showToastAsync(context,
+												"Join group completed.");
+										ok = true;
+										// reload and rebuild userlist
+										Setup.updateGroupsFromServer(context,
+												true, serverId);
+									}
+								}
 							}
+						}
+						if (!ok) {
+							Utility.showToastAsync(context,
+									"An error occurred when trying to join the group.");
 						}
 					}
 				}));
@@ -7902,6 +7940,14 @@ public class Setup extends Activity {
 			String groupId) {
 		return Utility.loadStringSetting(context, GROUPNAME + serverId + "_"
 				+ groupId, null);
+	}
+
+	public static String getGroupName(Context context, int localGroupId) {
+		int serverId = getGroupServerId(context, localGroupId);
+		String groupId = getGroupId(context, localGroupId);
+		Log.d("communicator", "GROUPS serverId=" + serverId + ", groupId="
+				+ groupId);
+		return getGroupName(context, serverId, groupId);
 	}
 
 	// -------------------------------------------------------------------------
@@ -7940,6 +7986,7 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 
 	public static void setGroups(Context context, int serverId, String groups) {
+		invalidateGroupCache();
 		Utility.saveStringSetting(context, GROUPS + serverId, groups);
 	}
 
@@ -7951,6 +7998,59 @@ public class Setup extends Activity {
 		String separatedString = getGroups(context, serverId);
 		List<String> groupids = Utility.getListFromString(separatedString, ",");
 		return groupids;
+	}
+
+	public static void invalidateGroupCache() {
+		LocalGroup2GroupIdCache.clear();
+		LocalGroup2ServerIdCache.clear();
+	}
+
+	static HashMap<Integer, String> LocalGroup2GroupIdCache = new HashMap<Integer, String>();
+	static HashMap<Integer, Integer> LocalGroup2ServerIdCache = new HashMap<Integer, Integer>();
+
+	public static String getGroupId(Context context, int localGroupId) {
+		if (!LocalGroup2GroupIdCache.containsKey(localGroupId)) {
+			LocalGroup2GroupIdCache.put(
+					localGroupId,
+					Utility.loadStringSetting(context, LOCALGROUP2GROUPID
+							+ localGroupId, null));
+		}
+		return LocalGroup2GroupIdCache.get(localGroupId);
+	}
+
+	public static int getGroupServerId(Context context, int localGroupId) {
+		try {
+		if (!LocalGroup2ServerIdCache.containsKey(localGroupId)) {
+			int serverId = Utility.loadIntSetting(context, LOCALGROUP2SERVER
+					+ localGroupId, -1);
+			if (serverId != -1) {
+				LocalGroup2ServerIdCache.put(localGroupId, serverId);
+			}
+		}
+		return LocalGroup2ServerIdCache.get(localGroupId);
+		} catch(Exception e) {
+			e.printStackTrace();
+			invalidateGroupCache();
+		}
+		return -1;
+	}
+
+	public static int getLocalGroupId(Context context, String groupId,
+			int serverId) {
+		int localGroupId = Math.abs((serverId + "_" + groupId).hashCode());
+		if (getGroupId(context, localGroupId) == null) {
+			Utility.saveStringSetting(context, LOCALGROUP2GROUPID
+					+ localGroupId, groupId);
+		}
+		if (getGroupServerId(context, localGroupId) == -1) {
+			Utility.saveIntSetting(context, LOCALGROUP2SERVER + localGroupId,
+					serverId);
+		}
+		return localGroupId;
+	}
+
+	public static boolean isGroup(Context context, int uid) {
+		return (getGroupId(context, uid) != null);
 	}
 
 	// -------------------------------------------------------------------------
@@ -8216,7 +8316,7 @@ public class Setup extends Activity {
 	public static void updateGroupSpinner2(final Context context,
 			final int serverId, final Spinner spinner) {
 		groupSpinnerMappingGroupId2.clear();
-		
+
 		List<String> spinnerNames = new ArrayList<String>();
 		int index = 0;
 		if (Setup.isServerAccount(context, serverId, false)) {
@@ -8226,8 +8326,7 @@ public class Setup extends Activity {
 						groupId);
 				int groupmembers = Setup.getGroupMembersList(context, serverId,
 						groupId).size() + 1;
-				spinnerNames.add(groupName + " ("
-						+ groupmembers + ")");
+				spinnerNames.add(groupName + " (" + groupmembers + ")");
 				groupSpinnerMappingGroupId2.put(index, groupId);
 				index++;
 			}

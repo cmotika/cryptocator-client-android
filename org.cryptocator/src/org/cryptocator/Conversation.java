@@ -2304,7 +2304,7 @@ public class Conversation extends Activity {
 			LinearLayout conversationaddition = (LinearLayout) conversationlistitem
 					.findViewById(R.id.conversationaddition);
 
-			Button acceptButton = new Button(context);
+			final Button acceptButton = new Button(context);
 			acceptButton.setText(" Join Group ");
 			LinearLayout.LayoutParams lpButton = new LinearLayout.LayoutParams(
 					LinearLayout.LayoutParams.MATCH_PARENT,
@@ -2313,10 +2313,11 @@ public class Conversation extends Activity {
 			acceptButton.setLayoutParams(lpButton);
 			acceptButton.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
+					acceptButton.setEnabled(false);
 					Setup.groupConfirm(context, serverId, groupsecret);
 				}
 			});
-			if (!conversationItem.me()) {
+			if (!conversationItem.me() && groupsecret != null && groupsecret.length() > 1) {
 				// Only add the JOIN button to the other host that was invited!
 				conversationaddition.addView(acceptButton);
 			}
@@ -3301,9 +3302,24 @@ public class Conversation extends Activity {
 											context, serverId, groupId);
 									String groupSecret = Setup.getGroupSecret(
 											context, serverId, groupId);
+									
+									// Test if this user is not already a member of the group
+									List<Integer> members = Setup.getGroupMembersList(context, serverId, groupId);
+									
+									Log.d("communicator", "GROUPS INVITE " + Setup.getGroupMembers(context, serverId, groupId));
+									int suid = Setup.getSUid(context, hostUid);
+									
+									if (members.contains(suid)) {
+										promptInfo(
+												context,
+												"Already a Member",
+												name
+														+ " is already a member of this group.");
+										return;
+									}
 
 									Setup.groupInvite(context, serverId,
-											groupId, button);
+											groupId, suid);
 
 									int myUid = DB.myUid(null, serverId);
 									String myName = Main.UID2Name(context,

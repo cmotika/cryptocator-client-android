@@ -161,6 +161,7 @@ public class Main extends Activity {
 	static Bitmap bitmap_bar = null;
 	static Bitmap bitmap_barsms = null;
 	static Bitmap bitmap_person = null;
+	static Bitmap bitmap_person_group = null;
 	static Bitmap bitmap_personsms = null;
 
 	/**
@@ -251,6 +252,8 @@ public class Main extends Activity {
 					context.getResources(), R.drawable.persongenericbarsms);
 			bitmap_person = BitmapFactory.decodeResource(
 					context.getResources(), R.drawable.person);
+			bitmap_person_group	= BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.btngroups);
 			bitmap_personsms = BitmapFactory.decodeResource(
 					context.getResources(), R.drawable.personsms);
 		}
@@ -1032,6 +1035,9 @@ public class Main extends Activity {
 			boolean lightBack = true;
 			for (UidListItem item : fullUidList) {
 				String name = item.name;
+				if (item.isGroup) {
+					name = "Group '" + name + "'";
+				}
 
 				// If landscape and more than one message server AND registered
 				// user
@@ -1062,7 +1068,7 @@ public class Main extends Activity {
 				lightBack = !lightBack;
 
 				addUserLine(context, mainInnerView, name, lastDate,
-						lastMessage, item.uid, lightBack);
+						lastMessage, item.uid, lightBack, item.isGroup);
 
 			}
 
@@ -1138,14 +1144,14 @@ public class Main extends Activity {
 	 */
 	private void addUserLine(final Context context, LinearLayout parent,
 			String name, String date, String lastMessage, final int uid,
-			boolean lightBack) {
+			boolean lightBack, boolean isGroup) {
 
 		LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View userlistitemtmp = inflater.inflate(R.layout.userlistitem, null);
 
 		boolean haveKey = Setup.haveKey(context, uid);
 		boolean haveMessages = Communicator.getNotificationCount(context, uid) > 0;
-		boolean isRegistered = uid >= 0;
+		boolean isRegistered = uid >= 0 || isGroup;
 
 		LinearLayout personiconback = (LinearLayout) userlistitemtmp
 				.findViewById(R.id.personiconback);
@@ -1162,7 +1168,7 @@ public class Main extends Activity {
 		String keyHash = Setup.getKeyHash(context, uid);
 
 		Bitmap bitmap = retrieveAvatar(context, uid, keyHash, isRegistered,
-				haveKey, haveMessages);
+				haveKey, haveMessages, isGroup);
 
 		personicon.setImageBitmap(bitmap);
 
@@ -1311,7 +1317,7 @@ public class Main extends Activity {
 	 */
 	public static Bitmap retrieveAvatar(Context context, int uid,
 			String keyHash, boolean isRegistered, boolean haveKey,
-			boolean haveMessages) {
+			boolean haveMessages, boolean isGroup) {
 
 		String id = uid + keyHash + isRegistered + haveKey + haveMessages;
 		if (!userListImageCache.containsKey(id)) {
@@ -1349,7 +1355,11 @@ public class Main extends Activity {
 				dst.bottom = 135;
 				dst.right = 172;
 				if (isRegistered) {
-					canvas.drawBitmap(bitmap_person, src, dst, null);
+					if (!isGroup) {
+						canvas.drawBitmap(bitmap_person, src, dst, null);
+					} else {
+						canvas.drawBitmap(bitmap_person_group, src, dst, null);
+					}
 				} else {
 					canvas.drawBitmap(bitmap_personsms, src, dst, null);
 				}
@@ -1510,6 +1520,26 @@ public class Main extends Activity {
 			item.lastMessageTimestamp = getLastMessageTimestamp(context, uid);
 			returnList.add(item);
 		}
+		
+		// add groups
+		for (int serverId : Setup.getServerIds(context)) {
+			List<String> groupIds = Setup.getGroupsList(context, serverId);
+			for (String groupId : groupIds) {
+				int groupIdInt = Utility.parseInt(groupId, -1);
+				if (groupIdInt != -1) {
+					UidListItem item = new UidListItem();
+					int localGroupId = Setup.getLocalGroupId(context, groupId, serverId);
+					item.uid = localGroupId;
+					item.isGroup = true;
+					item.name = Setup.getGroupName(context, serverId, groupId);
+					item.lastMessage = getLastMessage(context, localGroupId);
+					item.lastMessageTimestamp = getLastMessageTimestamp(context, localGroupId);
+					returnList.add(item);
+				}
+				
+			}
+		}
+
 		UidListItem.sort(returnList, sortByName);
 		return returnList;
 	}
@@ -1965,6 +1995,9 @@ public class Main extends Activity {
 	 */
 	public static String UID2Name(Context context, int uid,
 			boolean fullNameWithUID, boolean resolve) {
+		if (Setup.isGroup(context, uid)) {
+			return "Group '" + Setup.getGroupName(context, uid) +"'";
+		}
 		int serverDefaultId = Setup.getServerDefaultId(context);
 		return UID2Name(context, uid, fullNameWithUID, resolve, serverDefaultId);
 	}
