@@ -58,7 +58,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -249,6 +251,9 @@ public class Conversation extends Activity {
 	static Bitmap bitmap_speechmaster = null;
 
 	/** The bitmap_speech. */
+	static Bitmap bitmap_speechmastersmall = null;
+
+	/** The bitmap_speech. */
 	static Bitmap bitmap_speech = null;
 
 	/** The bitmap_speechalert. */
@@ -324,15 +329,6 @@ public class Conversation extends Activity {
 		instance = this;
 		final Activity context = this;
 
-		if (bitmap_speechmaster == null) {
-			bitmap_speechmaster = BitmapFactory.decodeResource(
-					context.getResources(), R.drawable.speechmaster);
-			bitmap_speech = BitmapFactory.decodeResource(
-					context.getResources(), R.drawable.speech);
-			bitmap_speechalert = BitmapFactory.decodeResource(
-					context.getResources(), R.drawable.speechalert);
-		}
-
 		inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
 		// Apply custom title bar (with holo :-)
@@ -341,6 +337,11 @@ public class Conversation extends Activity {
 				R.layout.activity_conversation, R.layout.title_conversation);
 		main.setGravity(Gravity.BOTTOM);
 		titleconversation = (LinearLayout) findViewById(R.id.titleconversation);
+
+		ImageView groupimage = (ImageView) findViewById(R.id.conversationgroupimage);
+		if (!Setup.isGroup(context, hostUid)) {
+			groupimage.setVisibility(View.GONE);
+		}
 
 		// Add title bar buttons
 		ImagePressButton btnback = (ImagePressButton) findViewById(R.id.btnback);
@@ -802,6 +803,24 @@ public class Conversation extends Activity {
 	// ------------------------------------------------------------------------
 
 	/**
+	 * Initialize bitmaps if not initialized already.
+	 */
+	public static void initializeBitmaps(Context context) {
+		if (bitmap_speechmaster == null) {
+			bitmap_speechmaster = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.speechmaster);
+			bitmap_speechmastersmall = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.speechmastersmall);
+			bitmap_speech = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.speech);
+			bitmap_speechalert = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.speechalert);
+		}
+	}
+
+	// ------------------------------------------------------------------------
+	
+	/**
 	 * Gets the host uid of the current conversation.
 	 * 
 	 * @return the host uid
@@ -1119,7 +1138,11 @@ public class Conversation extends Activity {
 	private void updateSendButtonImage(Context context) {
 		isSMSModeOn = isSMSModeAvailableAndOn(context);
 		isEncryptionOn = false;
-		if (hostUid < 0) {
+		if (Setup.isGroup(context, hostUid)) {
+			sendbutton.setImageResource(R.drawable.sendgroup);
+			sendbutton
+					.initializePressImageResource(R.drawable.sendgroup, false);
+		} else if (hostUid < 0) {
 			sendbutton.setImageResource(R.drawable.sendsms);
 			sendbutton.initializePressImageResource(R.drawable.sendsms, false);
 			// sendbutton.setImageResource(R.drawable.sendsms);
@@ -2174,6 +2197,9 @@ public class Conversation extends Activity {
 	private View addConversationLine(final Context context,
 			final ConversationItem conversationItem) {
 
+		boolean isGroup = Setup.isGroup(context, hostUid);
+		int hostUid = conversationItem.from;
+
 		// Do not show system messages or empty messages
 		if (conversationItem.text == null
 				|| conversationItem.text.length() == 0) {
@@ -2212,7 +2238,8 @@ public class Conversation extends Activity {
 				speech.setImageResource(R.drawable.speechalert);
 			}
 
-			Bitmap avatar = retrieveAvatar(context, hostUid, isAlert);
+			Bitmap avatar = retrieveAvatar(context, hostUid, isAlert, isGroup,
+					true);
 			if (avatar != null) {
 				speech.setImageBitmap(avatar);
 				LinearLayout.LayoutParams lpSpeech = new LinearLayout.LayoutParams(
@@ -2317,7 +2344,8 @@ public class Conversation extends Activity {
 					Setup.groupConfirm(context, serverId, groupsecret);
 				}
 			});
-			if (!conversationItem.me() && groupsecret != null && groupsecret.length() > 1) {
+			if (!conversationItem.me() && groupsecret != null
+					&& groupsecret.length() > 1) {
 				// Only add the JOIN button to the other host that was invited!
 				conversationaddition.addView(acceptButton);
 			}
@@ -2407,6 +2435,8 @@ public class Conversation extends Activity {
 	 * Invalidate avatar cache if an avatar was changed.
 	 */
 	public static void invalidateAvatarCache() {
+		Log.d("communicator", "AVATAR CLEAR CACHE ");
+
 		conversationImageCache.clear();
 	}
 
@@ -2424,13 +2454,22 @@ public class Conversation extends Activity {
 	 *            the alert
 	 * @return the bitmap
 	 */
-	public static Bitmap retrieveAvatar(Context context, int uid, boolean alert) {
+	public static Bitmap retrieveAvatar(Context context, int uid,
+			boolean alert, boolean fakeAvatarIfNoOther, boolean speech) {
 
-		String id = uid + "" + alert;
+		String id = uid + "_" + fakeAvatarIfNoOther + "_" + alert + "_"
+				+ speech;
+
+		Log.d("communicator", "AVATAR #1 " + id);
+
 		if (!conversationImageCache.containsKey(id)) {
 
-			Bitmap avatar = Setup.getAvatarAsBitmap(context, hostUid);
+			Log.d("communicator", "AVATAR #2");
+
+			Bitmap avatar = Setup.getAvatarAsBitmap(context, uid);
 			if (avatar != null) {
+				Log.d("communicator", "AVATAR #3");
+				initializeBitmaps(context);
 				Bitmap bitmap = Bitmap.createBitmap(bitmap_speechmaster);
 
 				bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
@@ -2447,18 +2486,66 @@ public class Conversation extends Activity {
 				dst.right = 75;
 				canvas.drawBitmap(avatar, src, dst, null);
 
-				if (!alert) {
-					canvas.drawBitmap(bitmap_speech, 53, 10, null);
-				} else {
-					canvas.drawBitmap(bitmap_speechalert, 53, 10, null);
+				if (speech) {
+					if (!alert) {
+						canvas.drawBitmap(bitmap_speech, 53, 10, null);
+					} else {
+						canvas.drawBitmap(bitmap_speechalert, 53, 10, null);
+					}
 				}
 
 				conversationImageCache.put(id, bitmap);
 			} else {
-				conversationImageCache.put(id, null);
+				Log.d("communicator", "AVATAR #4");
+				if (!fakeAvatarIfNoOther) {
+					Log.d("communicator", "AVATAR #5");
+					conversationImageCache.put(id, null);
+				} else {
+					Log.d("communicator", "AVATAR #6");
+					// TODO: create fake avatar here!!!
+					Bitmap bitmap = Bitmap
+							.createBitmap(bitmap_speechmastersmall);
+					bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+					Canvas canvas = new Canvas(bitmap);
+					String name = Main.UID2Name(context, uid, false);
+					String firstChar = name.substring(0, 1).toUpperCase();
+
+					// parseColor("#FF4377B2")
+
+					// final int add = 120;
+					final int add = 0;
+					int hashCode = name.hashCode();
+					int r = add + (hashCode % 100);
+					int g = add + ((hashCode / 100) % 100);
+					int b = add + ((hashCode / 1000) % 100);
+					bitmap.eraseColor(Color.rgb(r, g, b));
+
+					Paint paint = new Paint();
+					paint.setColor(Color.WHITE);
+					paint.setTextSize(55);
+
+					// canvas.drawBitmap(bitmap_speechmastersmall, 0, 0, null);
+					// paint.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+					canvas.drawText(firstChar, 15, 50, paint);
+
+					if (speech) {
+						if (!alert) {
+							canvas.drawBitmap(bitmap_speech, 53, 10, null);
+						} else {
+							canvas.drawBitmap(bitmap_speechalert, 53, 10, null);
+						}
+
+					}
+					conversationImageCache.put(id, bitmap);
+				}
 			}
 		}
-		return conversationImageCache.get(id);
+
+		Log.d("communicator", "AVATAR #7");
+
+		Bitmap returnBitmap = conversationImageCache.get(id);
+
+		return returnBitmap;
 	}
 
 	// ------------------------------------------------------------------------
@@ -2472,7 +2559,16 @@ public class Conversation extends Activity {
 	 *            the context
 	 */
 	private void possiblePromptNewSession(Context context) {
-		if (hostUid < 0) {
+		if (Setup.isGroup(context, hostUid)) {
+			promptInfo(
+					this,
+					"Group",
+					"Encryption in a group is used whenever you have the account key of a member.\n\nIf"
+							+ " you do not have the account key of a member (e.g., the member disabled encryption) then"
+							+ " all messages to this member are send in plaintext and will NOT appear "
+							+ "as group messages at this member!");
+			return;
+		} else if (hostUid < 0) {
 			// Tell the user to register
 			promptInfo(
 					this,
@@ -2484,7 +2580,9 @@ public class Conversation extends Activity {
 			promptInfo(
 					this,
 					"Encryption Disabled",
-					"You cannot use encryption because either you or your communication partner has not turned on this feature.\n\nIn order to use encryption both communication partners need to turn this feature on in their settings.");
+					"You cannot use encryption because either you or your communication partner has not"
+							+ " turned on this feature.\n\nIn order to use encryption both communication"
+							+ " partners need to turn this feature on in their settings.");
 			return;
 		}
 		// if (!isSMSModeAvailable(context)) {
@@ -3088,27 +3186,19 @@ public class Conversation extends Activity {
 							LinearLayout.LayoutParams.WRAP_CONTENT);
 					lpInfoTextBox.setMargins(0, 0, 0, 0);
 					infoTextBox.setLayoutParams(lpInfoTextBox);
-					// infoTextBox.setBackgroundColor(Color.YELLOW);
 					infoTextBox
 							.setBackgroundColor(Setup.COLOR_MAIN_BLUEDARKEST);
 
-					LinearLayout infoTextBoxInner = new LinearLayout(context);
-					LinearLayout.LayoutParams lpInfoTextBoxInner = new LinearLayout.LayoutParams(
-							LinearLayout.LayoutParams.MATCH_PARENT,
-							LinearLayout.LayoutParams.WRAP_CONTENT);
-					infoTextBoxInner.setLayoutParams(lpInfoTextBoxInner);
-					infoTextBoxInner.setGravity(Gravity.CENTER_HORIZONTAL);
-					// infoTextBoxInner.setBackgroundColor(Color.CYAN);
+					LinearLayout infoTextBoxInner;
 
-					imageMessageMenuInfoText = new TextView(context);
-					LinearLayout.LayoutParams lpInfoText = new LinearLayout.LayoutParams(
-							LinearLayout.LayoutParams.WRAP_CONTENT,
-							LinearLayout.LayoutParams.WRAP_CONTENT);
-					lpInfoText.setMargins(25, 8, 25, 8);
-					imageMessageMenuInfoText.setLayoutParams(lpInfoText);
-					imageMessageMenuInfoText.setTextColor(Color.WHITE);
-					imageMessageMenuInfoText.setTextSize(14);
-					// imageMessageMenuInfoText.setBackgroundColor(Color.GREEN);
+					if (!Setup.isGroup(context, hostUid)) {
+						infoTextBoxInner = getMsgInfoLayoutDefault(context);
+					} else {
+						int localGroupId= hostUid;
+						int localid = imageMessageMenuItem.localid;
+						infoTextBoxInner = getGroupLayout(context,
+								localGroupId, localid);
+					}
 
 					// The separator
 					LinearLayout infoTextLine = new LinearLayout(context);
@@ -3120,33 +3210,8 @@ public class Conversation extends Activity {
 					lpInfoTextLine.height = 2;
 					infoTextLine.setLayoutParams(lpInfoTextLine);
 
-					infoTextBoxInner.addView(imageMessageMenuInfoText);
 					infoTextBox.addView(infoTextBoxInner);
 					infoTextBox.addView(infoTextLine);
-
-					String infoText = "";
-
-					// Get updated information about this conversation item
-					final ConversationItem updatedItem = DB.getMessage(context,
-							imageMessageMenuItem.localid, hostUid,
-							DB.DEFAULT_MESSAGEPART);
-					if (updatedItem != null) {
-						infoText += "        Sent:  "
-								+ DB.getDateString(updatedItem.sent, true)
-								+ "\n";
-						if (!updatedItem.me()) {
-							infoText += "Received:  ";
-						} else {
-							infoText += "Delivered:  ";
-						}
-						infoText += DB
-								.getDateString(updatedItem.received, true);
-						if (imageMessageMenuItem.transport == DB.TRANSPORT_INTERNET) {
-							infoText += "\n       Read:  "
-									+ DB.getDateString(updatedItem.read, true);
-						}
-					}
-					imageMessageMenuInfoText.setText(infoText);
 
 					return infoTextBox;
 				}
@@ -3245,6 +3310,62 @@ public class Conversation extends Activity {
 
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Gets the msg info layout default for the msg context menu info field for
+	 * a non group message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the msg info layout default
+	 */
+	private LinearLayout getMsgInfoLayoutDefault(Context context) {
+		// infoTextBox.setBackgroundColor(Color.YELLOW);
+
+		LinearLayout infoTextBoxInner = new LinearLayout(context);
+		LinearLayout.LayoutParams lpInfoTextBoxInner = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.MATCH_PARENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		infoTextBoxInner.setLayoutParams(lpInfoTextBoxInner);
+		infoTextBoxInner.setGravity(Gravity.CENTER_HORIZONTAL);
+		// infoTextBoxInner.setBackgroundColor(Color.CYAN);
+
+		imageMessageMenuInfoText = new TextView(context);
+		LinearLayout.LayoutParams lpInfoText = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.WRAP_CONTENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		lpInfoText.setMargins(25, 8, 25, 8);
+		imageMessageMenuInfoText.setLayoutParams(lpInfoText);
+		imageMessageMenuInfoText.setTextColor(Color.WHITE);
+		imageMessageMenuInfoText.setTextSize(14);
+		// imageMessageMenuInfoText.setBackgroundColor(Color.GREEN);
+
+		String infoText = "";
+
+		// Get updated information about this conversation item
+		final ConversationItem updatedItem = DB.getMessage(context,
+				imageMessageMenuItem.localid, hostUid, DB.DEFAULT_MESSAGEPART);
+		if (updatedItem != null) {
+			infoText += "        Sent:  "
+					+ DB.getDateString(updatedItem.sent, true) + "\n";
+			if (!updatedItem.me()) {
+				infoText += "Received:  ";
+			} else {
+				infoText += "Delivered:  ";
+			}
+			infoText += DB.getDateString(updatedItem.received, true);
+			if (imageMessageMenuItem.transport == DB.TRANSPORT_INTERNET) {
+				infoText += "\n       Read:  "
+						+ DB.getDateString(updatedItem.read, true);
+			}
+		}
+		imageMessageMenuInfoText.setText(infoText);
+
+		infoTextBoxInner.addView(imageMessageMenuInfoText);
+		return infoTextBoxInner;
+	}
+
+	// ------------------------------------------------------------------------
+
 	private Spinner groupspinner;
 
 	private void groupInvite(final Context context) {
@@ -3267,9 +3388,9 @@ public class Conversation extends Activity {
 			promptInfo(
 					context,
 					"No Groups",
-					"You are not member of any groups on server "
+					"You are not a member of any group on server '"
 							+ Setup.getServerLabel(context, serverId, true)
-							+ "."
+							+ "'."
 							+ "\n\nIn order to invite somebody yourself must already be part of a group!");
 			return;
 		}
@@ -3302,13 +3423,20 @@ public class Conversation extends Activity {
 											context, serverId, groupId);
 									String groupSecret = Setup.getGroupSecret(
 											context, serverId, groupId);
-									
-									// Test if this user is not already a member of the group
-									List<Integer> members = Setup.getGroupMembersList(context, serverId, groupId);
-									
-									Log.d("communicator", "GROUPS INVITE " + Setup.getGroupMembers(context, serverId, groupId));
+
+									// Test if this user is not already a member
+									// of the group
+									List<Integer> members = Setup
+											.getGroupMembersList(context,
+													serverId, groupId);
+
+									Log.d("communicator",
+											"GROUPS INVITE "
+													+ Setup.getGroupMembers(
+															context, serverId,
+															groupId));
 									int suid = Setup.getSUid(context, hostUid);
-									
+
 									if (members.contains(suid)) {
 										promptInfo(
 												context,
@@ -3965,9 +4093,12 @@ public class Conversation extends Activity {
 	 */
 	public void updateConversationTitle(Context context, String titleText) {
 		if (titleText == null || titleText.length() == 0) {
+			String keyHash = " - " + Setup.getAESKeyHash(context, hostUid);
+			if (Setup.isGroup(context, hostUid)) {
+				keyHash = "";
+			}
 			Conversation.getInstance().setTitle(
-					Main.UID2Name(context, hostUid, false) + " - "
-							+ Setup.getAESKeyHash(context, hostUid));
+					Main.UID2Name(context, hostUid, false) + keyHash);
 		} else {
 			Conversation.getInstance().setTitle(titleText);
 		}
@@ -4699,6 +4830,83 @@ public class Conversation extends Activity {
 		Bitmap bitmap = (Bitmap) images.toArray()[imageIndex];
 		ImageFullscreenActivity
 				.showFullscreenImage(context, bitmap, imageIndex);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Gets the group layout for the localgroupid (== hostuid) and the localid
+	 * of the message.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param localGroupId
+	 *            the local group id
+	 * @param localid
+	 *            the localid
+	 * @return the group layout
+	 */
+	public static LinearLayout getGroupLayout(Context context,
+			int localGroupId, int localid) {
+		LinearLayout.LayoutParams lpLayout = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.WRAP_CONTENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		lpLayout.setMargins(5, 15, 5, 15);
+
+		LinearLayout returnLayout = new LinearLayout(context);
+		returnLayout.setLayoutParams(lpLayout);
+		returnLayout.setOrientation(LinearLayout.VERTICAL);
+
+		int serverId = Setup.getGroupServerId(context, localGroupId);
+		String groupId = Setup.getGroupId(context, localGroupId);
+		// List<Integer> sUids = Setup.getGroupMembersList(context, serverId,
+		// groupId);
+		List<Integer> uids = DB.getGroupMembersForMessage(context, localid);
+		
+		
+		for (int uid : uids) {
+			LayoutInflater inflater = (LayoutInflater) context
+					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			LinearLayout groupuseritem = (LinearLayout) inflater.inflate(
+					R.layout.groupuseritem, null);
+
+			TextView groupuser = ((TextView) groupuseritem
+					.findViewById(R.id.groupuser));
+			ImageView groupusericon = ((ImageView) groupuseritem
+					.findViewById(R.id.groupusericon));
+			ImageView groupsent = ((ImageView) groupuseritem
+					.findViewById(R.id.groupsent));
+			ImageView groupreceived = ((ImageView) groupuseritem
+					.findViewById(R.id.groupreceived));
+			ImageView groupread = ((ImageView) groupuseritem
+					.findViewById(R.id.groupread));
+
+			//int uid = Setup.getUid(context, sUid, serverId);
+			String name = Main.UID2Name(context, uid, false);
+			groupuser.setText(name);
+
+			//int memberUid = Setup.getUid(context, sUid, serverId);
+			int status = DB.isGroupMessage(context, localid, uid);
+
+			if (status == DB.GROUPMESSAGE_READ) {
+				groupread.setVisibility(View.VISIBLE);
+			} else if (status == DB.GROUPMESSAGE_RECEIVED) {
+				groupreceived.setVisibility(View.VISIBLE);
+			} else if (status == DB.GROUPMESSAGE_SENT) {
+				groupsent.setVisibility(View.VISIBLE);
+			}
+
+			Bitmap avatar = Conversation.retrieveAvatar(context, uid, false,
+					true, false);
+			if (avatar != null) {
+				groupusericon.setImageBitmap(avatar);
+
+			}
+
+			returnLayout.addView(groupuseritem);
+		}
+
+		return returnLayout;
 	}
 
 	// ------------------------------------------------------------------------

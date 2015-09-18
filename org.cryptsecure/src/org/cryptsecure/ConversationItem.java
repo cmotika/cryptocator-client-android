@@ -145,6 +145,9 @@ public class ConversationItem {
 	 * message
 	 */
 	public String multipartid = DB.NO_MULTIPART_ID;
+	
+	/** The group id if this is a item to send. */
+	public String groupId = "";
 
 	// ------------------------------------------------------------------------
 

@@ -724,6 +724,10 @@ public class ConversationCompose extends Activity {
 		} else if (!sms && encryption) {
 			text = "Send the new message encrypted or not encrypted?";
 		}
+		final boolean isGroup = Setup.isGroup(context, uid); 
+		if (isGroup) {
+			text = "Send the new message encrypted (if possible) to all group members?";
+		}
 
 		new MessageAlertDialog(context, title, text, null, null, " Cancel ",
 				new MessageAlertDialog.OnSelectionListener() {
@@ -745,7 +749,7 @@ public class ConversationCompose extends Activity {
 
 						LinearLayout.LayoutParams lpButtons = new LinearLayout.LayoutParams(
 								180, 140);
-						lpButtons.setMargins(10, 10, 10, 10);
+						lpButtons.setMargins(10, 0, 10, 10);
 						LinearLayout.LayoutParams lpButtonsLayout = new LinearLayout.LayoutParams(
 								LayoutParams.WRAP_CONTENT,
 								LayoutParams.WRAP_CONTENT);
@@ -782,6 +786,23 @@ public class ConversationCompose extends Activity {
 										dialog.dismiss();
 									}
 								});
+						
+						ImageLabelButton groupButton = new ImageLabelButton(
+								context);
+						groupButton.setTextAndImageResource(
+								"Internet", R.drawable.sendgroup);
+						groupButton.setLayoutParams(lpButtons);
+						groupButton
+								.setOnClickListener(new View.OnClickListener() {
+									public void onClick(View v) {
+										sendMessageOrPrompt(context,
+												DB.TRANSPORT_INTERNET, false,
+												uid, messageTextString,
+												sendListener);
+										dialog.dismiss();
+									}
+								});
+						
 
 						ImageLabelButton smsButtonE = new ImageLabelButton(
 								context);
@@ -813,7 +834,11 @@ public class ConversationCompose extends Activity {
 									}
 								});
 
-						if (sms && encryption) {
+						if (isGroup) {
+							buttonLayout.addView(groupButton);
+							buttonLayout.setLayoutParams(lpButtonsLayout);
+						}
+						else if (sms && encryption) {
 							buttonLayout1.addView(internetButtonE);
 							buttonLayout1.addView(internetButton);
 							buttonLayout2.addView(smsButtonE);
@@ -1280,6 +1305,9 @@ public class ConversationCompose extends Activity {
 			if (uid < 0) {
 				usericon.setImageResource(R.drawable.personsmssmall);
 			}
+			else if (Setup.isGroup(context, uid)) {
+				usericon.setImageResource(R.drawable.persongroupsmall);
+			}
 
 			toList.addChild(tolistitem);
 		}
@@ -1408,7 +1436,11 @@ public class ConversationCompose extends Activity {
 			sendbutton.setImageResource(R.drawable.senddisabled);
 			sendbutton.deactivatePressImageResourceWhite();
 		} else {
-			if ((uid == -1 || !Main.alreadyInList(uid,
+			if (Setup.isGroup(context, hostUid)) {
+				sendbutton.setImageResource(R.drawable.sendgroup);
+				sendbutton.initializePressImageResource(R.drawable.sendgroup, false);
+			}
+			else if ((uid == -1 || !Main.alreadyInList(uid,
 					Main.loadUIDList(context)))
 					&& !Utility.isValidPhoneNumber(phoneOrUid.getText()
 							.toString())) {

@@ -452,7 +452,8 @@ public class FastScrollView extends LinearLayout {
 
 			public void onScrollRested(ScrollViewEx scrollView, int x, int y,
 					int oldx, int oldy) {
-				//Log.d("communicator", "PPPPPP FastScrollView.onScrollRested()");
+				// Log.d("communicator",
+				// "PPPPPP FastScrollView.onScrollRested()");
 				if (scrollListener != null) {
 					int percent = getPosToPercent(y);
 					int item = getPosToItem(y);
@@ -463,7 +464,7 @@ public class FastScrollView extends LinearLayout {
 			}
 
 			public void onOversroll(boolean up) {
-				//Log.d("communicator", "PPPPPP FastScrollView.onOversroll()");
+				// Log.d("communicator", "PPPPPP FastScrollView.onOversroll()");
 
 				if (scrollListener != null) {
 					scrollListener.onOversroll(up);
@@ -825,19 +826,23 @@ public class FastScrollView extends LinearLayout {
 	 * @return the pos to item
 	 */
 	public int getPosToItem(int pos) {
-		if (heights.size() == 0) {
+		try {
+			if (heights.size() == 0) {
+				return -1;
+			}
+			int item = 0;
+			int hsum = 0;
+			for (int h : heights) {
+				hsum += h;
+				item++;
+				if (hsum > pos) {
+					return item;
+				}
+			}
+			return item;
+		} catch (Exception e) {
 			return -1;
 		}
-		int item = 0;
-		int hsum = 0;
-		for (int h : heights) {
-			hsum += h;
-			item++;
-			if (hsum > pos) {
-				return item;
-			}
-		}
-		return item;
 	}
 
 	// ------------------------------------------------------------------------

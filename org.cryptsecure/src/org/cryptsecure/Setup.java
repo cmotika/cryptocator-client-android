@@ -548,6 +548,9 @@ public class Setup extends Activity {
 	/** The Constant LOCALGROUP2SERVERD for mapping localgroup id. */
 	public static final String LOCALGROUP2SERVER = "servergrouplocalgroup2server";
 
+	/** The Constant SECRET2LOCALGROUP for mapping secret to localgroup id. */
+	public static final String SECRET2LOCALGROUP = "servergroupsecret2local";
+
 	/** The Constant GROUPS for invited groups of a specific server. */
 	public static final String INVITEDGROUPS = "servergroupsinvited";
 
@@ -2192,8 +2195,9 @@ public class Setup extends Activity {
 							.get(index);
 					final String groupId = groupSpinnerMappingGroupId
 							.get(index);
-
-					groupQuit(activity, groupServerId, groupId);
+					int localGroupId = Setup.getLocalGroupId(activity, groupId, groupServerId);
+					Setup.promptQuit(activity , localGroupId);
+					
 				}
 			});
 
@@ -3753,7 +3757,9 @@ public class Setup extends Activity {
 		if (session == null) {
 			setErrorInfo(context,
 					"Session error. Try again after restarting the App.");
-			backup.setEnabled(true);
+			if (backup != null) {
+				backup.setEnabled(true);
+			}
 			// error resume is automatically done by getTmpLogin, not logged in
 			return;
 		}
@@ -5834,6 +5840,7 @@ public class Setup extends Activity {
 							if (response.equals("-4")) {
 								// not activated
 								Communicator.accountNotActivated = true;
+								Communicator.accountActivated = false;
 								if (Main.isAlive()) {
 									Main.getInstance()
 											.updateInfoMessageBlockAsync(
@@ -5850,6 +5857,7 @@ public class Setup extends Activity {
 									String[] values = responseContent
 											.split("#");
 									if (values != null && values.length == 2) {
+										Communicator.accountActivated = true;
 										String sessionID = values[0];
 										String loginErrCnt = values[1];
 										updateSuccessfullLogin(context,
@@ -7319,6 +7327,9 @@ public class Setup extends Activity {
 		}
 		Utility.saveStringSetting(context, Setup.AVATAR + uid, avatar);
 		avatars.clear();
+		// Should invalidate Main's and Conversations avatar cache!
+		Main.invalidateAvatarCache();
+		Conversation.invalidateAvatarCache();
 	}
 
 	// -------------------------------------------------------------------------
@@ -7502,6 +7513,12 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * The flag for currently prompting auto adding. Do not prompt another
+	 * window.
+	 */
+	private static boolean promptingAutoAdding = false;
+
+	/**
 	 * Possibly prompt auto added user if there are any and ask the user to
 	 * confirm the adding. Otherwise remove these users and possibly ignore
 	 * them!
@@ -7510,6 +7527,11 @@ public class Setup extends Activity {
 	 *            the context
 	 */
 	public static void possiblyPromptAutoAddedUser(final Context context) {
+		if (promptingAutoAdding) {
+			// Do not prompt again if we already prompt!
+			return;
+		}
+		promptingAutoAdding = true;
 		String separatedString = Utility.loadStringSetting(context,
 				UID_AUTOADDED, "");
 		Log.d("communicator",
@@ -7518,10 +7540,12 @@ public class Setup extends Activity {
 
 		List<String> uids = Utility.getListFromString(separatedString, ";");
 		if (uids.size() > 0) {
+			// Get only one user at time!
 			final int uid = Utility.parseInt(uids.get(0), -1);
 			if (uid == -1) {
 				// heavy failure... remove all autoadded for
 				Utility.saveStringSetting(context, UID_AUTOADDED, "");
+				promptingAutoAdding = false;
 				return;
 			}
 
@@ -7529,9 +7553,15 @@ public class Setup extends Activity {
 			try {
 				final String titleMessage = "Confirm Added User ";
 				final String name = Main.UID2Name(context, uid, false);
+				final int suid = Setup.getSUid(context, uid);
+				final String server = Setup.getServerLabel(context,
+						Setup.getServerId(context, uid), true);
 				final String textMessage = name
 						+ " with UID "
-						+ uid
+						+ suid
+						+ " of server '"
+						+ server
+						+ "'"
 						+ " was added automatically.\n\nYou should ONLY confirm the auto adding if you know "
 						+ name
 						+ "!"
@@ -7563,11 +7593,14 @@ public class Setup extends Activity {
 									// ADD TO IGNORE LISTY
 									Main.deleteUser(context, uid);
 								}
+								promptingAutoAdding = false;
 							}
 						}).show();
 			} catch (Exception e) {
 				// Ignore
 			}
+		} else {
+			promptingAutoAdding = false;
 		}
 	}
 
@@ -7934,6 +7967,7 @@ public class Setup extends Activity {
 			String groupId, String name) {
 		Utility.saveStringSetting(context,
 				GROUPNAME + serverId + "_" + groupId, name);
+		localGroupId2Name.clear();
 	}
 
 	public static String getGroupName(Context context, int serverId,
@@ -7942,12 +7976,18 @@ public class Setup extends Activity {
 				+ groupId, null);
 	}
 
+	public static HashMap<Integer, String> localGroupId2Name = new HashMap<Integer, String>();
+
 	public static String getGroupName(Context context, int localGroupId) {
-		int serverId = getGroupServerId(context, localGroupId);
-		String groupId = getGroupId(context, localGroupId);
-		Log.d("communicator", "GROUPS serverId=" + serverId + ", groupId="
-				+ groupId);
-		return getGroupName(context, serverId, groupId);
+		if (!localGroupId2Name.containsKey(localGroupId)) {
+			int serverId = getGroupServerId(context, localGroupId);
+			String groupId = getGroupId(context, localGroupId);
+			Log.d("communicator", "GROUPS serverId=" + serverId + ", groupId="
+					+ groupId);
+			localGroupId2Name.put(localGroupId,
+					getGroupName(context, serverId, groupId));
+		}
+		return localGroupId2Name.get(localGroupId);
 	}
 
 	// -------------------------------------------------------------------------
@@ -7956,12 +7996,27 @@ public class Setup extends Activity {
 			String groupId, String secret) {
 		Utility.saveStringSetting(context, GROUPSECRET + serverId + "_"
 				+ groupId, secret);
+		localGroupId2Secret.clear();
 	}
 
 	public static String getGroupSecret(Context context, int serverId,
 			String groupId) {
 		return Utility.loadStringSetting(context, GROUPSECRET + serverId + "_"
 				+ groupId, null);
+	}
+
+	public static HashMap<Integer, String> localGroupId2Secret = new HashMap<Integer, String>();
+
+	public static String getGroupSecret(Context context, int localGroupId) {
+		if (!localGroupId2Secret.containsKey(localGroupId)) {
+			int serverId = getGroupServerId(context, localGroupId);
+			String groupId = getGroupId(context, localGroupId);
+			Log.d("communicator", "GROUPS serverId=" + serverId + ", groupId="
+					+ groupId);
+			localGroupId2Secret.put(localGroupId,
+					getGroupSecret(context, serverId, groupId));
+		}
+		return localGroupId2Secret.get(localGroupId);
 	}
 
 	// -------------------------------------------------------------------------
@@ -8003,10 +8058,23 @@ public class Setup extends Activity {
 	public static void invalidateGroupCache() {
 		LocalGroup2GroupIdCache.clear();
 		LocalGroup2ServerIdCache.clear();
+		LocalGroupSecret2LocalId.clear();
 	}
 
 	static HashMap<Integer, String> LocalGroup2GroupIdCache = new HashMap<Integer, String>();
 	static HashMap<Integer, Integer> LocalGroup2ServerIdCache = new HashMap<Integer, Integer>();
+	static HashMap<String, Integer> LocalGroupSecret2LocalId = new HashMap<String, Integer>();
+
+	public static int getLocalIdBySecret(Context context, int serverId,
+			String groupSecret) {
+		String id = serverId + "_" + groupSecret;
+		if (!LocalGroupSecret2LocalId.containsKey(id)) {
+			int localGroup = Utility.loadIntSetting(context, SECRET2LOCALGROUP
+					+ id, -1);
+			LocalGroupSecret2LocalId.put(id, localGroup);
+		}
+		return LocalGroupSecret2LocalId.get(id);
+	}
 
 	public static String getGroupId(Context context, int localGroupId) {
 		if (!LocalGroup2GroupIdCache.containsKey(localGroupId)) {
@@ -8020,15 +8088,15 @@ public class Setup extends Activity {
 
 	public static int getGroupServerId(Context context, int localGroupId) {
 		try {
-		if (!LocalGroup2ServerIdCache.containsKey(localGroupId)) {
-			int serverId = Utility.loadIntSetting(context, LOCALGROUP2SERVER
-					+ localGroupId, -1);
-			if (serverId != -1) {
-				LocalGroup2ServerIdCache.put(localGroupId, serverId);
+			if (!LocalGroup2ServerIdCache.containsKey(localGroupId)) {
+				int serverId = Utility.loadIntSetting(context,
+						LOCALGROUP2SERVER + localGroupId, -1);
+				if (serverId != -1) {
+					LocalGroup2ServerIdCache.put(localGroupId, serverId);
+				}
 			}
-		}
-		return LocalGroup2ServerIdCache.get(localGroupId);
-		} catch(Exception e) {
+			return LocalGroup2ServerIdCache.get(localGroupId);
+		} catch (Exception e) {
 			e.printStackTrace();
 			invalidateGroupCache();
 		}
@@ -8045,6 +8113,11 @@ public class Setup extends Activity {
 		if (getGroupServerId(context, localGroupId) == -1) {
 			Utility.saveIntSetting(context, LOCALGROUP2SERVER + localGroupId,
 					serverId);
+		}
+		String groupSecret = Setup.getGroupSecret(context, serverId, groupId);
+		if (getLocalIdBySecret(context, serverId, groupSecret) == -1) {
+			Utility.saveIntSetting(context, SECRET2LOCALGROUP + serverId + "_"
+					+ groupSecret, localGroupId);
 		}
 		return localGroupId;
 	}
@@ -8341,6 +8414,52 @@ public class Setup extends Activity {
 		}
 	}
 
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Prompt quit. The activity is passed if on deletion we want to finish it
+	 * like the UserDetailsActivity. For the setup activity we do not want this
+	 * behavior and simply pass a null.
+	 * 
+	 * @param context
+	 *            the context
+	 * @param activity
+	 *            the activity
+	 */
+	public static void promptQuit(final Activity activity, final int localGroupId) {
+		try {
+			String titleMessage = "Clear Conversation or Quit?";
+			String textMessage = "Do you really want to quit group membership permanently?\n\nThis cannot be undone and you will need to be re-invited by some other member. If you currently are the only member the group will be removed permanently.";
+
+			new MessageAlertDialog(activity, titleMessage, textMessage,
+					"Still, QUIT!", null, " Cancel ",
+					new MessageAlertDialog.OnSelectionListener() {
+						public void selected(int button, boolean cancel) {
+							if (!cancel) {
+								if (button == 0) {
+									Utility.showToastAsync(
+											activity,
+											"You left the group '"
+													+ Main.UID2Name(activity,
+															localGroupId, false)
+													+ "' permanently.");
+									int groupServerId = Setup.getGroupServerId(activity, localGroupId);
+									String groupId = Setup.getGroupId(activity, localGroupId);
+									groupQuit(activity, groupServerId, groupId);
+									Main.deleteUser(activity,
+											localGroupId);
+									if (activity != null) {
+										activity.finish();
+									}
+								}
+							}
+						}
+					}).show();
+		} catch (Exception e) {
+			// Ignore
+		}
+	}
+	
 	// -------------------------------------------------------------------------
 
 }

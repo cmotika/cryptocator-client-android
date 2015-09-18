@@ -124,7 +124,7 @@ public class Main extends Activity {
 
 	/** The adduseritem. */
 	private LinearLayout adduseritem;
-	
+
 	/** The maindeviceid. */
 	private TextView maindeviceid;
 
@@ -239,25 +239,6 @@ public class Main extends Activity {
 		instance = this;
 		context = this;
 
-		if (bitmap_master == null) {
-			bitmap_master = BitmapFactory.decodeResource(
-					context.getResources(), R.drawable.persongenericmaster);
-			bitmap_barlock = BitmapFactory.decodeResource(
-					context.getResources(), R.drawable.persongenericbarlock);
-			bitmap_msg = BitmapFactory.decodeResource(context.getResources(),
-					R.drawable.persongenericmsg);
-			bitmap_bar = BitmapFactory.decodeResource(context.getResources(),
-					R.drawable.persongenericbar);
-			bitmap_barsms = BitmapFactory.decodeResource(
-					context.getResources(), R.drawable.persongenericbarsms);
-			bitmap_person = BitmapFactory.decodeResource(
-					context.getResources(), R.drawable.person);
-			bitmap_person_group	= BitmapFactory.decodeResource(
-					context.getResources(), R.drawable.btngroups);
-			bitmap_personsms = BitmapFactory.decodeResource(
-					context.getResources(), R.drawable.personsms);
-		}
-
 		// Possibly create the context menu
 		createContextMenu(context);
 
@@ -293,7 +274,6 @@ public class Main extends Activity {
 		//
 		// After setting NO TITLE .. apply the layout
 		// setContentView(R.layout.activity_main);
-		
 
 		LinearLayout titlemain = (LinearLayout) findViewById(R.id.titlemain);
 
@@ -366,7 +346,6 @@ public class Main extends Activity {
 
 		maindeviceid = (TextView) findViewById(R.id.maindeviceid);
 
-
 		// Yes, at startup resolve names!
 		// but only after rebuild the uidList is filled
 		rebuildUserlist(context, true);
@@ -405,13 +384,16 @@ public class Main extends Activity {
 		} else {
 			// Only prompt to enable encryption if the account has been
 			// activated!!!
-			if (!Communicator.accountNotActivated) {
+			if (!Communicator.accountNotActivated
+					&& Communicator.accountActivated) {
 				Setup.possiblyPromptNoEncryption(context);
 			}
 		}
 
 		// Cleanup old mappings between mid and uid (recipient of our messages)
 		DB.removeOldMappings(context);
+		// Cleanup old group mapping
+		DB.removeOldMappings2(context);
 	}
 
 	// ------------------------------------------------------------------------
@@ -425,6 +407,32 @@ public class Main extends Activity {
 	public void setTitle(String title) {
 		TextView titletext = (TextView) findViewById(R.id.titletext);
 		titletext.setText(title);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Initialize bitmaps if not initialized already.
+	 */
+	public static void initializeBitmaps(Context context) {
+		if (bitmap_master == null) {
+			bitmap_master = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.persongenericmaster);
+			bitmap_barlock = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.persongenericbarlock);
+			bitmap_msg = BitmapFactory.decodeResource(context.getResources(),
+					R.drawable.persongenericmsg);
+			bitmap_bar = BitmapFactory.decodeResource(context.getResources(),
+					R.drawable.persongenericbar);
+			bitmap_barsms = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.persongenericbarsms);
+			bitmap_person = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.person);
+			bitmap_person_group = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.btngroups);
+			bitmap_personsms = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.personsms);
+		}
 	}
 
 	// ------------------------------------------------------------------------
@@ -1035,9 +1043,9 @@ public class Main extends Activity {
 			boolean lightBack = true;
 			for (UidListItem item : fullUidList) {
 				String name = item.name;
-				if (item.isGroup) {
-					name = "Group '" + name + "'";
-				}
+				// if (item.isGroup) {
+				// name = "Group '" + name + "'";
+				// }
 
 				// If landscape and more than one message server AND registered
 				// user
@@ -1322,6 +1330,8 @@ public class Main extends Activity {
 		String id = uid + keyHash + isRegistered + haveKey + haveMessages;
 		if (!userListImageCache.containsKey(id)) {
 
+			initializeBitmaps(context); 
+			
 			Bitmap avatar = Setup.getAvatarAsBitmap(context, uid);
 
 			Bitmap bitmap = null;
@@ -1520,7 +1530,7 @@ public class Main extends Activity {
 			item.lastMessageTimestamp = getLastMessageTimestamp(context, uid);
 			returnList.add(item);
 		}
-		
+
 		// add groups
 		for (int serverId : Setup.getServerIds(context)) {
 			List<String> groupIds = Setup.getGroupsList(context, serverId);
@@ -1528,15 +1538,17 @@ public class Main extends Activity {
 				int groupIdInt = Utility.parseInt(groupId, -1);
 				if (groupIdInt != -1) {
 					UidListItem item = new UidListItem();
-					int localGroupId = Setup.getLocalGroupId(context, groupId, serverId);
+					int localGroupId = Setup.getLocalGroupId(context, groupId,
+							serverId);
 					item.uid = localGroupId;
 					item.isGroup = true;
 					item.name = Setup.getGroupName(context, serverId, groupId);
 					item.lastMessage = getLastMessage(context, localGroupId);
-					item.lastMessageTimestamp = getLastMessageTimestamp(context, localGroupId);
+					item.lastMessageTimestamp = getLastMessageTimestamp(
+							context, localGroupId);
 					returnList.add(item);
 				}
-				
+
 			}
 		}
 
@@ -1592,41 +1604,6 @@ public class Main extends Activity {
 	}
 
 	// ------------------------------------------------------------------------
-	// ------------------------------------------------------------------------
-	//
-	// /**
-	// * Ask to delete a user. This method is, e.g., called from the
-	// * UserdetailsActivity.
-	// *
-	// * @param context
-	// * the context
-	// * @param uid
-	// * the uid
-	// */
-	// public void askToDelete(final Context context, final int uid) {
-	// try {
-	// final String titleMessage = "Delete "
-	// + UID2Name(context, uid, false, true);
-	// final String textMessage = "Really delete "
-	// + UID2Name(context, uid, false, true)
-	// + " and all messages?";
-	// new MessageAlertDialog(context, titleMessage, textMessage,
-	// " Delete ", " Cancel ", null,
-	// new MessageAlertDialog.OnSelectionListener() {
-	// public void selected(int button, boolean cancel) {
-	// if (!cancel) {
-	// if (button == 0) {
-	// // delete
-	// deleteUser(context, uid);
-	// }
-	// }
-	// }
-	// }).show();
-	// } catch (Exception e) {
-	// // ignore
-	// }
-	// }
-
 	// ------------------------------------------------------------------------
 
 	/**
@@ -1826,7 +1803,11 @@ public class Main extends Activity {
 			// The user was not added manually but automatic, so we flag this
 			// user not to be backedup until the account holder of this device/
 			// explicitly permits the adding!
-			Setup.setAutoAdded(context, uid, true);
+			//
+			// Do not do this if the user was System == 0!
+			if (Setup.getSUid(context, uid) > 1) {
+				Setup.setAutoAdded(context, uid, true);
+			}
 		}
 
 		// Change in 1.3: Always do this backup and only allow display name and
@@ -1996,7 +1977,7 @@ public class Main extends Activity {
 	public static String UID2Name(Context context, int uid,
 			boolean fullNameWithUID, boolean resolve) {
 		if (Setup.isGroup(context, uid)) {
-			return "Group '" + Setup.getGroupName(context, uid) +"'";
+			return Setup.getGroupName(context, uid);
 		}
 		int serverDefaultId = Setup.getServerDefaultId(context);
 		return UID2Name(context, uid, fullNameWithUID, resolve, serverDefaultId);
@@ -2256,8 +2237,8 @@ public class Main extends Activity {
 	 *            the context
 	 */
 	public void updateInfo(final Context context) {
-//		maindeviceid.setText("DeviceID: " + Setup.getDeviceId(context)
-//				+ "   --   Account Key: " + Setup.getPublicKeyHash(context));
+		// maindeviceid.setText("DeviceID: " + Setup.getDeviceId(context)
+		// + "   --   Account Key: " + Setup.getPublicKeyHash(context));
 		maindeviceid.setText("Account Key: " + Setup.getPublicKeyHash(context));
 		maindeviceid.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
@@ -2266,7 +2247,6 @@ public class Main extends Activity {
 			}
 		});
 
-		
 		String message = null;
 		if (Communicator.internetFailCnt > Communicator.INTERNETFAILCNTBARRIER) {
 			message = "No Internet Connection or Server Error";
@@ -2379,7 +2359,7 @@ public class Main extends Activity {
 				} else {
 					title = "Your " + title;
 				}
-				
+
 				Conversation.promptInfo(context, title, text);
 
 			}
@@ -2535,7 +2515,11 @@ public class Main extends Activity {
 	 */
 	public static void promptUserClick(final Context context, final int uid) {
 		final boolean havePhone = Setup.havePhone(context, uid);
+		final boolean isGroup = Setup.isGroup(context, uid);
 		String title = UID2Name(context, uid, true);
+		if (isGroup) {
+			title = "Group '" +  title + "'";
+		}
 		String text = null;
 
 		new MessageAlertDialog(context, title, text, null, null, " Cancel ",
@@ -2565,7 +2549,10 @@ public class Main extends Activity {
 						LinearLayout infoTextBoxInnerSession = getSessionKeyView(
 								context, uid, "SESSION KEY");
 
-						if (uid >= 0) {
+						if (isGroup) {
+							infoTextBoxInner.addView(getGroupLayout(context,
+									uid, 15, 5, 15));
+						} else if (uid >= 0) {
 							// Only display info for registered users
 							infoTextBoxInner.addView(infoTextBoxInnerAccount);
 							infoTextBoxInner.addView(infoTextBoxInnerSession);
@@ -2644,6 +2631,12 @@ public class Main extends Activity {
 
 						ImageLabelButton editButton = new ImageLabelButton(
 								context);
+//						if (isGroup) {
+//							editButton.setTextAndImageResource("Edit",
+//									R.drawable.buttoneditdisabled);
+//							editButton.setEnabled(false);
+//							editButton.setTextColor(Color.GRAY);
+//						} else 
 						if (uid >= 0) {
 							editButton.setTextAndImageResource("Edit",
 									R.drawable.buttonedit);
@@ -2670,6 +2663,51 @@ public class Main extends Activity {
 						return outerLayout;
 					}
 				}).show();
+	}
+
+	// ------------------------------------------------------------------------
+
+	public static LinearLayout getGroupLayout(Context context, int localGroupId, int topMargin, int leftMargin,  int bottomMargin) {
+		LinearLayout.LayoutParams lpLayout = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.WRAP_CONTENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		lpLayout.setMargins(leftMargin, topMargin, 5, bottomMargin);
+
+		LinearLayout returnLayout = new LinearLayout(context);
+		returnLayout.setLayoutParams(lpLayout);
+		returnLayout.setOrientation(LinearLayout.VERTICAL);
+
+		int serverId = Setup.getGroupServerId(context, localGroupId);
+		String groupId = Setup.getGroupId(context, localGroupId);
+		List<Integer> sUids = Setup.getGroupMembersList(context, serverId,
+				groupId);
+
+		for (int sUid : sUids) {
+			LayoutInflater inflater = (LayoutInflater) context
+					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			LinearLayout groupuseritem = (LinearLayout) inflater.inflate(
+					R.layout.groupuseritem, null);
+
+			TextView groupuser = ((TextView) groupuseritem
+					.findViewById(R.id.groupuser));
+			ImageView groupusericon = ((ImageView) groupuseritem
+					.findViewById(R.id.groupusericon));
+
+			int uid = Setup.getUid(context, sUid, serverId);
+			String name = Main.UID2Name(context, uid, false);
+			groupuser.setText(name);
+
+			Bitmap avatar = Conversation.retrieveAvatar(context, uid, false,
+					true, false);
+			if (avatar != null) {
+				groupusericon.setImageBitmap(avatar);
+
+			}
+
+			returnLayout.addView(groupuseritem);
+		}
+
+		return returnLayout;
 	}
 
 	// ------------------------------------------------------------------------

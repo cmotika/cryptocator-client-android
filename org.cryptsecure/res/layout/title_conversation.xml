@@ -38,6 +38,16 @@
                     android:background="@drawable/btnback" />
             </LinearLayout>
 
+                            <ImageView
+                    android:id="@+id/conversationgroupimage"
+                    android:layout_marginLeft="4px"
+                    android:layout_marginRight="4px"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/persongroupsmall" />
+            
+            
             <LinearLayout
                 android:id="@+id/titletextparent"
                 android:layout_width="fill_parent"
@@ -46,7 +56,7 @@
                 android:layout_gravity="center_vertical"
                 android:clickable="true"
                 android:orientation="vertical" >
-            
+
             <TextView
                 android:id="@+id/titletext"
                 android:layout_marginRight="9px"

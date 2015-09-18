@@ -157,7 +157,13 @@ public class UserDetailsActivity extends Activity {
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 
-		builder.setTitle(Main.UID2Name(context, uid, true));
+		final boolean isGroup = Setup.isGroup(context, uid);
+
+		String nameTitle = Main.UID2Name(context, uid, true);
+		if (isGroup) {
+			nameTitle = "Group '" + nameTitle + "'";
+		}
+		builder.setTitle(nameTitle);
 
 		LinearLayout.LayoutParams lpTextTitle = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.MATCH_PARENT,
@@ -333,7 +339,9 @@ public class UserDetailsActivity extends Activity {
 		avatarCheck.setChecked(Setup.isUpdateAvatar(context, uid));
 
 		imageLayout.addView(avatarView);
-		imageLayout.addView(avatarCheck);
+		if (!isGroup) {
+			imageLayout.addView(avatarCheck);
+		}
 
 		LinearLayout.LayoutParams lpAccountKeyParent = new LinearLayout.LayoutParams(
 				220, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -368,9 +376,26 @@ public class UserDetailsActivity extends Activity {
 
 		layout.addView(imageAndDetailsLayout);
 		layout.addView(details);
-		layout.addView(nameLayout);
-		layout.addView(phoneLayout);
-		layout.addView(keyLayout);
+
+		if (!isGroup) {
+			layout.addView(nameLayout);
+		}
+
+		if (!isGroup) {
+			layout.addView(phoneLayout);
+		}
+
+		if (uid > 0 && !isGroup) {
+			layout.addView(keyLayout);
+		}
+
+		if (isGroup) {
+			TextView detailsGroup = new TextView(context);
+			detailsGroup.setLayoutParams(lpSectionInnerLeft);
+			detailsGroup.setText("Other Group Members: ");
+			layout.addView(detailsGroup);
+			layout.addView(Main.getGroupLayout(context, uid, 0, 20, 40));
+		}
 
 		LinearLayout.LayoutParams lpScrollView = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.MATCH_PARENT,
@@ -417,13 +442,23 @@ public class UserDetailsActivity extends Activity {
 			public void onClick(View v) {
 				if (Main.isAlive()) {
 					try {
-						final String titleMessage = "Delete "
+						String titleMessage = "Delete "
 								+ Main.UID2Name(context, uid, false);
-						final String textMessage = "Really delete "
+						String textMessage = "Really delete "
 								+ Main.UID2Name(context, uid, false)
 								+ " and all messages?";
+						String quitMemberButton = null;
+						if (isGroup) {
+							titleMessage = "Clear Conversation or Quit?";
+							textMessage = "Do you really want to clear conversation of group '"
+									+ Main.UID2Name(context, uid, false)
+									+ "' or quit group membership permanently?";
+							quitMemberButton = "Quit";
+						}
+
 						new MessageAlertDialog(context, titleMessage,
-								textMessage, " Delete ", " Cancel ", null,
+								textMessage, " Delete ", quitMemberButton,
+								" Cancel ",
 								new MessageAlertDialog.OnSelectionListener() {
 									public void selected(int button,
 											boolean cancel) {
@@ -435,6 +470,9 @@ public class UserDetailsActivity extends Activity {
 															uid);
 												}
 												finish();
+											}
+											if (button == 1 && isGroup) {
+												Setup.promptQuit(activity , uid);
 											}
 										}
 									}
@@ -498,14 +536,20 @@ public class UserDetailsActivity extends Activity {
 			int suid = Setup.getSUid(context, uid);
 			text += "Message Server: "
 					+ Setup.getServerLabel(context, serverId, true) + "\n";
-			text += "UID Server: " + suid + "\n\n";
-			text2 += "Valid Since: "
-					+ DB.getDateString(Utility.parseLong(
-							Setup.getKeyDate(context, uid), 0), true);
+			if (!isGroup) {
+				text += "UID Server: " + suid + "\n\n";
+				text2 += "Valid Since: "
+						+ DB.getDateString(
+								Utility.parseLong(
+										Setup.getKeyDate(context, uid), 0),
+								true);
+			}
 		}
 		text += "Local Database: " + uid + ".db\n\n";
 
-		if (uid >= 0) {
+		if (isGroup) {
+			text += "User Group\n";
+		} else if (uid >= 0) {
 			text += "Registered user\n";
 		} else {
 			text += "External SMS contact\n";
@@ -545,7 +589,7 @@ public class UserDetailsActivity extends Activity {
 			phone.setText("");
 		}
 
-		if (uid >= 0) {
+		if (uid >= 0 && !isGroup) {
 			nameCheck.setChecked(Main.isUpdateName(context, uid));
 
 			int serverId = Setup.getServerId(context, uid);
@@ -570,7 +614,10 @@ public class UserDetailsActivity extends Activity {
 			phoneCheck.setVisibility(View.GONE);
 			updateKeyButton.setVisibility(View.GONE);
 		}
+
 	}
+
+
 
 	// ------------------------------------------------------------------------
 
@@ -649,9 +696,6 @@ public class UserDetailsActivity extends Activity {
 	private void save(Context context) {
 		if (avatarChanged) {
 			Setup.saveAvatar(context, uid, avatar, true);
-			// Should invalidate Main's and Conversations avatar cache!
-			Main.invalidateAvatarCache();
-			Conversation.invalidateAvatarCache();
 		}
 		String phoneString = phone.getText().toString();
 		String newPhone = phoneString;
@@ -755,7 +799,9 @@ public class UserDetailsActivity extends Activity {
 	 */
 	private void updateAvatarView(Context context) {
 		if (avatar == null || avatar.length() == 0) {
-			if (uid < 0) {
+			if (Setup.isGroup(context, uid)) {
+				avatarView.setImageResource(R.drawable.btngroups);
+			} else if (uid < 0) {
 				avatarView.setImageResource(R.drawable.personsms);
 			} else {
 				avatarView.setImageResource(R.drawable.person);

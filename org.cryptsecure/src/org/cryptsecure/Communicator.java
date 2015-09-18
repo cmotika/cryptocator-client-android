@@ -151,6 +151,9 @@ public class Communicator {
 	 */
 	public static boolean accountNotActivated = false;
 
+	/** The dual to account NOT activated. */
+	public static boolean accountActivated = false;
+
 	/**
 	 * This flag is a tie-braker and gives alternating priority to Internet and
 	 * SMS messages if BOTH have to be sent! This way one of both cannot block
@@ -171,7 +174,10 @@ public class Communicator {
 
 	public static String NEWLINEESCAPE = "@@@NEWLINE@@@";
 	public static String HASHESCAPE = "@@@HASH@@@";
-	
+
+	public static String GROUPMESSAGEPREFIX = "[GROUP";
+	public static String GROUPMESSAGEPOSTFIX = "]";
+
 	// ----------------------------------------------------------------------------------
 
 	/**
@@ -375,6 +381,8 @@ public class Communicator {
 								processSMS);
 						// Only do this AFTER previous processing ... otherwise
 						// we cannot find the lastKeyMessageMid!
+						DB.updateGroupMessage(context, mid, senderUid, ts,
+								true, false);
 						DB.updateMessageReceived(context, mid, ts, senderUid);
 						updateSentReceivedReadAsync(context, mid, senderUid,
 								false, true, false, false, false);
@@ -414,12 +422,16 @@ public class Communicator {
 						if (failed) {
 							// Flag decryption failed again by using negative
 							// read TS
+							DB.updateGroupMessage(context, mid, senderUid, "-"
+									+ ts, false, true);
 							DB.updateMessageRead(context, mid, "-" + ts,
 									senderUid);
 							updateSentReceivedReadAsync(context, mid,
 									senderUid, false, false, false, false, true);
 						} else {
 							// Everything ok
+							DB.updateGroupMessage(context, mid, senderUid, ts,
+									false, true);
 							DB.updateMessageRead(context, mid, ts, senderUid);
 							updateSentReceivedReadAsync(context, mid,
 									senderUid, false, false, true, false, false);
@@ -711,9 +723,44 @@ public class Communicator {
 										if (!skipBecauseOfUnknownUser
 												&& !alreadyInDB
 												&& !discardMessageAndSaveLargestMid) {
-											newItem.text = handleReceivedText(
+											String msgText = handleReceivedText(
 													context, text, newItem,
 													serverId);
+
+											// Handling groups!
+											int start = msgText
+													.indexOf(Communicator.GROUPMESSAGEPREFIX);
+											if (start == 0) {
+												start = GROUPMESSAGEPREFIX
+														.length();
+												int end = msgText.indexOf(
+														GROUPMESSAGEPOSTFIX,
+														start);
+												String groupSecret = msgText
+														.substring(start, end);
+												Log.d("communicator",
+														"RECEIVED MESSAGE GROUP groupSecret="
+																+ groupSecret);
+												int localGroupId = Setup
+														.getLocalIdBySecret(
+																context,
+																serverId,
+																groupSecret);
+												Log.d("communicator",
+														"RECEIVED MESSAGE GROUP localGroupId="
+																+ localGroupId);
+												msgText = msgText.substring(end
+														+ GROUPMESSAGEPOSTFIX
+																.length());
+												Log.d("communicator",
+														"RECEIVED MESSAGE GROUP msgText="
+																+ msgText);
+												newItem.groupId = localGroupId
+														+ "";
+											}
+
+											newItem.text = msgText;
+
 											success2 = updateDBForReceivedMessage(
 													context, newItem);
 
@@ -825,7 +872,15 @@ public class Communicator {
 			return false;
 		}
 
-		if (DB.updateMessage(context, newItem, newItem.from)) {
+		int groupId = Utility.parseInt(newItem.groupId, -1);
+		Log.d("communicator", "RECEIVED MESSAGE GROUPID =" + groupId);
+
+		if (groupId != -1) {
+			// A group item!!!
+			if (DB.updateMessage(context, newItem, groupId)) {
+				messageReceived = true;
+			}
+		} else if (DB.updateMessage(context, newItem, newItem.from)) {
 			messageReceived = true;
 			Log.d("communicator", "RECEIVED MESSAGE IN DB NOW!!! from:"
 					+ newItem.from);
@@ -1891,8 +1946,16 @@ public class Communicator {
 										// have a multipart
 										// message. => DO NOT UPDATE THE TEXT!
 										itemToSend.text = null;
+
 										DB.updateMessage(context, itemToSend,
 												itemToSend.to, isSentKeyMessage);
+										if (!itemToSend.groupId.equals("")) {
+											DB.updateGroupMessage(context,
+													itemToSend.localid,
+													itemToSend.to, sent, true,
+													itemToSend.mid);
+										}
+
 										updateSentReceivedReadAsync(context,
 												itemToSend.mid, to, true,
 												false, false, false, false);
@@ -2571,7 +2634,7 @@ public class Communicator {
 	}
 
 	// -------------------------------------------------------------------------
-	
+
 	/**
 	 * Update pictures from server.
 	 * 
@@ -2666,9 +2729,6 @@ public class Communicator {
 														context, uid)) {
 													Setup.saveAvatar(context,
 															uid, "", false);
-													Conversation
-															.invalidateAvatarCache();
-													Main.invalidateAvatarCache();
 												}
 											} else {
 												// we are allowed to
@@ -2686,9 +2746,6 @@ public class Communicator {
 														Setup.saveAvatar(
 																context, uid,
 																value, false);
-														Conversation
-																.invalidateAvatarCache();
-														Main.invalidateAvatarCache();
 													}
 												}
 												// Log.d("communicator",
