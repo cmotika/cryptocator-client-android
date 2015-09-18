@@ -3993,12 +3993,18 @@ public class DB {
 		Log.d("communicator", "XXXX updateMessage() itemToUpdate.to="
 				+ itemToUpdate.to);
 		Log.d("communicator", "XXXX updateMessage() hostUid=" + hostUid);
-		Log.d("communicator", "XXXX updateMessage() groupId=" + groupId);
-		Log.d("communicator", "XXXX updateMessage() groupLocalId="
-				+ groupLocalId);
+//		Log.d("communicator", "XXXX updateMessage() groupId=" + groupId);
+//		Log.d("communicator", "XXXX updateMessage() groupLocalId="
+//				+ groupLocalId);
 		Log.d("communicator", "XXXX updateMessage() localId="
 				+ itemToUpdate.localid);
+		Log.d("communicator", "XXXX updateMessage() sent="
+				+ itemToUpdate.sent);
+		Log.d("communicator", "XXXX updateMessage() received="
+				+ itemToUpdate.received);
 
+		
+		
 		values.put("mid", itemToUpdate.mid);
 		values.put("fromuid", itemToUpdate.from);
 		if (!isSentKeyMessage) {

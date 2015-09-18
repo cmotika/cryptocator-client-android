@@ -93,13 +93,18 @@ public class SendSMSSent extends BroadcastReceiver {
 			}
 			int resultCode = getResultCode();
 			if (resultCode == Activity.RESULT_OK) {
+				Log.d("communicator", "#### SMS SENT OK localId=" + localId + ", part" + part + ", hostuid="+ hostUid);
 				// For multipart messages, do this for the first part only this is the MASTER part
 				ConversationItem itemToSend = DB.getMessage(context, localId,
 						hostUid, part);
+				Log.d("communicator", "#### SMS SENT OK 2");
 				DB.removeSentMessage(context, sendingId);
+				Log.d("communicator", "#### SMS SENT OK 3");
 				if (itemToSend != null) {
+					Log.d("communicator", "#### SMS SENT OK 4");
 					itemToSend.sent = DB.getTimestamp();
 					DB.updateMessage(context, itemToSend, hostUid);
+					Log.d("communicator", "#### SMS SENT OK 5");
 					// -1 * localId : convention so that mapping lookup will
 					// take localid into account because we will never have a
 					// mid
@@ -108,6 +113,7 @@ public class SendSMSSent extends BroadcastReceiver {
 							* itemToSend.localid, itemToSend.to, true, false,
 							false, false, false);
 				}
+				Log.d("communicator", "#### SMS SENT OK 6");
 				// Utility.showToastAsync(context, "SMS SENT " + localId);
 				SendSMS.smsSent(context, localId);
 			} else if (resultCode == SmsManager.RESULT_ERROR_GENERIC_FAILURE) {

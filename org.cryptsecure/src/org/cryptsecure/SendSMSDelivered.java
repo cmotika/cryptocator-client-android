@@ -46,6 +46,7 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 /**
  * The SendSMSDelivered class is responsible updating the message database and
@@ -91,6 +92,7 @@ public class SendSMSDelivered extends BroadcastReceiver {
 			}
 			int resultCode = getResultCode();
 			if (resultCode == Activity.RESULT_OK) {
+				Log.d("communicator", "#### SMS DELIVERED OK localId=" + localId + ", part" + part + ", hostuid="+ hostUid);
 				// For multipart messages, do this for each part!
 				ConversationItem itemToSend = DB.getMessage(context, localId,
 						hostUid, part);
@@ -112,7 +114,7 @@ public class SendSMSDelivered extends BroadcastReceiver {
 							* itemToSend.localid, itemToSend.to, false, true,
 							false, false, false);
 				}
-				Utility.showToastAsync(context, "SMS "+localId+" delivered.");
+			   Utility.showToastAsync(context, "SMS "+localId+"delivered.");
 			}
 		}
 	}
