@@ -819,7 +819,7 @@ public class Conversation extends Activity {
 	}
 
 	// ------------------------------------------------------------------------
-	
+
 	/**
 	 * Gets the host uid of the current conversation.
 	 * 
@@ -1364,7 +1364,11 @@ public class Conversation extends Activity {
 			// Flag all messages (internally as read)
 			DB.updateOwnMessageRead(this, hostUid);
 			if (Conversation.isVisible()) {
-				Communicator.sendReadConfirmation(this, hostUid);
+				if (!Setup.isGroup(this, hostUid)) {
+					Communicator.sendReadConfirmation(this, hostUid);
+				} else {
+
+				}
 			}
 
 			// Cancel possible system notifications for this hostuid. Do this
@@ -2175,6 +2179,7 @@ public class Conversation extends Activity {
 	 *            the host uid
 	 */
 	public static void resetValues(int hostUid) {
+		Log.d("communicator", " GROUP resetValues() hostUid:=" + hostUid);
 		Conversation.hostUid = hostUid;
 		Conversation.maxScrollMessageItems = Setup.MAX_SHOW_CONVERSATION_MESSAGES;
 		hasScrolled = false;
@@ -2520,7 +2525,8 @@ public class Conversation extends Activity {
 					int b = add + ((hashCode / 1000) % 100);
 					bitmap.eraseColor(Color.rgb(r, g, b));
 
-					//Log.d("communicator", "RGB r="+r + ", g=" + g + ", b=" + b);
+					// Log.d("communicator", "RGB r="+r + ", g=" + g + ", b=" +
+					// b);
 
 					Paint paint = new Paint();
 					paint.setColor(Color.WHITE);
@@ -3193,10 +3199,13 @@ public class Conversation extends Activity {
 
 					LinearLayout infoTextBoxInner;
 
-					if (!Setup.isGroup(context, hostUid)) {
+					// If this is not a group message or we received it (not
+					// ME()) then display normal info!
+					if (!Setup.isGroup(context, hostUid)
+							|| !imageMessageMenuItem.me()) {
 						infoTextBoxInner = getMsgInfoLayoutDefault(context);
 					} else {
-						int localGroupId= hostUid;
+						int localGroupId = hostUid;
 						int localid = imageMessageMenuItem.localid;
 						infoTextBoxInner = getGroupLayout(context,
 								localGroupId, localid);
@@ -4864,8 +4873,7 @@ public class Conversation extends Activity {
 		// List<Integer> sUids = Setup.getGroupMembersList(context, serverId,
 		// groupId);
 		List<Integer> uids = DB.getGroupMembersForMessage(context, localid);
-		
-		
+
 		for (int uid : uids) {
 			LayoutInflater inflater = (LayoutInflater) context
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -4883,12 +4891,12 @@ public class Conversation extends Activity {
 			ImageView groupread = ((ImageView) groupuseritem
 					.findViewById(R.id.groupread));
 
-			//int uid = Setup.getUid(context, sUid, serverId);
+			// int uid = Setup.getUid(context, sUid, serverId);
 			String name = Main.UID2Name(context, uid, false);
 			groupuser.setText(name);
 
-			//int memberUid = Setup.getUid(context, sUid, serverId);
-			int status = DB.isGroupMessage(context, localid, uid);
+			// int memberUid = Setup.getUid(context, sUid, serverId);
+			int status = DB.isGroupMessage(context, localid, localGroupId, uid);
 
 			if (status == DB.GROUPMESSAGE_READ) {
 				groupread.setVisibility(View.VISIBLE);

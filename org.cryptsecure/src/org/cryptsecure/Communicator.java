@@ -386,8 +386,28 @@ public class Communicator {
 								processSMS);
 						// Only do this AFTER previous processing ... otherwise
 						// we cannot find the lastKeyMessageMid!
-						DB.updateGroupMessage(context, mid, senderUid, ts,
-								true, false);
+						if (DB.updateGroupMessage(context, mid, senderUid, ts,
+								true, false)) {
+
+							// This is a group message!
+							senderUid = DB.getLocalgroupuidByMid(context, mid);
+
+							Log.d("communicator", " UPDATE MESSAGE RECEIVED #1");
+
+							// Update successful (any row was modified)
+							// If all are sent|received|read update the
+							// according message
+							int i = DB.isGroupMessage(context, mid, true);
+							Log.d("communicator",
+									" UPDATE MESSAGE RECEIVED #2: (mid " + mid
+											+ ") " + i);
+							if (i == DB.GROUPMESSAGE_RECEIVED) {
+								int localidOfGroupMessage = -1
+										* DB.getLocalidByMid(context, mid);
+								mid = localidOfGroupMessage;
+							}
+						}
+
 						DB.updateMessageReceived(context, mid, ts, senderUid);
 						updateSentReceivedReadAsync(context, mid, senderUid,
 								false, true, false, false, false);
@@ -426,16 +446,45 @@ public class Communicator {
 						if (failed) {
 							// Flag decryption failed again by using negative
 							// read TS
-							DB.updateGroupMessage(context, mid, senderUid, "-"
-									+ ts, false, true);
+							if (DB.updateGroupMessage(context, mid, senderUid,
+									"-" + ts, false, true)) {
+
+								// This is a group message!
+								senderUid = DB.getLocalgroupuidByMid(context,
+										mid);
+
+								// Update successful (any row was modified)
+								// If all are sent|received|read update the
+								// according message
+								int i = DB.isGroupMessage(context, mid, true);
+								if (i == DB.GROUPMESSAGE_READ) {
+									int localidOfGroupMessage = -1
+											* DB.getLocalidByMid(context, mid);
+									mid = localidOfGroupMessage;
+								}
+							}
 							DB.updateMessageRead(context, mid, "-" + ts,
 									senderUid);
 							updateSentReceivedReadAsync(context, mid,
 									senderUid, false, false, false, false, true);
 						} else {
 							// Everything ok
-							DB.updateGroupMessage(context, mid, senderUid, ts,
-									false, true);
+							if (DB.updateGroupMessage(context, mid, senderUid,
+									ts, false, true)) {
+								// This is a group message!
+								senderUid = DB.getLocalgroupuidByMid(context,
+										mid);
+
+								// Update successful (any row was modified)
+								// If all are sent|received|read update the
+								// according message
+								int i = DB.isGroupMessage(context, mid, true);
+								if (i == DB.GROUPMESSAGE_READ) {
+									int localidOfGroupMessage = -1
+											* DB.getLocalidByMid(context, mid);
+									mid = localidOfGroupMessage;
+								}
+							}
 							DB.updateMessageRead(context, mid, ts, senderUid);
 							updateSentReceivedReadAsync(context, mid,
 									senderUid, false, false, true, false, false);
@@ -479,15 +528,16 @@ public class Communicator {
 				final Handler handler = new Handler();
 				handler.postDelayed(new Runnable() {
 					public void run() {
-						// Log.d("communicator",
-						// "REVOKE updateSentReceivedReadAsync() #1 "
-						// + revoke + ", "
-						// + Conversation.getHostUid() + " == "
-						// + hostUid + ", " + Conversation.active);
+						Log.d("communicator",
+								" GROUP updateSentReceivedReadAsync() #1 "
+										+ Conversation.getHostUid() + " == "
+										+ hostUid + ", mid=" + mid + ", sent="
+										+ sent + ", received=" + received
+										+ ", read=" + read);
 						if (Conversation.isAlive()
 								&& (Conversation.getHostUid() == hostUid || hostUid == -1)) {
-							// Log.d("communicator",
-							// "REVOKE updateSentReceivedReadAsync() #2");
+							Log.d("communicator",
+									" GROUP updateSentReceivedReadAsync() #2");
 
 							if (decryptionfailed) {
 								Conversation.setDecryptionFailed(context, mid);
@@ -766,18 +816,20 @@ public class Communicator {
 												// Here we ONLY update the last
 												// message for GROUP messages!
 												// For all NON-group messages
-												// this is alrady done inside
+												// this is already done inside
 												// handleReceivedText()!!!
 												Main.updateLastMessage(context,
 														localGroupId, msgText,
 														newItem.created);
 
+												success2 = true;
 											}
 
 											newItem.text = msgText;
 
 											success2 = updateDBForReceivedMessage(
-													context, newItem);
+													context, newItem)
+													|| success2;
 
 											// Auto-save images possibly (only
 											// if single message or combined!)
@@ -1256,6 +1308,10 @@ public class Communicator {
 		int uidFromTmp = newItem.from;
 		int localgroupid = Utility.parseInt(newItem.groupId, -1);
 		if (localgroupid != -1) {
+			Log.d("communicator",
+					"@@@@ liveUpdateOrNotify() Conversation.getHostUid()="
+							+ Conversation.getHostUid() + ", localgroupid="
+							+ localgroupid);
 			uidFromTmp = localgroupid;
 		}
 		final int uidFrom = uidFromTmp;
@@ -1987,22 +2043,68 @@ public class Communicator {
 										// message. => DO NOT UPDATE THE TEXT!
 										itemToSend.text = null;
 
-										DB.updateMessage(context, itemToSend,
-												itemToSend.to, isSentKeyMessage);
-										if (!itemToSend.groupId.equals("")) {
+										int groupId = Utility.parseInt(
+												itemToSend.groupId, -1);
+										Log.d("communicator",
+												" GROUP sendMessageInternet() groupId="
+														+ groupId);
+										if (groupId == -1) {
+											// NO group message... noraml update
+											DB.updateMessage(context,
+													itemToSend, itemToSend.to,
+													isSentKeyMessage);
+										}
+
+										int midInteger = Utility.parseInt(mid,
+												-1);
+										if (groupId != -1) {
+											// Group message non-normal update!
 											DB.updateGroupMessage(context,
 													itemToSend.localid,
 													itemToSend.to, sent, true,
 													itemToSend.mid);
 										}
 
-										updateSentReceivedReadAsync(context,
-												itemToSend.mid, to, true,
-												false, false, false, false);
+										int toUidOrGroupUid = to;
+										Log.d("communicator",
+												" GROUP sendMessageInternet() toUidOrGroupUid="
+														+ toUidOrGroupUid);
+										if (groupId != -1) {
+											int localgroupuid = DB
+													.getLocalgroupuidByMid(
+															context, midInteger);
+											toUidOrGroupUid = localgroupuid;
+											Log.d("communicator",
+													" GROUP sendMessageInternet() toUidOrGroupUid2="
+															+ toUidOrGroupUid);
+
+											// update sent status ONLY if msg to
+											// ALL members have been sent
+											int i = DB.isGroupMessage(context,
+													midInteger, true);
+											if (i == DB.GROUPMESSAGE_SENT) {
+												int localidOfGroupMessage = -1
+														* DB.getLocalidByMid(
+																context,
+																midInteger);
+												updateSentReceivedReadAsync(
+														context,
+														localidOfGroupMessage,
+														toUidOrGroupUid, true,
+														false, false, false,
+														false);
+											}
+										} else {
+											updateSentReceivedReadAsync(
+													context, itemToSend.mid,
+													toUidOrGroupUid, true,
+													false, false, false, false);
+										}
+
 										if (!itemToSend.system) {
 											if (Conversation.isVisible()
 													&& Conversation
-															.getHostUid() == itemToSend.to
+															.getHostUid() == toUidOrGroupUid
 													&& !Conversation.scrolledDown) {
 												if (itemToSend.transport == DB.TRANSPORT_INTERNET) {
 													Utility.showToastShortAsync(
@@ -3104,8 +3206,25 @@ public class Communicator {
 		// uid = user from which we have read messages
 		// mid = largest mid that we have read
 		if (uid >= 0 && mid != -1) {
-			DB.addSendMessage(context, uid, "R" + mid, false,
-					DB.TRANSPORT_INTERNET, true, DB.PRIORITY_READCONFIRMATION);
+
+			if (!Setup.isGroup(context, uid)) {
+				DB.addSendMessage(context, uid, "R" + mid, false,
+						DB.TRANSPORT_INTERNET, true,
+						DB.PRIORITY_READCONFIRMATION);
+			} else {
+				// Do this for ALL members
+				int localGroupId = uid;
+				int serverId = Setup.getGroupServerId(context, localGroupId);
+				String groupId = Setup.getGroupId(context, localGroupId);
+				List<Integer> sUids = Setup.getGroupMembersList(context,
+						serverId, groupId);
+				for (int sUid : sUids) {
+					int realuid = Setup.getUid(context, sUid, serverId);
+					DB.addSendMessage(context, realuid, "R" + mid, false,
+							DB.TRANSPORT_INTERNET, true,
+							DB.PRIORITY_READCONFIRMATION);
+				}
+			}
 			Communicator
 					.sendNewNextMessageAsync(context, DB.TRANSPORT_INTERNET);
 		}
