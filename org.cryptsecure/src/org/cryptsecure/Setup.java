@@ -8105,6 +8105,14 @@ public class Setup extends Activity {
 
 	public static int getLocalGroupId(Context context, String groupId,
 			int serverId) {
+		int groupIdInt = Utility.parseInt(groupId, -1);
+		if (groupIdInt > 10000) {
+			// ATTENTION: Return the groupId as localgroupid if this IS already
+			// the local id. This means you can only apply this method once
+			// to a localid
+			return groupIdInt;
+		}
+		
 		int localGroupId = Math.abs((serverId + "_" + groupId).hashCode());
 		if (getGroupId(context, localGroupId) == null) {
 			Utility.saveStringSetting(context, LOCALGROUP2GROUPID

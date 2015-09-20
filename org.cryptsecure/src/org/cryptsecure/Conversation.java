@@ -2463,13 +2463,13 @@ public class Conversation extends Activity {
 		Log.d("communicator", "AVATAR #1 " + id);
 
 		if (!conversationImageCache.containsKey(id)) {
+			initializeBitmaps(context);
 
 			Log.d("communicator", "AVATAR #2");
 
 			Bitmap avatar = Setup.getAvatarAsBitmap(context, uid);
 			if (avatar != null) {
 				Log.d("communicator", "AVATAR #3");
-				initializeBitmaps(context);
 				Bitmap bitmap = Bitmap.createBitmap(bitmap_speechmaster);
 
 				bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
@@ -2514,11 +2514,13 @@ public class Conversation extends Activity {
 
 					// final int add = 120;
 					final int add = 0;
-					int hashCode = name.hashCode();
+					int hashCode = Math.abs(name.hashCode());
 					int r = add + (hashCode % 100);
 					int g = add + ((hashCode / 100) % 100);
 					int b = add + ((hashCode / 1000) % 100);
 					bitmap.eraseColor(Color.rgb(r, g, b));
+
+					//Log.d("communicator", "RGB r="+r + ", g=" + g + ", b=" + b);
 
 					Paint paint = new Paint();
 					paint.setColor(Color.WHITE);

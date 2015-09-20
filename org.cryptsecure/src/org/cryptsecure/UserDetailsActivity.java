@@ -394,7 +394,7 @@ public class UserDetailsActivity extends Activity {
 			detailsGroup.setLayoutParams(lpSectionInnerLeft);
 			detailsGroup.setText("Other Group Members: ");
 			layout.addView(detailsGroup);
-			layout.addView(Main.getGroupLayout(context, uid, 0, 20, 40));
+			layout.addView(Main.getGroupLayout(context, uid, 0, 20, 40, true));
 		}
 
 		LinearLayout.LayoutParams lpScrollView = new LinearLayout.LayoutParams(

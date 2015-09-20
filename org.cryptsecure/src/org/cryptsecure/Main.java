@@ -2242,6 +2242,9 @@ public class Main extends Activity {
 		maindeviceid.setText("Account Key: " + Setup.getPublicKeyHash(context));
 		maindeviceid.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
+				
+				DB.printDBGroup(context);
+				
 				String text = YOURACCOUNTKEYSIMPLE;
 				Conversation.promptInfo(context, "Your Account Key", text);
 			}
@@ -2551,7 +2554,7 @@ public class Main extends Activity {
 
 						if (isGroup) {
 							infoTextBoxInner.addView(getGroupLayout(context,
-									uid, 15, 5, 15));
+									uid, 15, 5, 15, false));
 						} else if (uid >= 0) {
 							// Only display info for registered users
 							infoTextBoxInner.addView(infoTextBoxInnerAccount);
@@ -2667,7 +2670,7 @@ public class Main extends Activity {
 
 	// ------------------------------------------------------------------------
 
-	public static LinearLayout getGroupLayout(Context context, int localGroupId, int topMargin, int leftMargin,  int bottomMargin) {
+	public static LinearLayout getGroupLayout(Context context, int localGroupId, int topMargin, int leftMargin,  int bottomMargin, boolean details) {
 		LinearLayout.LayoutParams lpLayout = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.WRAP_CONTENT,
 				LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -2694,7 +2697,7 @@ public class Main extends Activity {
 					.findViewById(R.id.groupusericon));
 
 			int uid = Setup.getUid(context, sUid, serverId);
-			String name = Main.UID2Name(context, uid, false);
+			String name = Main.UID2Name(context, uid, details);
 			groupuser.setText(name);
 
 			Bitmap avatar = Conversation.retrieveAvatar(context, uid, false,

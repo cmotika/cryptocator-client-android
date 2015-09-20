@@ -568,7 +568,7 @@ public class DB {
 		final String CREATE_TABLE_MSGS = "CREATE TABLE IF NOT EXISTS  `"
 				+ TABLE_GROUPMSG
 				+ "` ("
-				+ "`mid` INTEGER, `localid` INTEGER,`localgroupuid` INTEGER,  `hostuid` INTEGER, `sent` VARCHAR( 50 ), `received` VARCHAR( 50 ), `read` VARCHAR( 50 ), INTEGER, `ts` VARCHAR( 50 ));";
+				+ "`mid` INTEGER, `localid` INTEGER, `localgroupuid` INTEGER, `hostuid` INTEGER, `sent` VARCHAR( 50 ), `received` VARCHAR( 50 ), `read` VARCHAR( 50 ), `ts` VARCHAR( 50 ));";
 		db.execSQL(CREATE_TABLE_MSGS);
 	}
 
@@ -619,52 +619,6 @@ public class DB {
 		}
 		return success;
 	}
-
-	// -----------------------------------------------------------------
-
-	// /**
-	// * Gets the local group id by a localid of a message just sent out.
-	// *
-	// * @param context
-	// * the context
-	// * @param localid
-	// * the localid
-	// * @return the local group id
-	// */
-	// public static int getLocalGroupId(Context context, int localid) {
-	// SQLiteDatabase db = null;
-	// Cursor cursor = null;
-	// int returnValue = -1;
-	// try {
-	// db = openDBGroupMsg(context);
-	//
-	// String QUERY = "SELECT `localgroupuid` FROM `" + TABLE_GROUPMSG
-	// + "` WHERE `localid` = " + localid;
-	//
-	// cursor = db.rawQuery(QUERY, null);
-	// if (cursor != null && cursor.moveToFirst()) {
-	// // numberOfMessages = cursor.getCount();
-	// // Log.d("communicator", "#### AUTO-getNumberOfMessagesToSend "
-	// // + numberOfMessages);
-	// // DB.printDB(context);
-	// if (cursor.getCount() > 0) {
-	// String localidString = cursor.getString(0);
-	// returnValue = Utility.parseInt(localidString, -1);
-	// }
-	// cursor.close();
-	// }
-	// db.close();
-	// } catch (Exception e) {
-	// if (cursor != null) {
-	// cursor.close();
-	// }
-	// if (db != null) {
-	// db.close();
-	// }
-	// e.printStackTrace();
-	// }
-	// return returnValue;
-	// }
 
 	// -----------------------------------------------------------------
 
@@ -756,7 +710,7 @@ public class DB {
 		try {
 			db = openDBGroupMsg(context);
 
-			String QUERY = "SELECT `sent`, 'received', 'read' FROM `"
+			String QUERY = "SELECT `sent`, `received`, `read` FROM `"
 					+ TABLE_GROUPMSG + "` WHERE `localid` = " + localid
 					+ " AND `hostuid` = " + hostuid;
 
@@ -773,7 +727,8 @@ public class DB {
 					long received = Utility.parseLong(str1, 0);
 					long read = Utility.parseLong(str2, 0);
 
-					 Log.d("communicator", "#### GROUP isGroupMessage() str0="+ str0 + ", str1=" + str1 + ", str2=" + str2);
+					Log.d("communicator", "#### GROUP isGroupMessage() str0="
+							+ str0 + ", str1=" + str1 + ", str2=" + str2);
 
 					if (read > 10) {
 						returnValue = GROUPMESSAGE_READ;
@@ -827,10 +782,11 @@ public class DB {
 	public static boolean updateGroupMessage(Context context, int localid,
 			int hostuid, String timestamp, boolean isSent, int mid) {
 
-		Log.d("communicator", "#### GROUP MESSAGE updateGroupMessage localid="
-				+ localid + ", hostuid=" + hostuid + ", isSent=" + isSent
+		Log.d("communicator",
+				"#### GROUP MESSAGE 1 updateGroupMessage localid=" + localid
+						+ ", hostuid=" + hostuid + ", isSent=" + isSent
 
-				+ ", mid=" + mid);
+						+ ", mid=" + mid);
 
 		boolean success = false;
 		ContentValues values = new ContentValues();
@@ -886,7 +842,7 @@ public class DB {
 	public static boolean updateGroupMessage(Context context, int mid,
 			int hostuid, String timestamp, boolean isReceived, boolean isRead) {
 
-		Log.d("communicator", "#### GROUP MESSAGE updateGroupMessage mid="
+		Log.d("communicator", "#### GROUP MESSAGE 2 updateGroupMessage mid="
 				+ mid + ", hostuid=" + hostuid + ", isReceived=" + isReceived
 				+ ", isRead=" + isRead);
 
@@ -904,8 +860,9 @@ public class DB {
 		// update
 		try {
 			SQLiteDatabase db = openDBGroupMsg(context);
-			int rows = db.update(TABLE_GROUPMSG, values, "`mid` = " + mid
-					+ " AND `hostuid` = " + hostuid, null);
+			int rows = db
+					.update(TABLE_GROUPMSG, values, "`mid` = " + mid, null);
+			// + " AND `hostuid` = " + hostuid, null);
 			Log.d("communicator", "GROUP updateGroupMessage rows = " + rows);
 			db.close();
 			success = true;
@@ -2590,6 +2547,43 @@ public class DB {
 	 *            the context
 	 * @return the string
 	 */
+	public static String printDBGroup(Context context) {
+		SQLiteDatabase db = openDBGroupMsg(context);
+		String returnString = "DBGROUP:\n";
+
+		String QUERY = "SELECT *  FROM `" + TABLE_GROUPMSG
+				+ "` ORDER BY `localid`";
+		Log.d("communicator", "DBTABLE QUERY = " + QUERY);
+		Cursor cursor = db.rawQuery(QUERY, null);
+		if (cursor != null && cursor.moveToFirst()) {
+			Log.d("communicator", "getCount = " + cursor.getCount());
+			for (int c = 0; c < cursor.getCount(); c++) {
+				String entry = "";
+				int columns = cursor.getColumnCount();
+				for (int cc = 0; cc < columns; cc++) {
+					String name = cursor.getColumnName(cc);
+					String val = cursor.getString(cc);
+					entry += name + "=" + val + ", ";
+				}
+				String returnStringLine = "DBTABLE [GROUP]" + entry;
+				returnString = returnString + returnStringLine + "\n\n\n";
+				Log.d("communicator", returnStringLine);
+				cursor.moveToNext();
+			}
+			cursor.close();
+		}
+		db.close();
+		return returnString;
+	}
+	// -----------------------------------------------------------------
+
+	/**
+	 * Prints the db sending.
+	 * 
+	 * @param context
+	 *            the context
+	 * @return the string
+	 */
 	public static String printDBSending(Context context) {
 		SQLiteDatabase db = openDBSending(context);
 		String returnString = "DBSENDING:\n";
@@ -3981,10 +3975,15 @@ public class DB {
 
 		values.put("touid", itemToUpdate.to);
 
+		Log.d("communicator", "XXXX updateMessage() itemToUpdate.groupId=" + itemToUpdate.groupId);
+		Log.d("communicator", "XXXX updateMessage() before hostUid=" + hostUid);
+
 		int serverId = Setup.getServerId(context, hostUid);
 		int groupId = Utility.parseInt(itemToUpdate.groupId, -1);
 		int groupLocalId = Setup.getLocalGroupId(context, groupId + "",
 				serverId);
+		Log.d("communicator", "XXXX updateMessage() before hostUid=" + hostUid);
+
 		if (groupId != -1) {
 			hostUid = groupLocalId;
 			// values.put("touid", groupLocalId);
@@ -3993,18 +3992,15 @@ public class DB {
 		Log.d("communicator", "XXXX updateMessage() itemToUpdate.to="
 				+ itemToUpdate.to);
 		Log.d("communicator", "XXXX updateMessage() hostUid=" + hostUid);
-//		Log.d("communicator", "XXXX updateMessage() groupId=" + groupId);
-//		Log.d("communicator", "XXXX updateMessage() groupLocalId="
-//				+ groupLocalId);
+		// Log.d("communicator", "XXXX updateMessage() groupId=" + groupId);
+		// Log.d("communicator", "XXXX updateMessage() groupLocalId="
+		// + groupLocalId);
 		Log.d("communicator", "XXXX updateMessage() localId="
 				+ itemToUpdate.localid);
-		Log.d("communicator", "XXXX updateMessage() sent="
-				+ itemToUpdate.sent);
+		Log.d("communicator", "XXXX updateMessage() sent=" + itemToUpdate.sent);
 		Log.d("communicator", "XXXX updateMessage() received="
 				+ itemToUpdate.received);
 
-		
-		
 		values.put("mid", itemToUpdate.mid);
 		values.put("fromuid", itemToUpdate.from);
 		if (!isSentKeyMessage) {

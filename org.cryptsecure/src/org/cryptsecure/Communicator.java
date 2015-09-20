@@ -353,9 +353,14 @@ public class Communicator {
 	private static void handleReadAndReceived(final Context context,
 			String response, int serverId) {
 
+		if (response.equals("0##0")) {
+			// === NO received and NO read messages
+			return;
+		}
+
 		String[] values = response.split("##");
-		// Log.d("communicator", " UPDATE MESSAGE RECEIVED/READ: valuesSize=" +
-		// values.length);
+		Log.d("communicator", " UPDATE MESSAGE RECEIVED/READ: valuesSize="
+				+ values.length + ", response=" + response);
 		if (values.length == 2) {
 			String partReceived = values[0];
 			String partRead = values[1];
@@ -363,15 +368,15 @@ public class Communicator {
 			String[] valuesReceived = partReceived.split("#");
 			for (String valueReceived : valuesReceived) {
 				String midAndTs[] = valueReceived.split("@");
-				// Log.d("communicator",
-				// " UPDATE MESSAGE RECEIVED: midAndTs["+valueReceived+"]=" +
-				// midAndTs.length);
+				Log.d("communicator", " UPDATE MESSAGE RECEIVED: midAndTs["
+						+ valueReceived + "]=" + midAndTs.length);
 				if (midAndTs.length == 2) {
 					int mid = Utility.parseInt(midAndTs[0], -1);
 					int senderUid = DB.getHostUidForMid(context, mid);
 					String ts = midAndTs[1];
 					Log.d("communicator", " UPDATE MESSAGE RECEIVED: mid="
-							+ mid + ", senderUid=" + senderUid);
+							+ mid + ", senderUid=" + senderUid + ", serverId="
+							+ serverId);
 					if (mid != -1 && serverId != -1) {
 						DB.updateLargestTimestampReceived(context, ts, serverId);
 					}
@@ -394,9 +399,8 @@ public class Communicator {
 			String[] valuesRead = partRead.split("#");
 			for (String valueRead : valuesRead) {
 				String midAndTs[] = valueRead.split("@");
-				// Log.d("communicator",
-				// " UPDATE MESSAGE READ: midAndTs["+valueRead+"]=" +
-				// midAndTs.length);
+				Log.d("communicator", " UPDATE MESSAGE READ: midAndTs["
+						+ valueRead + "]=" + midAndTs.length);
 				if (midAndTs.length == 2) {
 					int mid = Utility.parseInt(midAndTs[0], -1);
 					int senderUid = DB.getHostUidForMid(context, mid);
@@ -723,6 +727,7 @@ public class Communicator {
 										if (!skipBecauseOfUnknownUser
 												&& !alreadyInDB
 												&& !discardMessageAndSaveLargestMid) {
+
 											String msgText = handleReceivedText(
 													context, text, newItem,
 													serverId);
@@ -757,6 +762,16 @@ public class Communicator {
 																+ msgText);
 												newItem.groupId = localGroupId
 														+ "";
+
+												// Here we ONLY update the last
+												// message for GROUP messages!
+												// For all NON-group messages
+												// this is alrady done inside
+												// handleReceivedText()!!!
+												Main.updateLastMessage(context,
+														localGroupId, msgText,
+														newItem.created);
+
 											}
 
 											newItem.text = msgText;
@@ -877,7 +892,9 @@ public class Communicator {
 
 		if (groupId != -1) {
 			// A group item!!!
+			Log.d("communicator", "RECEIVED MESSAGE 2 GROUPID =" + groupId);
 			if (DB.updateMessage(context, newItem, groupId)) {
+				Log.d("communicator", "RECEIVED MESSAGE 3 GROUPID =" + groupId);
 				messageReceived = true;
 			}
 		} else if (DB.updateMessage(context, newItem, newItem.from)) {
@@ -925,6 +942,12 @@ public class Communicator {
 					// now we have correct values and should update the
 					// database
 					int hostUid = newItem.from;
+					int localgroupId = Utility.parseInt(newItem.groupId, -1);
+					Log.d("communicator", "RECEIVED MESSAGE GROUPID ="
+							+ localgroupId);
+					if (localgroupId != -1) {
+						hostUid = localgroupId;
+					}
 					newItem.system = true;
 					DB.updateMessageRevoked(context, mid, newItem.created + "",
 							hostUid);
@@ -1194,9 +1217,18 @@ public class Communicator {
 				text = newItem.text;
 
 			} else {
-				// This a NON-multipart message, normal proceed
-				Main.updateLastMessage(context, newItem.from, text,
-						newItem.created);
+				// Only update last line for NON Group message. Reason: For
+				// group message
+				// we first need to figure out which localgroupid this is, which
+				// can be derived from the
+				// secret. But we do not do this in this method. So we must+will
+				// update the lastmessage for group
+				// messages later!
+				if (!text.startsWith(Communicator.GROUPMESSAGEPREFIX)) {
+					// This a NON-multipart message, normal proceed
+					Main.updateLastMessage(context, newItem.from, text,
+							newItem.created);
+				}
 			}
 		}
 
@@ -1220,6 +1252,14 @@ public class Communicator {
 						+ newItem.from + ", part=" + newItem.part
 						+ ", multipartid=" + newItem.multipartid);
 
+		// Consider localgroupid as an alternative "from"
+		int uidFromTmp = newItem.from;
+		int localgroupid = Utility.parseInt(newItem.groupId, -1);
+		if (localgroupid != -1) {
+			uidFromTmp = localgroupid;
+		}
+		final int uidFrom = uidFromTmp;
+
 		final Handler mUIHandler = new Handler(Looper.getMainLooper());
 		mUIHandler.post(new Thread() {
 			@Override
@@ -1237,7 +1277,7 @@ public class Communicator {
 						// Live - update if possible,
 						// otherwise create notification!
 						if (Conversation.isVisible()
-								&& Conversation.getHostUid() == newItem.from) {
+								&& Conversation.getHostUid() == uidFrom) {
 							// The conversation is currently
 							// open, try to update this
 							// right away!
@@ -1292,10 +1332,10 @@ public class Communicator {
 								Log.d("communicator",
 										"@@@@ liveUpdateOrNotify() POSSIBLY CREATE NOTIFICATION #3 "
 												+ newItem.from);
-								createNotification(context, newItem);
+								createNotification(context, newItem, uidFrom);
 							}
 							if (Conversation.isAlive()
-									&& Conversation.getHostUid() == newItem.from) {
+									&& Conversation.getHostUid() == uidFrom) {
 								// Still update because conversation is in
 								// memory!
 								// Also possibly scroll down: If the user
@@ -2027,15 +2067,19 @@ public class Communicator {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Creates the notification.
+	 * Creates the notification. FromUid can either be a user uid in which case
+	 * it should be equal to item.from uid, or it could be a localgroupid in
+	 * which case it is equal to item.groupid.
 	 * 
 	 * @param context
 	 *            the context
 	 * @param item
 	 *            the item
+	 * @param fromUid
+	 *            the from uid
 	 */
 	public static void createNotification(final Context context,
-			ConversationItem item) {
+			ConversationItem item, int fromUid) {
 		boolean vibrate = Utility.loadBooleanSetting(context,
 				Setup.OPTION_VIBRATE, Setup.DEFAULT_VIBRATE);
 		if (vibrate) {
@@ -2057,7 +2101,7 @@ public class Communicator {
 		// ALWAYS SET THE NOTIFICATION COUNTER!!! THEN ONLY RETURN FROM THIS
 		// METHOD POSSIBLY IF THE
 		// USER DOES NOT WANT TO SEE A REAL NOTIFICATION
-		setNotificationCount(context, item.from, false);
+		setNotificationCount(context, fromUid, false);
 
 		boolean notification = Utility.loadBooleanSetting(context,
 				Setup.OPTION_NOTIFICATION, Setup.DEFAULT_NOTIFICATION);
@@ -2069,7 +2113,7 @@ public class Communicator {
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		Intent notificationIntent = new Intent(context, TransitActivity.class);
 		notificationIntent = notificationIntent.putExtra(Setup.INTENTEXTRA,
-				item.from);
+				fromUid);
 		PendingIntent pendingIntent = PendingIntent.getActivity(context, 0,
 				notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
@@ -2081,8 +2125,8 @@ public class Communicator {
 				.possiblyRemoveImageAttachments(context, completeMessage, true,
 						"[ image ]", -1);
 
-		int cnt = getNotificationCount(context, item.from);
-		String title = Main.UID2Name(context, item.from, false);
+		int cnt = getNotificationCount(context, fromUid);
+		String title = Main.UID2Name(context, fromUid, false);
 		String text = completeTextWithoutImages;
 		if (cnt > 1) {
 			text = cnt + " new messages";
@@ -2105,7 +2149,7 @@ public class Communicator {
 		Notification n = mBuilder.build();
 
 		n.contentIntent = pendingIntent;
-		int notificationId = 8888888 + item.from;
+		int notificationId = 8888888 + fromUid;
 		notificationManager.notify(notificationId, n);
 	}
 
