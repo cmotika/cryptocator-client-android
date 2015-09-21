@@ -4553,6 +4553,20 @@ public class DB {
 	 *            the uid
 	 */
 	public static void deleteUser(Context context, int uid) {
+		if (Setup.isGroup(context, uid)) {
+			SQLiteDatabase db = null;
+			try {
+				db = openDBGroupMsg(context);
+				int i = db.delete(TABLE_GROUPMSG, "`localgroupuid` = " + uid, null);
+				Log.d("communicator", "GROUPMEMBERS deleteUser i=" + i);
+
+				db.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else {
+			Log.d("communicator", "GROUPMEMBERS deleteUser? " + uid + " not a group...");
+		}
 		context.deleteDatabase(Setup.DATABASEPREFIX + uid
 				+ Setup.DATABASEPOSTFIX);
 	}

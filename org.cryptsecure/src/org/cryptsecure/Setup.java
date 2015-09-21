@@ -8172,15 +8172,19 @@ public class Setup extends Activity {
 	// -------------------------------------------------------------------------
 
 	public static void setGroupMembers(Context context, int serverId,
-			String groupId, String groups) {
+			String groupId, String groupmembers) {
+		
+		//Log.d("communicator", "GROUPMEMBERS groupId=" + groupId + ", serverId=" + serverId + ", members=" + groupmembers);
 		Utility.saveStringSetting(context, GROUPMEMBERS + serverId + "_"
-				+ groupId, groups);
+				+ groupId, groupmembers);
 	}
 
 	public static String getGroupMembers(Context context, int serverId,
 			String groupId) {
-		return Utility.loadStringSetting(context, GROUPMEMBERS + serverId + "_"
+		String groupmembers = Utility.loadStringSetting(context, GROUPMEMBERS + serverId + "_"
 				+ groupId, null);
+		//Log.d("communicator", "GROUPMEMBERS groupId=" + groupId + ", serverId=" + serverId + ", members=" + groupmembers);
+		return groupmembers;
 	}
 
 	public static List<Integer> getGroupMembersList(Context context,

@@ -2684,6 +2684,7 @@ public class Main extends Activity {
 		LinearLayout returnLayout = new LinearLayout(context);
 		returnLayout.setLayoutParams(lpLayout);
 		returnLayout.setOrientation(LinearLayout.VERTICAL);
+		returnLayout.removeAllViews();
 
 		int serverId = Setup.getGroupServerId(context, localGroupId);
 		String groupId = Setup.getGroupId(context, localGroupId);
@@ -2706,6 +2707,7 @@ public class Main extends Activity {
 			int uid = Setup.getUid(context, sUid, serverId);
 			String name = Main.UID2Name(context, uid, details);
 			groupuser.setText(name);
+			
 
 			Bitmap avatar = Conversation.retrieveAvatar(context, uid, false,
 					true, false);
