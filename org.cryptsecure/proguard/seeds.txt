@@ -235,7 +235,6 @@ org.cryptsecure.R$drawable: int dolphins4w
 org.cryptsecure.R$drawable: int framebackkey
 org.cryptsecure.R$drawable: int framebacklock
 org.cryptsecure.R$drawable: int help
-org.cryptsecure.R$drawable: int ic_launcher
 org.cryptsecure.R$drawable: int lightback
 org.cryptsecure.R$drawable: int lighterback
 org.cryptsecure.R$drawable: int lightestback
