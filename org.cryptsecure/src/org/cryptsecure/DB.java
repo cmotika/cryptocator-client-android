@@ -3944,23 +3944,6 @@ public class DB {
 	 */
 	public static void tryToRevokeMessage(Context context, int mid,
 			int localid, String timestamp, int hostUid) {
-		if (Setup.isGroup(context, hostUid)) {
-			Log.d("communicator", " REVOKE GROUP...");
-			// No revoke before sending if GROUP
-			List<Integer> uids = DB.getGroupMembersForMessage(context, localid);
-			List<Integer> MIDs = DB.getMIDsForMessage(context, localid);
-			//int serverId = Setup.getGroupServerId(context, hostUid);
-			int index = 0;
-			for (int realuid : uids) {
-				int realmid = MIDs.get(index);
-				index++;
-				//int realuid = Setup.getUid(context, sUid, serverId);
-				Log.d("communicator", " REVOKE GROUP realuid=" + realuid + ", reailmid=" + realmid);
-				Communicator.sendSystemMessageRevoke(context, realuid, realmid);
-			}
-			return;
-		}
-		
 		// If mid < 0 it is still a localid, but this does not mean it is not
 		// sent yet!
 		boolean revokeBeforeSending = revokeFromSending(context, localid);
@@ -3985,6 +3968,26 @@ public class DB {
 		} else {
 			Log.d("communicator", " REVOKE BEFORE SENDING NOT POSSIBLE :-(");
 		}
+		
+		
+		if (Setup.isGroup(context, hostUid)) {
+			Log.d("communicator", " REVOKE GROUP...");
+			// No revoke before sending if GROUP
+			List<Integer> uids = DB.getGroupMembersForMessage(context, localid);
+			List<Integer> MIDs = DB.getMIDsForMessage(context, localid);
+			//int serverId = Setup.getGroupServerId(context, hostUid);
+			int index = 0;
+			for (int realuid : uids) {
+				int realmid = MIDs.get(index);
+				index++;
+				//int realuid = Setup.getUid(context, sUid, serverId);
+				Log.d("communicator", " REVOKE GROUP realuid=" + realuid + ", reailmid=" + realmid);
+				Communicator.sendSystemMessageRevoke(context, realuid, realmid);
+			}
+			return;
+		}
+
+		
 		Log.d("communicator", " REVOKE mid =" + mid + ", localid=" + localid);
 		if (mid > -1) {
 			// Send a revoke request just to make sure, even if we could
