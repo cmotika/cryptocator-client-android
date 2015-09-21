@@ -207,6 +207,7 @@ org.cryptsecure.R$drawable: int btnsearch
 org.cryptsecure.R$drawable: int btnsms
 org.cryptsecure.R$drawable: int btnusername
 org.cryptsecure.R$drawable: int buttonedit
+org.cryptsecure.R$drawable: int buttoneditdisabled
 org.cryptsecure.R$drawable: int buttoneditsms
 org.cryptsecure.R$drawable: int call
 org.cryptsecure.R$drawable: int calldisabled
@@ -220,7 +221,6 @@ org.cryptsecure.R$drawable: int dolphins2
 org.cryptsecure.R$drawable: int dolphins3
 org.cryptsecure.R$drawable: int dolphins3blue
 org.cryptsecure.R$drawable: int dolphins3light
-org.cryptsecure.R$drawable: int dolphins4
 org.cryptsecure.R$drawable: int dolphins4light
 org.cryptsecure.R$drawable: int framebackkey
 org.cryptsecure.R$drawable: int framebacklock
@@ -277,6 +277,7 @@ org.cryptsecure.R$drawable: int persongenericbarsms
 org.cryptsecure.R$drawable: int persongenericlock
 org.cryptsecure.R$drawable: int persongenericmaster
 org.cryptsecure.R$drawable: int persongenericmsg
+org.cryptsecure.R$drawable: int persongroupsmall
 org.cryptsecure.R$drawable: int personsmall
 org.cryptsecure.R$drawable: int personsms
 org.cryptsecure.R$drawable: int personsmssmall
@@ -309,6 +310,7 @@ org.cryptsecure.R$drawable: int s9
 org.cryptsecure.R$drawable: int scrollbarhandle4
 org.cryptsecure.R$drawable: int send
 org.cryptsecure.R$drawable: int senddisabled
+org.cryptsecure.R$drawable: int sendgroup
 org.cryptsecure.R$drawable: int sendlock
 org.cryptsecure.R$drawable: int sendsms
 org.cryptsecure.R$drawable: int sendsmslock
@@ -320,6 +322,7 @@ org.cryptsecure.R$drawable: int sms2
 org.cryptsecure.R$drawable: int speech
 org.cryptsecure.R$drawable: int speechalert
 org.cryptsecure.R$drawable: int speechmaster
+org.cryptsecure.R$drawable: int speechmastersmall
 org.cryptsecure.R$drawable: int speechme
 org.cryptsecure.R$drawable: int speechmefailed
 org.cryptsecure.R$drawable: int update
@@ -382,6 +385,7 @@ org.cryptsecure.R$id: int buttonshare
 org.cryptsecure.R$id: int chatmode
 org.cryptsecure.R$id: int conversationRootView
 org.cryptsecure.R$id: int conversationaddition
+org.cryptsecure.R$id: int conversationgroupimage
 org.cryptsecure.R$id: int conversationprogress
 org.cryptsecure.R$id: int conversationtext
 org.cryptsecure.R$id: int conversationtime
@@ -405,9 +409,15 @@ org.cryptsecure.R$id: int fromidinfo
 org.cryptsecure.R$id: int fromkey
 org.cryptsecure.R$id: int groupcreate
 org.cryptsecure.R$id: int groupquit
+org.cryptsecure.R$id: int groupread
+org.cryptsecure.R$id: int groupreceived
 org.cryptsecure.R$id: int grouprename
+org.cryptsecure.R$id: int groupsent
 org.cryptsecure.R$id: int groupsparent
 org.cryptsecure.R$id: int groupspinner
+org.cryptsecure.R$id: int groupuser
+org.cryptsecure.R$id: int groupusericon
+org.cryptsecure.R$id: int groupusericonback
 org.cryptsecure.R$id: int helpactive
 org.cryptsecure.R$id: int helpautosave
 org.cryptsecure.R$id: int helpchatmode
@@ -559,6 +569,7 @@ org.cryptsecure.R$layout: int activity_setup
 org.cryptsecure.R$layout: int adduserlistitem
 org.cryptsecure.R$layout: int conversationitem
 org.cryptsecure.R$layout: int conversationitemme
+org.cryptsecure.R$layout: int groupuseritem
 org.cryptsecure.R$layout: int infolistitem
 org.cryptsecure.R$layout: int setup_account
 org.cryptsecure.R$layout: int setup_settings
