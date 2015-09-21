@@ -1008,11 +1008,14 @@ public class Communicator {
 					// The following also will discover groups (if we are the receipient)
 					int localgroupuid = DB.getHostUidForMid(context, mid, true);
 					int localid = -1;
+
+					// we may be the the sender of a group message, this is the following case
+					int localgroupuidsender = DB.getLocalgroupuidByMid(context, mid);
 					if (localgroupuid == -1) {
-						// we may be the the sender of a group message, this is the following case
-						localgroupuid = DB.getLocalgroupuidByMid(context, mid);
-						localid = DB.getLocalidByMid(context, mid); // ***
+						localgroupuid = localgroupuidsender;
 					}
+					localid = DB.getLocalidByMid(context, mid); // ***
+
 					Log.d("communicator", "RECEIVED REVOKE MESSAGE GROUP  localgroupuid="
 							+ localgroupuid + ", localid=" + localid);
 
@@ -1055,7 +1058,7 @@ public class Communicator {
 									+ -1 * localid + ", localgroupuid=" + localgroupuid);
 
 							// Group case *sender*
-							updateSentReceivedReadAsync(context, -1 * localid, localgroupuid, false,
+							updateSentReceivedReadAsync(context, -1 * localid, localgroupuidsender, false,
 									false, false, true, false);
 						} else {
 							// Group case *receipient*
