@@ -2760,78 +2760,79 @@ org.cryptsecure.Communicator$9 -> org.cryptsecure.t:
     int val$serverId -> e
     void response(java.lang.String) -> a
 org.cryptsecure.Conversation -> org.cryptsecure.Conversation:
-    int fixed_inset -> A
-    int fixed_inset_me -> B
+    int fixed_inset -> B
+    int fixed_inset_me -> C
     org.cryptsecure.FastScrollView fastScrollView -> a
-    android.view.View conversationRootView -> C
-    android.widget.LinearLayout titleconversation -> D
-    java.util.List conversationList -> E
-    java.util.List conversationListDiff -> F
+    android.view.View conversationRootView -> D
+    android.widget.LinearLayout titleconversation -> E
+    java.util.List conversationList -> F
+    java.util.List conversationListDiff -> G
     android.widget.Spinner sendspinner -> b
-    java.util.HashMap mapping -> G
-    int hostUid -> H
-    boolean hasScrolled -> I
-    int scrollItem -> J
-    int maxScrollMessageItems -> K
+    java.util.HashMap mapping -> H
+    int hostUid -> I
+    boolean hasScrolled -> J
+    int scrollItem -> K
+    int maxScrollMessageItems -> L
     boolean scrolledDown -> c
-    boolean scrolledUp -> L
-    int conversationSize -> M
-    org.cryptsecure.ImagePressButton sendbutton -> N
-    org.cryptsecure.ImagePressButton smileybutton -> O
-    org.cryptsecure.ImagePressButton attachmentbutton -> P
-    org.cryptsecure.ImagePressButton additionbutton -> Q
+    boolean scrolledUp -> M
+    int conversationSize -> N
+    org.cryptsecure.ImagePressButton sendbutton -> O
+    org.cryptsecure.ImagePressButton smileybutton -> P
+    org.cryptsecure.ImagePressButton attachmentbutton -> Q
+    org.cryptsecure.ImagePressButton additionbutton -> R
     org.cryptsecure.ImageSmileyEditText messageText -> d
     android.widget.TextView titletext -> e
-    android.view.LayoutInflater inflater -> R
-    boolean additionsVisible -> S
+    android.view.LayoutInflater inflater -> S
+    boolean additionsVisible -> T
     int lastHeight -> f
     int lastMessagTextLineCount -> g
     int currentScreenWidth -> h
     boolean screenWidthChanged -> i
     int FASTSCROLLBACKSCROLLINGBACKGROUND -> j
-    int FASTSCROLLBACKLOCKEDBACKGROUND -> k
-    org.cryptsecure.ImageContextMenu$ImageContextMenuProvider imageContextMenuProvider -> T
-    org.cryptsecure.ImageContextMenu$ImageContextMenuProvider imageSendMenuProvider -> U
-    org.cryptsecure.ImageContextMenu$ImageContextMenuProvider imageImageMenuProvider -> V
-    org.cryptsecure.ImageContextMenu$ImageContextMenuProvider imageMessageMenuProvider -> W
-    boolean skipResume -> l
-    java.util.List textViews -> X
-    boolean isSMSModeOn -> Y
-    boolean isEncryptionOn -> Z
-    java.util.LinkedHashSet images -> aa
-    android.graphics.Bitmap bitmap_speechmaster -> m
-    android.graphics.Bitmap bitmap_speechmastersmall -> n
-    android.graphics.Bitmap bitmap_speech -> o
-    android.graphics.Bitmap bitmap_speechalert -> p
-    org.cryptsecure.Conversation instance -> ab
-    boolean visible -> ac
-    long lastKeyStroke -> q
-    int activeScoller -> ad
-    java.util.HashMap conversationImageCache -> ae
-    int minWidthDiff -> af
-    int lastHeightDifferece -> ag
-    boolean keyboardVisible -> ah
-    int menuEnableChat -> ai
-    int menuDisableChat -> aj
-    int menuEnableSMS -> ak
-    int menuDisableSMS -> al
-    int menuSndSMSSec -> am
-    int menuSndSMS -> an
-    int menuSndMsgSec -> ao
-    int menuSndMsg -> ap
-    int menuContextShowAll -> aq
-    int menuContextShowMore -> ar
-    int menuContextGroupInvite -> as
-    org.cryptsecure.ConversationItem imageMessageMenuItem -> r
-    int imageMessageMenuRevoke -> s
-    int imageMessageMenuResend -> t
-    android.widget.TextView imageMessageMenuInfoText -> u
-    android.widget.Spinner groupspinner -> at
-    android.graphics.Bitmap imageImageMenuBitmap -> v
-    java.lang.String imageImageMenuString -> w
-    java.lang.String imageImageMenuTitleAddition -> x
-    java.lang.String imageImageMenuDescription -> y
-    int imageImageMenuImageIndex -> z
+    int FASTSCROLLBACKSCROLLINGBACKGROUNDW -> k
+    int FASTSCROLLBACKLOCKEDBACKGROUND -> l
+    org.cryptsecure.ImageContextMenu$ImageContextMenuProvider imageContextMenuProvider -> U
+    org.cryptsecure.ImageContextMenu$ImageContextMenuProvider imageSendMenuProvider -> V
+    org.cryptsecure.ImageContextMenu$ImageContextMenuProvider imageImageMenuProvider -> W
+    org.cryptsecure.ImageContextMenu$ImageContextMenuProvider imageMessageMenuProvider -> X
+    boolean skipResume -> m
+    java.util.List textViews -> Y
+    boolean isSMSModeOn -> Z
+    boolean isEncryptionOn -> aa
+    java.util.LinkedHashSet images -> ab
+    android.graphics.Bitmap bitmap_speechmaster -> n
+    android.graphics.Bitmap bitmap_speechmastersmall -> o
+    android.graphics.Bitmap bitmap_speech -> p
+    android.graphics.Bitmap bitmap_speechalert -> q
+    org.cryptsecure.Conversation instance -> ac
+    boolean visible -> ad
+    long lastKeyStroke -> r
+    int activeScoller -> ae
+    java.util.HashMap conversationImageCache -> af
+    int minWidthDiff -> ag
+    int lastHeightDifferece -> ah
+    boolean keyboardVisible -> ai
+    int menuEnableChat -> aj
+    int menuDisableChat -> ak
+    int menuEnableSMS -> al
+    int menuDisableSMS -> am
+    int menuSndSMSSec -> an
+    int menuSndSMS -> ao
+    int menuSndMsgSec -> ap
+    int menuSndMsg -> aq
+    int menuContextShowAll -> ar
+    int menuContextShowMore -> as
+    int menuContextGroupInvite -> at
+    org.cryptsecure.ConversationItem imageMessageMenuItem -> s
+    int imageMessageMenuRevoke -> t
+    int imageMessageMenuResend -> u
+    android.widget.TextView imageMessageMenuInfoText -> v
+    android.widget.Spinner groupspinner -> au
+    android.graphics.Bitmap imageImageMenuBitmap -> w
+    java.lang.String imageImageMenuString -> x
+    java.lang.String imageImageMenuTitleAddition -> y
+    java.lang.String imageImageMenuDescription -> z
+    int imageImageMenuImageIndex -> A
     void onCreate(android.os.Bundle) -> onCreate
     void onStart() -> onStart
     void initializeBitmaps(android.content.Context) -> a
@@ -4091,18 +4092,18 @@ org.cryptsecure.LoginData -> org.cryptsecure.ga:
     java.lang.String password -> b
     java.lang.String val -> c
 org.cryptsecure.Main -> org.cryptsecure.Main:
-    java.util.List uidList -> p
-    android.widget.LinearLayout adduseritem -> q
-    android.widget.TextView maindeviceid -> r
-    android.widget.Spinner serverspinner -> s
-    android.widget.LinearLayout mainBackground -> t
-    android.widget.LinearLayout mainInnerView -> u
-    android.widget.TextView addUserText -> v
-    org.cryptsecure.KeyEventEditText addUserName -> w
-    android.widget.Button addUserButton -> x
-    android.app.Activity context -> y
-    org.cryptsecure.ImageContextMenu$ImageContextMenuProvider imageContextMenuProvider -> z
-    org.cryptsecure.ImageContextMenu$ImageContextMenuProvider imageAccountMenuProvider -> A
+    java.util.List uidList -> m
+    android.widget.LinearLayout adduseritem -> n
+    android.widget.TextView maindeviceid -> o
+    android.widget.Spinner serverspinner -> p
+    android.widget.LinearLayout mainBackground -> q
+    android.widget.LinearLayout mainInnerView -> r
+    android.widget.TextView addUserText -> s
+    org.cryptsecure.KeyEventEditText addUserName -> t
+    android.widget.Button addUserButton -> u
+    android.app.Activity context -> v
+    org.cryptsecure.ImageContextMenu$ImageContextMenuProvider imageContextMenuProvider -> w
+    org.cryptsecure.ImageContextMenu$ImageContextMenuProvider imageAccountMenuProvider -> x
     android.graphics.Bitmap bitmap_master -> a
     android.graphics.Bitmap bitmap_barlock -> b
     android.graphics.Bitmap bitmap_msg -> c
@@ -4114,14 +4115,11 @@ org.cryptsecure.Main -> org.cryptsecure.Main:
     boolean skipResume -> i
     boolean highContrast -> j
     int highContrastBarrierInPermille -> k
-    int TEXTCOLOEWHITE -> l
-    int TEXTCOLOEWHITEDIMMED -> m
-    int TEXTCOLOEWHITEDIMMED2 -> n
-    int LIGHTGRAY -> o
-    java.util.HashMap userListImageCache -> B
-    org.cryptsecure.Main instance -> C
-    boolean visible -> D
-    android.hardware.SensorEventListener lightSensorListener -> E
+    int LIGHTGRAY -> l
+    java.util.HashMap userListImageCache -> y
+    org.cryptsecure.Main instance -> z
+    boolean visible -> A
+    android.hardware.SensorEventListener lightSensorListener -> B
     void onCreate(android.os.Bundle) -> onCreate
     void setTitle(java.lang.String) -> a
     void initializeBitmaps(android.content.Context) -> a
@@ -4735,9 +4733,9 @@ org.cryptsecure.Setup -> org.cryptsecure.Setup:
     java.lang.String ALERT_PREFIX -> k
     java.lang.String APPLICATION_PACKAGE_NAME -> l
     java.lang.String GROUP_CRYPTSECURE -> m
-    int accountLocked -> B
-    int advanedSetupCountdown -> C
-    java.util.HashMap BASESERVERADDRESSCACHED -> D
+    int accountLocked -> H
+    int advanedSetupCountdown -> I
+    java.util.HashMap BASESERVERADDRESSCACHED -> J
     int SMS_DEFAULT_SIZE -> n
     int SMS_DEFAULT_SIZE_MULTIPART -> o
     int SMS_DEFAULT_SIZE_ENCRYPTED -> p
@@ -4745,132 +4743,140 @@ org.cryptsecure.Setup -> org.cryptsecure.Setup:
     int COLOR_MAIN_BLUEDARK -> r
     int COLOR_MAIN_BLUEDARKEST -> s
     int COLOR_BLUELINE -> t
-    java.lang.String avatar -> E
-    boolean restartRequiredFlag -> F
-    android.widget.Spinner ignoredspinner -> G
-    android.widget.Spinner groupspinner -> H
-    android.widget.CheckBox active -> I
-    android.widget.CheckBox encryption -> J
-    android.widget.CheckBox notification -> K
-    android.widget.CheckBox tone -> L
-    android.widget.CheckBox vibrate -> M
-    android.widget.CheckBox ignore -> N
-    android.widget.CheckBox autosave -> O
-    android.widget.CheckBox noread -> P
-    android.widget.CheckBox chatmode -> Q
-    android.widget.CheckBox quicktype -> R
-    android.widget.CheckBox smileys -> S
-    android.widget.CheckBox noscreenshots -> T
-    android.widget.CheckBox powersave -> U
-    android.widget.CheckBox receiveallsms -> V
-    android.widget.ImageView helpactive -> W
-    android.widget.ImageView helpencryption -> X
-    android.widget.ImageView helptone -> Y
-    android.widget.ImageView helpvibrate -> Z
-    android.widget.ImageView helpnotification -> aa
-    android.widget.ImageView helpignore -> ab
-    android.widget.ImageView helpautosave -> ac
-    android.widget.ImageView helpnoread -> ad
-    android.widget.ImageView helpquicktype -> ae
-    android.widget.ImageView helpsmileys -> af
-    android.widget.ImageView helpchatmode -> ag
-    android.widget.ImageView helpnoscreenshots -> ah
-    android.widget.ImageView helppowersave -> ai
-    android.widget.ImageView helpreceiveallsms -> aj
-    android.widget.EditText uid -> ak
-    android.widget.EditText email -> al
-    android.widget.EditText pwd -> am
-    android.widget.EditText usernew -> an
-    android.widget.EditText emailnew -> ao
-    android.widget.EditText pwdnew -> ap
-    android.widget.EditText user -> aq
-    android.widget.EditText pwdchange -> ar
-    android.widget.TextView error -> as
-    android.widget.TextView info -> at
-    android.widget.TextView deviceid -> au
-    android.widget.LinearLayout advancedsettings -> av
-    android.widget.Button buttonclearsending -> aw
-    android.widget.Button buttondebugprint -> ax
-    android.widget.Button buttondeletedatabase -> ay
-    android.widget.LinearLayout ownaccountkey -> az
-    android.widget.Button create -> aA
-    android.widget.Button login -> aB
-    android.widget.Button updatepwd -> aC
-    android.widget.Button updateuser -> aD
-    android.widget.Button updateavatar -> aE
-    android.widget.EditText phone -> aF
-    android.widget.Button enablesmsoption -> aG
-    android.widget.Button disablesmsoption -> aH
-    android.widget.Button backup -> aI
-    android.widget.Button restore -> aJ
-    android.widget.LinearLayout accountnew -> aK
-    android.widget.LinearLayout accountexisting -> aL
-    android.widget.LinearLayout accountexistinglogindata -> aM
-    android.widget.LinearLayout accountonline -> aN
-    android.widget.LinearLayout accountsection -> aO
-    android.widget.LinearLayout accountheader -> aP
-    android.widget.LinearLayout settingssection -> aQ
-    boolean online -> aR
-    android.widget.CheckBox newaccount -> aS
-    boolean accountType -> aT
-    android.widget.ImageView serverimage -> aU
-    android.widget.CheckBox serverdisabled -> aV
-    android.widget.ImageButton serverbuttonmodify -> aW
-    android.widget.Button serverbuttonadd -> aX
-    android.widget.Button serverbuttondelete -> aY
-    android.widget.Spinner serverspinner -> aZ
-    int selectedServerId -> ba
-    android.widget.LinearLayout userparent -> bb
-    android.widget.LinearLayout smsparent -> bc
-    android.widget.LinearLayout avatarparent -> bd
-    android.widget.LinearLayout passwordparent -> be
-    android.widget.LinearLayout backupparent -> bf
-    android.widget.LinearLayout groupsparent -> bg
-    android.widget.ScrollView mainscrollview -> bh
-    android.widget.LinearLayout mainpanel -> bi
-    int FAKEUIDLEN -> bj
-    int CHUNKLEN -> bk
-    java.util.HashMap cachedServerIdsFromServerAddress -> bl
-    java.util.List cachedServerIds -> bm
-    java.util.List cachedServers -> bn
-    java.util.HashMap cachedServerActive -> bo
-    java.util.HashMap cachedServerAccount -> bp
-    java.util.HashMap cachedSUid -> bq
-    java.util.HashMap cachedServerId -> br
-    java.util.HashMap cachedServerLabel -> bs
+    java.lang.String avatar -> K
+    boolean restartRequiredFlag -> L
+    android.widget.Spinner ignoredspinner -> M
+    android.widget.Spinner groupspinner -> N
+    android.widget.CheckBox active -> O
+    android.widget.CheckBox encryption -> P
+    android.widget.CheckBox notification -> Q
+    android.widget.CheckBox tone -> R
+    android.widget.CheckBox vibrate -> S
+    android.widget.CheckBox ignore -> T
+    android.widget.CheckBox autosave -> U
+    android.widget.CheckBox noread -> V
+    android.widget.CheckBox chatmode -> W
+    android.widget.CheckBox quicktype -> X
+    android.widget.CheckBox smileys -> Y
+    android.widget.CheckBox darkmode -> Z
+    android.widget.CheckBox noscreenshots -> aa
+    android.widget.CheckBox powersave -> ab
+    android.widget.CheckBox receiveallsms -> ac
+    android.widget.ImageView helpactive -> ad
+    android.widget.ImageView helpencryption -> ae
+    android.widget.ImageView helptone -> af
+    android.widget.ImageView helpvibrate -> ag
+    android.widget.ImageView helpnotification -> ah
+    android.widget.ImageView helpignore -> ai
+    android.widget.ImageView helpautosave -> aj
+    android.widget.ImageView helpnoread -> ak
+    android.widget.ImageView helpquicktype -> al
+    android.widget.ImageView helpsmileys -> am
+    android.widget.ImageView helpdarkmode -> an
+    android.widget.ImageView helpchatmode -> ao
+    android.widget.ImageView helpnoscreenshots -> ap
+    android.widget.ImageView helppowersave -> aq
+    android.widget.ImageView helpreceiveallsms -> ar
+    android.widget.EditText uid -> as
+    android.widget.EditText email -> at
+    android.widget.EditText pwd -> au
+    android.widget.EditText usernew -> av
+    android.widget.EditText emailnew -> aw
+    android.widget.EditText pwdnew -> ax
+    android.widget.EditText user -> ay
+    android.widget.EditText pwdchange -> az
+    android.widget.TextView error -> aA
+    android.widget.TextView info -> aB
+    android.widget.TextView deviceid -> aC
+    android.widget.LinearLayout advancedsettings -> aD
+    android.widget.Button buttonclearsending -> aE
+    android.widget.Button buttondebugprint -> aF
+    android.widget.Button buttondeletedatabase -> aG
+    android.widget.LinearLayout ownaccountkey -> aH
+    android.widget.Button create -> aI
+    android.widget.Button login -> aJ
+    android.widget.Button updatepwd -> aK
+    android.widget.Button updateuser -> aL
+    android.widget.Button updateavatar -> aM
+    android.widget.EditText phone -> aN
+    android.widget.Button enablesmsoption -> aO
+    android.widget.Button disablesmsoption -> aP
+    android.widget.Button backup -> aQ
+    android.widget.Button restore -> aR
+    android.widget.LinearLayout accountnew -> aS
+    android.widget.LinearLayout accountexisting -> aT
+    android.widget.LinearLayout accountexistinglogindata -> aU
+    android.widget.LinearLayout accountonline -> aV
+    android.widget.LinearLayout accountsection -> aW
+    android.widget.LinearLayout accountheader -> aX
+    android.widget.LinearLayout settingssection -> aY
+    boolean online -> aZ
+    android.widget.CheckBox newaccount -> ba
+    boolean accountType -> bb
+    android.widget.ImageView serverimage -> bc
+    android.widget.CheckBox serverdisabled -> bd
+    android.widget.ImageButton serverbuttonmodify -> be
+    android.widget.Button serverbuttonadd -> bf
+    android.widget.Button serverbuttondelete -> bg
+    android.widget.Spinner serverspinner -> bh
+    int selectedServerId -> bi
+    android.widget.LinearLayout userparent -> bj
+    android.widget.LinearLayout smsparent -> bk
+    android.widget.LinearLayout avatarparent -> bl
+    android.widget.LinearLayout passwordparent -> bm
+    android.widget.LinearLayout backupparent -> bn
+    android.widget.LinearLayout groupsparent -> bo
+    android.widget.ScrollView mainscrollview -> bp
+    android.widget.LinearLayout mainpanel -> bq
+    int FAKEUIDLEN -> br
+    int CHUNKLEN -> bs
+    java.util.HashMap cachedServerIdsFromServerAddress -> bt
+    java.util.List cachedServerIds -> bu
+    java.util.List cachedServers -> bv
+    java.util.HashMap cachedServerActive -> bw
+    java.util.HashMap cachedServerAccount -> bx
+    java.util.HashMap cachedSUid -> by
+    java.util.HashMap cachedServerId -> bz
+    java.util.HashMap cachedServerLabel -> bA
     java.util.HashMap avatars -> u
-    boolean promptingAutoAdding -> bt
+    boolean promptingAutoAdding -> bB
     java.util.HashMap localGroupId2Name -> v
     java.util.HashMap localGroupId2Secret -> w
     java.util.HashMap LocalGroup2GroupIdCache -> x
     java.util.HashMap LocalGroup2ServerIdCache -> y
     java.util.HashMap LocalGroupSecret2LocalId -> z
-    java.util.HashMap groupSpinnerMappingServer -> bu
-    java.util.HashMap groupSpinnerMappingGroupId -> bv
+    java.util.HashMap groupSpinnerMappingServer -> bC
+    java.util.HashMap groupSpinnerMappingGroupId -> bD
     java.util.HashMap groupSpinnerMappingGroupId2 -> A
+    int TEXTCOLORWHITE -> B
+    int TEXTCOLORWHITEDIMMED -> C
+    int TEXTCOLORWHITEDIMMED2 -> D
+    int TEXTCOLORBLACK -> E
+    int TEXTCOLORBLACKDIMMED -> F
+    int TEXTCOLORBLACKDIMMED2 -> G
     void onCreate(android.os.Bundle) -> onCreate
     void hideServerModifyButtons() -> a
-    void buildServerTabs(android.content.Context) -> A
-    void buildAccountOptionButtons(android.content.Context) -> B
+    void buildServerTabs(android.content.Context) -> J
+    void buildAccountOptionButtons(android.content.Context) -> K
     void linkAccountOptions() -> p
     void updateVisible(int) -> b
-    void scollAfterLogin(android.content.Context) -> C
+    void scollAfterLogin(android.content.Context) -> L
     void makeVisible(android.content.Context,int) -> ae
     void updateServerSpinner(android.content.Context,android.widget.Spinner) -> a
-    void loadSettings(android.content.Context) -> D
+    void loadSettings(android.content.Context) -> M
     void loadServerTab(android.app.Activity,int) -> b
     void onActivityResult(int,int,android.content.Intent) -> onActivityResult
     void updateAvatar(android.content.Context,int,java.lang.String) -> a
-    void updateAvatarView(android.content.Context) -> E
+    void updateAvatarView(android.content.Context) -> N
     void updateServerImage(android.content.Context,boolean,boolean) -> b
     java.lang.String ensureServerURLWithRequestEnding(java.lang.String) -> i
     java.lang.String getBaseURL(android.content.Context,int) -> a
     void setTitle(java.lang.String) -> a
     void updateAccountLocked(android.content.Context,boolean,int) -> f
     void updateTitleIDInfo(android.content.Context) -> a
-    void promptAddServer(android.content.Context) -> F
+    void promptAddServer(android.content.Context) -> O
     void testServerPingBeforeAdd(android.content.Context,java.lang.String) -> d
-    void promptDeleteServer(android.content.Context) -> G
+    void promptDeleteServer(android.content.Context) -> P
     void promptModifyServer(android.content.Context) -> b
     void updatePhoneNumberAndButtonStates(android.content.Context,int) -> af
     boolean isSMSModeOn(android.content.Context,int) -> b
@@ -4932,12 +4938,12 @@ org.cryptsecure.Setup -> org.cryptsecure.Setup:
     boolean isSMSOptionEnabled(android.content.Context,int) -> x
     void askMergeUser(android.content.Context,int,int) -> d
     void promptEnabledEncryption(android.content.Context) -> k
-    void askOnDisableEncryption(android.content.Context) -> H
-    void askOnRefuseReadConfirmation(android.content.Context) -> I
+    void askOnDisableEncryption(android.content.Context) -> Q
+    void askOnRefuseReadConfirmation(android.content.Context) -> R
     boolean noAccountYet(android.content.Context) -> l
     java.lang.String normalizePhone(java.lang.String) -> d
     int getFakeUIDFromPhone(java.lang.String) -> e
-    void promptDisableReceiveAllSms(android.content.Context) -> J
+    void promptDisableReceiveAllSms(android.content.Context) -> S
     boolean isSMSDefaultApp(android.content.Context,boolean) -> d
     void setSMSDefaultApp(android.content.Context,boolean) -> e
     java.lang.String getSessionSecret(android.content.Context,int) -> y
@@ -5037,6 +5043,15 @@ org.cryptsecure.Setup -> org.cryptsecure.Setup:
     void updateGroupSpinner(android.content.Context,android.widget.Spinner) -> d
     void updateGroupSpinner2(android.content.Context,int,android.widget.Spinner) -> a
     void promptQuit(android.app.Activity,int) -> a
+    boolean isDarkmode(android.content.Context) -> z
+    int dolphins1(android.content.Context) -> A
+    int dolphins2(android.content.Context) -> B
+    int dolphins3(android.content.Context) -> C
+    int dolphins3light(android.content.Context) -> D
+    int dolphins4light(android.content.Context) -> E
+    int textcolor(android.content.Context) -> F
+    int textcolordimmed(android.content.Context) -> G
+    int textcolordimmed2(android.content.Context) -> H
     void access$0(org.cryptsecure.Setup,android.content.Context) -> a
     void access$1(org.cryptsecure.Setup,android.content.Context) -> b
     int access$2(org.cryptsecure.Setup) -> a
@@ -5066,48 +5081,49 @@ org.cryptsecure.Setup -> org.cryptsecure.Setup:
     android.widget.CheckBox access$26(org.cryptsecure.Setup) -> n
     android.widget.CheckBox access$27(org.cryptsecure.Setup) -> o
     android.widget.CheckBox access$28(org.cryptsecure.Setup) -> p
-    android.widget.CheckBox access$29(org.cryptsecure.Setup) -> q
-    android.widget.CheckBox access$30(org.cryptsecure.Setup) -> r
-    void access$31(org.cryptsecure.Setup,android.content.Context) -> d
+    void access$29(org.cryptsecure.Setup,boolean) -> a
+    android.widget.CheckBox access$30(org.cryptsecure.Setup) -> q
+    android.widget.CheckBox access$31(org.cryptsecure.Setup) -> r
     android.widget.CheckBox access$32(org.cryptsecure.Setup) -> s
-    void access$33(org.cryptsecure.Setup,android.content.Context) -> e
-    void access$34(org.cryptsecure.Setup,android.content.Context,boolean,int) -> a
-    android.widget.CheckBox access$35(org.cryptsecure.Setup) -> t
-    android.widget.LinearLayout access$36(org.cryptsecure.Setup) -> u
-    android.widget.LinearLayout access$37(org.cryptsecure.Setup) -> v
-    void access$38(org.cryptsecure.Setup,java.lang.String) -> a
-    void access$39(org.cryptsecure.Setup,android.content.Context) -> f
-    java.lang.String access$40(org.cryptsecure.Setup) -> w
-    android.widget.Spinner access$41() -> i
-    java.util.HashMap access$42() -> j
-    java.util.HashMap access$43() -> k
-    android.widget.Button access$44(org.cryptsecure.Setup) -> x
-    void access$45(org.cryptsecure.Setup,android.content.Context,java.lang.String) -> a
-    java.lang.String access$46(java.lang.String) -> h
-    android.widget.ImageButton access$47(org.cryptsecure.Setup) -> y
-    android.widget.Button access$48(org.cryptsecure.Setup) -> z
-    android.widget.Button access$49(org.cryptsecure.Setup) -> A
-    void access$50(org.cryptsecure.Setup,boolean) -> a
-    android.widget.EditText access$51(org.cryptsecure.Setup) -> B
-    android.widget.Button access$52(org.cryptsecure.Setup) -> C
-    android.widget.EditText access$53() -> l
-    android.widget.EditText access$54(org.cryptsecure.Setup) -> D
+    void access$33(org.cryptsecure.Setup,android.content.Context) -> d
+    android.widget.CheckBox access$34(org.cryptsecure.Setup) -> t
+    void access$35(org.cryptsecure.Setup,android.content.Context) -> e
+    void access$36(org.cryptsecure.Setup,android.content.Context,boolean,int) -> a
+    android.widget.CheckBox access$37(org.cryptsecure.Setup) -> u
+    android.widget.LinearLayout access$38(org.cryptsecure.Setup) -> v
+    android.widget.LinearLayout access$39(org.cryptsecure.Setup) -> w
+    void access$40(org.cryptsecure.Setup,java.lang.String) -> a
+    void access$41(org.cryptsecure.Setup,android.content.Context) -> f
+    java.lang.String access$42(org.cryptsecure.Setup) -> x
+    android.widget.Spinner access$43() -> i
+    java.util.HashMap access$44() -> j
+    java.util.HashMap access$45() -> k
+    android.widget.Button access$46(org.cryptsecure.Setup) -> y
+    void access$47(org.cryptsecure.Setup,android.content.Context,java.lang.String) -> a
+    java.lang.String access$48(java.lang.String) -> h
+    android.widget.ImageButton access$49(org.cryptsecure.Setup) -> z
+    android.widget.Button access$50(org.cryptsecure.Setup) -> A
+    android.widget.Button access$51(org.cryptsecure.Setup) -> B
+    android.widget.EditText access$52(org.cryptsecure.Setup) -> C
+    android.widget.Button access$53(org.cryptsecure.Setup) -> D
+    android.widget.EditText access$54() -> l
     android.widget.EditText access$55(org.cryptsecure.Setup) -> E
-    void access$56(int) -> a
-    void access$57(android.content.Context) -> z
-    android.widget.Button access$58(org.cryptsecure.Setup) -> F
+    android.widget.EditText access$56(org.cryptsecure.Setup) -> F
+    void access$57(int) -> a
+    void access$58(android.content.Context) -> I
     android.widget.Button access$59(org.cryptsecure.Setup) -> G
-    android.widget.EditText access$60(org.cryptsecure.Setup) -> H
-    java.util.HashMap access$61() -> m
-    android.widget.Button access$62(org.cryptsecure.Setup) -> I
-    android.widget.EditText access$63(org.cryptsecure.Setup) -> J
+    android.widget.Button access$60(org.cryptsecure.Setup) -> H
+    android.widget.EditText access$61(org.cryptsecure.Setup) -> I
+    java.util.HashMap access$62() -> m
+    android.widget.Button access$63(org.cryptsecure.Setup) -> J
     android.widget.EditText access$64(org.cryptsecure.Setup) -> K
     android.widget.EditText access$65(org.cryptsecure.Setup) -> L
-    android.widget.Button access$66() -> n
-    android.widget.Button access$67(org.cryptsecure.Setup) -> M
-    android.widget.Button access$68() -> o
-    void access$69(android.content.Context,int) -> ad
-    void access$70(boolean) -> b
+    android.widget.EditText access$66(org.cryptsecure.Setup) -> M
+    android.widget.Button access$67() -> n
+    android.widget.Button access$68(org.cryptsecure.Setup) -> N
+    android.widget.Button access$69() -> o
+    void access$70(android.content.Context,int) -> ad
+    void access$71(boolean) -> b
 org.cryptsecure.Setup$1 -> org.cryptsecure.jr:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$context -> b
@@ -5117,440 +5133,455 @@ org.cryptsecure.Setup$10 -> org.cryptsecure.js:
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
 org.cryptsecure.Setup$100 -> org.cryptsecure.jt:
+    org.cryptsecure.Setup this$0 -> a
+    android.content.Context val$context -> b
+    void selected(int,boolean) -> a
+org.cryptsecure.Setup$101 -> org.cryptsecure.ju:
+    org.cryptsecure.Setup this$0 -> a
+    android.content.Context val$context -> b
+    void selected(int,boolean) -> a
+org.cryptsecure.Setup$102 -> org.cryptsecure.jv:
     android.content.Context val$context -> a
     int val$serverId -> b
     void response(java.lang.String) -> a
-org.cryptsecure.Setup$101 -> org.cryptsecure.ju:
+org.cryptsecure.Setup$103 -> org.cryptsecure.jw:
     android.content.Context val$context -> a
     int val$serverId -> b
     boolean val$silent -> c
     java.lang.String val$baseUrl -> d
     void response(java.lang.String) -> a
-org.cryptsecure.Setup$102 -> org.cryptsecure.jv:
-    android.content.Context val$context -> a
-    void selected(int,boolean) -> a
-org.cryptsecure.Setup$103 -> org.cryptsecure.jw:
-    android.content.Context val$context -> a
-    int val$serverId -> b
-    long val$currentTime -> c
-    void response(java.lang.String) -> a
 org.cryptsecure.Setup$104 -> org.cryptsecure.jx:
     android.content.Context val$context -> a
-    int val$uid -> b
     void selected(int,boolean) -> a
 org.cryptsecure.Setup$105 -> org.cryptsecure.jy:
     android.content.Context val$context -> a
     int val$serverId -> b
-    java.lang.String val$groupName -> c
+    long val$currentTime -> c
     void response(java.lang.String) -> a
 org.cryptsecure.Setup$106 -> org.cryptsecure.jz:
+    android.content.Context val$context -> a
+    int val$uid -> b
+    void selected(int,boolean) -> a
+org.cryptsecure.Setup$107 -> org.cryptsecure.ka:
+    android.content.Context val$context -> a
+    int val$serverId -> b
+    java.lang.String val$groupName -> c
+    void response(java.lang.String) -> a
+org.cryptsecure.Setup$108 -> org.cryptsecure.kb:
     android.content.Context val$context -> a
     int val$serverId -> b
     java.lang.String val$groupId -> c
     java.lang.String val$newGroupName -> d
     void response(java.lang.String) -> a
-org.cryptsecure.Setup$107 -> org.cryptsecure.ka:
+org.cryptsecure.Setup$109 -> org.cryptsecure.kc:
     android.content.Context val$context -> a
     int val$serverId -> b
     java.lang.String val$groupId -> c
     java.lang.String val$groupName -> d
-    void response(java.lang.String) -> a
-org.cryptsecure.Setup$108 -> org.cryptsecure.kb:
-    void response(java.lang.String) -> a
-org.cryptsecure.Setup$109 -> org.cryptsecure.kc:
-    android.content.Context val$context -> a
-    int val$serverId -> b
-    java.lang.String val$groupsecret -> c
     void response(java.lang.String) -> a
 org.cryptsecure.Setup$11 -> org.cryptsecure.kd:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
 org.cryptsecure.Setup$110 -> org.cryptsecure.ke:
-    android.content.Context val$context -> a
-    int val$serverId -> b
     void response(java.lang.String) -> a
 org.cryptsecure.Setup$111 -> org.cryptsecure.kf:
     android.content.Context val$context -> a
+    int val$serverId -> b
+    java.lang.String val$groupsecret -> c
+    void response(java.lang.String) -> a
+org.cryptsecure.Setup$112 -> org.cryptsecure.kg:
+    android.content.Context val$context -> a
+    int val$serverId -> b
+    void response(java.lang.String) -> a
+org.cryptsecure.Setup$113 -> org.cryptsecure.kh:
+    android.content.Context val$context -> a
     android.widget.Spinner val$spinner -> b
     void run() -> run
-org.cryptsecure.Setup$112 -> org.cryptsecure.kg:
+org.cryptsecure.Setup$114 -> org.cryptsecure.ki:
     android.app.Activity val$activity -> a
     int val$localGroupId -> b
     void selected(int,boolean) -> a
-org.cryptsecure.Setup$12 -> org.cryptsecure.kh:
+org.cryptsecure.Setup$12 -> org.cryptsecure.kj:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$12$1 -> org.cryptsecure.ki:
+org.cryptsecure.Setup$12$1 -> org.cryptsecure.kk:
     org.cryptsecure.Setup$12 this$1 -> a
     android.app.Activity val$context -> b
     void selected(org.cryptsecure.MessageInputDialog,int,boolean,java.lang.String) -> a
-org.cryptsecure.Setup$13 -> org.cryptsecure.kj:
+org.cryptsecure.Setup$13 -> org.cryptsecure.kl:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$13$1 -> org.cryptsecure.kk:
+org.cryptsecure.Setup$13$1 -> org.cryptsecure.km:
     org.cryptsecure.Setup$13 this$1 -> a
     void run() -> run
-org.cryptsecure.Setup$14 -> org.cryptsecure.kl:
+org.cryptsecure.Setup$14 -> org.cryptsecure.kn:
     org.cryptsecure.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$15 -> org.cryptsecure.km:
-    org.cryptsecure.Setup this$0 -> a
-    android.content.Context val$context -> b
-    void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$16 -> org.cryptsecure.kn:
+org.cryptsecure.Setup$15 -> org.cryptsecure.ko:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$17 -> org.cryptsecure.ko:
+org.cryptsecure.Setup$16 -> org.cryptsecure.kp:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$18 -> org.cryptsecure.kp:
+org.cryptsecure.Setup$17 -> org.cryptsecure.kq:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$19 -> org.cryptsecure.kq:
+org.cryptsecure.Setup$18 -> org.cryptsecure.kr:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$2 -> org.cryptsecure.kr:
-    org.cryptsecure.Setup this$0 -> a
-    void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$20 -> org.cryptsecure.ks:
+org.cryptsecure.Setup$19 -> org.cryptsecure.ks:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$21 -> org.cryptsecure.kt:
+org.cryptsecure.Setup$2 -> org.cryptsecure.kt:
+    org.cryptsecure.Setup this$0 -> a
+    void onClick(android.view.View) -> onClick
+org.cryptsecure.Setup$20 -> org.cryptsecure.ku:
+    org.cryptsecure.Setup this$0 -> a
+    android.content.Context val$context -> b
+    void onClick(android.view.View) -> onClick
+org.cryptsecure.Setup$21 -> org.cryptsecure.kv:
     void run() -> run
-org.cryptsecure.Setup$22 -> org.cryptsecure.ku:
+org.cryptsecure.Setup$22 -> org.cryptsecure.kw:
     void run() -> run
-org.cryptsecure.Setup$23 -> org.cryptsecure.kv:
+org.cryptsecure.Setup$23 -> org.cryptsecure.kx:
     void run() -> run
-org.cryptsecure.Setup$24 -> org.cryptsecure.kw:
+org.cryptsecure.Setup$24 -> org.cryptsecure.ky:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$25 -> org.cryptsecure.kx:
+org.cryptsecure.Setup$25 -> org.cryptsecure.kz:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$26 -> org.cryptsecure.ky:
+org.cryptsecure.Setup$26 -> org.cryptsecure.la:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$27 -> org.cryptsecure.kz:
+org.cryptsecure.Setup$27 -> org.cryptsecure.lb:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$28 -> org.cryptsecure.la:
+org.cryptsecure.Setup$28 -> org.cryptsecure.lc:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$29 -> org.cryptsecure.lb:
+org.cryptsecure.Setup$29 -> org.cryptsecure.ld:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$3 -> org.cryptsecure.lc:
+org.cryptsecure.Setup$3 -> org.cryptsecure.le:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$30 -> org.cryptsecure.ld:
+org.cryptsecure.Setup$30 -> org.cryptsecure.lf:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$31 -> org.cryptsecure.le:
+org.cryptsecure.Setup$31 -> org.cryptsecure.lg:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$32 -> org.cryptsecure.lf:
+org.cryptsecure.Setup$32 -> org.cryptsecure.lh:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$33 -> org.cryptsecure.lg:
+org.cryptsecure.Setup$33 -> org.cryptsecure.li:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$34 -> org.cryptsecure.lh:
+org.cryptsecure.Setup$34 -> org.cryptsecure.lj:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$35 -> org.cryptsecure.li:
+org.cryptsecure.Setup$35 -> org.cryptsecure.lk:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$36 -> org.cryptsecure.lj:
+org.cryptsecure.Setup$36 -> org.cryptsecure.ll:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$37 -> org.cryptsecure.lk:
+org.cryptsecure.Setup$37 -> org.cryptsecure.lm:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$38 -> org.cryptsecure.ll:
+org.cryptsecure.Setup$38 -> org.cryptsecure.ln:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$39 -> org.cryptsecure.lm:
+org.cryptsecure.Setup$39 -> org.cryptsecure.lo:
     org.cryptsecure.Setup this$0 -> a
+    android.content.Context val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$4 -> org.cryptsecure.ln:
+org.cryptsecure.Setup$4 -> org.cryptsecure.lp:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$context -> b
     boolean onLongClick(android.view.View) -> onLongClick
-org.cryptsecure.Setup$40 -> org.cryptsecure.lo:
+org.cryptsecure.Setup$40 -> org.cryptsecure.lq:
     org.cryptsecure.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$41 -> org.cryptsecure.lp:
+org.cryptsecure.Setup$41 -> org.cryptsecure.lr:
     org.cryptsecure.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$42 -> org.cryptsecure.lq:
+org.cryptsecure.Setup$42 -> org.cryptsecure.ls:
     org.cryptsecure.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$43 -> org.cryptsecure.lr:
+org.cryptsecure.Setup$43 -> org.cryptsecure.lt:
     org.cryptsecure.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$44 -> org.cryptsecure.ls:
+org.cryptsecure.Setup$44 -> org.cryptsecure.lu:
     org.cryptsecure.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$45 -> org.cryptsecure.lt:
+org.cryptsecure.Setup$45 -> org.cryptsecure.lv:
     org.cryptsecure.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$46 -> org.cryptsecure.lu:
+org.cryptsecure.Setup$46 -> org.cryptsecure.lw:
     org.cryptsecure.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$47 -> org.cryptsecure.lv:
+org.cryptsecure.Setup$47 -> org.cryptsecure.lx:
     org.cryptsecure.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$48 -> org.cryptsecure.lw:
+org.cryptsecure.Setup$48 -> org.cryptsecure.ly:
     org.cryptsecure.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$49 -> org.cryptsecure.lx:
+org.cryptsecure.Setup$49 -> org.cryptsecure.lz:
     org.cryptsecure.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$5 -> org.cryptsecure.ly:
+org.cryptsecure.Setup$5 -> org.cryptsecure.ma:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$50 -> org.cryptsecure.lz:
+org.cryptsecure.Setup$50 -> org.cryptsecure.mb:
     org.cryptsecure.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$51 -> org.cryptsecure.ma:
+org.cryptsecure.Setup$51 -> org.cryptsecure.mc:
     org.cryptsecure.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$52 -> org.cryptsecure.mb:
+org.cryptsecure.Setup$52 -> org.cryptsecure.md:
     org.cryptsecure.Setup this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$53 -> org.cryptsecure.mc:
+org.cryptsecure.Setup$53 -> org.cryptsecure.me:
     org.cryptsecure.Setup this$0 -> a
-    android.app.Activity val$activity -> b
-    int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$54 -> org.cryptsecure.md:
+org.cryptsecure.Setup$54 -> org.cryptsecure.mf:
     org.cryptsecure.Setup this$0 -> a
-    android.app.Activity val$activity -> b
-    int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$55 -> org.cryptsecure.me:
+org.cryptsecure.Setup$55 -> org.cryptsecure.mg:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$activity -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$56 -> org.cryptsecure.mf:
+org.cryptsecure.Setup$56 -> org.cryptsecure.mh:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$activity -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$57 -> org.cryptsecure.mg:
+org.cryptsecure.Setup$57 -> org.cryptsecure.mi:
+    org.cryptsecure.Setup this$0 -> a
+    android.app.Activity val$activity -> b
+    int val$serverId -> c
+    void onClick(android.view.View) -> onClick
+org.cryptsecure.Setup$58 -> org.cryptsecure.mj:
+    org.cryptsecure.Setup this$0 -> a
+    android.app.Activity val$activity -> b
+    int val$serverId -> c
+    void onClick(android.view.View) -> onClick
+org.cryptsecure.Setup$59 -> org.cryptsecure.mk:
     org.cryptsecure.Setup this$0 -> a
     void onCheckedChanged(android.widget.CompoundButton,boolean) -> onCheckedChanged
-org.cryptsecure.Setup$58 -> org.cryptsecure.mh:
-    org.cryptsecure.Setup this$0 -> a
-    android.app.Activity val$activity -> b
-    int val$serverId -> c
-    void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$59 -> org.cryptsecure.mi:
-    org.cryptsecure.Setup this$0 -> a
-    android.app.Activity val$activity -> b
-    int val$serverId -> c
-    void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$6 -> org.cryptsecure.mj:
+org.cryptsecure.Setup$6 -> org.cryptsecure.ml:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$60 -> org.cryptsecure.mk:
+org.cryptsecure.Setup$60 -> org.cryptsecure.mm:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$activity -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$61 -> org.cryptsecure.ml:
+org.cryptsecure.Setup$61 -> org.cryptsecure.mn:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$activity -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$62 -> org.cryptsecure.mm:
+org.cryptsecure.Setup$62 -> org.cryptsecure.mo:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$activity -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$63 -> org.cryptsecure.mn:
+org.cryptsecure.Setup$63 -> org.cryptsecure.mp:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$activity -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$64 -> org.cryptsecure.mo:
+org.cryptsecure.Setup$64 -> org.cryptsecure.mq:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$activity -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$65 -> org.cryptsecure.mp:
+org.cryptsecure.Setup$65 -> org.cryptsecure.mr:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$activity -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$66 -> org.cryptsecure.mq:
-    org.cryptsecure.Setup this$0 -> a
-    android.app.Activity val$activity -> b
-    void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$67 -> org.cryptsecure.mr:
-    org.cryptsecure.Setup this$0 -> a
-    android.app.Activity val$activity -> b
-    void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$68 -> org.cryptsecure.ms:
-    org.cryptsecure.Setup this$0 -> a
-    android.app.Activity val$activity -> b
-    void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$69 -> org.cryptsecure.mt:
+org.cryptsecure.Setup$66 -> org.cryptsecure.ms:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$activity -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
-    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$69) -> a
-org.cryptsecure.Setup$69$1 -> org.cryptsecure.mu:
-    org.cryptsecure.Setup$69 this$1 -> a
+org.cryptsecure.Setup$67 -> org.cryptsecure.mt:
+    org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$activity -> b
     int val$serverId -> c
-    void selected(int,boolean) -> a
-org.cryptsecure.Setup$7 -> org.cryptsecure.mv:
+    void onClick(android.view.View) -> onClick
+org.cryptsecure.Setup$68 -> org.cryptsecure.mu:
+    org.cryptsecure.Setup this$0 -> a
+    android.app.Activity val$activity -> b
+    void onClick(android.view.View) -> onClick
+org.cryptsecure.Setup$69 -> org.cryptsecure.mv:
+    org.cryptsecure.Setup this$0 -> a
+    android.app.Activity val$activity -> b
+    void onClick(android.view.View) -> onClick
+org.cryptsecure.Setup$7 -> org.cryptsecure.mw:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$context -> b
     boolean onLongClick(android.view.View) -> onLongClick
-org.cryptsecure.Setup$70 -> org.cryptsecure.mw:
+org.cryptsecure.Setup$70 -> org.cryptsecure.mx:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$activity -> b
-    int val$serverId -> c
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$70$1 -> org.cryptsecure.mx:
-    org.cryptsecure.Setup$70 this$1 -> a
-    android.app.Activity val$activity -> b
-    int val$serverId -> c
-    void selected(org.cryptsecure.MessageInputDialog,int,boolean,java.lang.String) -> a
 org.cryptsecure.Setup$71 -> org.cryptsecure.my:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$activity -> b
     int val$serverId -> c
     void onClick(android.view.View) -> onClick
+    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$71) -> a
 org.cryptsecure.Setup$71$1 -> org.cryptsecure.mz:
     org.cryptsecure.Setup$71 this$1 -> a
+    android.app.Activity val$activity -> b
+    int val$serverId -> c
+    void selected(int,boolean) -> a
+org.cryptsecure.Setup$72 -> org.cryptsecure.na:
+    org.cryptsecure.Setup this$0 -> a
+    android.app.Activity val$activity -> b
+    int val$serverId -> c
+    void onClick(android.view.View) -> onClick
+org.cryptsecure.Setup$72$1 -> org.cryptsecure.nb:
+    org.cryptsecure.Setup$72 this$1 -> a
+    android.app.Activity val$activity -> b
+    int val$serverId -> c
+    void selected(org.cryptsecure.MessageInputDialog,int,boolean,java.lang.String) -> a
+org.cryptsecure.Setup$73 -> org.cryptsecure.nc:
+    org.cryptsecure.Setup this$0 -> a
+    android.app.Activity val$activity -> b
+    int val$serverId -> c
+    void onClick(android.view.View) -> onClick
+org.cryptsecure.Setup$73$1 -> org.cryptsecure.nd:
+    org.cryptsecure.Setup$73 this$1 -> a
     java.lang.String val$oldName -> b
     android.app.Activity val$activity -> c
     int val$groupServerId -> d
     java.lang.String val$groupId -> e
     void selected(org.cryptsecure.MessageInputDialog,int,boolean,java.lang.String) -> a
-org.cryptsecure.Setup$72 -> org.cryptsecure.na:
+org.cryptsecure.Setup$74 -> org.cryptsecure.ne:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$activity -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$73 -> org.cryptsecure.nb:
+org.cryptsecure.Setup$75 -> org.cryptsecure.nf:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     java.lang.String val$avatar -> d
     void response(java.lang.String) -> a
-    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$73) -> a
-org.cryptsecure.Setup$73$1 -> org.cryptsecure.nc:
-    org.cryptsecure.Setup$73 this$1 -> a
+    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$75) -> a
+org.cryptsecure.Setup$75$1 -> org.cryptsecure.ng:
+    org.cryptsecure.Setup$75 this$1 -> a
     java.lang.String val$response2 -> b
     android.content.Context val$context -> c
     int val$serverId -> d
     void run() -> run
-org.cryptsecure.Setup$73$2 -> org.cryptsecure.nd:
-    org.cryptsecure.Setup$73 this$1 -> a
+org.cryptsecure.Setup$75$2 -> org.cryptsecure.nh:
+    org.cryptsecure.Setup$75 this$1 -> a
     void run() -> run
-org.cryptsecure.Setup$74 -> org.cryptsecure.ne:
+org.cryptsecure.Setup$76 -> org.cryptsecure.ni:
     org.cryptsecure.Setup this$0 -> a
     boolean onKey(android.view.View,int,android.view.KeyEvent) -> onKey
-org.cryptsecure.Setup$75 -> org.cryptsecure.nf:
+org.cryptsecure.Setup$77 -> org.cryptsecure.nj:
     org.cryptsecure.Setup this$0 -> a
     boolean onKey(android.view.View,int,android.view.KeyEvent) -> onKey
-org.cryptsecure.Setup$76 -> org.cryptsecure.ng:
+org.cryptsecure.Setup$78 -> org.cryptsecure.nk:
     org.cryptsecure.Setup this$0 -> a
     boolean onKey(android.view.View,int,android.view.KeyEvent) -> onKey
-org.cryptsecure.Setup$77 -> org.cryptsecure.nh:
+org.cryptsecure.Setup$79 -> org.cryptsecure.nl:
     org.cryptsecure.Setup this$0 -> a
     boolean onKey(android.view.View,int,android.view.KeyEvent) -> onKey
-org.cryptsecure.Setup$78 -> org.cryptsecure.ni:
-    org.cryptsecure.Setup this$0 -> a
-    boolean onKey(android.view.View,int,android.view.KeyEvent) -> onKey
-org.cryptsecure.Setup$79 -> org.cryptsecure.nj:
-    org.cryptsecure.Setup this$0 -> a
-    boolean onKey(android.view.View,int,android.view.KeyEvent) -> onKey
-org.cryptsecure.Setup$8 -> org.cryptsecure.nk:
+org.cryptsecure.Setup$8 -> org.cryptsecure.nm:
     org.cryptsecure.Setup this$0 -> a
     android.app.Activity val$context -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.Setup$80 -> org.cryptsecure.nl:
+org.cryptsecure.Setup$80 -> org.cryptsecure.nn:
+    org.cryptsecure.Setup this$0 -> a
+    boolean onKey(android.view.View,int,android.view.KeyEvent) -> onKey
+org.cryptsecure.Setup$81 -> org.cryptsecure.no:
+    org.cryptsecure.Setup this$0 -> a
+    boolean onKey(android.view.View,int,android.view.KeyEvent) -> onKey
+org.cryptsecure.Setup$82 -> org.cryptsecure.np:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void selected(org.cryptsecure.MessageInputDialog,int,boolean,java.lang.String) -> a
-org.cryptsecure.Setup$81 -> org.cryptsecure.nm:
+org.cryptsecure.Setup$83 -> org.cryptsecure.nq:
     org.cryptsecure.Setup this$0 -> a
     java.lang.String val$randomPingToPong -> b
     java.lang.String val$serverUrlToAdd -> c
     android.content.Context val$context -> d
     java.lang.String val$url2 -> e
     void response(java.lang.String) -> a
-    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$81) -> a
-org.cryptsecure.Setup$81$1 -> org.cryptsecure.nn:
-    org.cryptsecure.Setup$81 this$1 -> a
+    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$83) -> a
+org.cryptsecure.Setup$83$1 -> org.cryptsecure.nr:
+    org.cryptsecure.Setup$83 this$1 -> a
     java.lang.String val$randomPingToPong -> b
     android.content.Context val$context -> c
     java.lang.String val$serverUrlToAdd -> d
     void response(java.lang.String) -> a
-    org.cryptsecure.Setup$81 access$0(org.cryptsecure.Setup$81$1) -> a
-org.cryptsecure.Setup$81$1$1 -> org.cryptsecure.no:
-    org.cryptsecure.Setup$81$1 this$2 -> a
+    org.cryptsecure.Setup$83 access$0(org.cryptsecure.Setup$83$1) -> a
+org.cryptsecure.Setup$83$1$1 -> org.cryptsecure.ns:
+    org.cryptsecure.Setup$83$1 this$2 -> a
     android.content.Context val$context -> b
     java.lang.String val$serverUrlToAdd -> c
     void run() -> run
-org.cryptsecure.Setup$81$1$2 -> org.cryptsecure.np:
-    org.cryptsecure.Setup$81$1 this$2 -> a
+org.cryptsecure.Setup$83$1$2 -> org.cryptsecure.nt:
+    org.cryptsecure.Setup$83$1 this$2 -> a
     android.content.Context val$context -> b
     java.lang.String val$serverUrlToAdd -> c
     void run() -> run
-org.cryptsecure.Setup$81$2 -> org.cryptsecure.nq:
-    org.cryptsecure.Setup$81 this$1 -> a
+org.cryptsecure.Setup$83$2 -> org.cryptsecure.nu:
+    org.cryptsecure.Setup$83 this$1 -> a
     android.content.Context val$context -> b
     java.lang.String val$serverUrlToAdd -> c
     void run() -> run
-org.cryptsecure.Setup$82 -> org.cryptsecure.nr:
+org.cryptsecure.Setup$84 -> org.cryptsecure.nv:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void selected(int,boolean) -> a
-org.cryptsecure.Setup$83 -> org.cryptsecure.ns:
+org.cryptsecure.Setup$85 -> org.cryptsecure.nw:
     org.cryptsecure.Setup this$0 -> a
     void selected(int,boolean) -> a
-org.cryptsecure.Setup$84 -> org.cryptsecure.nt:
+org.cryptsecure.Setup$86 -> org.cryptsecure.nx:
     android.content.Context val$context -> a
     java.lang.String val$message -> b
     boolean val$isError -> c
     void run() -> run
-org.cryptsecure.Setup$85 -> org.cryptsecure.nu:
+org.cryptsecure.Setup$87 -> org.cryptsecure.ny:
     android.content.Context val$context -> a
     void run() -> run
-org.cryptsecure.Setup$86 -> org.cryptsecure.nv:
+org.cryptsecure.Setup$88 -> org.cryptsecure.nz:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
@@ -5559,9 +5590,9 @@ org.cryptsecure.Setup$86 -> org.cryptsecure.nv:
     java.lang.String val$reactivateurl2 -> f
     java.lang.String val$reseturl2 -> g
     void response(java.lang.String) -> a
-    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$86) -> a
-org.cryptsecure.Setup$86$1 -> org.cryptsecure.nw:
-    org.cryptsecure.Setup$86 this$1 -> a
+    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$88) -> a
+org.cryptsecure.Setup$88$1 -> org.cryptsecure.oa:
+    org.cryptsecure.Setup$88 this$1 -> a
     boolean val$positiveResponse -> b
     java.lang.String val$email2 -> c
     java.lang.String val$uid2 -> d
@@ -5573,142 +5604,134 @@ org.cryptsecure.Setup$86$1 -> org.cryptsecure.nw:
     java.lang.String val$reactivateurl2 -> j
     java.lang.String val$reseturl2 -> k
     void run() -> run
-org.cryptsecure.Setup$86$2 -> org.cryptsecure.nx:
-    org.cryptsecure.Setup$86 this$1 -> a
+org.cryptsecure.Setup$88$2 -> org.cryptsecure.ob:
+    org.cryptsecure.Setup$88 this$1 -> a
     void run() -> run
-org.cryptsecure.Setup$87 -> org.cryptsecure.ny:
+org.cryptsecure.Setup$89 -> org.cryptsecure.oc:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     java.lang.String val$usernameString -> d
     void response(java.lang.String) -> a
-    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$87) -> a
-org.cryptsecure.Setup$87$1 -> org.cryptsecure.nz:
-    org.cryptsecure.Setup$87 this$1 -> a
+    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$89) -> a
+org.cryptsecure.Setup$89$1 -> org.cryptsecure.od:
+    org.cryptsecure.Setup$89 this$1 -> a
     java.lang.String val$response2 -> b
     void run() -> run
-org.cryptsecure.Setup$87$2 -> org.cryptsecure.oa:
-    org.cryptsecure.Setup$87 this$1 -> a
+org.cryptsecure.Setup$89$2 -> org.cryptsecure.oe:
+    org.cryptsecure.Setup$89 this$1 -> a
     void run() -> run
-org.cryptsecure.Setup$88 -> org.cryptsecure.ob:
+org.cryptsecure.Setup$9 -> org.cryptsecure.of:
+    org.cryptsecure.Setup this$0 -> a
+    android.app.Activity val$context -> b
+    void onItemSelected(android.widget.AdapterView,android.view.View,int,long) -> onItemSelected
+    void onNothingSelected(android.widget.AdapterView) -> onNothingSelected
+org.cryptsecure.Setup$90 -> org.cryptsecure.og:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     java.lang.String val$usernameString -> d
     java.lang.String val$pwdChangeString -> e
     void response(java.lang.String) -> a
-    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$88) -> a
-org.cryptsecure.Setup$88$1 -> org.cryptsecure.oc:
-    org.cryptsecure.Setup$88 this$1 -> a
+    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$90) -> a
+org.cryptsecure.Setup$90$1 -> org.cryptsecure.oh:
+    org.cryptsecure.Setup$90 this$1 -> a
     java.lang.String val$response2 -> b
     android.content.Context val$context -> c
     int val$serverId -> d
     java.lang.String val$pwdChangeString -> e
     void run() -> run
-org.cryptsecure.Setup$88$2 -> org.cryptsecure.od:
-    org.cryptsecure.Setup$88 this$1 -> a
+org.cryptsecure.Setup$90$2 -> org.cryptsecure.oi:
+    org.cryptsecure.Setup$90 this$1 -> a
     void run() -> run
-org.cryptsecure.Setup$89 -> org.cryptsecure.oe:
+org.cryptsecure.Setup$91 -> org.cryptsecure.oj:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     java.lang.String val$reseturl2 -> d
     void response(java.lang.String) -> a
-    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$89) -> a
-org.cryptsecure.Setup$89$1 -> org.cryptsecure.of:
-    org.cryptsecure.Setup$89 this$1 -> a
+    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$91) -> a
+org.cryptsecure.Setup$91$1 -> org.cryptsecure.ok:
+    org.cryptsecure.Setup$91 this$1 -> a
     java.lang.String val$response2 -> b
     java.lang.String val$newUID -> c
     android.content.Context val$context -> d
     int val$serverId -> e
     java.lang.String val$reseturl2 -> f
     void run() -> run
-org.cryptsecure.Setup$89$2 -> org.cryptsecure.og:
-    org.cryptsecure.Setup$89 this$1 -> a
+org.cryptsecure.Setup$91$2 -> org.cryptsecure.ol:
+    org.cryptsecure.Setup$91 this$1 -> a
     void run() -> run
-org.cryptsecure.Setup$9 -> org.cryptsecure.oh:
-    org.cryptsecure.Setup this$0 -> a
-    android.app.Activity val$context -> b
-    void onItemSelected(android.widget.AdapterView,android.view.View,int,long) -> onItemSelected
-    void onNothingSelected(android.widget.AdapterView) -> onNothingSelected
-org.cryptsecure.Setup$90 -> org.cryptsecure.oi:
+org.cryptsecure.Setup$92 -> org.cryptsecure.om:
     android.content.Context val$context -> a
     int val$serverId -> b
     void response(java.lang.String) -> a
-org.cryptsecure.Setup$91 -> org.cryptsecure.oj:
+org.cryptsecure.Setup$93 -> org.cryptsecure.on:
     boolean val$manual -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     boolean val$silent -> d
     void response(java.lang.String) -> a
-org.cryptsecure.Setup$91$1 -> org.cryptsecure.ok:
-    org.cryptsecure.Setup$91 this$1 -> a
+org.cryptsecure.Setup$93$1 -> org.cryptsecure.oo:
+    org.cryptsecure.Setup$93 this$1 -> a
     java.lang.String val$response2 -> b
     boolean val$manual -> c
     android.content.Context val$context -> d
     int val$serverId -> e
     boolean val$silent -> f
     void run() -> run
-org.cryptsecure.Setup$91$2 -> org.cryptsecure.ol:
-    org.cryptsecure.Setup$91 this$1 -> a
+org.cryptsecure.Setup$93$2 -> org.cryptsecure.op:
+    org.cryptsecure.Setup$93 this$1 -> a
     boolean val$silent -> b
     android.content.Context val$context -> c
     void run() -> run
-org.cryptsecure.Setup$92 -> org.cryptsecure.om:
+org.cryptsecure.Setup$94 -> org.cryptsecure.oq:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     void response(java.lang.String) -> a
-    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$92) -> a
-org.cryptsecure.Setup$92$1 -> org.cryptsecure.on:
-    org.cryptsecure.Setup$92 this$1 -> a
+    org.cryptsecure.Setup access$0(org.cryptsecure.Setup$94) -> a
+org.cryptsecure.Setup$94$1 -> org.cryptsecure.or:
+    org.cryptsecure.Setup$94 this$1 -> a
     java.lang.String val$response2 -> b
     android.content.Context val$context -> c
     int val$serverId -> d
     void run() -> run
-org.cryptsecure.Setup$92$2 -> org.cryptsecure.oo:
-    org.cryptsecure.Setup$92 this$1 -> a
+org.cryptsecure.Setup$94$2 -> org.cryptsecure.os:
+    org.cryptsecure.Setup$94 this$1 -> a
     void run() -> run
-org.cryptsecure.Setup$93 -> org.cryptsecure.op:
+org.cryptsecure.Setup$95 -> org.cryptsecure.ot:
     boolean val$enable -> a
     android.content.Context val$context -> b
     int val$serverId -> c
     java.lang.String val$phoneString2 -> d
     void response(java.lang.String) -> a
-org.cryptsecure.Setup$93$1 -> org.cryptsecure.oq:
-    org.cryptsecure.Setup$93 this$1 -> a
+org.cryptsecure.Setup$95$1 -> org.cryptsecure.ou:
+    org.cryptsecure.Setup$95 this$1 -> a
     java.lang.String val$response2 -> b
     boolean val$enable -> c
     android.content.Context val$context -> d
     int val$serverId -> e
     java.lang.String val$phoneString2 -> f
     void run() -> run
-org.cryptsecure.Setup$93$2 -> org.cryptsecure.or:
-    org.cryptsecure.Setup$93 this$1 -> a
+org.cryptsecure.Setup$95$2 -> org.cryptsecure.ov:
+    org.cryptsecure.Setup$95 this$1 -> a
     void run() -> run
-org.cryptsecure.Setup$94 -> org.cryptsecure.os:
+org.cryptsecure.Setup$96 -> org.cryptsecure.ow:
     android.content.Context val$context -> a
     int val$smsuserAsFallback -> b
     int val$registeredDefault -> c
     void selected(int,boolean) -> a
-org.cryptsecure.Setup$95 -> org.cryptsecure.ot:
+org.cryptsecure.Setup$97 -> org.cryptsecure.ox:
     void selected(int,boolean) -> a
-org.cryptsecure.Setup$96 -> org.cryptsecure.ou:
+org.cryptsecure.Setup$98 -> org.cryptsecure.oy:
     android.content.Context val$context -> a
     android.view.View provide(org.cryptsecure.MessageAlertDialog) -> a
-org.cryptsecure.Setup$97 -> org.cryptsecure.ov:
+org.cryptsecure.Setup$99 -> org.cryptsecure.oz:
     org.cryptsecure.Setup this$0 -> a
     android.content.Context val$context -> b
     void selected(int,boolean) -> a
-org.cryptsecure.Setup$98 -> org.cryptsecure.ow:
-    org.cryptsecure.Setup this$0 -> a
-    android.content.Context val$context -> b
-    void selected(int,boolean) -> a
-org.cryptsecure.Setup$99 -> org.cryptsecure.ox:
-    org.cryptsecure.Setup this$0 -> a
-    android.content.Context val$context -> b
-    void selected(int,boolean) -> a
-org.cryptsecure.SmileyPrompt -> org.cryptsecure.oy:
+org.cryptsecure.SmileyPrompt -> org.cryptsecure.pa:
     int MAXSMILEYCOLUMNSLANDSCAPE -> a
     int MAXSMILEYCOLUMNSPORTRAIT -> b
     org.cryptsecure.SmileyPrompt$OnSmileySelectedListener onSmileySelectedListener -> c
@@ -5716,23 +5739,23 @@ org.cryptsecure.SmileyPrompt -> org.cryptsecure.oy:
     void promptSmileys(android.content.Context) -> a
     android.widget.LinearLayout buildSmileyTable(android.content.Context,android.app.Dialog) -> a
     android.widget.LinearLayout access$0(org.cryptsecure.SmileyPrompt,android.content.Context,android.app.Dialog) -> a
-org.cryptsecure.SmileyPrompt$1 -> org.cryptsecure.oz:
+org.cryptsecure.SmileyPrompt$1 -> org.cryptsecure.pb:
     org.cryptsecure.SmileyPrompt this$0 -> a
     void selected(int,boolean) -> a
-org.cryptsecure.SmileyPrompt$2 -> org.cryptsecure.pa:
+org.cryptsecure.SmileyPrompt$2 -> org.cryptsecure.pc:
     org.cryptsecure.SmileyPrompt this$0 -> a
     android.content.Context val$context -> b
     android.view.View provide(org.cryptsecure.MessageAlertDialog) -> a
-org.cryptsecure.SmileyPrompt$3 -> org.cryptsecure.pb:
+org.cryptsecure.SmileyPrompt$3 -> org.cryptsecure.pd:
     org.cryptsecure.SmileyPrompt this$0 -> a
     int val$orderNumber -> b
     android.app.Dialog val$dialog -> c
     void onClick(android.view.View) -> onClick
-org.cryptsecure.SmileyPrompt$OnSmileySelectedListener -> org.cryptsecure.pc:
+org.cryptsecure.SmileyPrompt$OnSmileySelectedListener -> org.cryptsecure.pe:
     void onSelect(java.lang.String) -> a
 org.cryptsecure.TransitActivity -> org.cryptsecure.TransitActivity:
     void onCreate(android.os.Bundle) -> onCreate
-org.cryptsecure.UidListItem -> org.cryptsecure.pd:
+org.cryptsecure.UidListItem -> org.cryptsecure.pf:
     int uid -> a
     java.lang.String name -> b
     boolean isGroup -> c
@@ -5772,81 +5795,81 @@ org.cryptsecure.UserDetailsActivity -> org.cryptsecure.UserDetailsActivity:
     void access$1(org.cryptsecure.UserDetailsActivity) -> b
     void access$2(org.cryptsecure.UserDetailsActivity,android.content.Context) -> a
     void access$3(org.cryptsecure.UserDetailsActivity,android.content.Context) -> b
-org.cryptsecure.UserDetailsActivity$1 -> org.cryptsecure.pe:
+org.cryptsecure.UserDetailsActivity$1 -> org.cryptsecure.pg:
     org.cryptsecure.UserDetailsActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.UserDetailsActivity$10 -> org.cryptsecure.pf:
+org.cryptsecure.UserDetailsActivity$10 -> org.cryptsecure.ph:
     org.cryptsecure.UserDetailsActivity this$0 -> a
     void onUpdate(java.lang.String) -> a
     org.cryptsecure.UserDetailsActivity access$0(org.cryptsecure.UserDetailsActivity$10) -> a
-org.cryptsecure.UserDetailsActivity$10$1 -> org.cryptsecure.pg:
+org.cryptsecure.UserDetailsActivity$10$1 -> org.cryptsecure.pi:
     org.cryptsecure.UserDetailsActivity$10 this$1 -> a
     void run() -> run
-org.cryptsecure.UserDetailsActivity$11 -> org.cryptsecure.ph:
+org.cryptsecure.UserDetailsActivity$11 -> org.cryptsecure.pj:
     org.cryptsecure.UserDetailsActivity this$0 -> a
     void selected(int,boolean) -> a
-org.cryptsecure.UserDetailsActivity$12 -> org.cryptsecure.pi:
+org.cryptsecure.UserDetailsActivity$12 -> org.cryptsecure.pk:
     org.cryptsecure.UserDetailsActivity this$0 -> a
     android.app.Activity val$activity -> b
     android.view.View provide(org.cryptsecure.MessageAlertDialog) -> a
     org.cryptsecure.UserDetailsActivity access$0(org.cryptsecure.UserDetailsActivity$12) -> a
-org.cryptsecure.UserDetailsActivity$12$1 -> org.cryptsecure.pj:
+org.cryptsecure.UserDetailsActivity$12$1 -> org.cryptsecure.pl:
     org.cryptsecure.UserDetailsActivity$12 this$1 -> a
     android.app.Activity val$activity -> b
     org.cryptsecure.MessageAlertDialog val$dialog -> c
     void onClick(android.view.View) -> onClick
-org.cryptsecure.UserDetailsActivity$12$2 -> org.cryptsecure.pk:
+org.cryptsecure.UserDetailsActivity$12$2 -> org.cryptsecure.pm:
     org.cryptsecure.UserDetailsActivity$12 this$1 -> a
     android.app.Activity val$activity -> b
     org.cryptsecure.MessageAlertDialog val$dialog -> c
     void onClick(android.view.View) -> onClick
-org.cryptsecure.UserDetailsActivity$12$3 -> org.cryptsecure.pl:
+org.cryptsecure.UserDetailsActivity$12$3 -> org.cryptsecure.pn:
     org.cryptsecure.UserDetailsActivity$12 this$1 -> a
     org.cryptsecure.MessageAlertDialog val$dialog -> b
     void onClick(android.view.View) -> onClick
-org.cryptsecure.UserDetailsActivity$12$4 -> org.cryptsecure.pm:
+org.cryptsecure.UserDetailsActivity$12$4 -> org.cryptsecure.po:
     org.cryptsecure.UserDetailsActivity$12 this$1 -> a
     android.app.Activity val$activity -> b
     org.cryptsecure.MessageAlertDialog val$dialog -> c
     void onClick(android.view.View) -> onClick
-org.cryptsecure.UserDetailsActivity$2 -> org.cryptsecure.pn:
+org.cryptsecure.UserDetailsActivity$2 -> org.cryptsecure.pp:
     org.cryptsecure.UserDetailsActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.UserDetailsActivity$3 -> org.cryptsecure.po:
+org.cryptsecure.UserDetailsActivity$3 -> org.cryptsecure.pq:
     org.cryptsecure.UserDetailsActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.UserDetailsActivity$4 -> org.cryptsecure.pp:
+org.cryptsecure.UserDetailsActivity$4 -> org.cryptsecure.pr:
     org.cryptsecure.UserDetailsActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.UserDetailsActivity$5 -> org.cryptsecure.pq:
+org.cryptsecure.UserDetailsActivity$5 -> org.cryptsecure.ps:
     org.cryptsecure.UserDetailsActivity this$0 -> a
     void onCancel(android.content.DialogInterface) -> onCancel
-org.cryptsecure.UserDetailsActivity$6 -> org.cryptsecure.pr:
+org.cryptsecure.UserDetailsActivity$6 -> org.cryptsecure.pt:
     org.cryptsecure.UserDetailsActivity this$0 -> a
     boolean val$isGroup -> b
     void onClick(android.view.View) -> onClick
     org.cryptsecure.UserDetailsActivity access$0(org.cryptsecure.UserDetailsActivity$6) -> a
-org.cryptsecure.UserDetailsActivity$6$1 -> org.cryptsecure.ps:
+org.cryptsecure.UserDetailsActivity$6$1 -> org.cryptsecure.pu:
     org.cryptsecure.UserDetailsActivity$6 this$1 -> a
     boolean val$isGroup -> b
     void selected(int,boolean) -> a
-org.cryptsecure.UserDetailsActivity$7 -> org.cryptsecure.pt:
+org.cryptsecure.UserDetailsActivity$7 -> org.cryptsecure.pv:
     org.cryptsecure.UserDetailsActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.UserDetailsActivity$8 -> org.cryptsecure.pu:
+org.cryptsecure.UserDetailsActivity$8 -> org.cryptsecure.pw:
     org.cryptsecure.UserDetailsActivity this$0 -> a
     void onClick(android.view.View) -> onClick
-org.cryptsecure.UserDetailsActivity$9 -> org.cryptsecure.pv:
+org.cryptsecure.UserDetailsActivity$9 -> org.cryptsecure.px:
     org.cryptsecure.UserDetailsActivity this$0 -> a
     void onUpdate(java.lang.String) -> a
     org.cryptsecure.UserDetailsActivity access$0(org.cryptsecure.UserDetailsActivity$9) -> a
-org.cryptsecure.UserDetailsActivity$9$1 -> org.cryptsecure.pw:
+org.cryptsecure.UserDetailsActivity$9$1 -> org.cryptsecure.py:
     org.cryptsecure.UserDetailsActivity$9 this$1 -> a
     java.lang.String val$data -> b
     void run() -> run
 org.cryptsecure.UserPresentReceiver -> org.cryptsecure.UserPresentReceiver:
     void onReceive(android.content.Context,android.content.Intent) -> onReceive
-org.cryptsecure.Utility -> org.cryptsecure.px:
+org.cryptsecure.Utility -> org.cryptsecure.pz:
     android.content.SharedPreferences settings -> a
     void hideSoftkeys(android.app.Activity) -> a
     void hideKeyboard(android.app.Activity) -> b
@@ -5916,19 +5939,19 @@ org.cryptsecure.Utility -> org.cryptsecure.px:
     void selectFromGallery(android.app.Activity) -> e
     java.lang.String getContactId(android.content.ContentResolver,android.net.Uri) -> a
     android.graphics.Bitmap getContactPhoto(android.content.ContentResolver,java.lang.String) -> a
-org.cryptsecure.Utility$2 -> org.cryptsecure.py:
+org.cryptsecure.Utility$2 -> org.cryptsecure.qa:
     android.content.Context val$context -> a
     java.lang.String val$toastText -> b
     void run() -> run
-org.cryptsecure.Utility$3 -> org.cryptsecure.pz:
+org.cryptsecure.Utility$3 -> org.cryptsecure.qb:
     android.content.Context val$context -> a
     java.lang.String val$toastText -> b
     void run() -> run
-org.cryptsecure.Utility$4 -> org.cryptsecure.qa:
+org.cryptsecure.Utility$4 -> org.cryptsecure.qc:
     int val$milliseconds -> a
     void run() -> run
-org.cryptsecure.Utility$5 -> org.cryptsecure.qb:
+org.cryptsecure.Utility$5 -> org.cryptsecure.qd:
     android.media.Ringtone val$ringtone -> a
     void run() -> run
-org.cryptsecure.Utility$6 -> org.cryptsecure.qc:
+org.cryptsecure.Utility$6 -> org.cryptsecure.qe:
     void onScanCompleted(java.lang.String,android.net.Uri) -> onScanCompleted

@@ -472,6 +472,15 @@ public class Setup extends Activity {
 	/** The Constant HELP_QUICKTYPE. */
 	public static final String HELP_SMILEY = "If you enable this option then textual smileys are shown as graphical ones.";
 
+	/** The Constant OPTION_DARKMODE. */
+	public static final String OPTION_DARKMODE = "Dark Theme";
+
+	/** The Constant DEFAULT_DARKMODE. */
+	public static final boolean DEFAULT_DARKMODE = true;
+
+	/** The Constant HELP_DARKMODE. */
+	public static final String HELP_DARKMODE = "You may want to enable the light or the dark theme. The dark theme is the default.";
+
 	/** The Constant OPTION_RECEIVEALLSMS. */
 	public static final String OPTION_RECEIVEALLSMS = "receiveallsms";
 
@@ -835,6 +844,9 @@ public class Setup extends Activity {
 	/** The smileys. */
 	private CheckBox smileys;
 
+	/** The darkmode. */
+	private CheckBox darkmode;
+
 	/** The noscreenshots. */
 	private CheckBox noscreenshots;
 
@@ -873,6 +885,9 @@ public class Setup extends Activity {
 
 	/** The helpsmileys. */
 	private ImageView helpsmileys;
+
+	/** The helpnodarkmode. */
+	private ImageView helpdarkmode;
 
 	/** The helpchatmode. */
 	private ImageView helpchatmode;
@@ -1602,6 +1617,7 @@ public class Setup extends Activity {
 		chatmode = (CheckBox) findViewById(R.id.chatmode);
 		quicktype = (CheckBox) findViewById(R.id.quicktype);
 		smileys = (CheckBox) findViewById(R.id.smileys);
+		darkmode = (CheckBox) findViewById(R.id.darkmode);
 		receiveallsms = (CheckBox) findViewById(R.id.receiveallsms);
 		noscreenshots = (CheckBox) findViewById(R.id.noscreenshots);
 		powersave = (CheckBox) findViewById(R.id.powersave);
@@ -1726,6 +1742,18 @@ public class Setup extends Activity {
 						smileys.isChecked());
 			}
 		});
+		darkmode.setChecked(Utility.loadBooleanSetting(context,
+				Setup.OPTION_DARKMODE, Setup.DEFAULT_DARKMODE));
+		darkmode.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				Utility.saveBooleanSetting(context, Setup.OPTION_DARKMODE,
+						darkmode.isChecked());
+				restartRequiredFlag = true;
+				Utility.showToastAsync(
+						context,
+						"Background theme changed. CryptSecure must be re-started in order to operate properly...");
+			}
+		});
 		noscreenshots.setChecked(Utility.loadBooleanSetting(context,
 				Setup.OPTION_NOSCREENSHOTS, Setup.DEFAULT_NOSCREENSHOTS));
 		noscreenshots.setOnClickListener(new OnClickListener() {
@@ -1790,6 +1818,7 @@ public class Setup extends Activity {
 		helpchatmode = (ImageView) findViewById(R.id.helpchatmode);
 		helpquicktype = (ImageView) findViewById(R.id.helpquicktype);
 		helpsmileys = (ImageView) findViewById(R.id.helpsmileys);
+		helpdarkmode = (ImageView) findViewById(R.id.helpnodarkmode);
 		helpnoscreenshots = (ImageView) findViewById(R.id.helpnoscreenshots);
 		helppowersave = (ImageView) findViewById(R.id.helppowersave);
 		helpreceiveallsms = (ImageView) findViewById(R.id.helpreceiveallsms);
@@ -1846,6 +1875,11 @@ public class Setup extends Activity {
 		helpsmileys.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				setErrorInfo(HELP_SMILEY, false);
+			}
+		});
+		helpdarkmode.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				setErrorInfo(HELP_DARKMODE, false);
 			}
 		});
 		helpnoscreenshots.setOnClickListener(new OnClickListener() {
@@ -2195,9 +2229,10 @@ public class Setup extends Activity {
 							.get(index);
 					final String groupId = groupSpinnerMappingGroupId
 							.get(index);
-					int localGroupId = Setup.getLocalGroupId(activity, groupId, groupServerId);
-					Setup.promptQuit(activity , localGroupId);
-					
+					int localGroupId = Setup.getLocalGroupId(activity, groupId,
+							groupServerId);
+					Setup.promptQuit(activity, localGroupId);
+
 				}
 			});
 
@@ -7218,7 +7253,7 @@ public class Setup extends Activity {
 		if (restartRequiredFlag) {
 			Utility.showToastAsync(
 					this,
-					"Account/UID changed. CryptSecure must be re-started in order to operate properly...");
+					"CryptSecure must be re-started in order to operate properly...");
 			Main.exitApplication(this);
 		}
 		System.gc();
@@ -8112,7 +8147,7 @@ public class Setup extends Activity {
 			// to a localid
 			return groupIdInt;
 		}
-		
+
 		int localGroupId = Math.abs((serverId + "_" + groupId).hashCode());
 		if (getGroupId(context, localGroupId) == null) {
 			Utility.saveStringSetting(context, LOCALGROUP2GROUPID
@@ -8434,7 +8469,8 @@ public class Setup extends Activity {
 	 * @param activity
 	 *            the activity
 	 */
-	public static void promptQuit(final Activity activity, final int localGroupId) {
+	public static void promptQuit(final Activity activity,
+			final int localGroupId) {
 		try {
 			String titleMessage = "Clear Conversation or Quit?";
 			String textMessage = "Do you really want to quit group membership permanently?\n\nThis cannot be undone and you will need to be re-invited by some other member. If you currently are the only member the group will be removed permanently.";
@@ -8451,11 +8487,12 @@ public class Setup extends Activity {
 													+ Main.UID2Name(activity,
 															localGroupId, false)
 													+ "' permanently.");
-									int groupServerId = Setup.getGroupServerId(activity, localGroupId);
-									String groupId = Setup.getGroupId(activity, localGroupId);
-									groupQuit(activity, groupServerId, groupId);
-									Main.deleteUser(activity,
+									int groupServerId = Setup.getGroupServerId(
+											activity, localGroupId);
+									String groupId = Setup.getGroupId(activity,
 											localGroupId);
+									groupQuit(activity, groupServerId, groupId);
+									Main.deleteUser(activity, localGroupId);
 									if (activity != null) {
 										activity.finish();
 									}
@@ -8467,7 +8504,132 @@ public class Setup extends Activity {
 			// Ignore
 		}
 	}
+
+	// -------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Checks if is no darkmode so the light mode is selected.
+	 *
+	 * @param context the context
+	 * @return true, if is no darkmode
+	 */
+	public static boolean isDarkmode(Context context) {
+		return Utility.loadBooleanSetting(context,
+				Setup.OPTION_DARKMODE, Setup.DEFAULT_DARKMODE);
+	}
+	
+	// -------------------------------------------------------------------------
+	
+	public static int dolphins1(Context context) {
+		if (isDarkmode(context)) {
+			return R.drawable.dolphins1;
+		} else {
+			return R.drawable.dolphins3w;
+		}
+	}
+	
+	// -------------------------------------------------------------------------
+	
+	public static int dolphins2(Context context) {
+		if (isDarkmode(context)) {
+			return R.drawable.dolphins2;
+		} else {
+			return R.drawable.dolphins3w;
+		}
+	}
 	
 	// -------------------------------------------------------------------------
 
+	
+	public static int dolphins3(Context context) {
+		if (isDarkmode(context)) {
+			return R.drawable.dolphins3;
+		} else {
+			return R.drawable.dolphins2w;
+		}
+	}
+	
+	// -------------------------------------------------------------------------
+
+	
+	public static int dolphins3light(Context context) {
+		if (isDarkmode(context)) {
+			return R.drawable.dolphins3light;
+		} else {
+			return R.drawable.dolphins3lightw;
+		}
+	}
+	
+	// -------------------------------------------------------------------------
+
+	
+	// public int dolphins4(Context context) {
+	// if (isDarkmode(context)) {
+	// return R.drawable.dolphins4;
+	// } else {
+	// return R.drawable.dolphins4w;
+	// }
+	// }
+	
+	// -------------------------------------------------------------------------
+
+	
+	public static int dolphins4light(Context context) {
+		if (isDarkmode(context)) {
+			return R.drawable.dolphins4light;
+		} else {
+			return R.drawable.dolphins4lightw;
+		}
+	}
+	
+	// -------------------------------------------------------------------------
+
+	/** The Constant TEXTCOLOEWHITE. */
+	public static final int TEXTCOLORWHITE = Color.parseColor("#FFFFFFFF");
+
+	/** The Constant TEXTCOLOEWHITEDIMMED. */
+	public static final int TEXTCOLORWHITEDIMMED = Color
+			.parseColor("#FFE8E8E8");
+
+	/** The Constant TEXTCOLOEWHITEDIMMED. */
+	public static final int TEXTCOLORWHITEDIMMED2 = Color
+			.parseColor("#CCDDDDDD");
+
+	/** The Constant TEXTCOLOEWHITE. */
+	public static final int TEXTCOLORBLACK = Color.parseColor("#FF000000");
+
+	/** The Constant TEXTCOLOEWHITEDIMMED. */
+	public static final int TEXTCOLORBLACKDIMMED = Color
+			.parseColor("#AA000000");
+
+	/** The Constant TEXTCOLOEWHITEDIMMED. */
+	public static final int TEXTCOLORBLACKDIMMED2 = Color
+			.parseColor("#99000000");
+
+	
+	public static int textcolor(Context context) {
+		if (isDarkmode(context)) {
+			return TEXTCOLORWHITE;
+		} else {
+			return TEXTCOLORBLACK;
+		}
+	}
+
+	public static int textcolordimmed(Context context) {
+		if (isDarkmode(context)) {
+			return TEXTCOLORWHITEDIMMED;
+		} else {
+			return TEXTCOLORBLACKDIMMED;
+		}
+	}
+
+	public static int textcolordimmed2(Context context) {
+		if (isDarkmode(context)) {
+			return TEXTCOLORWHITEDIMMED2;
+		} else {
+			return TEXTCOLORBLACKDIMMED2;
+		}
+	}
+	
 }

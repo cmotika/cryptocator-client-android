@@ -291,6 +291,9 @@ public class MessageInputDialog extends Dialog {
 			lp2.setMargins(25, 25, 25, 0);
 			textView.setLayoutParams(lp2);
 			textView.setText(textMessage);
+			if (!Setup.isDarkmode(context)) {
+				textView.setTextColor(Setup.textcolordimmed(context));
+			}
 			outerLayout.addView(textView);
 		}
 
@@ -429,7 +432,7 @@ public class MessageInputDialog extends Dialog {
 		outerLayout.setMinimumWidth(minWidth);
 
 		// Set dolphin background
-		Utility.setBackground(context, outerLayout, R.drawable.dolphins3);
+		Utility.setBackground(context, outerLayout, Setup.dolphins3(context));
 
 		// SHOW DIALOG AT THE TOP POSITION BECAUSE OTHERWISE IT MIGHT GET
 		// PROBLEMS WITH KEYBOARD

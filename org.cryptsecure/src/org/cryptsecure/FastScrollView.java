@@ -383,8 +383,13 @@ public class FastScrollView extends LinearLayout {
 		scrollView.addView(innerChilds);
 
 		scrollBar = new FastScrollBar(context);
-		scrollBar.setThumb(getResources().getDrawable(
-				R.drawable.scrollbarhandle4));
+		if (Setup.isDarkmode(context)) {
+			scrollBar.setThumb(getResources().getDrawable(
+					R.drawable.scrollbarhandle4));
+		} else {
+			scrollBar.setThumb(getResources().getDrawable(
+					R.drawable.scrollbarhandle4w));
+		}
 
 		LinearLayout.LayoutParams lpScrollView = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.MATCH_PARENT,

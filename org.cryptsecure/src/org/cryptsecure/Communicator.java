@@ -1034,6 +1034,8 @@ public class Communicator {
 					}
 					Main.updateLastMessage(context, localgroupuid, DB.REVOKEDTEXT,
 							DB.getTimestamp());
+					Main.updateLastMessage(context, localgroupuidsender, DB.REVOKEDTEXT,
+							DB.getTimestamp());
 
 					
 					// If the senderUid will always be the table/hostUid of the

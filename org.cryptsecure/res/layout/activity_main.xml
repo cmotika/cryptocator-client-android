@@ -68,6 +68,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/maindeviceidline"
                 android:layout_width="fill_parent"
                 android:layout_height="2px"
                 android:background="#ff000000"

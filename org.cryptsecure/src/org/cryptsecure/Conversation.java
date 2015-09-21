@@ -209,6 +209,13 @@ public class Conversation extends Activity {
 			.parseColor("#44000000");
 
 	/**
+	 * The color of the fast scroll background when scrolling and not scroll
+	 * locked down in NON-darkmode.
+	 */
+	public static final int FASTSCROLLBACKSCROLLINGBACKGROUNDW = Color
+			.parseColor("#11000000");
+
+	/**
 	 * The color of the fast scroll background when scroll locked down.
 	 */
 	public static final int FASTSCROLLBACKLOCKEDBACKGROUND = Color
@@ -487,16 +494,30 @@ public class Conversation extends Activity {
 		smileybutton = ((ImagePressButton) findViewById(R.id.smileybutton));
 		LinearLayout smiliebuttonparent = (LinearLayout) findViewById(R.id.smileybuttonparent);
 		smileybutton.setAdditionalPressWhiteView(smiliebuttonparent);
-		smileybutton.initializePressImageResource(R.drawable.smileybtn, 3, 300,
-				false);
 
 		attachmentbutton = ((ImagePressButton) findViewById(R.id.attachmentbutton));
 		LinearLayout attachmentbuttonparent = (LinearLayout) findViewById(R.id.attachmentbuttonparent);
 		attachmentbutton.setAdditionalPressWhiteView(attachmentbuttonparent);
-		attachmentbutton.initializePressImageResource(R.drawable.attachmentbtn,
-				3, 300, false);
+		if (Setup.isDarkmode(context)) {
+			smileybutton.initializePressImageResource(R.drawable.smileybtn, 3, 300,
+					false);
+			attachmentbutton.initializePressImageResource(R.drawable.attachmentbtn,
+					3, 300, false);
+		} else {
+			smileybutton.setImageResource(R.drawable.smileybtnw);
+			smileybutton.initializePressImageResource(R.drawable.smileybtnw, 3, 300,
+					false);
+			attachmentbutton.setImageResource(R.drawable.attachmentbtnw);
+			attachmentbutton.initializePressImageResource(R.drawable.attachmentbtnw,
+					3, 300, false);
+		}
 
+		
 		additionbutton = ((ImagePressButton) findViewById(R.id.additionbutton));
+		if (!Setup.isDarkmode(context)) {
+			additionbutton.setImageResource(R.drawable.additionbtnw);
+			additionbutton.setBackgroundResource(R.drawable.additionbtnbackw);
+		}
 		additionbutton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				// toggle
@@ -609,12 +630,16 @@ public class Conversation extends Activity {
 		rebuildConversationlist(context);
 
 		// Setting backgrounds
-		Utility.setBackground(this, main, R.drawable.dolphins2);
+		Utility.setBackground(this, main, Setup.dolphins2(context));
 		Utility.setBackground(this, titleconversation, R.drawable.dolphins3blue);
 		View inputLayout = ((View) findViewById(R.id.inputlayout));
 		conversationRootView = (View) findViewById(R.id.conversationRootView);
-		Utility.setBackground(this, conversationRootView, R.drawable.dolphins2);
-		Utility.setBackground(this, inputLayout, R.drawable.dolphins1);
+		Utility.setBackground(this, conversationRootView, Setup.dolphins2(context));
+		if (!Setup.isDarkmode(context)) {
+			Utility.setBackground(this, inputLayout, Setup.dolphins3(context));
+		} else {
+			Utility.setBackground(this, inputLayout, Setup.dolphins1(context));
+		}
 
 		// DO NOT SCROLL HERE BECAUSE onResume() WILL DO THIS.
 		// onResume() is ALWAYS called if the user starts OR returns to the APP!
@@ -634,19 +659,24 @@ public class Conversation extends Activity {
 						if (percent >= 99) {
 							scrolledDown = true;
 							scrolledUp = false;
-							fastScrollView
-									.setScrollBackground(FASTSCROLLBACKLOCKEDBACKGROUND);
+								fastScrollView
+								.setScrollBackground(FASTSCROLLBACKLOCKEDBACKGROUND);
 						} else if (percent <= 1) {
 							showTitlebarAsync(context);
 							scrolledUp = true;
 							scrolledDown = false;
-							fastScrollView
-									.setScrollBackground(FASTSCROLLBACKSCROLLINGBACKGROUND);
+								fastScrollView
+								.setScrollBackground(FASTSCROLLBACKLOCKEDBACKGROUND);
 						} else {
 							scrolledUp = false;
 							scrolledDown = false;
-							fastScrollView
-									.setScrollBackground(FASTSCROLLBACKSCROLLINGBACKGROUND);
+							if (Setup.isDarkmode(context)) {
+								fastScrollView
+								.setScrollBackground(FASTSCROLLBACKSCROLLINGBACKGROUND);
+							} else {
+								fastScrollView
+								.setScrollBackground(FASTSCROLLBACKSCROLLINGBACKGROUNDW);
+							}
 						}
 						scrollItem = item;
 
@@ -686,6 +716,14 @@ public class Conversation extends Activity {
 					}
 
 				});
+		if (Setup.isDarkmode(context)) {
+			fastScrollView
+			.setScrollBackground(FASTSCROLLBACKSCROLLINGBACKGROUND);
+		} else {
+			fastScrollView
+			.setScrollBackground(FASTSCROLLBACKSCROLLINGBACKGROUNDW);
+		}
+
 
 		// The following piece of code is necessary for dealing with width
 		// changes.
@@ -1424,7 +1462,7 @@ public class Conversation extends Activity {
 					fastScrollView.scrollDown();
 					// foceScrollDown();
 					scrolledDown = true;
-					fastScrollView.setScrollBackground(R.color.gray);
+					fastScrollView.setScrollBackground(FASTSCROLLBACKLOCKEDBACKGROUND);
 				}
 			}, 200);
 			fastScrollView.postDelayed(new Runnable() {
@@ -1434,7 +1472,7 @@ public class Conversation extends Activity {
 					fastScrollView.scrollDown();
 					// foceScrollDown();
 					scrolledDown = true;
-					fastScrollView.setScrollBackground(R.color.gray);
+					fastScrollView.setScrollBackground(FASTSCROLLBACKLOCKEDBACKGROUND);
 				}
 			}, 500);
 			fastScrollView.postDelayed(new Runnable() {
@@ -1444,7 +1482,7 @@ public class Conversation extends Activity {
 					fastScrollView.scrollDown();
 					// foceScrollDown();
 					scrolledDown = true;
-					fastScrollView.setScrollBackground(R.color.gray);
+					fastScrollView.setScrollBackground(FASTSCROLLBACKLOCKEDBACKGROUND);
 				}
 			}, 1200);
 		} else if (scrolledDown) {

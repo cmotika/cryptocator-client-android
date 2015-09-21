@@ -2921,26 +2921,26 @@ org.cryptsecure.Communicator:
     96:96:public Communicator()
 org.cryptsecure.Conversation:
     static final java.lang.String GROUPINVITATION_PREFIX
-    4281:4309:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
-    4383:4415:public void insertImage(android.content.Context,java.lang.String)
+    4319:4347:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
+    4421:4453:public void insertImage(android.content.Context,java.lang.String)
     160:160:static synthetic boolean access$36()
 org.cryptsecure.Conversation$78:
-    4162:4167:public void onCancel()
+    4200:4205:public void onCancel()
 org.cryptsecure.Conversation$79
 org.cryptsecure.Conversation$80:
-    4354:4358:public void onCancel()
+    4392:4396:public void onCancel()
 org.cryptsecure.Conversation$81
 org.cryptsecure.ConversationCompose:
     private static final int SELECT_PICTURE
     private static final int TAKE_PHOTO
     private static final int PICK_CONTACT
-    1015:1015:public void setTitle(java.lang.String)
-    1038:1038:public static org.cryptsecure.ConversationCompose getInstance()
-    1048:1048:public static boolean isVisible()
+    1035:1035:public void setTitle(java.lang.String)
+    1058:1058:public static org.cryptsecure.ConversationCompose getInstance()
+    1068:1068:public static boolean isVisible()
 org.cryptsecure.ConversationCompose$23:
-    1380:1383:public void onCancel()
+    1403:1406:public void onCancel()
 org.cryptsecure.ConversationCompose$25:
-    1564:1567:public void onCancel()
+    1587:1590:public void onCancel()
 org.cryptsecure.ConversationItem:
     179:188:public ConversationItem(java.lang.String,boolean)
 org.cryptsecure.DB:
@@ -2953,7 +2953,7 @@ org.cryptsecure.DB:
     2523:2551:public static java.lang.String getMultipartIdReceived(android.content.Context,int,int)
     2848:2854:public static void cleanupDB(android.content.Context,int)
     3839:3855:public static boolean updateMessageByMid(android.content.Context,int,java.lang.String,int,java.lang.String)
-    4113:4113:public static boolean isMessageFailed(java.lang.String)
+    4116:4116:public static boolean isMessageFailed(java.lang.String)
 org.cryptsecure.FastScrollBar:
     static final int LOCKTIMEOUT
     163:164:public FastScrollBar(android.content.Context,android.util.AttributeSet,int)
@@ -2978,8 +2978,8 @@ org.cryptsecure.Main:
     private static final java.lang.String DEFAULTTEXT
     private static final java.lang.String YOURACCOUNTKEYSIMPLE
     private static final java.lang.String YOURACCOUNTKEYTEXT
-    1910:1910:public static java.lang.String getPhone(android.content.Context,int)
-    1925:1926:public static boolean havePhone(android.content.Context,int)
+    1915:1915:public static java.lang.String getPhone(android.content.Context,int)
+    1930:1931:public static boolean havePhone(android.content.Context,int)
 org.cryptsecure.MessageDetailsActivity:
     private static final java.lang.String STARTTAG
     private static final java.lang.String ENDTAG
@@ -3084,6 +3084,9 @@ org.cryptsecure.Setup:
     public static final java.lang.String OPTION_SMILEYS
     public static final boolean DEFAULT_SMILEYS
     public static final java.lang.String HELP_SMILEY
+    public static final java.lang.String OPTION_DARKMODE
+    public static final boolean DEFAULT_DARKMODE
+    public static final java.lang.String HELP_DARKMODE
     public static final java.lang.String OPTION_RECEIVEALLSMS
     public static final boolean DEFAULT_RECEIVEALLSMS
     public static final java.lang.String HELP_RECEIVEALLSMSE
@@ -3159,17 +3162,17 @@ org.cryptsecure.Setup:
     private static final int ACCOUNTOPTION_PASSWORD
     private static final int ACCOUNTOPTION_GROUPS
     private static final int ACCOUNTOPTION_BACKUP
-    4446:4451:public static boolean haveAESKey(android.content.Context,int)
-    4905:4921:public static java.security.PublicKey getPublicKey(android.content.Context)
-    6134:6149:public static java.lang.String encLongText(android.content.Context,java.lang.String,int)
-    6166:6175:public static java.lang.String decLongText(android.content.Context,java.lang.String,int)
-    7117:7118:public static void setVersionUpdated(android.content.Context)
-    7131:7131:public static boolean isVersionUpdated(android.content.Context)
-    7389:7390:public static boolean haveAvatar(android.content.Context,int)
-    7509:7511:public static void resetIgnored(android.content.Context)
-    8026:8027:public static void setInvitedGroups(android.content.Context,int,java.lang.String)
-    8030:8030:public static java.lang.String getInvitedGroups(android.content.Context,int)
-    8036:8038:public static java.util.List getInvitedGroupsList(android.content.Context,int)
+    4481:4486:public static boolean haveAESKey(android.content.Context,int)
+    4940:4956:public static java.security.PublicKey getPublicKey(android.content.Context)
+    6169:6184:public static java.lang.String encLongText(android.content.Context,java.lang.String,int)
+    6201:6210:public static java.lang.String decLongText(android.content.Context,java.lang.String,int)
+    7152:7153:public static void setVersionUpdated(android.content.Context)
+    7166:7166:public static boolean isVersionUpdated(android.content.Context)
+    7424:7425:public static boolean haveAvatar(android.content.Context,int)
+    7544:7546:public static void resetIgnored(android.content.Context)
+    8061:8062:public static void setInvitedGroups(android.content.Context,int,java.lang.String)
+    8065:8065:public static java.lang.String getInvitedGroups(android.content.Context,int)
+    8071:8073:public static java.util.List getInvitedGroupsList(android.content.Context,int)
 org.cryptsecure.Utility:
     public static final java.lang.String PREFERENCESURI
     public static final int SELECT_PICTURE

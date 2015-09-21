@@ -184,17 +184,6 @@ public class Main extends Activity {
 	 */
 	public static int highContrastBarrierInPermille = 990;
 
-	/** The Constant TEXTCOLOEWHITE. */
-	public static final int TEXTCOLOEWHITE = Color.parseColor("#FFFFFFFF");
-
-	/** The Constant TEXTCOLOEWHITEDIMMED. */
-	public static final int TEXTCOLOEWHITEDIMMED = Color
-			.parseColor("#FFE8E8E8");
-
-	/** The Constant TEXTCOLOEWHITEDIMMED. */
-	public static final int TEXTCOLOEWHITEDIMMED2 = Color
-			.parseColor("#CCDDDDDD");
-
 	/** The Constant LIGHTGRAY. */
 	public static final int LIGHTGRAY = Color.parseColor("#AAFFFFFF");
 
@@ -254,7 +243,7 @@ public class Main extends Activity {
 		// Apply custom title bar (with holo :-)
 		LinearLayout main = Utility.setContentViewWithCustomTitle(this,
 				R.layout.activity_main, R.layout.title_main);
-		Utility.setBackground(this, main, R.drawable.dolphins1);
+		Utility.setBackground(this, main, Setup.dolphins1(context));
 
 		// Comments on own custom title bar
 		//
@@ -345,6 +334,10 @@ public class Main extends Activity {
 		});
 
 		maindeviceid = (TextView) findViewById(R.id.maindeviceid);
+		LinearLayout maindeviceidline = (LinearLayout) findViewById(R.id.maindeviceidline);
+		if (!Setup.isDarkmode(context)) {
+			maindeviceidline.setBackgroundColor(Color.LTGRAY);
+		}
 
 		// Yes, at startup resolve names!
 		// but only after rebuild the uidList is filled
@@ -364,8 +357,8 @@ public class Main extends Activity {
 		// Set the backgrounds
 		Utility.setBackground(this, titlemain, R.drawable.dolphins3blue);
 		mainBackground = (LinearLayout) findViewById(R.id.mainbackground);
-		Utility.setBackground(this, mainBackground, R.drawable.dolphins1);
-		Utility.setBackground(this, mainInnerView, R.drawable.dolphins1);
+		Utility.setBackground(this, mainBackground, Setup.dolphins1(context));
+		Utility.setBackground(this, mainInnerView, Setup.dolphins1(context));
 
 		// If we click on the background, hide the adduser panel and open the
 		// context menu
@@ -420,6 +413,10 @@ public class Main extends Activity {
 					context.getResources(), R.drawable.persongenericmaster);
 			bitmap_barlock = BitmapFactory.decodeResource(
 					context.getResources(), R.drawable.persongenericbarlock);
+			if (!Setup.isDarkmode(context)) {
+				bitmap_barlock = BitmapFactory.decodeResource(
+						context.getResources(), R.drawable.persongenericbarlockw);
+			}
 			bitmap_msg = BitmapFactory.decodeResource(context.getResources(),
 					R.drawable.persongenericmsg);
 			bitmap_bar = BitmapFactory.decodeResource(context.getResources(),
@@ -957,7 +954,7 @@ public class Main extends Activity {
 			addUserText.setVisibility(View.VISIBLE);
 			addUserName.setVisibility(View.GONE);
 			addUserButton.setVisibility(View.GONE);
-			Utility.setBackground(this, adduseritem, R.drawable.dolphins3);
+			Utility.setBackground(this, adduseritem, Setup.dolphins3(context));
 			// This is not visible until we select it from the context menu
 			showHideAddUser(context, false);
 			addUserName
@@ -1198,21 +1195,21 @@ public class Main extends Activity {
 		if (highContrast) {
 			userlistName.setTypeface(null, Typeface.BOLD);
 			userlistDate.setTypeface(null, Typeface.BOLD);
-			userlistName.setTextColor(TEXTCOLOEWHITEDIMMED);
-			userlistDate.setTextColor(TEXTCOLOEWHITEDIMMED);
-			userlistText.setTextColor(TEXTCOLOEWHITEDIMMED);
+			userlistName.setTextColor(Setup.textcolordimmed(context));
+			userlistDate.setTextColor(Setup.textcolordimmed(context));
+			userlistText.setTextColor(Setup.textcolordimmed(context));
 		} else {
-			userlistName.setTextColor(TEXTCOLOEWHITEDIMMED);
-			userlistDate.setTextColor(TEXTCOLOEWHITEDIMMED);
-			userlistText.setTextColor(TEXTCOLOEWHITEDIMMED2);
+			userlistName.setTextColor(Setup.textcolordimmed(context));
+			userlistDate.setTextColor(Setup.textcolordimmed(context));
+			userlistText.setTextColor(Setup.textcolordimmed2(context));
 		}
 
 		if (haveMessages) {
 			userlistName.setTypeface(null, Typeface.BOLD);
 			userlistDate.setTypeface(null, Typeface.BOLD);
-			userlistName.setTextColor(TEXTCOLOEWHITE);
-			userlistDate.setTextColor(TEXTCOLOEWHITE);
-			userlistText.setTextColor(TEXTCOLOEWHITE);
+			userlistName.setTextColor(Setup.textcolor(context));
+			userlistDate.setTextColor(Setup.textcolor(context));
+			userlistText.setTextColor(Setup.textcolor(context));
 		}
 
 		userlistName.setText(Html.fromHtml(name));
@@ -1272,12 +1269,20 @@ public class Main extends Activity {
 				LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
 		LinearLayout div1 = new LinearLayout(context);
-		div1.setBackgroundColor(Color.GRAY);
+		if (Setup.isDarkmode(context)) {
+			div1.setBackgroundColor(Color.GRAY);
+		} else {
+			div1.setBackgroundColor(Color.WHITE);
+		}
 		div1.setLayoutParams(lpDiv1);
 		parent.addView(div1);
 		parent.addView(userlistitem);
 		LinearLayout div2 = new LinearLayout(context);
-		div2.setBackgroundColor(Color.BLACK);
+		if (Setup.isDarkmode(context)) {
+			div2.setBackgroundColor(Color.BLACK);
+		} else {
+			div2.setBackgroundColor(Color.LTGRAY);
+		}
 		div2.setLayoutParams(lpDiv2);
 		final android.view.ViewGroup.LayoutParams params = div1
 				.getLayoutParams();
@@ -1348,7 +1353,7 @@ public class Main extends Activity {
 			Canvas canvas = new Canvas(bitmap);
 			Rect src = new Rect();
 			src.left = 0;
-			src.top = 0;
+			src.top = 1;
 			src.bottom = 100;
 			src.right = 100;
 			Rect dst = new Rect();
@@ -2566,7 +2571,7 @@ public class Main extends Activity {
 							lpInfoText.setMargins(5, 15, 5, 15);
 							TextView infoTextAccount = new TextView(context);
 							infoTextAccount.setLayoutParams(lpInfoText);
-							infoTextAccount.setTextColor(LIGHTGRAY);
+							infoTextAccount.setTextColor(Color.LTGRAY);
 							infoTextAccount.setTextSize(12);
 							infoTextAccount.setGravity(Gravity.CENTER_VERTICAL
 									| Gravity.CENTER_HORIZONTAL);
@@ -2693,6 +2698,8 @@ public class Main extends Activity {
 
 			TextView groupuser = ((TextView) groupuseritem
 					.findViewById(R.id.groupuser));
+			groupuser.setTextColor(Color.LTGRAY);
+
 			ImageView groupusericon = ((ImageView) groupuseritem
 					.findViewById(R.id.groupusericon));
 

@@ -188,7 +188,10 @@ org.cryptsecure.R$color: int gray
 org.cryptsecure.R$color: int invisible
 org.cryptsecure.R$drawable: int additionbtn
 org.cryptsecure.R$drawable: int additionbtnback
+org.cryptsecure.R$drawable: int additionbtnbackw
+org.cryptsecure.R$drawable: int additionbtnw
 org.cryptsecure.R$drawable: int attachmentbtn
+org.cryptsecure.R$drawable: int attachmentbtnw
 org.cryptsecure.R$drawable: int backkey
 org.cryptsecure.R$drawable: int backlock
 org.cryptsecure.R$drawable: int btnadduser
@@ -217,11 +220,18 @@ org.cryptsecure.R$drawable: int composesms
 org.cryptsecure.R$drawable: int darkback
 org.cryptsecure.R$drawable: int darkerback
 org.cryptsecure.R$drawable: int dolphins1
+org.cryptsecure.R$drawable: int dolphins1w
 org.cryptsecure.R$drawable: int dolphins2
+org.cryptsecure.R$drawable: int dolphins2w
 org.cryptsecure.R$drawable: int dolphins3
 org.cryptsecure.R$drawable: int dolphins3blue
 org.cryptsecure.R$drawable: int dolphins3light
+org.cryptsecure.R$drawable: int dolphins3lightw
+org.cryptsecure.R$drawable: int dolphins3w
+org.cryptsecure.R$drawable: int dolphins4
 org.cryptsecure.R$drawable: int dolphins4light
+org.cryptsecure.R$drawable: int dolphins4lightw
+org.cryptsecure.R$drawable: int dolphins4w
 org.cryptsecure.R$drawable: int framebackkey
 org.cryptsecure.R$drawable: int framebacklock
 org.cryptsecure.R$drawable: int help
@@ -273,6 +283,7 @@ org.cryptsecure.R$drawable: int personadd
 org.cryptsecure.R$drawable: int persongenericbar
 org.cryptsecure.R$drawable: int persongenericbarinfo
 org.cryptsecure.R$drawable: int persongenericbarlock
+org.cryptsecure.R$drawable: int persongenericbarlockw
 org.cryptsecure.R$drawable: int persongenericbarsms
 org.cryptsecure.R$drawable: int persongenericlock
 org.cryptsecure.R$drawable: int persongenericmaster
@@ -308,6 +319,7 @@ org.cryptsecure.R$drawable: int s7
 org.cryptsecure.R$drawable: int s8
 org.cryptsecure.R$drawable: int s9
 org.cryptsecure.R$drawable: int scrollbarhandle4
+org.cryptsecure.R$drawable: int scrollbarhandle4w
 org.cryptsecure.R$drawable: int send
 org.cryptsecure.R$drawable: int senddisabled
 org.cryptsecure.R$drawable: int sendgroup
@@ -317,6 +329,7 @@ org.cryptsecure.R$drawable: int sendsmslock
 org.cryptsecure.R$drawable: int server
 org.cryptsecure.R$drawable: int serverdisabled
 org.cryptsecure.R$drawable: int smileybtn
+org.cryptsecure.R$drawable: int smileybtnw
 org.cryptsecure.R$drawable: int sms
 org.cryptsecure.R$drawable: int sms2
 org.cryptsecure.R$drawable: int speech
@@ -391,6 +404,7 @@ org.cryptsecure.R$id: int conversationtext
 org.cryptsecure.R$id: int conversationtime
 org.cryptsecure.R$id: int create
 org.cryptsecure.R$id: int created
+org.cryptsecure.R$id: int darkmode
 org.cryptsecure.R$id: int demo
 org.cryptsecure.R$id: int details
 org.cryptsecure.R$id: int deviceid
@@ -423,6 +437,7 @@ org.cryptsecure.R$id: int helpautosave
 org.cryptsecure.R$id: int helpchatmode
 org.cryptsecure.R$id: int helpencryption
 org.cryptsecure.R$id: int helpignore
+org.cryptsecure.R$id: int helpnodarkmode
 org.cryptsecure.R$id: int helpnoread
 org.cryptsecure.R$id: int helpnoscreenshots
 org.cryptsecure.R$id: int helpnotification
@@ -449,6 +464,7 @@ org.cryptsecure.R$id: int keyhashrow
 org.cryptsecure.R$id: int login
 org.cryptsecure.R$id: int mainbackground
 org.cryptsecure.R$id: int maindeviceid
+org.cryptsecure.R$id: int maindeviceidline
 org.cryptsecure.R$id: int maininnerview
 org.cryptsecure.R$id: int mainpanel
 org.cryptsecure.R$id: int mainscrollview

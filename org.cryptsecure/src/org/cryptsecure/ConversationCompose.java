@@ -221,7 +221,7 @@ public class ConversationCompose extends Activity {
 				R.layout.activity_conversation_compose,
 				R.layout.title_conversation_compose);
 		// main.setGravity(Gravity.BOTTOM);
-		Utility.setBackground(this, main, R.drawable.dolphins1);
+		Utility.setBackground(this, main, Setup.dolphins1(context));
 
 		LinearLayout titlegeneral = (LinearLayout) findViewById(R.id.titlegeneral);
 		Utility.setBackground(this, titlegeneral, R.drawable.dolphins3blue);
@@ -238,7 +238,11 @@ public class ConversationCompose extends Activity {
 		toList = (FastScrollView) findViewById(R.id.tolist);
 		toList.setSnapDown(80);
 		toList.setSnapUp(20);
-		toList.setScrollBackground(Conversation.FASTSCROLLBACKSCROLLINGBACKGROUND);
+		if (Setup.isDarkmode(context)) {
+			toList.setScrollBackground(Conversation.FASTSCROLLBACKSCROLLINGBACKGROUND);
+		} else {
+			toList.setScrollBackground(Conversation.FASTSCROLLBACKSCROLLINGBACKGROUNDW);
+		}
 
 		messageText = ((ImageSmileyEditText) findViewById(R.id.messageText));
 		messageText.setInputTextField(true);
@@ -282,16 +286,28 @@ public class ConversationCompose extends Activity {
 		smileybutton = ((ImagePressButton) findViewById(R.id.smileybutton));
 		LinearLayout smiliebuttonparent = (LinearLayout) findViewById(R.id.smileybuttonparent);
 		smileybutton.setAdditionalPressWhiteView(smiliebuttonparent);
-		smileybutton.initializePressImageResource(R.drawable.smileybtn, 3, 300,
-				false);
-
+		
 		attachmentbutton = ((ImagePressButton) findViewById(R.id.attachmentbutton));
 		LinearLayout attachmentbuttonparent = (LinearLayout) findViewById(R.id.attachmentbuttonparent);
 		attachmentbutton.setAdditionalPressWhiteView(attachmentbuttonparent);
-		attachmentbutton.initializePressImageResource(R.drawable.attachmentbtn,
-				3, 300, false);
-
+		if (Setup.isDarkmode(context)) {
+			smileybutton.initializePressImageResource(R.drawable.smileybtn, 3, 300,
+					false);
+			attachmentbutton.initializePressImageResource(R.drawable.attachmentbtn,
+					3, 300, false);
+		} else {
+			smileybutton.setImageResource(R.drawable.smileybtnw);
+			smileybutton.initializePressImageResource(R.drawable.smileybtnw, 3, 300,
+					false);
+			attachmentbutton.setImageResource(R.drawable.attachmentbtnw);
+			attachmentbutton.initializePressImageResource(R.drawable.attachmentbtnw,
+					3, 300, false);
+		}
 		additionbutton = ((ImagePressButton) findViewById(R.id.additionbutton));
+		if (!Setup.isDarkmode(context)) {
+			additionbutton.setImageResource(R.drawable.additionbtnw);
+			additionbutton.setBackgroundResource(R.drawable.additionbtnbackw);
+		}
 		additionbutton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				// toggle
@@ -378,8 +394,12 @@ public class ConversationCompose extends Activity {
 
 		LinearLayout inputLayout = ((LinearLayout) findViewById(R.id.inputlayout));
 		conversationRootView = (LinearLayout) findViewById(R.id.conversationRootView);
-		Utility.setBackground(this, conversationRootView, R.drawable.dolphins2);
-		Utility.setBackground(this, inputLayout, R.drawable.dolphins1);
+		Utility.setBackground(this, conversationRootView, Setup.dolphins2(context));
+		if (!Setup.isDarkmode(context)) {
+			Utility.setBackground(this, inputLayout, Setup.dolphins3(context));
+		} else {
+			Utility.setBackground(this, inputLayout, Setup.dolphins1(context));
+		}
 
 		// DO NOT SCROLL HERE BECAUSE onResume() WILL DO THIS.
 		// onResume() is ALWAYS called if the user starts OR returns to the APP!
@@ -1288,6 +1308,9 @@ public class ConversationCompose extends Activity {
 
 			final RadioButton userradio = (RadioButton) tolistitem
 					.findViewById(R.id.userradio);
+			if (!Setup.isDarkmode(context)) {
+				userradio.setTextColor(Setup.textcolordimmed(context));
+			}
 			userRadioMapping.put(uid, userradio);
 			userOrderMapping.put(uid, i++);
 			userradio.setOnClickListener(new View.OnClickListener() {

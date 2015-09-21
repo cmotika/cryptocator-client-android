@@ -3948,6 +3948,9 @@ public class DB {
 		// sent yet!
 		boolean revokeBeforeSending = revokeFromSending(context, localid);
 		if (revokeBeforeSending) {
+			Main.updateLastMessage(context, hostUid, DB.REVOKEDTEXT,
+					DB.getTimestamp());
+			
 			Log.d("communicator", " REVOKE BEFORE SENDING POSSIBLE :-)");
 			ContentValues values = new ContentValues();
 			values.put("text", DB.REVOKEDTEXT);

@@ -402,8 +402,8 @@ public class PictureImportActivity extends Activity {
 		// lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
 		window.setAttributes(lp);
 
-		Utility.setBackground(context, outerLayout, R.drawable.dolphins3light);
-		Utility.setBackground(context, buttonLayout, R.drawable.dolphins4light);
+		Utility.setBackground(context, outerLayout, Setup.dolphins3light(context));
+		Utility.setBackground(context, buttonLayout, Setup.dolphins4light(context));
 
 		updateTemporaryResult();
 	}
