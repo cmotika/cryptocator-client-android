@@ -3345,17 +3345,23 @@ public class DB {
 	 *            the uid
 	 * @return the largest mid for uid except system messages
 	 */
-	static int getLargestMidForUIDExceptSystemMessages(Context context, int uid) {
+	static int getLargestMidForUIDExceptSystemMessages(Context context, int uid, int uiddatabase) {
 		// To filter system messages, just skip blank messages, as a convention
 		// system messages are cleared
 		int mid = -1;
-		SQLiteDatabase db = openDB(context, uid);
+		SQLiteDatabase db = openDB(context, uiddatabase);
 
+		
 		String QUERY = "SELECT `mid` FROM `" + TABLE_MESSAGES
 				+ "` WHERE `touid` = " + DB.myUid() + " AND `fromuid` = " + uid
 				+ " AND `transport` = 0 AND `system` != '1'"
 				+ " ORDER BY `mid` DESC";
+		
+		Log.d("communicator",
+				"SEND READ CONFIRMATION getLargestMidForUIDExceptSystemMessages() uiddatabase="+uiddatabase+", QUERY='"
+						+ QUERY + "'");
 
+		
 		Cursor cursor = null;
 		try {
 			cursor = db.rawQuery(QUERY, null);
@@ -3363,9 +3369,8 @@ public class DB {
 				// Log.d("communicator", "getCount = " + cursor.getCount());
 				if (cursor.getCount() > 0) {
 					mid = Utility.parseInt(cursor.getString(0), -1);
-					// Log.d("communicator", "LARGEST MID FOR USER " + uid +
-					// " QUERY = "
-					// + QUERY + " ===> " + mid) ;
+					 Log.d("communicator", "LARGEST MID FOR USER " + uid +
+					 " ===> " + mid) ;
 				}
 				cursor.close();
 			}

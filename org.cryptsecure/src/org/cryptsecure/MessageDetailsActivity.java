@@ -213,7 +213,9 @@ public class MessageDetailsActivity extends Activity {
 		final ConversationItem updatedItem = DB.getMessage(context,
 				conversationItem.localid, hostUid, DB.DEFAULT_MESSAGEPART);
 		if (updatedItem == null) {
-			alertDialog.dismiss();
+			if (alertDialog != null) {
+				alertDialog.dismiss();
+			}
 			activity.finish();
 			return;
 		}

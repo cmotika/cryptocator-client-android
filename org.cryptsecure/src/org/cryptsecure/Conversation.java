@@ -1364,11 +1364,7 @@ public class Conversation extends Activity {
 			// Flag all messages (internally as read)
 			DB.updateOwnMessageRead(this, hostUid);
 			if (Conversation.isVisible()) {
-				if (!Setup.isGroup(this, hostUid)) {
-					Communicator.sendReadConfirmation(this, hostUid);
-				} else {
-
-				}
+				Communicator.sendReadConfirmation(this, hostUid);
 			}
 
 			// Cancel possible system notifications for this hostuid. Do this

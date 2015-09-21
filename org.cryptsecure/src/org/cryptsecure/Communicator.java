@@ -3143,6 +3143,12 @@ public class Communicator {
 
 	// -------------------------------------------------------------------------
 
+	public static void sendReadConfirmation(final Context context, final int uid) {
+		// NO GROUP UID for the conversation read just take the one single conversation thread of the user
+		int localgroupuid = -1;
+		sendReadConfirmation(context, uid, localgroupuid);
+	}
+
 	/**
 	 * Send read confirmation.
 	 * 
@@ -3151,11 +3157,33 @@ public class Communicator {
 	 * @param uid
 	 *            the uid
 	 */
-	public static void sendReadConfirmation(final Context context, final int uid) {
+	public static void sendReadConfirmation(final Context context, final int uid, final int localgroupuid) {
 		// only send readConfirmation for registered users!
 		if (uid <= 0) {
 			return;
 		}
+		
+		// For a typical conversation the database to get the largest MID from is the one of the user (uid)
+		// only for groups this database is the one of the localgroupuid.
+		int uiddatabase = uid;
+		if (localgroupuid > -1) {
+			uiddatabase = localgroupuid;
+		}
+		
+		if (Setup.isGroup(context, uid)) {
+			// Do this for ALL members
+			int localGroupId = uid;
+			int serverId = Setup.getGroupServerId(context, localGroupId);
+			String groupId = Setup.getGroupId(context, localGroupId);
+			List<Integer> sUids = Setup.getGroupMembersList(context,
+					serverId, groupId);
+			for (int sUid : sUids) {
+				int realuid = Setup.getUid(context, sUid, serverId);
+				sendReadConfirmation(context, realuid, localGroupId);
+			}
+			return;
+		}
+		
 
 		// if we do not refuse to send these confirmations...
 		if (!Utility.loadBooleanSetting(context, Setup.OPTION_NOREAD,
@@ -3167,7 +3195,7 @@ public class Communicator {
 			// because we do not send read confirmations for these! (this would
 			// result in a ping pong of read confirmations!)
 			final int mid = DB.getLargestMidForUIDExceptSystemMessages(context,
-					uid);
+					uid, uiddatabase);
 
 			// wait. first let's see if we have sent this already!
 			int lastMidSent = Utility.loadIntSetting(context,
@@ -3207,24 +3235,23 @@ public class Communicator {
 		// mid = largest mid that we have read
 		if (uid >= 0 && mid != -1) {
 
-			if (!Setup.isGroup(context, uid)) {
-				DB.addSendMessage(context, uid, "R" + mid, false,
-						DB.TRANSPORT_INTERNET, true,
-						DB.PRIORITY_READCONFIRMATION);
-			} else {
-				// Do this for ALL members
-				int localGroupId = uid;
-				int serverId = Setup.getGroupServerId(context, localGroupId);
-				String groupId = Setup.getGroupId(context, localGroupId);
-				List<Integer> sUids = Setup.getGroupMembersList(context,
-						serverId, groupId);
-				for (int sUid : sUids) {
-					int realuid = Setup.getUid(context, sUid, serverId);
-					DB.addSendMessage(context, realuid, "R" + mid, false,
-							DB.TRANSPORT_INTERNET, true,
-							DB.PRIORITY_READCONFIRMATION);
-				}
-			}
+			// if (!Setup.isGroup(context, uid)) {
+			DB.addSendMessage(context, uid, "R" + mid, false,
+					DB.TRANSPORT_INTERNET, true, DB.PRIORITY_READCONFIRMATION);
+			// } else {
+			// // Do this for ALL members
+			// int localGroupId = uid;
+			// int serverId = Setup.getGroupServerId(context, localGroupId);
+			// String groupId = Setup.getGroupId(context, localGroupId);
+			// List<Integer> sUids = Setup.getGroupMembersList(context,
+			// serverId, groupId);
+			// for (int sUid : sUids) {
+			// int realuid = Setup.getUid(context, sUid, serverId);
+			// DB.addSendMessage(context, realuid, "R" + mid, false,
+			// DB.TRANSPORT_INTERNET, true,
+			// DB.PRIORITY_READCONFIRMATION);
+			// }
+			// }
 			Communicator
 					.sendNewNextMessageAsync(context, DB.TRANSPORT_INTERNET);
 		}
