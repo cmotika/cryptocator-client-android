@@ -372,7 +372,7 @@ public class Communicator {
 						+ valueReceived + "]=" + midAndTs.length);
 				if (midAndTs.length == 2) {
 					int mid = Utility.parseInt(midAndTs[0], -1);
-					int senderUid = DB.getHostUidForMid(context, mid);
+					int senderUid = DB.getHostUidForMid(context, mid, false);
 					String ts = midAndTs[1];
 					Log.d("communicator", " UPDATE MESSAGE RECEIVED: mid="
 							+ mid + ", senderUid=" + senderUid + ", serverId="
@@ -423,7 +423,7 @@ public class Communicator {
 						+ valueRead + "]=" + midAndTs.length);
 				if (midAndTs.length == 2) {
 					int mid = Utility.parseInt(midAndTs[0], -1);
-					int senderUid = DB.getHostUidForMid(context, mid);
+					int senderUid = DB.getHostUidForMid(context, mid, false);
 					String ts = midAndTs[1];
 					boolean failed = false;
 					if (ts != null && ts.startsWith("-")) {
@@ -995,19 +995,45 @@ public class Communicator {
 					// database
 					int hostUid = newItem.from;
 					int localgroupId = Utility.parseInt(newItem.groupId, -1);
-					Log.d("communicator", "RECEIVED MESSAGE GROUPID ="
-							+ localgroupId);
+					Log.d("communicator", "RECEIVED REVOKE MESSAGE GROUPID ="
+							+ localgroupId + ", mid=" + mid);
 					if (localgroupId != -1) {
 						hostUid = localgroupId;
 					}
 					newItem.system = true;
+
+					// The following also will discover groups (if we are the receipient)
+					int localgroupuid = DB.getHostUidForMid(context, mid, true);
+					int localid = -1;
+					if (localgroupuid == -1) {
+						// we may be the the sender of a group message, this is the following case
+						localgroupuid = DB.getLocalgroupuidByMid(context, mid);
+						localid = DB.getLocalidByMid(context, mid); // ***
+					}
+					Log.d("communicator", "RECEIVED REVOKE MESSAGE GROUP  localgroupuid="
+							+ localgroupuid + ", localid=" + localid);
+
+					if (localgroupuid != -1) {
+						// This MID was part of a group conversation, so go there instead to the user uid
+						hostUid = localgroupuid;
+					} 
+
 					DB.updateMessageRevoked(context, mid, newItem.created + "",
-							hostUid);
-					Main.updateLastMessage(context, hostUid, DB.REVOKEDTEXT,
+							localgroupuid);
+					if (localid != -1) {
+						// Additionally do this for the local id (in case of group messages sent, we do not hav
+						// an MID for the locally stored message to be revoked and only have the localid ***
+						DB.updateMessageRevokedByLocalId(context, localid, newItem.created + "",
+								localgroupuid);
+					}
+					Main.updateLastMessage(context, localgroupuid, DB.REVOKEDTEXT,
 							DB.getTimestamp());
+
+					
 					// If the senderUid will always be the table/hostUid of the
 					// conversation
-					// where the message to revoke resides. If we sent the
+					// where the message to revoke resides (in case of non-group
+					// messages). If we sent the
 					// message then
 					// we can look thi up under the mid in this table senderUid
 					// in order to
@@ -1016,8 +1042,15 @@ public class Communicator {
 					if (senderUid == DB.myUid()) {
 						senderUid = -1;
 					}
-					updateSentReceivedReadAsync(context, mid, senderUid, false,
-							false, false, true, false);
+					if (localgroupuid == -1) {
+						// Non-group case
+						updateSentReceivedReadAsync(context, mid, senderUid, false,
+								false, false, true, false);
+					} else {
+						// Group case
+						updateSentReceivedReadAsync(context, mid, localgroupuid, false,
+								false, false, true, false);
+					}
 				}
 			}
 			text = "";
@@ -3144,7 +3177,8 @@ public class Communicator {
 	// -------------------------------------------------------------------------
 
 	public static void sendReadConfirmation(final Context context, final int uid) {
-		// NO GROUP UID for the conversation read just take the one single conversation thread of the user
+		// NO GROUP UID for the conversation read just take the one single
+		// conversation thread of the user
 		int localgroupuid = -1;
 		sendReadConfirmation(context, uid, localgroupuid);
 	}
@@ -3157,33 +3191,34 @@ public class Communicator {
 	 * @param uid
 	 *            the uid
 	 */
-	public static void sendReadConfirmation(final Context context, final int uid, final int localgroupuid) {
+	public static void sendReadConfirmation(final Context context,
+			final int uid, final int localgroupuid) {
 		// only send readConfirmation for registered users!
 		if (uid <= 0) {
 			return;
 		}
-		
-		// For a typical conversation the database to get the largest MID from is the one of the user (uid)
+
+		// For a typical conversation the database to get the largest MID from
+		// is the one of the user (uid)
 		// only for groups this database is the one of the localgroupuid.
 		int uiddatabase = uid;
 		if (localgroupuid > -1) {
 			uiddatabase = localgroupuid;
 		}
-		
+
 		if (Setup.isGroup(context, uid)) {
 			// Do this for ALL members
 			int localGroupId = uid;
 			int serverId = Setup.getGroupServerId(context, localGroupId);
 			String groupId = Setup.getGroupId(context, localGroupId);
-			List<Integer> sUids = Setup.getGroupMembersList(context,
-					serverId, groupId);
+			List<Integer> sUids = Setup.getGroupMembersList(context, serverId,
+					groupId);
 			for (int sUid : sUids) {
 				int realuid = Setup.getUid(context, sUid, serverId);
 				sendReadConfirmation(context, realuid, localGroupId);
 			}
 			return;
 		}
-		
 
 		// if we do not refuse to send these confirmations...
 		if (!Utility.loadBooleanSetting(context, Setup.OPTION_NOREAD,
@@ -3201,9 +3236,9 @@ public class Communicator {
 			int lastMidSent = Utility.loadIntSetting(context,
 					"lastreadconfirmationmid", -1);
 
-			Log.d("communicator",
-					"SEND READ CONFIRMATION ?? lastreadconfirmationmid="
-							+ lastMidSent + " =?= " + +mid + "=mid");
+			// Log.d("communicator",
+			// "SEND READ CONFIRMATION ?? lastreadconfirmationmid="
+			// + lastMidSent + " =?= " + +mid + "=mid");
 
 			if (lastMidSent != mid) {
 				sendSystemMessageRead(context, uid, mid);

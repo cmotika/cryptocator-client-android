@@ -1699,7 +1699,7 @@ public class DB {
 	 *            the mid
 	 * @return the host uid for mid
 	 */
-	public static int getHostUidForMid(Context context, int mid) {
+	public static int getHostUidForMid(Context context, int mid, boolean groupsOnly) {
 		if (mid == -1) {
 			return -1;
 		}
@@ -1721,7 +1721,22 @@ public class DB {
 					" UPDATE MESSAGE getHostUidForMid() returnUid still -1, now searching in all user's DBs for mid="
 							+ mid);
 
-			for (int uid : Main.loadUIDList(context)) {
+			List<Integer> uidList = Main.loadUIDList(context);
+			// Add the groups
+			if (groupsOnly) {
+				// If we ONLY search groups, clear the list of user at this point
+				uidList.clear();
+			}
+			for (int serverId : Setup.getServerIds(context)) {
+				List<String> groupIds = Setup.getGroupsList(context, serverId);
+				for (String groupId : groupIds) {
+					int localGroupId = Setup.getLocalGroupId(context, groupId,
+							serverId);
+					uidList.add(localGroupId);
+				}
+			}
+			
+			for (int uid : uidList) {
 				db = openDB(context, uid);
 				QUERY = "SELECT `mid` FROM `" + TABLE_MESSAGES
 						+ "` WHERE `mid` = " + mid;
@@ -3357,10 +3372,9 @@ public class DB {
 				+ " AND `transport` = 0 AND `system` != '1'"
 				+ " ORDER BY `mid` DESC";
 		
-		Log.d("communicator",
-				"SEND READ CONFIRMATION getLargestMidForUIDExceptSystemMessages() uiddatabase="+uiddatabase+", QUERY='"
-						+ QUERY + "'");
-
+		// Log.d("communicator",
+		// "SEND READ CONFIRMATION getLargestMidForUIDExceptSystemMessages() uiddatabase="+uiddatabase+", QUERY='"
+		// + QUERY + "'");
 		
 		Cursor cursor = null;
 		try {
@@ -3369,8 +3383,8 @@ public class DB {
 				// Log.d("communicator", "getCount = " + cursor.getCount());
 				if (cursor.getCount() > 0) {
 					mid = Utility.parseInt(cursor.getString(0), -1);
-					 Log.d("communicator", "LARGEST MID FOR USER " + uid +
-					 " ===> " + mid) ;
+					// Log.d("communicator", "LARGEST MID FOR USER " + uid +
+					// " ===> " + mid) ;
 				}
 				cursor.close();
 			}
@@ -3933,14 +3947,15 @@ public class DB {
 		if (Setup.isGroup(context, hostUid)) {
 			Log.d("communicator", " REVOKE GROUP...");
 			// No revoke before sending if GROUP
-			List<Integer> sUids = DB.getGroupMembersForMessage(context, localid);
+			List<Integer> uids = DB.getGroupMembersForMessage(context, localid);
 			List<Integer> MIDs = DB.getMIDsForMessage(context, localid);
-			int serverId = Setup.getGroupServerId(context, hostUid);
+			//int serverId = Setup.getGroupServerId(context, hostUid);
 			int index = 0;
-			for (int sUid : sUids) {
+			for (int realuid : uids) {
 				int realmid = MIDs.get(index);
 				index++;
-				int realuid = Setup.getUid(context, sUid, serverId);
+				//int realuid = Setup.getUid(context, sUid, serverId);
+				Log.d("communicator", " REVOKE GROUP realuid=" + realuid + ", reailmid=" + realmid);
 				Communicator.sendSystemMessageRevoke(context, realuid, realmid);
 			}
 			return;
@@ -3979,6 +3994,37 @@ public class DB {
 		}
 	}
 
+	
+	// -----------------------------------------------------------------
+
+	/**
+	 * Update message revoked by local id.
+	 *
+	 * @param context            the context
+	 * @param localid the localid
+	 * @param timestamp            the timestamp
+	 * @param hostUid            the host uid
+	 * @return true, if successful
+	 */
+	public static boolean updateMessageRevokedByLocalId(Context context, int localid,
+			String timestamp, int hostUid) {
+		boolean success = false;
+		ContentValues values = new ContentValues();
+		values.put("text", DB.REVOKEDTEXT);
+		values.put("revoked", timestamp);
+		// Update
+		try {
+			SQLiteDatabase db = openDB(context, hostUid);
+			db.update("messages", values, "localid = " + localid, null);
+			// Log.d("communicator", "UPDATE REVOKED OF MID " + mid + "= " +
+			// timestamp +": " + rows);
+			db.close();
+			success = true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return success;
+	}
 	// -----------------------------------------------------------------
 
 	/**
