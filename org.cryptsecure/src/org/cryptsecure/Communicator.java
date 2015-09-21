@@ -550,10 +550,13 @@ public class Communicator {
 							}
 						}
 						if (revoked) {
-							if (Conversation.getInstance() != null
+							 Log.d("communicator",
+							 "REVOKE GROUP AS SENDER??? updateSentReceivedReadAsync() Conversation.getHostUid()=" + Conversation.getHostUid() + ", hostUid=" + hostUid);
+
+							 if (Conversation.getInstance() != null
 									&& (Conversation.getHostUid() == hostUid || hostUid == -1)) {
-								// Log.d("communicator",
-								// "REVOKE updateSentReceivedReadAsync() #3");
+								 Log.d("communicator",
+								 "REVOKE GROUP AS SENDER updateSentReceivedReadAsync() #3 mid=" + mid);
 								Conversation.setRevokedInConversation(context,
 										mid);
 							}
@@ -1047,9 +1050,18 @@ public class Communicator {
 						updateSentReceivedReadAsync(context, mid, senderUid, false,
 								false, false, true, false);
 					} else {
-						// Group case
-						updateSentReceivedReadAsync(context, mid, localgroupuid, false,
-								false, false, true, false);
+						if (localid != -1) {
+							Log.d("communicator", "RECEIVED REVOKE MESSAGE GROUP AS SENDER mid="
+									+ -1 * localid + ", localgroupuid=" + localgroupuid);
+
+							// Group case *sender*
+							updateSentReceivedReadAsync(context, -1 * localid, localgroupuid, false,
+									false, false, true, false);
+						} else {
+							// Group case *receipient*
+							updateSentReceivedReadAsync(context, mid, localgroupuid, false,
+									false, false, true, false);
+						}
 					}
 				}
 			}

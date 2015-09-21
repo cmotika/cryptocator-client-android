@@ -2499,9 +2499,8 @@ public class Utility {
 									new Long(contactId)));
 			if (inputStream != null) {
 				bitmap = BitmapFactory.decodeStream(inputStream);
+				inputStream.close();
 			}
-			assert inputStream != null;
-			inputStream.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
