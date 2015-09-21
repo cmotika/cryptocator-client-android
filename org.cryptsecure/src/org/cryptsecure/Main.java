@@ -2247,9 +2247,7 @@ public class Main extends Activity {
 		maindeviceid.setText("Account Key: " + Setup.getPublicKeyHash(context));
 		maindeviceid.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				
-				DB.printDBGroup(context);
-				
+				//DB.printDBGroup(context);
 				String text = YOURACCOUNTKEYSIMPLE;
 				Conversation.promptInfo(context, "Your Account Key", text);
 			}

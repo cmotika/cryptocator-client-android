@@ -60,7 +60,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -2493,6 +2492,7 @@ public class Conversation extends Activity {
 	 *            the alert
 	 * @return the bitmap
 	 */
+	@SuppressLint("DefaultLocale")
 	public static Bitmap retrieveAvatar(Context context, int uid,
 			boolean alert, boolean fakeAvatarIfNoOther, boolean speech) {
 
@@ -3174,6 +3174,13 @@ public class Conversation extends Activity {
 					});
 		}
 
+		
+		if (Setup.isGroup(context, hostUid)) {
+			imageContextMenuProvider.setVisible(menuContextGroupInvite, false);
+		} else {
+			imageContextMenuProvider.setVisible(menuContextGroupInvite, true);
+		}
+		
 		// Update
 		if (maxScrollMessageItems == Setup.SHOW_ALL) {
 			imageContextMenuProvider.setVisible(menuContextShowAll, false);
@@ -4902,8 +4909,8 @@ public class Conversation extends Activity {
 		returnLayout.setLayoutParams(lpLayout);
 		returnLayout.setOrientation(LinearLayout.VERTICAL);
 
-		int serverId = Setup.getGroupServerId(context, localGroupId);
-		String groupId = Setup.getGroupId(context, localGroupId);
+		// int serverId = Setup.getGroupServerId(context, localGroupId);
+		// String groupId = Setup.getGroupId(context, localGroupId);
 		// List<Integer> sUids = Setup.getGroupMembersList(context, serverId,
 		// groupId);
 		List<Integer> uids = DB.getGroupMembersForMessage(context, localid);

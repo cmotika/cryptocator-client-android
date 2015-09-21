@@ -3688,8 +3688,8 @@ org.cryptsecure.DB -> org.cryptsecure.es:
     void askToRebuildDB(android.content.Context,int) -> A
     void tryRepairDB(android.content.Context,int) -> h
     void rebuildDBSending(android.content.Context) -> g
-    void rebuildDBSent(android.content.Context) -> n
-    void rebuildDBGroupMsg(android.content.Context) -> o
+    void rebuildDBSent(android.content.Context) -> m
+    void rebuildDBGroupMsg(android.content.Context) -> n
     void ensureDBInitialized(android.content.Context,java.util.List) -> a
     boolean revokeFromSending(android.content.Context,int) -> i
     void removeOldMappings(android.content.Context) -> h
@@ -3717,8 +3717,7 @@ org.cryptsecure.DB -> org.cryptsecure.es:
     int addMessage(android.content.Context,int,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,boolean,int,boolean,int,int,java.lang.String) -> a
     void cleanupDBSending(android.content.Context) -> j
     void printDB(android.content.Context,int) -> q
-    java.lang.String printDBGroup(android.content.Context) -> k
-    java.lang.String printDBSending(android.content.Context) -> l
+    java.lang.String printDBSending(android.content.Context) -> k
     int getConversationSize(android.content.Context,int,boolean) -> c
     void loadConversation(android.content.Context,int,java.util.List,int) -> a
     boolean isTableExists(android.database.sqlite.SQLiteDatabase,java.lang.String) -> a
@@ -3754,7 +3753,7 @@ org.cryptsecure.DB -> org.cryptsecure.es:
     boolean updateMessage(android.content.Context,org.cryptsecure.ConversationItem,int,boolean) -> a
     void deleteUser(android.content.Context,int) -> z
     boolean mergeUser(android.content.Context,int,int) -> j
-    void possiblyUpdate(android.content.Context) -> m
+    void possiblyUpdate(android.content.Context) -> l
 org.cryptsecure.DB$1 -> org.cryptsecure.et:
     android.content.Context val$context -> a
     int val$uid -> b

@@ -2921,14 +2921,14 @@ org.cryptsecure.Communicator:
     96:96:public Communicator()
 org.cryptsecure.Conversation:
     static final java.lang.String GROUPINVITATION_PREFIX
-    4319:4347:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
-    4421:4453:public void insertImage(android.content.Context,java.lang.String)
-    160:160:static synthetic boolean access$36()
+    4326:4354:public static void promptImageSaveAs(android.content.Context,java.lang.String,java.lang.String)
+    4428:4460:public void insertImage(android.content.Context,java.lang.String)
+    159:159:static synthetic boolean access$36()
 org.cryptsecure.Conversation$78:
-    4200:4205:public void onCancel()
+    4207:4212:public void onCancel()
 org.cryptsecure.Conversation$79
 org.cryptsecure.Conversation$80:
-    4392:4396:public void onCancel()
+    4399:4403:public void onCancel()
 org.cryptsecure.Conversation$81
 org.cryptsecure.ConversationCompose:
     private static final int SELECT_PICTURE
@@ -2952,6 +2952,7 @@ org.cryptsecure.DB:
     2477:2505:public static java.lang.String getMultipartIdSending(android.content.Context,int)
     2523:2551:public static java.lang.String getMultipartIdReceived(android.content.Context,int,int)
     2848:2854:public static void cleanupDB(android.content.Context,int)
+    2906:2931:public static java.lang.String printDBGroup(android.content.Context)
     3839:3855:public static boolean updateMessageByMid(android.content.Context,int,java.lang.String,int,java.lang.String)
     4116:4116:public static boolean isMessageFailed(java.lang.String)
 org.cryptsecure.FastScrollBar:
